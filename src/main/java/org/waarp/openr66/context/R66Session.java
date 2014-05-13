@@ -86,7 +86,7 @@ public class R66Session implements SessionInterface {
 	 */
 	private R66File file;
 	/**
-	 * Does this session is Ready to server a request
+	 * Does this session is Ready to serve a request
 	 */
 	private volatile boolean isReady = false;
 	/**
@@ -213,6 +213,49 @@ public class R66Session implements SessionInterface {
 		if (runner != null) {
 			runner.clear();
 		}
+		if (state != null) {
+			try {
+				state.setCurrent(R66FiniteDualStates.CLOSEDCHANNEL);
+			} catch (IllegalFiniteStateException e) {
+			}
+			// R66FiniteDualStates.endSessionMachineSate(state);
+		}
+		// No clean of file since it can be used after channel is closed
+		isReady = false;
+		if (businessObject != null) {
+			businessObject.releaseResources();
+			businessObject = null;
+		}
+	}
+
+	public void partialClear() {
+		// First check if a transfer was on going
+		if (runner != null && (!runner.isFinished()) && (!runner.continueTransfer())) {
+			if (localChannelReference != null) {
+				if (!localChannelReference.getFutureRequest().isDone()) {
+					R66Result result = new R66Result(new OpenR66RunnerErrorException(
+							"Close before ending"), this, true,
+							ErrorCode.Disconnection, runner);// True since called from closed
+					result.runner = runner;
+					try {
+						setFinalizeTransfer(false, result);
+					} catch (OpenR66RunnerErrorException e) {
+					} catch (OpenR66ProtocolSystemException e) {
+					}
+				}
+			}
+		}
+		/*
+		if (dir != null) {
+			dir.clear();
+		}
+		if (auth != null) {
+			auth.clear();
+		}
+		if (runner != null) {
+			runner.clear();
+		}
+		*/
 		if (state != null) {
 			try {
 				state.setCurrent(R66FiniteDualStates.CLOSEDCHANNEL);

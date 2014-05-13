@@ -120,6 +120,13 @@ public class OutputFormat extends JsonHandler {
 		ObjectNode temp = getFromString(json);
 		node.putAll(temp);
 	}
+	/**
+	 * 
+	 * @param values
+	 */
+	public void setValueString(ObjectNode node) {
+		node.putAll(node);
+	}
 
 	/**
 	 * 

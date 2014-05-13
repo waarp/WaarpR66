@@ -22,6 +22,8 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import java.util.Date;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Export Log JSON packet
@@ -198,4 +200,7 @@ public class LogJsonPacket extends JsonPacket {
 		}
 	}
 
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.LOGPACKET);
+	}
 }

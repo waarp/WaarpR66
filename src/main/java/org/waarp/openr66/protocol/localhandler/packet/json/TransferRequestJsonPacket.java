@@ -24,10 +24,11 @@ import java.util.Date;
 
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 
 /**
- * File name or size changing Request JSON packet
+ * Transfer request JSON packet
  * @author "Frederic Bregier"
  *
  */
@@ -53,8 +54,6 @@ public class TransferRequestJsonPacket extends JsonPacket {
 
 	protected byte validate;
 
-	protected char code;
-	
 	protected long originalSize;
 
 	protected String fileInformation;
@@ -233,20 +232,6 @@ public class TransferRequestJsonPacket extends JsonPacket {
 	public void validate() {
 		this.validate = REQANSWERVALIDATE;
 	}
-	
-	/**
-	 * @return the code
-	 */
-	public char getCode() {
-		return code;
-	}
-
-	/**
-	 * @param code the code to set
-	 */
-	public void setCode(char code) {
-		this.code = code;
-	}
 
 	/**
 	 * @return the originalSize
@@ -289,11 +274,17 @@ public class TransferRequestJsonPacket extends JsonPacket {
 	public void setSeparator(String separator) {
 		this.separator = separator;
 	}
-	
+	/**
+	 * Update the JsonPacket from runner (blocksize, rank, specialid)
+	 * @param runner
+	 */
 	public void setFromDbTaskRunner(DbTaskRunner runner) {
 		this.blocksize = runner.getBlocksize();
 		this.rank = runner.getRank();
 		this.specialId = runner.getSpecialId();
 		this.originalSize = runner.getOriginalSize();
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.REQUESTPACKET);
 	}
 }

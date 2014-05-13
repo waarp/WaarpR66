@@ -21,6 +21,7 @@
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 
 /**
@@ -236,5 +237,8 @@ public class ConfigImportJsonPacket extends JsonPacket {
 			this.aliasid = other2.aliasid;
 			this.rolesid = other2.rolesid;
 		}		
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.CONFIMPORTPACKET);
 	}
 }

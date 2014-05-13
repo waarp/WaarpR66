@@ -74,6 +74,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpPipelineFactory;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslPipelineFactory;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
@@ -183,6 +184,10 @@ public class Configuration {
 	 */
 	public HashMap<String, String> aliases = new HashMap<String, String>();
 	/**
+	 * reverse Aliases list for identified partners
+	 */
+	public HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
+	/**
 	 * Versions for each HostID
 	 */
 	public ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
@@ -275,6 +280,31 @@ public class Configuration {
 	 */
 	public long maxGlobalMemory = 0x100000000L;
 
+	/**
+	 * Http REST port (SSL or not SSL), <=0 for no REST support
+	 */
+	public int REST_PORT = -1;
+	
+	/**
+	 * SERVER REST interface using SSL
+	 */
+	public boolean REST_SSL = false;
+
+	/**
+	 * SERVER REST interface allowing delete
+	 */
+	public boolean REST_ALLOW_DELETE = false;
+
+	/**
+	 * SERVER REST interface using time limit (default: no limit <= 0)
+	 */
+	public long REST_TIME_LIMIT = -1;
+	
+	/**
+	 * SERVER REST interface using authentication
+	 */
+	public boolean REST_AUTHENTICATED = false;
+	
 	/**
 	 * Base Directory
 	 */
@@ -564,8 +594,7 @@ public class Configuration {
 	/**
 	 * Monitoring: minimal interval in ms before redo real monitoring
 	 */
-	public long minimalDelay = 5000; // 5
-										// seconds
+	public long minimalDelay = 5000; // 5 seconds
 	/**
 	 * Monitoring: snmp configuration file (empty means no snmp support)
 	 */
@@ -652,14 +681,14 @@ public class Configuration {
 
 	public String toString() {
 		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
-				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+
+				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestPort: "+(REST_PORT > 0 ? REST_PORT : "'NoRestSupport'")+
 				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
 				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
 				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
 	}
 	
 	/**
-	 * Configure the pipeline for client (to be called ony once)
+	 * Configure the pipeline for client (to be called only once)
 	 */
 	public void pipelineInit() {
 		if (configured) {
@@ -696,6 +725,9 @@ public class Configuration {
 	}
 
 	public void httpPipelineInit() {
+		if (objectSizeEstimator == null) {
+			objectSizeEstimator = new NetworkPacketSizeEstimator();
+		}
 		httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
 				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
 				TimeUnit.MILLISECONDS, objectSizeEstimator, new WaarpThreadFactory("HttpExecutor"));
@@ -729,6 +761,7 @@ public class Configuration {
 		startHttpSupport();
 		startMonitoring();
 		launchStatistics();
+		startRestSupport();
 	}
 	/**
 	 * Used to log statistics information regularly
@@ -847,6 +880,13 @@ public class Configuration {
 		httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 		// Bind and start to accept incoming connections.
 		httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
+	}
+	
+	public void startRestSupport() {
+		if (REST_PORT > 0) {
+			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_PORT);
+			HttpRestR66Handler.initializeService(baseDirectory+"/"+workingPath+"/httptemp");
+		}
 	}
 
 	public void startMonitoring() throws WaarpDatabaseSqlException {

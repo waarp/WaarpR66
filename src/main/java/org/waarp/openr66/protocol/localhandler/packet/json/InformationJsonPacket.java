@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Information (on request or on filesystem) JSON packet
@@ -34,6 +36,40 @@ public class InformationJsonPacket extends JsonPacket {
 	protected byte request;
 	protected String rulename;
 	protected String filename;
+	
+	/**
+	 * Empty constructor
+	 */
+	public InformationJsonPacket() {
+		
+	}
+	
+	/**
+	 * Constructor for Transfer Request Information
+	 * @param id
+	 * @param isTo
+	 * @param remoteHost
+	 */
+	public InformationJsonPacket(long id, boolean isTo, String remoteHost) {
+		setId(id);
+		setTo(isTo);
+		setRulename(remoteHost);
+		setIdRequest(true);
+		setRequestUserPacket();
+	}
+	/**
+	 * Constructor for File information
+	 * @param request InformationPacket.ASKENUM ordinal (converted to byte)
+	 * @param rulename
+	 * @param filename
+	 */
+	public InformationJsonPacket(byte request, String rulename, String filename) {
+		setRequest(request);
+		setFilename(filename);
+		setRulename(rulename);
+		setIdRequest(false);
+		setRequestUserPacket();
+	}
 	/**
 	 * @return the isIdRequest
 	 */
@@ -41,7 +77,7 @@ public class InformationJsonPacket extends JsonPacket {
 		return isIdRequest;
 	}
 	/**
-	 * @param isIdRequest the isIdRequest to set
+	 * @param isIdRequest the isIdRequest to True for Transfer Request, else for File listing
 	 */
 	public void setIdRequest(boolean isIdRequest) {
 		this.isIdRequest = isIdRequest;
@@ -59,7 +95,7 @@ public class InformationJsonPacket extends JsonPacket {
 		this.id = id;
 	}
 	/**
-	 * @return the isTo
+	 * @return the isTo for Transfer, determine the way of the transfer as requester/requested (isTo true/false)
 	 */
 	public boolean isTo() {
 		return isTo;
@@ -89,7 +125,7 @@ public class InformationJsonPacket extends JsonPacket {
 		return rulename;
 	}
 	/**
-	 * @param rulename the rulename to set
+	 * @param rulename the rulename to set (if Transfer and Json requester/requested (isTo true/false))
 	 */
 	public void setRulename(String rulename) {
 		this.rulename = rulename;
@@ -105,5 +141,8 @@ public class InformationJsonPacket extends JsonPacket {
 	 */
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.INFORMATIONPACKET);
 	}
 }

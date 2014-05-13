@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +81,9 @@ import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
  * 
@@ -89,6 +91,12 @@ import org.xml.sax.SAXException;
  * 
  */
 public class DbTaskRunner extends AbstractDbData {
+	public static final String JSON_ORIGINALSIZE = "ORIGINALSIZE";
+
+	public static final String JSON_THROUGHMODE = "THROUGHMODE";
+
+	public static final String JSON_RESCHEDULE = "RESCHEDULE";
+
 	/**
 	 * Internal Logger
 	 */
@@ -713,6 +721,132 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * Minimal constructor from database
+	 * @param dbSession
+	 * @param id
+	 * @param requester
+	 * @param requested
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, long id, String requester, String requested)
+			throws WaarpDatabaseException {
+		super(dbSession);
+		specialId = id;
+		// retrieving a task should be made from the requester, but the caller
+		// is responsible of this
+		requestedHostId = requested;
+		requesterHostId = requester;
+		// always itself
+		ownerRequest = Configuration.configuration.HOST_ID;
+
+		select();
+		updateUsed(specialId);
+	}
+	/**
+	 * Minimal constructor from database
+	 * @param dbSession
+	 * @param id
+	 * @param requester
+	 * @param requested
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, long id, String requester, String requested, String owner)
+			throws WaarpDatabaseException {
+		super(dbSession);
+		specialId = id;
+		// retrieving a task should be made from the requester, but the caller
+		// is responsible of this
+		requestedHostId = requested;
+		requesterHostId = requester;
+		// might be not itself
+		if (owner == null || owner.isEmpty()) {
+			ownerRequest = Configuration.configuration.HOST_ID;
+		} else {
+			ownerRequest = owner;
+		}
+
+		select();
+		updateUsed(specialId);
+	}
+
+	/**
+	 * To create a new DbTaskRunner (specialId could be invalid) without making any entry in the database
+	 * @param dbSession
+	 * @param source
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, ObjectNode source) throws WaarpDatabaseException {
+		super(dbSession);
+		this.session = null;
+		setFromJson(source, false);
+	}
+
+	@Override
+	public void setFromJson(ObjectNode source, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
+		ruleId = source.path(Columns.IDRULE.name()).asText();
+		rank = source.path(Columns.RANK.name()).asInt();
+		blocksize = source.path(Columns.BLOCKSZ.name()).asInt();
+		fileInformation = source.path(Columns.FILEINFO.name()).asText();
+		filename = source.path(Columns.FILENAME.name()).asText();
+		globallaststep = source.path(Columns.GLOBALLASTSTEP.name()).asInt();
+		globalstep = source.path(Columns.GLOBALSTEP.name()).asInt();
+		infostatus = ErrorCode.getFromCode(source.path(Columns.INFOSTATUS.name()).asText());
+		isFileMoved = source.path(Columns.ISMOVED.name()).asBoolean();
+		mode = source.path(Columns.MODETRANS.name()).asInt();
+		originalFilename = source.path(Columns.ORIGINALNAME.name()).asText();
+		if (! ignorePrimaryKey) {
+			ownerRequest = source.path(Columns.OWNERREQ.name()).asText();
+			if (ownerRequest == null || ownerRequest.isEmpty()) {
+				ownerRequest = Configuration.configuration.HOST_ID;
+			}
+			specialId = source.path(Columns.SPECIALID.name()).asLong();
+			requestedHostId = source.path(Columns.REQUESTED.name()).asText();
+			requesterHostId = source.path(Columns.REQUESTER.name()).asText();
+		}
+		isSender = source.path(Columns.RETRIEVEMODE.name()).asBoolean();
+		long msstart = source.path(Columns.STARTTRANS.name()).asLong();
+		if (msstart == 0) {
+			start = new Timestamp(System.currentTimeMillis());
+		} else {
+			start = new Timestamp(msstart);
+		}
+		msstart = source.path(Columns.STOPTRANS.name()).asLong();
+		if (msstart == 0) {
+			stop = new Timestamp(System.currentTimeMillis());
+		} else {
+			stop = new Timestamp(msstart);
+		}
+		step = source.path(Columns.STEP.name()).asInt();
+		status = ErrorCode.getFromCode(source.path(Columns.STEPSTATUS.name()).asText());
+		transferInformation = source.path(Columns.TRANSFERINFO.name()).asText();
+		rescheduledTransfer = source.path(JSON_RESCHEDULE).asBoolean(false);
+		JsonNode node = source.path(JSON_THROUGHMODE);
+		if (! node.isMissingNode()) {
+			if (RequestPacket.isRecvMode(mode)) {
+				isRecvThrough = node.asBoolean(); 
+			} else {
+				isSendThrough = node.asBoolean();
+			}
+		}
+		originalSize = source.path(JSON_ORIGINALSIZE).asLong(-1);
+		isSaved = false;
+		try {
+			this.rule = new DbRule(dbSession, ruleId);
+			if (mode != rule.mode) {
+				if (RequestPacket.isMD5Mode(mode)) {
+					mode = RequestPacket.getModeMD5(rule.mode);
+				} else {
+					mode = rule.mode;
+				}
+			}
+		} catch (WaarpDatabaseException e) {
+			// ignore
+			this.rule = null;
+		}
+		checkThroughMode();
+		setToArray();
+	}
+	/**
 	 * Constructor to initiate a request with a valid previous Special Id so loaded from database.
 	 * 
 	 * This object cannot be used except to retrieve information.
@@ -820,10 +954,6 @@ public class DbTaskRunner extends AbstractDbData {
 		CommanderNoDb.todoList.add(runner);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#insert()
-	 */
 	@Override
 	public void insert() throws WaarpDatabaseException {
 		if (isSaved) {
@@ -892,8 +1022,10 @@ public class DbTaskRunner extends AbstractDbData {
 			if (shallIgnore) {
 				dbR66TaskHashMap.put(specialId, this);
 			}
+			logger.debug("DEBUG: not created "+specialId);
 			return;
 		}
+		logger.debug("DEBUG: created "+specialId);
 		// First need to find a new id if id is not ok
 		if (specialId == DbConstant.ILLEGALVALUE) {
 			specialId = DbModelFactory.dbModel.nextSequence(dbSession);
@@ -955,10 +1087,6 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#exist()
-	 */
 	@Override
 	public boolean exist() throws WaarpDatabaseException {
 		boolean shallIgnore = shallIgnoreSave();
@@ -974,10 +1102,29 @@ public class DbTaskRunner extends AbstractDbData {
 		return super.exist();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#select()
+	/**
+	 * Shall be called to ensure that item is really available in database
+	 * @return True iff the element exists in a database (and reloaded then from Database)
+	 * @throws WaarpDatabaseException
 	 */
+	public boolean checkFromDbForSubmit() throws WaarpDatabaseException {
+		if (dbSession == null) {
+			return false;
+		}
+		if (super.exist()) {
+			boolean isSenderBack = isSender;
+			super.select();
+			if (rule == null) {
+				rule = new DbRule(this.dbSession, ruleId);
+			}
+			checkThroughMode();
+			isSender = isSenderBack;
+			isSaved = false;
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public void select() throws WaarpDatabaseException {
 		if (dbSession == null) {
@@ -1064,15 +1211,15 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 		super.select();
 		if (rule == null) {
-			rule = new DbRule(this.dbSession, ruleId);
+			try {
+				rule = new DbRule(this.dbSession, ruleId);
+			} catch (WaarpDatabaseNoDataException e) {
+				// ignore
+			}
 		}
 		checkThroughMode();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()
-	 */
 	@Override
 	public void update() throws WaarpDatabaseException {
 		if (isSaved) {
@@ -1179,10 +1326,10 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * Private constructor for Commander only
 	 * 
-	 * @param session
+	 * @param dbSession
 	 */
-	private DbTaskRunner(DbSession dBsession) {
-		super(dBsession);
+	private DbTaskRunner(DbSession dbSession) {
+		super(dbSession);
 		session = null;
 		rule = null;
 	}
@@ -1221,6 +1368,34 @@ public class DbTaskRunner extends AbstractDbData {
 		if (dbTaskRunner.rule == null) {
 			try {
 				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
+			} catch (WaarpDatabaseException e) {
+				throw new WaarpDatabaseSqlException("Rule cannot be found for DbTaskRunner: "+dbTaskRunner.ruleId, e);
+			}
+		}
+		dbTaskRunner.checkThroughMode();
+		dbTaskRunner.isSaved = true;
+		return dbTaskRunner;
+	}
+	/**
+	 * For REST interface, to prevent DbRule issue
+	 * 
+	 * @param preparedStatement
+	 * @return the next updated DbTaskRunner
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbTaskRunner getFromStatementNoDbRule(
+			DbPreparedStatement preparedStatement)
+			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement
+				.getDbSession());
+		dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
+		dbTaskRunner.setFromArray();
+		if (dbTaskRunner.rule == null) {
+			try {
+				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
+			} catch (WaarpDatabaseNoDataException e) {
+				// ignore
 			} catch (WaarpDatabaseException e) {
 				throw new WaarpDatabaseSqlException(e);
 			}
@@ -1532,14 +1707,52 @@ public class DbTaskRunner extends AbstractDbData {
 			String req, boolean pending, boolean transfer, boolean error,
 			boolean done, boolean all) throws WaarpDatabaseNoConnectionException,
 			WaarpDatabaseSqlException {
+		return getFilterPrepareStatement(session, limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done, all,
+				null);
+	}
+	/**
+	 * 
+	 * @param session
+	 * @param limit
+	 * @param orderBySpecialId
+	 * @param startid
+	 * @param stopid
+	 * @param start
+	 * @param stop
+	 * @param rule
+	 * @param req
+	 * @param pending
+	 * @param transfer
+	 * @param error
+	 * @param done
+	 * @param all
+	 * @param owner
+	 * @return the DbPreparedStatement according to the filter
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbPreparedStatement getFilterPrepareStatement(
+			DbSession session, int limit, boolean orderBySpecialId, String startid, String stopid,
+			Timestamp start, Timestamp stop, String rule,
+			String req, boolean pending, boolean transfer, boolean error,
+			boolean done, boolean all, String owner) throws WaarpDatabaseNoConnectionException,
+			WaarpDatabaseSqlException {
 		DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
 		String request = "SELECT " + selectAllFields + " FROM " + table;
 		String orderby;
 		if (startid == null && stopid == null &&
 				start == null && stop == null && rule == null && req == null && all) {
-			orderby = " WHERE " + getLimitWhereCondition();
+			if (owner == null || owner.isEmpty()) {
+				orderby = " WHERE " + getLimitWhereCondition();
+			} else {
+				orderby = " WHERE " + Columns.OWNERREQ + " = '" + owner + "' ";
+			}
 		} else {
-			orderby = " AND " + getLimitWhereCondition();
+			if (owner == null || owner.isEmpty()) {
+				orderby = " AND " + getLimitWhereCondition();
+			} else {
+				orderby = " AND " + Columns.OWNERREQ + " = '" + owner + "' ";
+			}
 		}
 		if (orderBySpecialId) {
 			orderby += " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
@@ -3620,36 +3833,6 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
-	 * Need to call 'setToArray' before
-	 * 
-	 * @param runner
-	 * @return The HashMap representing the given Runner
-	 * @throws WaarpDatabaseSqlException
-	 */
-	public static Map<String, String> getMapFromRunner(DbTaskRunner runner) {
-		HashMap<String, String> values = new HashMap<String, String>();
-		for (DbValue value : runner.allFields) {
-			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
-					value.column.equals(Columns.TRANSFERINFO.name())) {
-				continue;
-			}
-			try {
-				values.put(value.column.toLowerCase(), value.getValueAsString());
-			} catch (WaarpDatabaseSqlException e) {
-				// ignore but put wring value
-				values.put(value.column.toLowerCase(), "UNREADABLE");
-			}
-		}
-		if (runner.rescheduledTransfer) {
-			values.put("RESCHEDULE", ""+true);
-		}
-		if (runner.isRecvThrough || runner.isSendThrough) {
-			values.put("THROUGHMODE", ""+true);
-		}
-		values.put("ORIGINALSIZE", ""+runner.originalSize);
-		return values;
-	}
-	/**
 	 * Construct a new Element with value
 	 * 
 	 * @param name
@@ -3706,6 +3889,7 @@ public class DbTaskRunner extends AbstractDbData {
 				value.setValueFromString(newValue);
 			}
 		}
+		runner.allFields[Columns.TRANSFERINFO.ordinal()].setValue("{}");
 	}
 
 	/**
@@ -3766,7 +3950,7 @@ public class DbTaskRunner extends AbstractDbData {
 		try {
 			outputStream = new FileOutputStream(filename);
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			format.setEncoding("ISO-8859-1");
+			format.setEncoding(WaarpStringUtils.UTF_8);
 			xmlWriter = new XMLWriter(outputStream, format);
 			preparedStatement.executeQuery();
 			nbAndSpecialId = writeXML(preparedStatement, xmlWriter);
@@ -3867,6 +4051,28 @@ public class DbTaskRunner extends AbstractDbData {
 		return node.asXML();
 	}
 	
+	@Override
+	public ObjectNode getJson() {
+		ObjectNode node = super.getJson();
+		if (rescheduledTransfer) {
+			node.put(JSON_RESCHEDULE, true);
+		}
+		if (isRecvThrough || isSendThrough) {
+			node.put(JSON_THROUGHMODE, true);
+		}
+		node.put(JSON_ORIGINALSIZE, originalSize);
+		return node;
+	}
+	
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbTaskRunner item = new DbTaskRunner(null);
+		return item.allFields;
+	}
+
 	/**
 	 * Set the given runner from the root element of the runner itself (XMLRUNNER but not
 	 * XMLRUNNERS). Need to call 'setFromArray' after.
@@ -3890,6 +4096,7 @@ public class DbTaskRunner extends AbstractDbData {
 				}
 			}
 		}
+		runner.allFields[Columns.TRANSFERINFO.ordinal()].setValue("{}");
 	}
 	
 	/**
@@ -3943,7 +4150,7 @@ public class DbTaskRunner extends AbstractDbData {
 		try {
 			outputStream = new FileOutputStream(filename);
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			format.setEncoding("ISO-8859-1");
+			format.setEncoding(WaarpStringUtils.UTF_8);
 			xmlWriter = new XMLWriter(outputStream, format);
 			Element root = new DefaultElement(XMLRUNNERS);
 			try {
@@ -3980,7 +4187,7 @@ public class DbTaskRunner extends AbstractDbData {
 					File file = new File(filename);
 					file.delete();
 					logger.error("Cannot write XML file", e);
-					throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+					throw new OpenR66ProtocolBusinessException("Cannot write XML file");
 				} catch (IOException e) {
 					try {
 						outputStream.close();
@@ -3989,7 +4196,7 @@ public class DbTaskRunner extends AbstractDbData {
 					File file = new File(filename);
 					file.delete();
 					logger.error("Cannot write XML file", e);
-					throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+					throw new OpenR66ProtocolBusinessException("IO error on XML file", e);
 				}
 			} else if (outputStream != null) {
 				try {
@@ -4020,14 +4227,14 @@ public class DbTaskRunner extends AbstractDbData {
 			document = reader.read(file);
 		} catch (DocumentException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"Backend XML file cannot be read as an XML file");
+					"Backend XML file cannot be read as an XML file", e);
 		}
 		Element root = (Element) document.selectSingleNode("/" + XMLRUNNERS + "/" + XMLRUNNER);
 		try {
 			setRunnerFromElement(this, root);
 		} catch (WaarpDatabaseSqlException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"Backend XML file is not conform to the model");
+					"Backend XML file is not conform to the model", e);
 		}
 	}
 	
@@ -4061,11 +4268,12 @@ public class DbTaskRunner extends AbstractDbData {
 			document = reader.read(logsFile);
 		} catch (DocumentException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"XML file cannot be read as an XML file");
+					"XML file cannot be read as an XML file", e);
 		}
 		@SuppressWarnings("unchecked")
 		List<Element> elts = document.selectNodes("/" + XMLRUNNERS + "/" + XMLRUNNER);
 		boolean error = false;
+		Exception one = null;
 		for (Element element : elts) {
 			DbTaskRunner runnerlog = new DbTaskRunner(DbConstant.admin.session);
 			try {
@@ -4074,13 +4282,15 @@ public class DbTaskRunner extends AbstractDbData {
 				runnerlog.insertOrUpdateForLogsImport();
 			} catch (WaarpDatabaseSqlException e) {
 				error = true;
+				one = e;
 			} catch (WaarpDatabaseException e) {
 				error = true;
+				one = e;
 			}
 		}
 		if (error) {
 			throw new OpenR66ProtocolBusinessException(
-				"Backend XML file is not conform to the model");
+				"Backend XML file is not conform to the model", one);
 		}
 	}
 

@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * File name or size changing Request JSON packet
@@ -53,5 +55,8 @@ public class RequestJsonPacket extends JsonPacket {
 	 */
 	public void setFilesize(long filesize) {
 		this.filesize = filesize;
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.REQUESTPACKET);
 	}
 }

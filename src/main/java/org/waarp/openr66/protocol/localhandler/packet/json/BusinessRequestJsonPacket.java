@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Business Request JSON packet
@@ -108,4 +110,7 @@ public class BusinessRequestJsonPacket extends JsonPacket {
 		this.delay = delay;
 	}
 	
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.BUSINESSREQUESTPACKET);
+	}
 }

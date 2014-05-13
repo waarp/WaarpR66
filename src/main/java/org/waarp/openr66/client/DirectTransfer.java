@@ -17,8 +17,6 @@
  */
 package org.waarp.openr66.client;
 
-import java.util.Map;
-
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -171,8 +169,7 @@ public class DirectTransfer extends AbstractTransfer {
 					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 				}
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-				outputFormat.setValueString(map);
+				outputFormat.setValueString(result.runner.getJson());
 				outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
 				outputFormat.setValue("delay", delay);
 				if (transaction.normalInfoAsWarn) {
@@ -213,8 +210,7 @@ public class DirectTransfer extends AbstractTransfer {
 					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 				}
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-				outputFormat.setValueString(map);
+				outputFormat.setValueString(result.runner.getJson());
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
 					logger.warn(outputFormat.loggerOut(), future.getCause());
 				} else {

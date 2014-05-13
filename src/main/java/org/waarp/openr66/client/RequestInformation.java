@@ -18,7 +18,6 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
-import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -274,8 +273,7 @@ public class RequestInformation implements Runnable {
 				} else {
 					try {
 						DbTaskRunner runner = DbTaskRunner.fromStringXml(info.getSheader(), false);
-						Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
-						outputFormat.setValueString(map);
+						outputFormat.setValueString(runner.getJson());
 					} catch (OpenR66ProtocolBusinessException e) {
 						outputFormat.setValue("Id", requestInformation.id);
 						outputFormat.setValue(FIELDS.transfer.name(), info.getSheader());

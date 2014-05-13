@@ -26,7 +26,7 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * Business Request Message class for packet
  * 
  * 1 string and on integer and one byte:<br>
- * - sheader = full text with class at first place - smiddle = integer - send = byte
+ * - sheader = full text with class at first place, following (space separated) by extra arguments - smiddle = integer - send = byte
  * 
  * @author frederic bregier
  */

@@ -20,7 +20,6 @@ package org.waarp.openr66.client;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.command.exception.CommandAbstractException;
@@ -35,7 +34,6 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
-import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
@@ -191,8 +189,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 							}
 							outputFormat.setValue(FIELDS.remote.name(), host);
-							Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
 							outputFormat.setValue("delay", delay);
 							results.add(outputFormat);
@@ -230,8 +227,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 							}
 							outputFormat.setValue(FIELDS.remote.name(), host);
-							Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
 								logger.warn(outputFormat.loggerOut(), future.getCause());
 							} else {

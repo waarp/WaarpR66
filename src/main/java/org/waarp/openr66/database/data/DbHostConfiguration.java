@@ -52,6 +52,8 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.utils.Version;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Configuration Table object
  * 
@@ -382,6 +384,18 @@ public class DbHostConfiguration extends AbstractDbData {
 	}
 
 	/**
+	 * Constructor from Json
+	 * @param dbSession
+	 * @param source
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public DbHostConfiguration(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
+		super(dbSession);
+		setFromJson(source, false);
+		setToArray();
+		isSaved = false;
+	}
+	/**
 	 * @param dbSession
 	 * @param hostid
 	 * @throws WaarpDatabaseException
@@ -471,6 +485,7 @@ public class DbHostConfiguration extends AbstractDbData {
 		}
 		while (len != this.aliases.length());
 		Configuration.configuration.aliases.clear();
+		Configuration.configuration.reverseAliases.clear();
 		if (! this.aliases.isEmpty()) {
 			readValuesFromXml(this.aliases, aliasDecl);
 		}
@@ -529,6 +544,7 @@ public class DbHostConfiguration extends AbstractDbData {
 				for (String namealias : alias) {
 					Configuration.configuration.aliases.put(namealias, refHostId);
 				}
+				Configuration.configuration.reverseAliases.put(refHostId, alias);
 				logger.info("Aliases for: " + refHostId +" = "+ aliasset);
 			}
 		}
@@ -749,6 +765,65 @@ public class DbHostConfiguration extends AbstractDbData {
 		return prep;
 	}
 
+	/**
+	 * 
+	 * @param session
+	 * @param hostid
+	 * @param business
+	 * @param role
+	 * @param alias
+	 * @param other
+	 * @return a preparedStatement with the filter set
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+			String hostid, String business, String role, String alias, String other)
+			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+		String request = "SELECT " + selectAllFields + " FROM " + table;
+		String condition = null;
+		if (hostid != null) {
+			condition = " WHERE " + Columns.HOSTID.name() + " LIKE '%" + hostid + "%' ";
+		}
+		if (business != null) {
+			if (condition != null) {
+				condition += " AND " + Columns.BUSINESS.name() + " LIKE '%" + business + "%' ";
+			} else {
+				condition = " WHERE " + Columns.BUSINESS.name() + " LIKE '%" + business + "%' ";
+			}
+		}
+		if (role != null) {
+			if (condition != null) {
+				condition += " AND " + Columns.ROLES.name() + " LIKE '%" + role + "%' ";
+			} else {
+				condition = " WHERE " + Columns.ROLES.name() + " LIKE '%" + role + "%' ";
+			}
+		}
+		if (alias != null) {
+			if (condition != null) {
+				condition += " AND " + Columns.ALIASES.name() + " LIKE '%" + alias + "%' ";
+			} else {
+				condition = " WHERE " + Columns.ALIASES.name() + " LIKE '%" + alias + "%' ";
+			}
+		}
+		if (other != null) {
+			if (condition != null) {
+				condition += " AND " + Columns.OTHERS.name() + " LIKE '%" + other + "%' ";
+			} else {
+				condition = " WHERE " + Columns.OTHERS.name() + " LIKE '%" + other + "%' ";
+			}
+		}
+		if (condition != null) {
+			preparedStatement.createPrepareStatement(request + condition +
+					" ORDER BY " + Columns.HOSTID.name());
+		} else {
+			preparedStatement.createPrepareStatement(request + 
+					" ORDER BY " + Columns.HOSTID.name());
+		}
+		return preparedStatement;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
@@ -951,6 +1026,7 @@ public class DbHostConfiguration extends AbstractDbData {
 			return false;
 		}
 		if (purged) {
+			config.reverseAliases.clear();
 			config.aliases.clear();
 		} else {
 			String alias = getAliases();
@@ -965,6 +1041,13 @@ public class DbHostConfiguration extends AbstractDbData {
 				Element elt = root.addElement(XML_ALIAS);
 				elt.addElement(XML_REALID).setText(entry.getKey());
 				String cumul = null;
+				String []oldAlias = config.reverseAliases.get(entry.getKey());
+				int size = oldAlias == null ? 0 : oldAlias.length;
+				String []alias = new String[entry.getValue().size()+size];
+				int i = 0;
+				for (; i < size; i++) {
+					alias[i] = oldAlias[i];
+				}
 				for (String namealias : entry.getValue()) {
 					config.aliases.put(namealias, entry.getKey());
 					if (cumul == null) {
@@ -972,8 +1055,11 @@ public class DbHostConfiguration extends AbstractDbData {
 					} else {
 						cumul += " "+namealias;
 					}
+					alias[i] = namealias;
+					i++;
 				}
 				elt.addElement(XML_ALIASID).setText(cumul);
+				config.reverseAliases.put(entry.getKey(), alias);
 			}
 			setAliases(root.asXML());
 			try {
@@ -987,9 +1073,19 @@ public class DbHostConfiguration extends AbstractDbData {
 			document = null;
 		} else {
 			for (Entry<String, HashSet<String>> entry : map.entrySet()) {
+				String []oldAlias = config.reverseAliases.get(entry.getKey());
+				int size = oldAlias == null ? 0 : oldAlias.length;
+				String []alias = new String[entry.getValue().size()+size];
+				int i = 0;
+				for (; i < size; i++) {
+					alias[i] = oldAlias[i];
+				}
 				for (String namealias : entry.getValue()) {
 					config.aliases.put(namealias, entry.getKey());
+					alias[i] = namealias;
+					i++;
 				}
+				config.reverseAliases.put(entry.getKey(), alias);
 			}
 		}
 		map.clear();
@@ -1145,5 +1241,13 @@ public class DbHostConfiguration extends AbstractDbData {
 			// ignore
 			return;
 		}
+	}
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbHostConfiguration item = new DbHostConfiguration(null);
+		return item.allFields;
 	}
 }
