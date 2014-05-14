@@ -168,6 +168,16 @@ public class FileBasedConfiguration {
 	private static final String XML_REST_AUTH_KEY = "restauthkey";
 
 	/**
+	 * SERVER REST interface signature usage (auth key usage)
+	 */
+	private static final String XML_REST_SIGNATURE = "restsignature";
+
+	/**
+	 * SERVER REST interface SHA address usage (and not all available IPs)
+	 */
+	private static final String XML_REST_ADDRESS = "restaddress";
+
+	/**
 	 * SERVER SSL STOREKEY PATH
 	 */
 	private static final String XML_PATH_KEYPATH = "keypath";
@@ -614,7 +624,9 @@ public class FileBasedConfiguration {
 		new XmlDecl(XmlType.BOOLEAN, XML_REST_AUTHENTICATED),
 		new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY),
 		new XmlDecl(XmlType.BOOLEAN, XML_REST_ALLOW_DELETE),
-		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT)
+		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_SIGNATURE),
+		new XmlDecl(XmlType.STRING, XML_REST_ADDRESS)
 	};
 
 	/**
@@ -1445,27 +1457,35 @@ public class FileBasedConfiguration {
 				restAuthent = value.getBoolean();
 			}
 			config.REST_AUTHENTICATED = restAuthent;
-			String fileKey = null;
-			value = hashConfig.get(XML_REST_AUTH_KEY);
+			value = hashConfig.get(XML_REST_SIGNATURE);
+			boolean restSignature = true;
 			if (value != null && (!value.isEmpty())) {
-				fileKey = value.getString();
-				File file = new File(fileKey);
-				if (! file.canRead()) {
-					file = new File(config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
+				restSignature = value.getBoolean();
+			}
+			config.REST_SIGNATURE = restSignature;
+			String fileKey = null;
+			if (config.REST_SIGNATURE) {
+				value = hashConfig.get(XML_REST_AUTH_KEY);
+				if (value != null && (!value.isEmpty())) {
+					fileKey = value.getString();
+					File file = new File(fileKey);
 					if (! file.canRead()) {
-						logger.error("Unable to find REST Key in Config file");
+						file = new File(config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
+						if (! file.canRead()) {
+							logger.error("Unable to find REST Key in Config file");
+							return false;
+						}
+						fileKey = config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
+					}
+					try {
+						RestArgument.initializeKey(file);
+					} catch (CryptoException e) {
+						logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+						return false;
+					} catch (IOException e) {
+						logger.error("Unable to load REST Key from Config file: "+fileKey, e);
 						return false;
 					}
-					fileKey = config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
-				}
-				try {
-					RestArgument.initializeKey(file);
-				} catch (CryptoException e) {
-					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
-					return false;
-				} catch (IOException e) {
-					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
-					return false;
 				}
 			}
 			value = hashConfig.get(XML_REST_ALLOW_DELETE);
@@ -1480,6 +1500,12 @@ public class FileBasedConfiguration {
 				restTimeLimit = value.getLong();
 			}
 			config.REST_TIME_LIMIT = restTimeLimit;
+			value = hashConfig.get(XML_REST_ADDRESS);
+			String restAddress = null;
+			if (value != null && (!value.isEmpty())) {
+				restAddress = value.getString();
+			}
+			config.REST_ADDRESS = restAddress;
 		}
 		return true;
 	}

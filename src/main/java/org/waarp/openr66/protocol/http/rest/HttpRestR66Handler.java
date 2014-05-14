@@ -154,11 +154,19 @@ public class HttpRestR66Handler extends HttpRestHandler {
 				status = HttpResponseStatus.UNAUTHORIZED;
 				throw new HttpInvalidAuthenticationException("Wrong Authentication");
 			}
-			arguments.checkBaseAuthent(key, checkTime);
+			if (Configuration.configuration.REST_SIGNATURE) {
+				arguments.checkBaseAuthent(key, checkTime);
+			} else {
+				arguments.checkTime(checkTime);
+			}
 		} else {
 			// User set only for right access, not for signature check
 			user = Configuration.configuration.ADMINNAME;
-			arguments.checkBaseAuthent(null, checkTime);
+			if (Configuration.configuration.REST_SIGNATURE) {
+				arguments.checkBaseAuthent(null, checkTime);
+			} else {
+				arguments.checkTime(checkTime);
+			}
 		}
 		serverHandler.newSession();
 		R66Session session = serverHandler.getSession();
@@ -240,6 +248,10 @@ public class HttpRestR66Handler extends HttpRestHandler {
 		httpBootstrap.setOption("reuseAddress", true);
 		httpBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
 		// Bind and start to accept incoming connections.
-		group.add(httpBootstrap.bind(new InetSocketAddress(Configuration.configuration.REST_PORT)));
+		if (Configuration.configuration.REST_ADDRESS != null && ! Configuration.configuration.REST_ADDRESS.isEmpty()) {
+			group.add(httpBootstrap.bind(new InetSocketAddress(Configuration.configuration.REST_ADDRESS, Configuration.configuration.REST_PORT)));
+		} else {
+			group.add(httpBootstrap.bind(new InetSocketAddress(Configuration.configuration.REST_PORT)));
+		}
 	}
 }

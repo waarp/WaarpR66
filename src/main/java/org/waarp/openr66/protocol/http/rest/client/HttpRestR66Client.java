@@ -21,7 +21,11 @@
 package org.waarp.openr66.protocol.http.rest.client;
 
 
+import java.util.Map;
+
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
@@ -30,6 +34,7 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.client.HttpRestClientHelper;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 
@@ -41,6 +46,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public class HttpRestR66Client extends HttpRestClientHelper {
+
+	@Override
+	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri,
+			String user, String pwd, Map<String, String> uriArgs, String json) {
+		if (Configuration.configuration.REST_SIGNATURE) {
+			return super.sendQuery(channel, method, host, addedUri, user, pwd, uriArgs, json);
+		} else {
+			return super.sendQuery(channel, method, host, addedUri, user, uriArgs, json);
+		}
+	}
 
 	/**
 	 * Prepare the future connection

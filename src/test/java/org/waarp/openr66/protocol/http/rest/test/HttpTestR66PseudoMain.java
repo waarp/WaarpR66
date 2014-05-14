@@ -43,6 +43,8 @@ public class HttpTestR66PseudoMain {
         Configuration.configuration.REST_AUTHENTICATED = true;
         REST_AUTH_KEY = "J:/GG/R66/conf/key.sha256";
         Configuration.configuration.REST_TIME_LIMIT = 10000;
+        Configuration.configuration.REST_SIGNATURE = true;
+        Configuration.configuration.REST_ADDRESS = "127.0.0.1";
 	}
 	/**
 	 * @param args

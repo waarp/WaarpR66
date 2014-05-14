@@ -304,7 +304,17 @@ public class Configuration {
 	 * SERVER REST interface using authentication
 	 */
 	public boolean REST_AUTHENTICATED = false;
-	
+
+	/**
+	 * SERVER REST interface using signature
+	 */
+	public boolean REST_SIGNATURE = true;
+
+	/**
+	 * SERVER REST interface using explicit address
+	 */
+	public String REST_ADDRESS = null;
+
 	/**
 	 * Base Directory
 	 */
@@ -681,7 +691,8 @@ public class Configuration {
 
 	public String toString() {
 		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
-				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestPort: "+(REST_PORT > 0 ? REST_PORT : "'NoRestSupport'")+
+				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestAddress: "+(REST_PORT > 0 ? (REST_ADDRESS != null ? "'"+REST_ADDRESS : "'All")+
+				":"+REST_PORT+"'" : "'NoRestSupport'")+
 				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
 				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
 				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
@@ -884,7 +895,7 @@ public class Configuration {
 	
 	public void startRestSupport() {
 		if (REST_PORT > 0) {
-			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_PORT);
+			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_ADDRESS+":"+ REST_PORT);
 			HttpRestR66Handler.initializeService(baseDirectory+"/"+workingPath+"/httptemp");
 		}
 	}
