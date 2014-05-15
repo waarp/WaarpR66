@@ -783,52 +783,122 @@ public class DbTaskRunner extends AbstractDbData {
 
 	@Override
 	public void setFromJson(ObjectNode source, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
-		ruleId = source.path(Columns.IDRULE.name()).asText();
-		rank = source.path(Columns.RANK.name()).asInt();
-		blocksize = source.path(Columns.BLOCKSZ.name()).asInt();
-		fileInformation = source.path(Columns.FILEINFO.name()).asText();
-		filename = source.path(Columns.FILENAME.name()).asText();
-		globallaststep = source.path(Columns.GLOBALLASTSTEP.name()).asInt();
-		globalstep = source.path(Columns.GLOBALSTEP.name()).asInt();
-		infostatus = ErrorCode.getFromCode(source.path(Columns.INFOSTATUS.name()).asText());
-		isFileMoved = source.path(Columns.ISMOVED.name()).asBoolean();
-		mode = source.path(Columns.MODETRANS.name()).asInt();
-		originalFilename = source.path(Columns.ORIGINALNAME.name()).asText();
-		if (! ignorePrimaryKey) {
-			ownerRequest = source.path(Columns.OWNERREQ.name()).asText();
-			if (ownerRequest == null || ownerRequest.isEmpty()) {
-				ownerRequest = Configuration.configuration.HOST_ID;
+		for (Columns column : Columns.values()) {
+			if (column == Columns.UPDATEDINFO) {
+				continue;
 			}
-			specialId = source.path(Columns.SPECIALID.name()).asLong();
-			requestedHostId = source.path(Columns.REQUESTED.name()).asText();
-			requesterHostId = source.path(Columns.REQUESTER.name()).asText();
+			JsonNode item = source.get(column.name());
+			if (item != null && ! item.isMissingNode() && ! item.isNull()) {
+				switch (column) {
+					case BLOCKSZ:
+						blocksize = item.asInt();
+						break;
+					case FILEINFO:
+						fileInformation = item.asText();
+						break;
+					case FILENAME:
+						filename = item.asText();
+						break;
+					case GLOBALLASTSTEP:
+						globallaststep = item.asInt();
+						break;
+					case GLOBALSTEP:
+						globalstep = item.asInt();
+						break;
+					case IDRULE:
+						ruleId = item.asText();
+						break;
+					case INFOSTATUS:
+						infostatus = ErrorCode.getFromCode(item.asText());
+						break;
+					case ISMOVED:
+						isFileMoved = item.asBoolean();
+						break;
+					case MODETRANS:
+						mode = item.asInt();
+						break;
+					case ORIGINALNAME:
+						originalFilename = item.asText();
+						break;
+					case OWNERREQ:
+						if (! ignorePrimaryKey) {
+							ownerRequest = item.asText();
+							if (ownerRequest == null || ownerRequest.isEmpty()) {
+								ownerRequest = Configuration.configuration.HOST_ID;
+							}
+						}
+						break;
+					case RANK:
+						rank = item.asInt();
+						break;
+					case REQUESTED:
+						if (! ignorePrimaryKey) {
+							requestedHostId = item.asText();
+						}
+						break;
+					case REQUESTER:
+						if (! ignorePrimaryKey) {
+							requesterHostId = item.asText();
+						}
+						break;
+					case RETRIEVEMODE:
+						isSender = item.asBoolean();
+						break;
+					case SPECIALID:
+						if (! ignorePrimaryKey) {
+							specialId = item.asLong();
+						}
+						break;
+					case STARTTRANS:
+						long msstart = item.asLong();
+						if (msstart == 0) {
+							start = new Timestamp(System.currentTimeMillis());
+						} else {
+							start = new Timestamp(msstart);
+						}
+						break;
+					case STEP:
+						step = source.path(Columns.STEP.name()).asInt();
+						break;
+					case STEPSTATUS:
+						status = ErrorCode.getFromCode(item.asText());
+						break;
+					case STOPTRANS:
+						msstart = item.asLong();
+						if (msstart == 0) {
+							stop = new Timestamp(System.currentTimeMillis());
+						} else {
+							stop = new Timestamp(msstart);
+						}
+						break;
+					case TRANSFERINFO:
+						transferInformation = item.asText();
+						break;
+					case UPDATEDINFO:
+						// ignore
+						break;
+					default:
+						break;
+					
+				}
+			}
 		}
-		isSender = source.path(Columns.RETRIEVEMODE.name()).asBoolean();
-		long msstart = source.path(Columns.STARTTRANS.name()).asLong();
-		if (msstart == 0) {
-			start = new Timestamp(System.currentTimeMillis());
-		} else {
-			start = new Timestamp(msstart);
+		JsonNode node = source.path(JSON_RESCHEDULE);		
+		if (! node.isMissingNode() || ! node.isNull()) {
+			rescheduledTransfer = node.asBoolean(false);
 		}
-		msstart = source.path(Columns.STOPTRANS.name()).asLong();
-		if (msstart == 0) {
-			stop = new Timestamp(System.currentTimeMillis());
-		} else {
-			stop = new Timestamp(msstart);
-		}
-		step = source.path(Columns.STEP.name()).asInt();
-		status = ErrorCode.getFromCode(source.path(Columns.STEPSTATUS.name()).asText());
-		transferInformation = source.path(Columns.TRANSFERINFO.name()).asText();
-		rescheduledTransfer = source.path(JSON_RESCHEDULE).asBoolean(false);
-		JsonNode node = source.path(JSON_THROUGHMODE);
-		if (! node.isMissingNode()) {
+		node = source.path(JSON_THROUGHMODE);
+		if (! node.isMissingNode() || ! node.isNull()) {
 			if (RequestPacket.isRecvMode(mode)) {
 				isRecvThrough = node.asBoolean(); 
 			} else {
 				isSendThrough = node.asBoolean();
 			}
 		}
-		originalSize = source.path(JSON_ORIGINALSIZE).asLong(-1);
+		node = source.path(JSON_ORIGINALSIZE);
+		if (! node.isMissingNode() || ! node.isNull()) {
+			originalSize = node.asLong(-1);
+		}
 		isSaved = false;
 		try {
 			this.rule = new DbRule(dbSession, ruleId);
@@ -842,6 +912,10 @@ public class DbTaskRunner extends AbstractDbData {
 		} catch (WaarpDatabaseException e) {
 			// ignore
 			this.rule = null;
+		}
+		if (filename == null || filename.isEmpty() || ruleId == null || ruleId.isEmpty() || ownerRequest == null || ownerRequest.isEmpty()
+				|| requestedHostId == null || requestedHostId.isEmpty() || requestedHostId == null || requestedHostId.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
 		}
 		checkThroughMode();
 		setToArray();
@@ -1369,7 +1443,7 @@ public class DbTaskRunner extends AbstractDbData {
 			try {
 				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
 			} catch (WaarpDatabaseException e) {
-				throw new WaarpDatabaseSqlException("Rule cannot be found for DbTaskRunner: "+dbTaskRunner.ruleId, e);
+				throw new WaarpDatabaseSqlException("Rule cannot be found for DbTaskRunner: "+dbTaskRunner.asJson(), e);
 			}
 		}
 		dbTaskRunner.checkThroughMode();

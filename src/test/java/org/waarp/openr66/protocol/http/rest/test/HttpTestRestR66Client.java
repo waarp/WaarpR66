@@ -35,6 +35,7 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.joda.time.DateTime;
+import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -144,6 +145,20 @@ public class HttpTestRestR66Client  implements Runnable {
 		}
 		
         HttpTestR66PseudoMain.setTestConfiguration();
+        String filename = "J:/GG/R66/certs/test-key.des";
+        Configuration.configuration.cryptoFile = filename;
+		File keyfile = new File(filename);
+		Des des = new Des();
+		try {
+			des.setSecretKey(keyfile);
+		} catch (CryptoException e) {
+			logger.error("Unable to load CryptoKey from Config file");
+			return;
+		} catch (IOException e) {
+			logger.error("Unable to load CryptoKey from Config file");
+			return;
+		}
+		Configuration.configuration.cryptoKey = des;
     	HttpRestR66Handler.instantiateHandlers();
 	    try {
 		    RestArgument.initializeKey(new File(HttpTestR66PseudoMain.REST_AUTH_KEY));

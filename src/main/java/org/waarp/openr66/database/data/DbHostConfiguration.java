@@ -392,6 +392,9 @@ public class DbHostConfiguration extends AbstractDbData {
 	public DbHostConfiguration(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
 		super(dbSession);
 		setFromJson(source, false);
+		if (hostid == null || hostid.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
+		}
 		setToArray();
 		isSaved = false;
 	}
