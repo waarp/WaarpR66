@@ -26,6 +26,8 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.json.JsonHandler;
+import org.waarp.common.role.RoleDefault.ROLE;
+import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
@@ -33,9 +35,11 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
+import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration.Columns;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -218,6 +222,16 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 		DbHostConfiguration item = getItem(handler, arguments, result, body);
 		if (item.getHostid().equals(Configuration.configuration.HOST_ID)) {
 			DbHostConfiguration.updateHostConfiguration(Configuration.configuration, item);
+		}
+	}
+
+	@Override
+	protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
+			RestArgument result, METHOD method) throws HttpForbiddenRequestException {
+		HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
+		R66Session session = r66handler.serverHandler.getSession();
+		if (! session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+			throw new HttpForbiddenRequestException("Partner must have ConfigAdmin role");
 		}
 	}
 
