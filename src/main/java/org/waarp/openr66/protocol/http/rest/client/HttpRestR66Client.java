@@ -31,10 +31,10 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
+import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.client.HttpRestClientHelper;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
-import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 
@@ -47,10 +47,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class HttpRestR66Client extends HttpRestClientHelper {
 
-	@Override
+	/**
+	 * Send an HTTP query using the channel for target
+	 * @param channel target of the query
+	 * @param method HttpMethod to use
+	 * @param host target of the query (shall be the same as for the channel)
+	 * @param addedUri additional uri, added to baseUri (shall include also extra arguments) (might be null)
+	 * @param user user to use in authenticated Rest procedure (might be null)
+	 * @param pwd password to use in authenticated Rest procedure (might be null)
+	 * @param uriArgs arguments for Uri if any (might be null)
+	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
+	 * @param useSignature if True, will use Signature, else not
+	 * @return the RestFuture associated with this request
+	 */
 	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri,
-			String user, String pwd, Map<String, String> uriArgs, String json) {
-		if (Configuration.configuration.REST_SIGNATURE) {
+			String user, String pwd, Map<String, String> uriArgs, String json, boolean useSignature) {
+		if (useSignature) {
 			return super.sendQuery(channel, method, host, addedUri, user, pwd, uriArgs, json);
 		} else {
 			return super.sendQuery(channel, method, host, addedUri, user, uriArgs, json);
@@ -87,16 +99,28 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	/**
 	 * 
 	 * @param bodyResponse
-	 * @return the primary property value associated with the Model, else null
+	 * @return the primary property value associated with the Model (from the bodyResponse), else null
 	 */
 	public String getPrimaryProperty(RestArgument bodyResponse) {
 		ObjectNode answer = bodyResponse.getAnswer();
 		String model = answer.path(AbstractDbData.JSON_MODEL).asText();
+		String property = getPrimaryPropertyName(model);
+		if (property == null) {
+			return null;
+		}
+		return answer.path(property).asText();
+	}
+	/**
+	 * 
+	 * @param model
+	 * @return the primary property name associated with the Model
+	 */
+	public String getPrimaryPropertyName(String model) {
 		try {
 			if (model != null && ! model.isEmpty()) {
 				RESTHANDLERS dbdata = RESTHANDLERS.valueOf(model);
-				DataModelRestMethodHandler<?> handler = (DataModelRestMethodHandler<?>) dbdata.getRestMethodHandler();
-				return answer.path(handler.getPrimaryPropertyName()).asText();
+				DataModelRestMethodHandler<?> handler = (DataModelRestMethodHandler<?>) HttpRestHandler.defaultConfiguration.restHashMap.get(dbdata.uri);
+				return handler.getPrimaryPropertyName();
 			}
 		} catch (Exception e) {}
 		return null;

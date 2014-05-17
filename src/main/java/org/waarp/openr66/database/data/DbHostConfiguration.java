@@ -159,7 +159,7 @@ public class DbHostConfiguration extends AbstractDbData {
 	 * 
 	 */
 	public static final XmlDecl[] configAliasDecls = {
-			// roles
+			// alias
 			new XmlDecl(XmlType.STRING, XML_REALID),
 			new XmlDecl(XmlType.STRING, XML_ALIASID)
 	};

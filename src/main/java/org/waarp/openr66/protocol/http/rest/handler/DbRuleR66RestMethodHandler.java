@@ -34,6 +34,7 @@ import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.data.DbRule;
@@ -50,6 +51,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRule> {
+	public static final String BASEURI = "rules";
+	
 	public static enum FILTER_ARGS {
 		IDRULE("rule name"),
 		MODETRANS("MODETRANS value");
@@ -61,11 +64,11 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 	}
 	
 	/**
-	 * @param name
-	 * @param allowDelete
+	 * @param config
+	 * @param method
 	 */
-	public DbRuleR66RestMethodHandler(String name, boolean allowDelete) {
-		super(name, allowDelete);
+	public DbRuleR66RestMethodHandler(RestConfiguration config, METHOD ...method) {
+		super(BASEURI, config, method);
 	}
 
 	protected DbRule getItem(HttpRestHandler handler, RestArgument arguments,
@@ -145,45 +148,49 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 			node1.put(dbValue.column, dbValue.getType());
 		}
 		
-		ObjectNode node2;
-		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-				JsonHandler.createObjectNode().put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id"), node1);
-		node.add(node2);
+		ObjectNode node2, node3;
+		if (this.methods.contains(METHOD.GET)) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
+					JsonHandler.createObjectNode().put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id"), node1);
+			node.add(node2);
 
-		ObjectNode node3 = JsonHandler.createObjectNode();
-		for (FILTER_ARGS arg : FILTER_ARGS.values()) {
-			node3.put(arg.name(), arg.type);
-		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-				node3, JsonHandler.createArrayNode().add(node1));
-		node.add(node2);
-
-		node3 = JsonHandler.createObjectNode();
-		node3.put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id");
-		for (DbValue dbValue : values) {
-			if (dbValue.column.equalsIgnoreCase(DbRule.Columns.IDRULE.name())) {
-				continue;
+			node3 = JsonHandler.createObjectNode();
+			for (FILTER_ARGS arg : FILTER_ARGS.values()) {
+				node3.put(arg.name(), arg.type);
 			}
-			node3.put(dbValue.column, dbValue.getType());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
+					node3, JsonHandler.createArrayNode().add(node1));
+			node.add(node2);
 		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-				node3, node1);
-		node.add(node2);
-		
-		node3 = JsonHandler.createObjectNode();
-		node3.put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id"); 
-		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-				node3, node1);
-		node.add(node2);
-
-		node3 = JsonHandler.createObjectNode();
-		for (DbValue dbValue : values) {
-			node3.put(dbValue.column, dbValue.getType());
+		if (this.methods.contains(METHOD.PUT)) {
+			node3 = JsonHandler.createObjectNode();
+			node3.put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id");
+			for (DbValue dbValue : values) {
+				if (dbValue.column.equalsIgnoreCase(DbRule.Columns.IDRULE.name())) {
+					continue;
+				}
+				node3.put(dbValue.column, dbValue.getType());
+			}
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
+					node3, node1);
+			node.add(node2);
 		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-				node3, node1);
-		node.add(node2);
-		
+		if (this.methods.contains(METHOD.DELETE)) {
+			node3 = JsonHandler.createObjectNode();
+			node3.put(DbRule.Columns.IDRULE.name(), "RuleId in URI as VARCHAR as "+this.path+"/id"); 
+			node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
+					node3, node1);
+			node.add(node2);
+		}
+		if (this.methods.contains(METHOD.POST)) {
+			node3 = JsonHandler.createObjectNode();
+			for (DbValue dbValue : values) {
+				node3.put(dbValue.column, dbValue.getType());
+			}
+			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
+					node3, node1);
+			node.add(node2);
+		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 

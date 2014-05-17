@@ -368,7 +368,9 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
             return;
         }
         logger.warn("Error", e.getCause());
-        ((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+        if (e.getChannel() != null && e.getChannel().getAttachment() != null) {
+        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+        }
         logger.debug("Will close");
         WaarpSslUtility.closingSslChannel(e.getChannel());
     }

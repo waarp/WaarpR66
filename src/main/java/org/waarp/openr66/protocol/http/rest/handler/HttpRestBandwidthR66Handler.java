@@ -29,6 +29,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
@@ -57,8 +58,9 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestBandwidthR66Handler.class);
    
-	public HttpRestBandwidthR66Handler() {
-		super(BASEURI, METHOD.GET, METHOD.PUT);
+	public HttpRestBandwidthR66Handler(RestConfiguration config, METHOD ... methods) {
+		super(BASEURI, config, METHOD.OPTIONS);
+		setIntersectionMethods(methods, METHOD.GET, METHOD.PUT);
 	}
 	
 	@Override
@@ -129,18 +131,21 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 		ArrayNode node1 = JsonHandler.createArrayNode();
 		try {
 			node1.add(node3.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetBandwidth.name(), node3.createObjectNode(), node1);
-			node.add(node2);
+			if (this.methods.contains(METHOD.GET)) {
+				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetBandwidth.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			}
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node3.setComment("Bandwidth setter (PUT)");
-		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.SetBandwidth.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
+		if (this.methods.contains(METHOD.PUT)) {
+			node3.setComment("Bandwidth setter (PUT)");
+			try {
+				node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.SetBandwidth.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
-
 		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 		

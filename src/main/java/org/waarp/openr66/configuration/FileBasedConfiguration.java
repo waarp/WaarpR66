@@ -55,6 +55,7 @@ import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
@@ -65,6 +66,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
@@ -136,46 +138,6 @@ public class FileBasedConfiguration {
 	 * SERVER HTTPS PORT
 	 */
 	private static final String XML_SERVER_HTTPSPORT = "serverhttpsport";
-
-	/**
-	 * SERVER HTTP(S) PORT for REST interface
-	 */
-	private static final String XML_SERVER_REST_PORT = "serverrestport";
-
-	/**
-	 * SERVER REST interface using SSL
-	 */
-	private static final String XML_REST_SSL = "restssl";
-
-	/**
-	 * SERVER REST interface allowing delete
-	 */
-	private static final String XML_REST_ALLOW_DELETE = "restdelete";
-
-	/**
-	 * SERVER REST interface using time limit
-	 */
-	private static final String XML_REST_TIME_LIMIT = "resttimelimit";
-	
-	/**
-	 * SERVER REST interface using authentication
-	 */
-	private static final String XML_REST_AUTHENTICATED = "restauthenticated";
-
-	/**
-	 * SERVER REST interface SHA Key for request checking
-	 */
-	private static final String XML_REST_AUTH_KEY = "restauthkey";
-
-	/**
-	 * SERVER REST interface signature usage (auth key usage)
-	 */
-	private static final String XML_REST_SIGNATURE = "restsignature";
-
-	/**
-	 * SERVER REST interface SHA address usage (and not all available IPs)
-	 */
-	private static final String XML_REST_ADDRESS = "restaddress";
 
 	/**
 	 * SERVER SSL STOREKEY PATH
@@ -469,6 +431,55 @@ public class FileBasedConfiguration {
 	 * Global digest by transfer enable
 	 */
 	private static final String XML_GLOBALDIGEST = "globaldigest";
+
+	/**
+	 * SERVER REST interface SHA address usage (and not all available IPs)
+	 */
+	private static final String XML_REST_ADDRESS = "restaddress";
+
+	/**
+	 * SERVER HTTP(S) PORT for REST interface
+	 */
+	private static final String XML_SERVER_REST_PORT = "restport";
+
+	/**
+	 * SERVER REST interface using SSL
+	 */
+	private static final String XML_REST_SSL = "restssl";
+
+	/**
+	 * SERVER REST interface using time limit
+	 */
+	private static final String XML_REST_TIME_LIMIT = "resttimelimit";
+	
+	/**
+	 * SERVER REST interface using authentication
+	 */
+	private static final String XML_REST_AUTHENTICATED = "restauthenticated";
+
+	/**
+	 * SERVER REST interface SHA Key for request checking
+	 */
+	private static final String XML_REST_AUTH_KEY = "restsigkey";
+
+	/**
+	 * SERVER REST interface signature usage (auth key usage)
+	 */
+	private static final String XML_REST_SIGNATURE = "restsignature";
+	
+	/**
+	 * SERVER REST interface method
+	 */
+	private static final String XML_REST_METHOD = "restmethod";
+	/**
+	 * SERVER REST interface method
+	 */
+	private static final String XML_REST_METHOD_NAME = "restname";
+	/**
+	 * SERVER REST interface CRUD per method
+	 */
+	private static final String XML_REST_CRUD = "restcrud";
+	
 	/**
 	 * Structure of the Configuration file
 	 * 
@@ -505,7 +516,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.LONG, XML_MONITOR_PASTLIMIT),
 			new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
 			new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG),
-			new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS)
+			new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS),
+			new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -516,8 +528,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_PORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_SSLPORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPPORT),
-			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT),
-			new XmlDecl(XmlType.INTEGER, XML_SERVER_REST_PORT)
+			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT)
 	};
 
 	/**
@@ -614,21 +625,12 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
 	};
-	/**
-	 * Structure of the Configuration file
-	 * 
-	 */
-	private static final XmlDecl[] configRestDecls = {
-			// Rest support configuration
-		new XmlDecl(XmlType.BOOLEAN, XML_REST_SSL),
-		new XmlDecl(XmlType.BOOLEAN, XML_REST_AUTHENTICATED),
-		new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY),
-		new XmlDecl(XmlType.BOOLEAN, XML_REST_ALLOW_DELETE),
-		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT),
-		new XmlDecl(XmlType.BOOLEAN, XML_REST_SIGNATURE),
-		new XmlDecl(XmlType.STRING, XML_REST_ADDRESS)
-	};
 
+	public static final XmlDecl[] configRestMethodDecls = {
+		// Rest Method
+		new XmlDecl(XmlType.STRING, XML_REST_METHOD_NAME),
+		new XmlDecl(XmlType.STRING, XML_REST_CRUD)
+	};
 	/**
 	 * Overall structure of the Configuration file
 	 */
@@ -643,6 +645,21 @@ public class FileBasedConfiguration {
 	private static final String XML_DB = "db";
 	private static final String XML_REST = "rest";
 	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	private static final XmlDecl[] configRestDecls = {
+			// Rest support configuration
+		new XmlDecl(XmlType.STRING, XML_REST_ADDRESS),
+		new XmlDecl(XmlType.INTEGER, XML_SERVER_REST_PORT),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_SSL),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_AUTHENTICATED),
+		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_SIGNATURE),
+		new XmlDecl(XML_REST_METHOD, XmlType.XVAL, XML_REST_METHOD, configRestMethodDecls, true)
+	};
+
+	/**
 	 * Global Structure for Server Configuration
 	 */
 	private static final XmlDecl[] configServer = {
@@ -656,7 +673,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT + XML_DIRECTORY,
 					configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
-			new XmlDecl(XML_REST, XmlType.XVAL, XML_ROOT + XML_REST, configRestDecls, false),
+			new XmlDecl(XML_REST, XmlType.XVAL, XML_ROOT + XML_REST, configRestDecls, true),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
@@ -1429,83 +1446,138 @@ public class FileBasedConfiguration {
 			httpsport = value.getInteger();
 		}
 		config.SERVER_HTTPSPORT = httpsport;
-		value = hashConfig.get(XML_SERVER_REST_PORT);
-		int restPort = -1;
-		if (value != null && (!value.isEmpty())) {
-			restPort = value.getInteger();
-		}
-		config.REST_PORT = restPort;
 		return true;
 	}
 
 	/**
 	 * 
-	 * @param config
+	 * @param configuration
 	 * @return True if the REST configuration is correctly loaded
 	 */
-	private static boolean loadRest(Configuration config) {
-		if (config.REST_PORT > 0) {
-			XmlValue value = hashConfig.get(XML_REST_SSL);
-			boolean restSsl = false;
-			if (value != null && (!value.isEmpty())) {
-				restSsl = value.getBoolean();
+	@SuppressWarnings("unchecked")
+	private static boolean loadRest(Configuration configuration) {
+		XmlValue valueKey = hashConfig.get(XML_REST_AUTH_KEY);
+		if (valueKey != null && (!valueKey.isEmpty())) {
+			String fileKey = valueKey.getString();
+			File file = new File(fileKey);
+			if (! file.canRead()) {
+				file = new File(configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
+				if (! file.canRead()) {
+					logger.error("Unable to find REST Key in Config file");
+					return false;
+				}
+				fileKey = configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
 			}
-			config.REST_SSL = restSsl;
-			value = hashConfig.get(XML_REST_AUTHENTICATED);
-			boolean restAuthent = false;
-			if (value != null && (!value.isEmpty())) {
-				restAuthent = value.getBoolean();
+			try {
+				RestArgument.initializeKey(file);
+			} catch (CryptoException e) {
+				logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+				return false;
+			} catch (IOException e) {
+				logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+				return false;
 			}
-			config.REST_AUTHENTICATED = restAuthent;
-			value = hashConfig.get(XML_REST_SIGNATURE);
-			boolean restSignature = true;
-			if (value != null && (!value.isEmpty())) {
-				restSignature = value.getBoolean();
-			}
-			config.REST_SIGNATURE = restSignature;
-			String fileKey = null;
-			if (config.REST_SIGNATURE) {
-				value = hashConfig.get(XML_REST_AUTH_KEY);
+		}
+
+		XmlValue valueRest = hashConfig.get(XML_REST);
+		if (valueRest != null && (valueRest.getList() != null)) {
+			for (XmlValue[] xml : (List<XmlValue[]>) valueRest.getList()) {
+				RestConfiguration config = new RestConfiguration();
+				XmlHash subHash = new XmlHash(xml);
+				XmlValue value = subHash.get(XML_SERVER_REST_PORT);
+				int restPort = -1;
 				if (value != null && (!value.isEmpty())) {
-					fileKey = value.getString();
-					File file = new File(fileKey);
-					if (! file.canRead()) {
-						file = new File(config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
-						if (! file.canRead()) {
-							logger.error("Unable to find REST Key in Config file");
+					restPort = value.getInteger();
+				}
+				config.REST_PORT = restPort;
+				if (config.REST_PORT > 0) {
+					value = subHash.get(XML_REST_ADDRESS);
+					String restAddress = null;
+					if (value != null && (!value.isEmpty())) {
+						restAddress = value.getString();
+					}
+					config.REST_ADDRESS = restAddress;
+					value = subHash.get(XML_REST_SSL);
+					boolean restSsl = false;
+					if (value != null && (!value.isEmpty())) {
+						restSsl = value.getBoolean();
+					}
+					config.REST_SSL = restSsl;
+					value = subHash.get(XML_REST_AUTHENTICATED);
+					boolean restAuthent = false;
+					if (value != null && (!value.isEmpty())) {
+						restAuthent = value.getBoolean();
+					}
+					config.REST_AUTHENTICATED = restAuthent;
+					value = subHash.get(XML_REST_SIGNATURE);
+					boolean restSignature = true;
+					if (value != null && (!value.isEmpty())) {
+						restSignature = value.getBoolean();
+					}
+					config.REST_SIGNATURE = restSignature;
+					value = subHash.get(XML_REST_TIME_LIMIT);
+					long restTimeLimit = -1;
+					if (value != null && (!value.isEmpty())) {
+						restTimeLimit = value.getLong();
+					}
+					config.REST_TIME_LIMIT = restTimeLimit;
+					
+					XmlValue valueMethod = subHash.get(XML_REST_METHOD);
+					if (valueMethod != null && (valueMethod.getList() != null)) {
+						boolean found = false;
+						config.RESTHANDLERS_CRUD = new byte[RESTHANDLERS.values().length];
+						for (XmlValue[] xmlmethod : (List<XmlValue[]>) valueMethod.getList()) {
+							XmlHash subHashMethod = new XmlHash(xmlmethod);
+							value = subHashMethod.get(XML_REST_METHOD_NAME);
+							String name = null;
+							if (value != null && (!value.isEmpty())) {
+								name = value.getString();
+							} else {
+								logger.warn("Restmethod entry ignore since name is empty");
+								continue;
+							}
+							value = subHashMethod.get(XML_REST_CRUD);
+							String crud = null;
+							if (value != null && (!value.isEmpty())) {
+								crud = value.getString().toUpperCase();
+							} else {
+								logger.warn("Restmethod entry ignore since crud field is empty");
+								continue;
+							}
+							found = true;
+							byte def = 0x0;
+							def |= (crud.contains("C") ? RestConfiguration.CRUD.CREATE.mask : 0);
+							def |= (crud.contains("R") ? RestConfiguration.CRUD.READ.mask : 0);
+							def |= (crud.contains("U") ? RestConfiguration.CRUD.UPDATE.mask : 0);
+							def |= (crud.contains("D") ? RestConfiguration.CRUD.DELETE.mask : 0);
+							if (name.equalsIgnoreCase("all")) {
+								for (int i = 0; i < config.RESTHANDLERS_CRUD.length; i++) {
+									config.RESTHANDLERS_CRUD[i] = def;
+								}
+								// No more restmethod since ALL was selected
+								break;
+							} else {
+								String [] handlers = name.split(" |\\|");
+								for (String string : handlers) {
+									RESTHANDLERS handler = RESTHANDLERS.valueOf(string);
+									config.RESTHANDLERS_CRUD[handler.ordinal()] = def;
+								}
+							}
+						}
+						if (! found) {
+							// no METHOD !!!
+							logger.error("No active METHOD defined for REST in Config file: "+config);
 							return false;
 						}
-						fileKey = config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
-					}
-					try {
-						RestArgument.initializeKey(file);
-					} catch (CryptoException e) {
-						logger.error("Unable to load REST Key from Config file: "+fileKey, e);
-						return false;
-					} catch (IOException e) {
-						logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+					} else {
+						// no METHOD !!!
+						logger.error("No METHOD defined for REST in Config file");
 						return false;
 					}
+					Configuration.configuration.restConfigurations.add(config);
+					logger.info(config.toString());
 				}
 			}
-			value = hashConfig.get(XML_REST_ALLOW_DELETE);
-			boolean restDelete = false;
-			if (value != null && (!value.isEmpty())) {
-				restDelete = value.getBoolean();
-			}
-			config.REST_ALLOW_DELETE = restDelete;
-			value = hashConfig.get(XML_REST_TIME_LIMIT);
-			long restTimeLimit = -1;
-			if (value != null && (!value.isEmpty())) {
-				restTimeLimit = value.getLong();
-			}
-			config.REST_TIME_LIMIT = restTimeLimit;
-			value = hashConfig.get(XML_REST_ADDRESS);
-			String restAddress = null;
-			if (value != null && (!value.isEmpty())) {
-				restAddress = value.getString();
-			}
-			config.REST_ADDRESS = restAddress;
 		}
 		return true;
 	}
