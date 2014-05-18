@@ -73,6 +73,16 @@ Is the SERVER REST interface using signature on request
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="restsigkey" maxOccurs="1" minOccurs="0" type="pathType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="SERVER REST interface SHA 256 Key file for request checking through signature" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+SERVER REST interface SHA 256 Key file for request checking through signature
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="restmethod" maxOccurs="unbounded" minOccurs="1" >
                 <xsd:annotation>
                     <xsd:appinfo>

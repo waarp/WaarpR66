@@ -254,7 +254,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
 				throw new HttpInvalidAuthenticationException("Wrong Authentication");
 			}
 			if (restConfiguration.REST_SIGNATURE) {
-				arguments.checkBaseAuthent(key, restConfiguration.REST_TIME_LIMIT);
+				arguments.checkBaseAuthent(restConfiguration.hmacSha256, key, restConfiguration.REST_TIME_LIMIT);
 			} else {
 				arguments.checkTime(restConfiguration.REST_TIME_LIMIT);
 			}
@@ -262,7 +262,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
 			// User set only for right access, not for signature check
 			user = Configuration.configuration.ADMINNAME;
 			if (restConfiguration.REST_SIGNATURE) {
-				arguments.checkBaseAuthent(null, restConfiguration.REST_TIME_LIMIT);
+				arguments.checkBaseAuthent(restConfiguration.hmacSha256, null, restConfiguration.REST_TIME_LIMIT);
 			} else {
 				arguments.checkTime(restConfiguration.REST_TIME_LIMIT);
 			}

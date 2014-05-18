@@ -34,7 +34,6 @@
 <MENU_INSERTION nom="minimaldelay"/>
 <MENU_INSERTION nom="snmpconfig"/>
 <MENU_INSERTION nom="multiplemonitors"/>
-<MENU_INSERTION nom="restsigkey"/>
 <MENU_INSERTION nom="serverport"/>
 <MENU_INSERTION nom="serversslport"/>
 <MENU_INSERTION nom="serverhttpport"/>
@@ -100,6 +99,8 @@
 <MENU_INSERTION nom="restssl"/>
 <MENU_INSERTION nom="restauthenticated"/>
 <MENU_INSERTION nom="resttimelimit"/>
+<MENU_INSERTION nom="restsignature"/>
+<MENU_INSERTION nom="restsigkey"/>
 <MENU_INSERTION nom="restmethod"/>
 <MENU_INSERTION nom="restname"/>
 <MENU_INSERTION nom="restcrud"/>
@@ -135,7 +136,6 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="minimaldelay"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="snmpconfig"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="multiplemonitors"/>
-<AFFICHAGE_ELEMENT type="typesimple" element="restsigkey"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serversslport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverhttpport"/>
@@ -201,6 +201,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="restssl"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="resttimelimit"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="restsignature"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restsigkey"/>
 <AFFICHAGE_ELEMENT type="zone" element="restmethod"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="restname"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="restcrud"/>
@@ -369,12 +370,6 @@ Configuration XML File for SNMP service
 <DOCUMENTATION>
 Set the number of servers that act in the same group as a single instance of a OpenR66 File Transfer Monitor
                         </DOCUMENTATION>
-</STRINGS_ELEMENT>
-<STRINGS_ELEMENT element="restsigkey">
-<TITRE>restsigkey</TITRE>
-<DOCUMENTATION>
-SERVER REST interface SHA 256 Key file for request checking using signature of each request
-</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="serverport">
 <TITRE>serverport</TITRE>
@@ -704,6 +699,12 @@ Is the SERVER REST interface using time limit
 <TITRE>restsignature</TITRE>
 <DOCUMENTATION>
 Is the SERVER REST interface using signature
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restsigkey">
+<TITRE>restsigkey</TITRE>
+<DOCUMENTATION>
+SERVER REST interface SHA 256 Key file for request checking using signature of each request
 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="restname">

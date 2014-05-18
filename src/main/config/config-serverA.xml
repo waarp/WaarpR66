@@ -23,7 +23,6 @@
         <pastlimit>86400000</pastlimit>
         <minimaldelay>5000</minimaldelay>
         <snmpconfig>D:/GG/R66/conf/snmpconfig.xml</snmpconfig>
-		<restsigkey>D:/GG/R66/conf/key.sha256</restsigkey>
     </server>
     <network>
         <serverport>6666</serverport>
@@ -86,6 +85,7 @@
 		<restauthenticated>True</restauthenticated>
 		<resttimelimit>10000</resttimelimit>
 		<restsignature>True</restsignature>
+		<restsigkey>D:/GG/R66/config/certs/key.sha256</restsigkey>
 		<restmethod>
 			<restname>ALL</restname>
 			<restcrud>CRUD</restcrud>

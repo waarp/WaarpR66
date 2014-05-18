@@ -33,6 +33,7 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.client.HttpRestClientHelper;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
@@ -49,6 +50,7 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 
 	/**
 	 * Send an HTTP query using the channel for target
+	 * @param hmacSha256 SHA-256 key to create the signature (might be null)
 	 * @param channel target of the query
 	 * @param method HttpMethod to use
 	 * @param host target of the query (shall be the same as for the channel)
@@ -60,10 +62,10 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	 * @param useSignature if True, will use Signature, else not
 	 * @return the RestFuture associated with this request
 	 */
-	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri,
-			String user, String pwd, Map<String, String> uriArgs, String json, boolean useSignature) {
-		if (useSignature) {
-			return super.sendQuery(channel, method, host, addedUri, user, pwd, uriArgs, json);
+	public RestFuture sendQuery(RestConfiguration config, Channel channel, HttpMethod method, String host, String addedUri,
+			String user, String pwd, Map<String, String> uriArgs, String json) {
+		if (config.REST_SIGNATURE) {
+			return super.sendQuery(config.hmacSha256, channel, method, host, addedUri, user, pwd, uriArgs, json);
 		} else {
 			return super.sendQuery(channel, method, host, addedUri, user, uriArgs, json);
 		}

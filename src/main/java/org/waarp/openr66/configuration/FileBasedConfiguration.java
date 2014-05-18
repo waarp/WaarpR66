@@ -54,7 +54,6 @@ import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
-import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
@@ -516,8 +515,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.LONG, XML_MONITOR_PASTLIMIT),
 			new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
 			new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG),
-			new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS),
-			new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY)
+			new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -656,6 +654,7 @@ public class FileBasedConfiguration {
 		new XmlDecl(XmlType.BOOLEAN, XML_REST_AUTHENTICATED),
 		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT),
 		new XmlDecl(XmlType.BOOLEAN, XML_REST_SIGNATURE),
+		new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY),
 		new XmlDecl(XML_REST_METHOD, XmlType.XVAL, XML_REST_METHOD, configRestMethodDecls, true)
 	};
 
@@ -1456,29 +1455,6 @@ public class FileBasedConfiguration {
 	 */
 	@SuppressWarnings("unchecked")
 	private static boolean loadRest(Configuration configuration) {
-		XmlValue valueKey = hashConfig.get(XML_REST_AUTH_KEY);
-		if (valueKey != null && (!valueKey.isEmpty())) {
-			String fileKey = valueKey.getString();
-			File file = new File(fileKey);
-			if (! file.canRead()) {
-				file = new File(configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
-				if (! file.canRead()) {
-					logger.error("Unable to find REST Key in Config file");
-					return false;
-				}
-				fileKey = configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
-			}
-			try {
-				RestArgument.initializeKey(file);
-			} catch (CryptoException e) {
-				logger.error("Unable to load REST Key from Config file: "+fileKey, e);
-				return false;
-			} catch (IOException e) {
-				logger.error("Unable to load REST Key from Config file: "+fileKey, e);
-				return false;
-			}
-		}
-
 		XmlValue valueRest = hashConfig.get(XML_REST);
 		if (valueRest != null && (valueRest.getList() != null)) {
 			for (XmlValue[] xml : (List<XmlValue[]>) valueRest.getList()) {
@@ -1515,6 +1491,30 @@ public class FileBasedConfiguration {
 						restSignature = value.getBoolean();
 					}
 					config.REST_SIGNATURE = restSignature;
+					if (config.REST_SIGNATURE) {
+						XmlValue valueKey = subHash.get(XML_REST_AUTH_KEY);
+						if (valueKey != null && (!valueKey.isEmpty())) {
+							String fileKey = valueKey.getString();
+							File file = new File(fileKey);
+							if (! file.canRead()) {
+								file = new File(configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
+								if (! file.canRead()) {
+									logger.error("Unable to find REST Key in Config file");
+									return false;
+								}
+								fileKey = configuration.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
+							}
+							try {
+								config.initializeKey(file);
+							} catch (CryptoException e) {
+								logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+								return false;
+							} catch (IOException e) {
+								logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+								return false;
+							}
+						}
+					}
 					value = subHash.get(XML_REST_TIME_LIMIT);
 					long restTimeLimit = -1;
 					if (value != null && (!value.isEmpty())) {

@@ -20,7 +20,11 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -35,10 +39,9 @@ import org.waarp.openr66.server.R66Server;
  */
 public class HttpTestR66PseudoMain {
 
-	public static String REST_AUTH_KEY = null;
 	public static RestConfiguration config;
 	
-	public static RestConfiguration getTestConfiguration() {
+	public static RestConfiguration getTestConfiguration() throws CryptoException, IOException {
 		RestConfiguration configuration = new RestConfiguration();
         configuration.REST_PORT = 8088;
         configuration.REST_SSL = false;
@@ -47,13 +50,13 @@ public class HttpTestR66PseudoMain {
     		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
 		}
         configuration.REST_AUTHENTICATED = true;
-        REST_AUTH_KEY = "J:/GG/R66/conf/key.sha256";
+        configuration.initializeKey(new File("J:/GG/R66/conf/key.sha256"));
         configuration.REST_TIME_LIMIT = 10000;
         configuration.REST_SIGNATURE = true;
         configuration.REST_ADDRESS = "127.0.0.1";
         return configuration;
 	}
-	public static RestConfiguration getTestConfiguration2() {
+	public static RestConfiguration getTestConfiguration2() throws CryptoException, IOException {
 		RestConfiguration configuration = new RestConfiguration();
         configuration.REST_PORT = 8089;
         configuration.REST_SSL = false;
@@ -62,7 +65,6 @@ public class HttpTestR66PseudoMain {
     		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.READ.mask;
 		}
         configuration.REST_AUTHENTICATED = false;
-        REST_AUTH_KEY = "J:/GG/R66/conf/key.sha256";
         configuration.REST_TIME_LIMIT = 100000;
         configuration.REST_SIGNATURE = false;
         configuration.REST_ADDRESS = "127.0.0.1";
