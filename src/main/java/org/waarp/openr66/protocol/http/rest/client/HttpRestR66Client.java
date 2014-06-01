@@ -50,7 +50,7 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 
 	/**
 	 * Send an HTTP query using the channel for target
-	 * @param hmacSha256 SHA-256 key to create the signature (might be null)
+	 * @param config configuration for REST service
 	 * @param channel target of the query
 	 * @param method HttpMethod to use
 	 * @param host target of the query (shall be the same as for the channel)
@@ -59,7 +59,6 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	 * @param pwd password to use in authenticated Rest procedure (might be null)
 	 * @param uriArgs arguments for Uri if any (might be null)
 	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
-	 * @param useSignature if True, will use Signature, else not
 	 * @return the RestFuture associated with this request
 	 */
 	public RestFuture sendQuery(RestConfiguration config, Channel channel, HttpMethod method, String host, String addedUri,
