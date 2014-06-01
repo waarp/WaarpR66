@@ -31,6 +31,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
@@ -61,8 +62,9 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestLogR66Handler.class);
    
-	public HttpRestLogR66Handler() {
-		super(BASEURI, METHOD.GET);
+	public HttpRestLogR66Handler(RestConfiguration config, METHOD ... methods) {
+		super(BASEURI, config, METHOD.OPTIONS);
+		setIntersectionMethods(methods, METHOD.GET);
 	}
 	
 	@Override
@@ -125,28 +127,30 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		LogJsonPacket node3 = new LogJsonPacket();
-		node3.setRequestUserPacket();
-		node3.setComment("Log export request (GET)");
-		node3.setRequest("The requester or requested host name");
-		node3.setRule("The rule name");
-		node3.setStart(new Date());
-		node3.setStop(new Date());
-		node3.setStartid("Start id - long -");
-		node3.setStopid("Stop id - long -");
-		ObjectNode node2;
-		LogResponseJsonPacket resp = new LogResponseJsonPacket();
-		resp.setComment("Log export response");
-		resp.setFilename("filepath");
-		ArrayNode node1 = JsonHandler.createArrayNode();
-		try {
-			node1.add(resp.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetLog.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
+		if (this.methods.contains(METHOD.GET)) {
+			LogJsonPacket node3 = new LogJsonPacket();
+			node3.setRequestUserPacket();
+			node3.setComment("Log export request (GET)");
+			node3.setRequest("The requester or requested host name");
+			node3.setRule("The rule name");
+			node3.setStart(new Date());
+			node3.setStop(new Date());
+			node3.setStartid("Start id - long -");
+			node3.setStopid("Stop id - long -");
+			ObjectNode node2;
+			LogResponseJsonPacket resp = new LogResponseJsonPacket();
+			resp.setComment("Log export response");
+			resp.setFilename("filepath");
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			try {
+				node1.add(resp.createObjectNode());
+				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetLog.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

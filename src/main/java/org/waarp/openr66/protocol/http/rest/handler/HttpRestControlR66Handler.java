@@ -32,6 +32,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
@@ -72,8 +73,9 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestControlR66Handler.class);
    
-	public HttpRestControlR66Handler() {
-		super(BASEURI, METHOD.GET, METHOD.PUT, METHOD.POST);
+	public HttpRestControlR66Handler(RestConfiguration config, METHOD ... methods) {
+		super(BASEURI, config, METHOD.OPTIONS);
+		setIntersectionMethods(methods, METHOD.GET, METHOD.PUT, METHOD.POST);
 	}
 	
 	@Override
@@ -177,67 +179,70 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		InformationJsonPacket node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
-		node3.setComment("Information on Transfer request (GET)");
-		ArrayNode node1 = JsonHandler.createArrayNode();
-		ObjectNode node1b = JsonHandler.createObjectNode();
-		node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
-		DbValue []values = DbTaskRunner.getAllType();
-		for (DbValue dbValue : values) {
-			node1b.put(dbValue.column, dbValue.getType());
+		if (this.methods.contains(METHOD.GET)) {
+			InformationJsonPacket node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
+			node3.setComment("Information on Transfer request (GET)");
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			ObjectNode node1b = JsonHandler.createObjectNode();
+			node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+			DbValue []values = DbTaskRunner.getAllType();
+			for (DbValue dbValue : values) {
+				node1b.put(dbValue.column, dbValue.getType());
+			}
+			node1.add(node1b);
+			ObjectNode node2;
+			try {
+				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
-		node1.add(node1b);
-		ObjectNode node2;
-		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
+		if (this.methods.contains(METHOD.PUT)) {
+			RestartTransferJsonPacket node4 = new RestartTransferJsonPacket();
+			node4.setRequestUserPacket();
+			node4.setComment("Restart Transfer request (PUT)");
+			node4.setRequested("Requested host");
+			node4.setRequester("Requester host");
+			node4.setRestarttime(new Date());
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			try {
+				node1.add(node4.createObjectNode());
+				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.RestartTransfer.name(), node4.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
+			StopOrCancelJsonPacket node5 = new StopOrCancelJsonPacket();
+			node5.setRequestUserPacket();
+			node5.setComment("Stop Or Cancel request (PUT)");
+			node5.setRequested("Requested host");
+			node5.setRequester("Requester host");
+			node1 = JsonHandler.createArrayNode();
+			try {
+				node1.add(node5.createObjectNode());
+				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.StopOrCancelTransfer.name(), node5.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
+		if (this.methods.contains(METHOD.POST)) {
+			TransferRequestJsonPacket node6 = new TransferRequestJsonPacket();
+			node6.setRequestUserPacket();
+			node6.setComment("Transfer Request (POST)");
+			node6.setFilename("Filename");
+			node6.setFileInformation("File information");
+			node6.setRequested("Requested host");
+			node6.setRulename("Rulename");
+			node6.setStart(new Date());
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			try {
+				node1.add(node6.createObjectNode());
+				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, ACTIONS_TYPE.CreateTransfer.name(), node6.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
+		}		
 		
-		RestartTransferJsonPacket node4 = new RestartTransferJsonPacket();
-		node4.setRequestUserPacket();
-		node4.setComment("Restart Transfer request (PUT)");
-		node4.setRequested("Requested host");
-		node4.setRequester("Requester host");
-		node4.setRestarttime(new Date());
-		node1 = JsonHandler.createArrayNode();
-		try {
-			node1.add(node4.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.RestartTransfer.name(), node4.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
-		}
-		
-		StopOrCancelJsonPacket node5 = new StopOrCancelJsonPacket();
-		node5.setRequestUserPacket();
-		node5.setComment("Stop Or Cancel request (PUT)");
-		node5.setRequested("Requested host");
-		node5.setRequester("Requester host");
-		node1 = JsonHandler.createArrayNode();
-		try {
-			node1.add(node5.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.StopOrCancelTransfer.name(), node5.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
-		}
-		
-		TransferRequestJsonPacket node6 = new TransferRequestJsonPacket();
-		node6.setRequestUserPacket();
-		node6.setComment("Transfer Request (POST)");
-		node6.setFilename("Filename");
-		node6.setFileInformation("File information");
-		node6.setRequested("Requested host");
-		node6.setRulename("Rulename");
-		node6.setStart(new Date());
-		node1 = JsonHandler.createArrayNode();
-		try {
-			node1.add(node6.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, ACTIONS_TYPE.CreateTransfer.name(), node6.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
-		}
-		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

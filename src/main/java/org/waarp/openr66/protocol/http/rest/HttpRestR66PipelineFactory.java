@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.http.rest;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 import org.jboss.netty.channel.ChannelPipeline;
@@ -42,10 +43,12 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
 	private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
+    private final RestConfiguration restConfiguration;
     
-    public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory) {
+    public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory, RestConfiguration configuration) {
         this.waarpSslContextFactory = waarpSslContextFactory;
         this.useHttpCompression = useHttpCompression;
+        this.restConfiguration = configuration;
     }
 
     public ChannelPipeline getPipeline() throws Exception {
@@ -82,9 +85,7 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
             pipeline.addLast("deflater", new HttpContentCompressor());
         }
         pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-        HttpRestR66Handler r66handler = new HttpRestR66Handler();
-        r66handler.checkAuthent = Configuration.configuration.REST_AUTHENTICATED;
-        r66handler.checkTime = Configuration.configuration.REST_TIME_LIMIT;
+        HttpRestR66Handler r66handler = new HttpRestR66Handler(restConfiguration);
         pipeline.addLast("handler", r66handler);
         return pipeline;
     }

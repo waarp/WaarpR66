@@ -20,8 +20,10 @@ package org.waarp.openr66.protocol.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,6 +62,7 @@ import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.commander.InternalRunner;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
@@ -281,29 +284,9 @@ public class Configuration {
 	public long maxGlobalMemory = 0x100000000L;
 
 	/**
-	 * Http REST port (SSL or not SSL), <=0 for no REST support
+	 * Rest configuration list
 	 */
-	public int REST_PORT = -1;
-	
-	/**
-	 * SERVER REST interface using SSL
-	 */
-	public boolean REST_SSL = false;
-
-	/**
-	 * SERVER REST interface allowing delete
-	 */
-	public boolean REST_ALLOW_DELETE = false;
-
-	/**
-	 * SERVER REST interface using time limit (default: no limit <= 0)
-	 */
-	public long REST_TIME_LIMIT = -1;
-	
-	/**
-	 * SERVER REST interface using authentication
-	 */
-	public boolean REST_AUTHENTICATED = false;
+	public List<RestConfiguration> restConfigurations = new ArrayList<RestConfiguration>();
 	
 	/**
 	 * Base Directory
@@ -680,8 +663,16 @@ public class Configuration {
 	}
 
 	public String toString() {
+		String rest = null;
+		for (RestConfiguration config : restConfigurations) {
+			if (rest == null) {
+				rest = (config.REST_ADDRESS != null ? "'"+config.REST_ADDRESS+":" : "'All:")+config.REST_PORT+"'";
+			} else {
+				rest+= ", "+(config.REST_ADDRESS != null ? "'"+config.REST_ADDRESS+":" : "'All:")+config.REST_PORT+"'";
+			}
+		}
 		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
-				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestPort: "+(REST_PORT > 0 ? REST_PORT : "'NoRestSupport'")+
+				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestAddress: ["+(rest != null ? rest : "'NoRestSupport'")+"]"+
 				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
 				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
 				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
@@ -883,9 +874,10 @@ public class Configuration {
 	}
 	
 	public void startRestSupport() {
-		if (REST_PORT > 0) {
-			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_PORT);
-			HttpRestR66Handler.initializeService(baseDirectory+"/"+workingPath+"/httptemp");
+        HttpRestR66Handler.initialize(baseDirectory+"/"+workingPath+"/httptemp");
+		for (RestConfiguration config : restConfigurations) {
+			HttpRestR66Handler.initializeService(config);
+			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ config.toString());
 		}
 	}
 

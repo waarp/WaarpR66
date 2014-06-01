@@ -5,6 +5,12 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="2.4.28" date="2014-06-01" description="Fix release">
+            <action dev="Frederic Bregier" type="add">Add capacity to specify one specific IP for REST interface</action>
+            <action dev="Frederic Bregier" type="add">Add capacity to deactivate Signature on REST interface</action>
+            <action dev="Frederic Bregier" type="add">Add capacity to limit Method and Command on several REST Interface (multiple REST interface possibility)</action>
+            <action dev="Frederic Bregier" type="fix">Fix setFromJson to check if value is given in All DbData and Mandatory values to be there</action>
+        </release>
         <release version="2.4.27" date="2014-05-15" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Add return of information within Java Exec (BusinessTask, JavaTask)</action>
             <action dev="Frederic Bregier" type="fix">Move kernel.exec module into Waarp R66 (strong dependency)</action>

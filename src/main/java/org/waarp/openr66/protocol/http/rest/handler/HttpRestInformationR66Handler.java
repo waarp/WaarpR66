@@ -29,6 +29,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
@@ -61,8 +62,9 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestInformationR66Handler.class);
    
-	public HttpRestInformationR66Handler() {
-		super(BASEURI, METHOD.GET);
+	public HttpRestInformationR66Handler(RestConfiguration config, METHOD ... methods) {
+		super(BASEURI, config, METHOD.OPTIONS);
+		setIntersectionMethods(methods, METHOD.GET);
 	}
 
 	@Override
@@ -134,35 +136,37 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		InformationJsonPacket node3 = new InformationJsonPacket((byte) InformationPacket.ASKENUM.ASKEXIST.ordinal(), 
-				"The rule name associated with the remote repository",
-				"The filename to look for if any");
-		node3.setComment("Information request (GET)");
-		ObjectNode node2;
-		ArrayNode node1 = JsonHandler.createArrayNode().add("path");
-		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
-		}
-
-		node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
-		node3.setComment("Information on Transfer request (GET)");
-		node1 = JsonHandler.createArrayNode();
-		ObjectNode node1b = JsonHandler.createObjectNode();
-		node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
-		DbValue []values = DbTaskRunner.getAllType();
-		for (DbValue dbValue : values) {
-			node1b.put(dbValue.column, dbValue.getType());
-		}
-		node1.add(node1b);
-		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
+		if (this.methods.contains(METHOD.GET)) {
+			InformationJsonPacket node3 = new InformationJsonPacket((byte) InformationPacket.ASKENUM.ASKEXIST.ordinal(), 
+					"The rule name associated with the remote repository",
+					"The filename to look for if any");
+			node3.setComment("Information request (GET)");
+			ObjectNode node2;
+			ArrayNode node1 = JsonHandler.createArrayNode().add("path");
+			try {
+				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
+	
+			node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
+			node3.setComment("Information on Transfer request (GET)");
+			node1 = JsonHandler.createArrayNode();
+			ObjectNode node1b = JsonHandler.createObjectNode();
+			node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+			DbValue []values = DbTaskRunner.getAllType();
+			for (DbValue dbValue : values) {
+				node1b.put(dbValue.column, dbValue.getType());
+			}
+			node1.add(node1b);
+			try {
+				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 		
 		return node;

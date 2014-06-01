@@ -41,6 +41,7 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.RestMethodHandler;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
@@ -75,8 +76,8 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 	 * @param path
 	 * @param method
 	 */
-	public HttpRestAbstractR66Handler(String path, METHOD... method) {
-		super(path, true, method);
+	public HttpRestAbstractR66Handler(String path, RestConfiguration config, METHOD ...method) {
+		super(path, path, true, config, method);
 	}
 	
 	@Override

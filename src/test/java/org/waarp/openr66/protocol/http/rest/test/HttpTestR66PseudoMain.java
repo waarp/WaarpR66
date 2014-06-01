@@ -20,12 +20,17 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.server.R66Server;
 
 /**
@@ -34,15 +39,36 @@ import org.waarp.openr66.server.R66Server;
  */
 public class HttpTestR66PseudoMain {
 
-	public static String REST_AUTH_KEY = null;
+	public static RestConfiguration config;
 	
-	public static void setTestConfiguration() {
-        Configuration.configuration.REST_PORT = 8088;
-        Configuration.configuration.REST_SSL = false;
-        Configuration.configuration.REST_ALLOW_DELETE = true;
-        Configuration.configuration.REST_AUTHENTICATED = true;
-        REST_AUTH_KEY = "J:/GG/R66/conf/key.sha256";
-        Configuration.configuration.REST_TIME_LIMIT = 10000;
+	public static RestConfiguration getTestConfiguration() throws CryptoException, IOException {
+		RestConfiguration configuration = new RestConfiguration();
+        configuration.REST_PORT = 8088;
+        configuration.REST_SSL = false;
+        configuration.RESTHANDLERS_CRUD = new byte[RESTHANDLERS.values().length];
+    	for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
+    		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
+		}
+        configuration.REST_AUTHENTICATED = true;
+        configuration.initializeKey(new File("J:/GG/R66/conf/key.sha256"));
+        configuration.REST_TIME_LIMIT = 10000;
+        configuration.REST_SIGNATURE = true;
+        configuration.REST_ADDRESS = "127.0.0.1";
+        return configuration;
+	}
+	public static RestConfiguration getTestConfiguration2() throws CryptoException, IOException {
+		RestConfiguration configuration = new RestConfiguration();
+        configuration.REST_PORT = 8089;
+        configuration.REST_SSL = false;
+        configuration.RESTHANDLERS_CRUD = new byte[RESTHANDLERS.values().length];
+    	for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
+    		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.READ.mask;
+		}
+        configuration.REST_AUTHENTICATED = false;
+        configuration.REST_TIME_LIMIT = 100000;
+        configuration.REST_SIGNATURE = false;
+        configuration.REST_ADDRESS = "127.0.0.1";
+        return configuration;
 	}
 	/**
 	 * @param args
@@ -58,9 +84,9 @@ public class HttpTestR66PseudoMain {
         	System.exit(1);
         }
 
-        setTestConfiguration();
-        
-        HttpRestR66Handler.initializeService(pathTemp);
+        config = getTestConfiguration();
+        HttpRestR66Handler.initialize(pathTemp);
+        HttpRestR66Handler.initializeService(config);
         
 		logger.warn("Server RestOpenR66 starts");
 		/* HmacSha256 sha = new HmacSha256();

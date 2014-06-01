@@ -7,8 +7,8 @@
 
     <xsd:notation
         name="versionNetwork"
-        public="2.4.27"
-        system="2.4.27" />
+        public="2.4.9"
+        system="2.4.9" />
 
     <xsd:complexType name="NetworkType">
         <xsd:all>
@@ -63,19 +63,6 @@ Port used for monitoring in HTTP mode
                     </xsd:appinfo>
                     <xsd:documentation>
 Port used for Administrator access in HTTPS mode
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element
-                name="serverrestport"
-                default="-1"
-                type="xsd:integer" >
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <fg:node-info message="Port used for REST Interface in HTTP(s)" />
-                    </xsd:appinfo>
-                    <xsd:documentation>
-Port used for REST Interface in HTTP(s)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

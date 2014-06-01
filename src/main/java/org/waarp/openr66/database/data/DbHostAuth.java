@@ -297,7 +297,7 @@ public class DbHostAuth extends AbstractDbData {
 			this.hostkey = null;
 		} else {
 			try {
-				// Save as crypted with the local Key and Base64
+				// Save as crypted with the local Key and HEX
 				this.hostkey = Configuration.configuration.cryptoKey.cryptToHex(hostkey).getBytes(WaarpStringUtils.UTF8);
 			} catch (Exception e) {
 				this.hostkey = new byte[0];
@@ -323,6 +323,9 @@ public class DbHostAuth extends AbstractDbData {
 	@Override
 	public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
 		super.setFromJson(node, ignorePrimaryKey);
+		if (hostkey == null || hostkey.length == 0 || address == null || address.isEmpty() || hostid == null || hostid.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
+		}
 		if (hostkey != null) {
 			try {
 				// Save as crypted with the local Key and Base64

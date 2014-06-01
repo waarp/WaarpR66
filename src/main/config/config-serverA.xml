@@ -29,7 +29,6 @@
         <serversslport>6667</serversslport>
         <serverhttpport>8066</serverhttpport>
         <serverhttpsport>8067</serverhttpsport>
-        <serverrestport>8068</serverrestport>
     </network>
     <ssl>
         <keypath>D:\GG\R66\certs\testsslnocert.jks</keypath>
@@ -80,10 +79,43 @@
         <dbpasswd>openr66</dbpasswd>
     </db>
 	<rest>
-        <restssl>False</restssl>
-        <restdelete>True</restdelete>
-        <resttimelimit>10000</resttimelimit>
-        <restauthenticated>True</restauthenticated>
-        <restauthkey>D:/GG/R66/conf/key.sha256</restauthkey>
-    </rest>
+		<restaddress>127.0.0.1</restaddress>
+		<restport>8068</restport>
+		<restssl>False</restssl>
+		<restauthenticated>True</restauthenticated>
+		<resttimelimit>10000</resttimelimit>
+		<restsignature>True</restsignature>
+		<restsigkey>D:/GG/R66/config/certs/key.sha256</restsigkey>
+		<restmethod>
+			<restname>ALL</restname>
+			<restcrud>CRUD</restcrud>
+		</restmethod>
+	</rest>
+	<rest>
+		<restport>8069</restport>
+		<restssl>False</restssl>
+		<restauthenticated>False</restauthenticated>
+		<resttimelimit>-1</resttimelimit>
+		<restsignature>False</restsignature>
+		<restmethod>
+			<restname>DbHostAuth DbRule DbTaskRunner DbHostConfiguration DbConfiguration</restname>
+			<restcrud>R</restcrud>
+		</restmethod>
+		<restmethod>
+			<restname>Bandwidth</restname>
+			<restcrud>R</restcrud>
+		</restmethod>
+		<restmethod>
+			<restname>Information</restname>
+			<restcrud>R</restcrud>
+		</restmethod>
+		<restmethod>
+			<restname>Server</restname>
+			<restcrud>R</restcrud>
+		</restmethod>
+		<restmethod>
+			<restname>Control</restname>
+			<restcrud>R</restcrud>
+		</restmethod>
+	</rest>
 </config>

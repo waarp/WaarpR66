@@ -682,6 +682,9 @@ public class DbRule extends AbstractDbData {
 	public DbRule(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
 		super(dbSession);
 		setFromJson(source, false);
+		if (idRule == null || idRule.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
+		}
 	}
 
 	@Override

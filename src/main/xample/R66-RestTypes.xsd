@@ -7,11 +7,32 @@
 
     <xsd:notation
         name="versionRest"
-        public="2.4.27"
-        system="2.4.27" />
+        public="2.4.28"
+        system="2.4.28" />
     
     <xsd:complexType name="RestType" >
-        <xsd:all>
+        <xsd:sequence>
+            <xsd:element name="restaddress" maxOccurs="1" minOccurs="0" type="address" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface address" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface address
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element
+                name="serverrestport" default="8068" type="xsd:integer" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Port used for REST Interface in HTTP(s)" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Port used for REST Interface in HTTP(s)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="restssl" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -19,16 +40,6 @@
                     </xsd:appinfo>
                     <xsd:documentation>
 Is the SERVER REST interface using SSL
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="restdelete" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <fg:node-info message="Is the SERVER REST interface allowing delete" />
-                    </xsd:appinfo>
-                    <xsd:documentation>
-Is the SERVER REST interface allowing delete
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -52,17 +63,61 @@ Is the SERVER REST interface using time limit
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="restauthkey" maxOccurs="1" minOccurs="1" type="pathType">
+            <xsd:element name="restsignature" maxOccurs="1" minOccurs="0" type="booleanType" default="True">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="SERVER REST interface SHA 256 Key file for request checking" />
+                        <fg:node-info message="Is the SERVER REST interface using signature on request" />
                     </xsd:appinfo>
                     <xsd:documentation>
-SERVER REST interface SHA 256 Key file for request checking
+Is the SERVER REST interface using signature on request
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:all>
+            <xsd:element name="restsigkey" maxOccurs="1" minOccurs="0" type="pathType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="SERVER REST interface SHA 256 Key file for request checking through signature" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+SERVER REST interface SHA 256 Key file for request checking through signature
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="restmethod" maxOccurs="unbounded" minOccurs="1" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface using signature on request" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface using signature on request
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="nonEmptyString">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <fg:node-info message="For which METHOD: All or DbHostAuth, DbRule, DbTaskRunner, DbHostConfiguration, DbConfiguration, Bandwidth, Business, Config, Information, Log, Server, Control" />
+                                </xsd:appinfo>
+                                <xsd:documentation>
+For which METHOD: All or DbHostAuth, DbRule, DbTaskRunner, DbHostConfiguration, DbConfiguration, Bandwidth, Business, Config, Information, Log, Server, Control
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="name" type="nonEmptyString">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <fg:node-info message="For which operations: CRUD (Create Read Update Delete). For instance R or CRU or CRUD" />
+                                </xsd:appinfo>
+                                <xsd:documentation>
+For which operations: CRUD (Create Read Update Delete). For instance R or CRU or CRUD
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>
