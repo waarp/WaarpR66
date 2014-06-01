@@ -29,6 +29,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
@@ -50,7 +51,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Server Http REST interface: http://host/server?... + ShutdownOrBlockJsonPacket as PUT or no Json body but PUT to get Current Status in Json
+ * Server Http REST interface: http://host/server?... + ShutdownOrBlockJsonPacket as PUT or no Json body but GET to get Current Status in Json
  * @author "Frederic Bregier"
  *
  */
@@ -63,8 +64,9 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestServerR66Handler.class);
    
-	public HttpRestServerR66Handler() {
-		super(BASEURI, METHOD.GET, METHOD.PUT);
+	public HttpRestServerR66Handler(RestConfiguration config, METHOD ... methods) {
+		super(BASEURI, config, METHOD.OPTIONS);
+		setIntersectionMethods(methods, METHOD.GET, METHOD.PUT);
 	}
 	
 	@Override
@@ -132,24 +134,27 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ShutdownOrBlockJsonPacket node3 = new ShutdownOrBlockJsonPacket();
-		node3.setComment("Shutdown Or Block request (PUT)");
-		node3.setKey("Key".getBytes());
-		ObjectNode node2;
-		ArrayNode node1 = JsonHandler.createArrayNode();
-		try {
-			node1.add(node3.createObjectNode());
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ShutdownOrBlock.name(), node3.createObjectNode(), node1);
-			node.add(node2);
-		} catch (OpenR66ProtocolPacketException e1) {
+		if (this.methods.contains(METHOD.PUT)) {
+			ShutdownOrBlockJsonPacket node3 = new ShutdownOrBlockJsonPacket();
+			node3.setComment("Shutdown Or Block request (PUT)");
+			node3.setKey("Key".getBytes());
+			ObjectNode node2;
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			try {
+				node1.add(node3.createObjectNode());
+				node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ShutdownOrBlock.name(), node3.createObjectNode(), node1);
+				node.add(node2);
+			} catch (OpenR66ProtocolPacketException e1) {
+			}
 		}
-
-		node1 = JsonHandler.createArrayNode();
-		node1.add(Configuration.configuration.monitoring.exportAsJson(true));
-		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetStatus.name(), null, node1);
-		node.add(node2);
+		if (this.methods.contains(METHOD.GET)) {
+			ArrayNode node1 = JsonHandler.createArrayNode();
+			node1.add(Configuration.configuration.monitoring.exportAsJson(true));
+			ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetStatus.name(), null, node1);
+			node.add(node2);
+		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

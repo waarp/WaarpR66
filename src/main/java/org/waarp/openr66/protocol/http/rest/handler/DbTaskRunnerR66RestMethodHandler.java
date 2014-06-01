@@ -29,6 +29,8 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.json.JsonHandler;
+import org.waarp.common.role.RoleDefault.ROLE;
+import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
@@ -36,8 +38,11 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
+import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.Columns;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -49,6 +54,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler<DbTaskRunner> {
+	public static final String BASEURI = "transfers";
 
 	public static enum FILTER_ARGS {
 		LIMIT("number"),
@@ -71,11 +77,11 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		}
 	}
 	/**
-	 * @param name
-	 * @param allowDelete
+	 * @param config
+	 * @param method
 	 */
-	public DbTaskRunnerR66RestMethodHandler(String name, boolean allowDelete) {
-		super(name, allowDelete);
+	public DbTaskRunnerR66RestMethodHandler(RestConfiguration config, METHOD ...method) {
+		super(BASEURI, config, method);
 	}
 
 	protected DbTaskRunner getItem(HttpRestHandler handler, RestArgument arguments,
@@ -210,55 +216,59 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		
 		ObjectNode node2;
 		ObjectNode node3 = JsonHandler.createObjectNode();
-		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-				node3, node1);
-		node.add(node2);
-
-		node3 = JsonHandler.createObjectNode();
-		for (FILTER_ARGS arg : FILTER_ARGS.values()) {
-			node3.put(arg.name(), arg.type);
-		}
-		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-				node3, JsonHandler.createArrayNode().add(node1));
-		node.add(node2);
-
-		node3 = JsonHandler.createObjectNode();
-		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-		for (DbValue dbValue : values) {
-			if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
-				continue;
+		if (this.methods.contains(METHOD.GET)) {
+			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
+			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
+			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
+					node3, node1);
+			node.add(node2);
+	
+			node3 = JsonHandler.createObjectNode();
+			for (FILTER_ARGS arg : FILTER_ARGS.values()) {
+				node3.put(arg.name(), arg.type);
 			}
-			node3.put(dbValue.column, dbValue.getType());
+			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
+					node3, JsonHandler.createArrayNode().add(node1));
+			node.add(node2);
 		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-				node3, node1);
-		node.add(node2);
-		
-		node3 = JsonHandler.createObjectNode();
-		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-				node3, node1);
-		node.add(node2);
-
-		node3 = JsonHandler.createObjectNode();
-		for (DbValue dbValue : values) {
-			node3.put(dbValue.column, dbValue.getType());
+		if (this.methods.contains(METHOD.PUT)) {
+			node3 = JsonHandler.createObjectNode();
+			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
+			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
+			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+			for (DbValue dbValue : values) {
+				if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
+					continue;
+				}
+				node3.put(dbValue.column, dbValue.getType());
+			}
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
+					node3, node1);
+			node.add(node2);
 		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-				node3, node1);
-		node.add(node2);
-
+		if (this.methods.contains(METHOD.DELETE)) {
+			node3 = JsonHandler.createObjectNode();
+			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
+			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
+			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+			node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
+					node3, node1);
+			node.add(node2);
+		}
+		if (this.methods.contains(METHOD.POST)) {
+			node3 = JsonHandler.createObjectNode();
+			for (DbValue dbValue : values) {
+				node3.put(dbValue.column, dbValue.getType());
+			}
+			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
+					node3, node1);
+			node.add(node2);
+		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
@@ -267,6 +277,16 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 	@Override
 	public String getPrimaryPropertyName() {
 		return Columns.SPECIALID.name();
+	}
+
+	@Override
+	protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
+			RestArgument result, METHOD method) throws HttpForbiddenRequestException {
+		HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
+		R66Session session = r66handler.serverHandler.getSession();
+		if (! session.getAuth().isValidRole(ROLE.SYSTEM)) {
+			throw new HttpForbiddenRequestException("Partner must have System role");
+		}
 	}
 
 }

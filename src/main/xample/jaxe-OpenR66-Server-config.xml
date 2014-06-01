@@ -38,7 +38,6 @@
 <MENU_INSERTION nom="serversslport"/>
 <MENU_INSERTION nom="serverhttpport"/>
 <MENU_INSERTION nom="serverhttpsport"/>
-<MENU_INSERTION nom="serverrestport"/>
 <MENU_INSERTION nom="trustuseclientauthenticate"/>
 <MENU_INSERTION nom="serverhome"/>
 <MENU_INSERTION nom="in"/>
@@ -95,11 +94,16 @@
 <MENU_INSERTION nom="roles"/>
 <MENU_INSERTION nom="aliases"/>
 <MENU_INSERTION nom="rest"/>
+<MENU_INSERTION nom="restaddress"/>
+<MENU_INSERTION nom="restport"/>
 <MENU_INSERTION nom="restssl"/>
-<MENU_INSERTION nom="restdelete"/>
-<MENU_INSERTION nom="resttimelimit"/>
 <MENU_INSERTION nom="restauthenticated"/>
-<MENU_INSERTION nom="restauthkey"/>
+<MENU_INSERTION nom="resttimelimit"/>
+<MENU_INSERTION nom="restsignature"/>
+<MENU_INSERTION nom="restsigkey"/>
+<MENU_INSERTION nom="restmethod"/>
+<MENU_INSERTION nom="restname"/>
+<MENU_INSERTION nom="restcrud"/>
 </MENU>
 </MENUS>
 
@@ -136,7 +140,6 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="serversslport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverhttpport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverhttpsport"/>
-<AFFICHAGE_ELEMENT type="typesimple" element="serverrestport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="trustuseclientauthenticate"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverhome"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="in"/>
@@ -193,11 +196,15 @@
 <AFFICHAGE_ELEMENT type="zone" element="roles"/>
 <AFFICHAGE_ELEMENT type="zone" element="alias"/>
 <AFFICHAGE_ELEMENT type="zone" element="rest"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restaddress"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="restssl"/>
-<AFFICHAGE_ELEMENT type="typesimple" element="restdelete"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="resttimelimit"/>
-<AFFICHAGE_ELEMENT type="typesimple" element="restauthenticated"/>
-<AFFICHAGE_ELEMENT type="typesimple" element="restauthkey"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restsignature"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restsigkey"/>
+<AFFICHAGE_ELEMENT type="zone" element="restmethod"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restname"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="restcrud"/>
 </AFFICHAGE_NOEUDS>
 
 <STRINGS>
@@ -386,12 +393,6 @@ Port used for monitoring in HTTP mode
 <TITRE>serverhttpsport</TITRE>
 <DOCUMENTATION>
 Port used for Administrator access in HTTPS mode
-                    </DOCUMENTATION>
-</STRINGS_ELEMENT>
-<STRINGS_ELEMENT element="serverrestport">
-<TITRE>serverrestport</TITRE>
-<DOCUMENTATION>
-Port used for REST Interface in HTTP(s)
                     </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="trustuseclientauthenticate">
@@ -664,16 +665,22 @@ The real host id that will have aliases (locally)
 The set of aliases assign to this host separated by '|' or blank space
 </DOCUMENTATION>
 </STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restaddress">
+<TITRE>restaddress</TITRE>
+<DOCUMENTATION>
+Address used for REST Interface in HTTP(s) if any
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restport">
+<TITRE>restport</TITRE>
+<DOCUMENTATION>
+Port used for REST Interface in HTTP(s)
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="restssl">
 <TITRE>restssl</TITRE>
 <DOCUMENTATION>
 Is the SERVER REST interface using SSL
-</DOCUMENTATION>
-</STRINGS_ELEMENT>
-<STRINGS_ELEMENT element="restdelete">
-<TITRE>restdelete</TITRE>
-<DOCUMENTATION>
-Is the SERVER REST interface allowing delete
 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="restauthenticated">
@@ -688,10 +695,28 @@ Is the SERVER REST interface using authentication
 Is the SERVER REST interface using time limit
 </DOCUMENTATION>
 </STRINGS_ELEMENT>
-<STRINGS_ELEMENT element="restauthkey">
-<TITRE>restauthkey</TITRE>
+<STRINGS_ELEMENT element="restsignature">
+<TITRE>restsignature</TITRE>
 <DOCUMENTATION>
-SERVER REST interface SHA 256 Key file for request checking
+Is the SERVER REST interface using signature
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restsigkey">
+<TITRE>restsigkey</TITRE>
+<DOCUMENTATION>
+SERVER REST interface SHA 256 Key file for request checking using signature of each request
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restname">
+<TITRE>restname</TITRE>
+<DOCUMENTATION>
+For which METHOD: All or DbHostAuth, DbRule, DbTaskRunner, DbHostConfiguration, DbConfiguration, Bandwidth, Business, Config, Information, Log, Server, Control
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restcrud">
+<TITRE>restcrud</TITRE>
+<DOCUMENTATION>
+For which operations: CRUD (Create Read Update Delete). For instance R or CRU or CRUD
 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="config">
@@ -732,6 +757,9 @@ SERVER REST interface SHA 256 Key file for request checking
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="rest">
 <TITRE>rest</TITRE>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="restmethod">
+<TITRE>restmethod</TITRE>
 </STRINGS_ELEMENT>
 </STRINGS>
 </CONFIG_JAXE>

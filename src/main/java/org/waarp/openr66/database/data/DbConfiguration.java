@@ -281,6 +281,9 @@ public class DbConfiguration extends AbstractDbData {
 	public DbConfiguration(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
 		super(dbSession);
 		setFromJson(source, false);
+		if (hostid == null || hostid.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
+		}
 		setToArray();
 		isSaved = false;
 	}
@@ -288,6 +291,9 @@ public class DbConfiguration extends AbstractDbData {
 	@Override
 	public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
 		super.setFromJson(node, ignorePrimaryKey);
+		if (hostid == null || hostid.isEmpty()) {
+			throw new WaarpDatabaseSqlException("Not enough argument to create the object");
+		}
 		readgloballimit = (readgloballimit / 10) * 10;
 		writegloballimit = (writegloballimit / 10) * 10;
 		readsessionlimit = (readsessionlimit / 10) * 10;
