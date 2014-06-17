@@ -53,6 +53,31 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 		super();
 	}
 
+	/**
+	 * Gets the version of the current PostgreSQL Server
+	 *
+	 * @throws WaarpDatabaseNoConnectionException
+	 */
+	private int getServerVersion(DbSession session)  throws WaarpDatabaseNoConnectionException {
+		int serverVersion = 0;
+		DbRequest request = new DbRequest(session);
+		try {
+			request.select("SHOW server_version_num");
+			request.getNext();
+			serverVersion = request.getResultSet().getInt("server_version_num");
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+		} catch (WaarpDatabaseSqlException e) {
+			e.printStackTrace();
+			// XXX FIX no return;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			request.close();
+		}
+		return serverVersion;
+	}
+
 	@Override
 	public void createTables(DbSession session) throws WaarpDatabaseNoConnectionException {
 		// Create tables: configuration, hosts, rules, runner, cptrunner
@@ -313,7 +338,12 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
 			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
+
 			String createTableH2 = "CREATE TABLE ";
+			int serverVersion = getServerVersion(session);
+			if (serverVersion>=90100) {
+				createTableH2 = "CREATE TABLE IF NOT EXISTS ";
+			}
 			String primaryKey = " PRIMARY KEY ";
 			String notNull = " NOT NULL ";
 	
@@ -342,10 +372,12 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 		}
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
-			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
+			String command = "DO $$ BEGIN "+
+					"ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
 					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
-					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
-					" DEFAULT '{}' NOT NULL ";
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) +
+					" DEFAULT '{}' NOT NULL; "+
+					"EXCEPTION WHEN duplicate_column THEN END $$";
 			DbRequest request = new DbRequest(session);
 			try {
 				request.query(command);
@@ -358,10 +390,12 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 		}
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_23.getVersion())) {
 			System.out.println(version+" to "+R66Versions.V2_4_23.getVersion()+"? "+true);
-			String command = "ALTER TABLE "+DbHostAuth.table+" ADD COLUMN "+
+			String command = "DO $$ BEGIN "+
+					"ALTER TABLE "+DbHostAuth.table+" ADD COLUMN "+
 					DbHostAuth.Columns.ISACTIVE.name()+ " "+
-					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISACTIVE.ordinal()]) + 
-					" DEFAULT "+true+" NOT NULL ";
+					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISACTIVE.ordinal()]) +
+					" DEFAULT "+true+" NOT NULL; "+
+					"EXCEPTION WHEN duplicate_column THEN END $$";
 			DbRequest request = new DbRequest(session);
 			try {
 				request.query(command);
@@ -371,10 +405,12 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			} finally {
 				request.close();
 			}
-			command = "ALTER TABLE "+DbHostAuth.table+" ADD COLUMN "+
+			command = "DO $$ BEGIN "+
+					"ALTER TABLE "+DbHostAuth.table+" ADD COLUMN "+
 					DbHostAuth.Columns.ISPROXIFIED.name()+ " "+
-					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISPROXIFIED.ordinal()]) + 
-					" DEFAULT "+false+" NOT NULL ";
+					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISPROXIFIED.ordinal()]) +
+					" DEFAULT "+false+" NOT NULL; "+
+					"EXCEPTION WHEN duplicate_column THEN END $$";
 			request = new DbRequest(session);
 			try {
 				request.query(command);
@@ -389,11 +425,11 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			System.out.println(version+" to "+R66Versions.V2_4_25.getVersion()+"? "+true);
 			String command = "ALTER TABLE "+DbTaskRunner.table+" ALTER COLUMN "+
 				DbTaskRunner.Columns.FILENAME.name()+ " TYPE "+
-				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.FILENAME.ordinal()]) + 
-				" NOT NULL, "+
-				DbTaskRunner.Columns.ORIGINALNAME.name()+ " TYPE "+
-				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.ORIGINALNAME.ordinal()]) + 
-				" NOT NULL ";
+				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.FILENAME.ordinal()])+","+
+				" ALTER COLUMN "+DbTaskRunner.Columns.FILENAME.name()+" SET NOT NULL, "+
+				" ALTER COLUMN "+DbTaskRunner.Columns.ORIGINALNAME.name()+ " TYPE "+
+				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.ORIGINALNAME.ordinal()])+","+
+				" ALTER COLUMN "+DbTaskRunner.Columns.FILENAME.name()+" SET NOT NULL ";
 			DbRequest request = new DbRequest(session);
 			try {
 				System.out.println("Command: "+command);
