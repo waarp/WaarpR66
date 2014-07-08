@@ -5,7 +5,11 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-        <release version="2.4.28" date="2014-06-01" description="Fix release">
+        <release version="2.4.29" date="2014-07-15" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix Waarp status feedback in SpooledDirectoryTransfer client</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
+	    <release version="2.4.28" date="2014-06-01" description="Fix release">
             <action dev="Frederic Bregier" type="add">Add capacity to specify one specific IP for REST interface</action>
             <action dev="Frederic Bregier" type="add">Add capacity to deactivate Signature on REST interface</action>
             <action dev="Frederic Bregier" type="add">Add capacity to limit Method and Command on several REST Interface (multiple REST interface possibility)</action>
