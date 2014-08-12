@@ -27,11 +27,11 @@ import java.util.concurrent.RejectedExecutionException;
 
 import javax.net.ssl.SSLException;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelException;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelException;
+import io.netty.channel.ExceptionEvent;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
@@ -44,7 +44,7 @@ public class OpenR66ExceptionTrappedFactory {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(OpenR66ExceptionTrappedFactory.class);
 
 	/**
@@ -142,7 +142,7 @@ public class OpenR66ExceptionTrappedFactory {
 			final IOException e2 = (IOException) e1;
 			logger.debug("Connection aborted since {} with Channel {}", e2
 					.getMessage(), channel);
-			if (channel.isConnected()) {
+			if (channel.isActive()) {
 				return new OpenR66ProtocolSystemException("Connection aborted due to "
 						+ e2.getMessage(), e2);
 			} else {
@@ -153,7 +153,7 @@ public class OpenR66ExceptionTrappedFactory {
 			final RejectedExecutionException e2 = (RejectedExecutionException) e1;
 			logger.debug("Connection aborted since {} with Channel {}", e2
 					.getMessage(), channel);
-			if (channel.isConnected()) {
+			if (channel.isActive()) {
 				return new OpenR66ProtocolSystemException("Execution aborted", e2);
 			} else {
 				return new OpenR66ProtocolBusinessNoWriteBackException("Execution aborted", e2);
@@ -168,7 +168,7 @@ public class OpenR66ExceptionTrappedFactory {
 			R66ShutdownHook.setRestart(true);
 			return e2;
 		} else {
-			logger.error("Unexpected exception from downstream" +
+			logger.error("Unexpected exception from Outband" +
 					" Ref Channel: " + channel.toString(), e1);
 		}
 		if (Configuration.configuration.r66Mib != null) {

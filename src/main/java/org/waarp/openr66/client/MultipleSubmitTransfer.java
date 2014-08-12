@@ -21,9 +21,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -167,9 +167,9 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 	 *            false(default) and the blocksize if different than default
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(MultipleSubmitTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(MultipleSubmitTransfer.class);
 		}
 		boolean submit = true;
 		for (String string : args) {
@@ -182,7 +182,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

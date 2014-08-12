@@ -24,8 +24,8 @@ import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.RequestTransfer;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.commander.CommanderNoDb;
@@ -56,7 +56,7 @@ public class TransferUtils {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(TransferUtils.class);
 
 	/**
@@ -226,7 +226,7 @@ public class TransferUtils {
 			StringBuilder builder, R66Session session, String body,
 			String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
 			String req, boolean pending, boolean transfer, boolean error) {
-		if (dbSession == null || dbSession.isDisconnected) {
+		if (dbSession == null || dbSession.isDisActive) {
 			// do it without DB
 			if (ClientRunner.activeRunners != null) {
 				for (ClientRunner runner : ClientRunner.activeRunners) {
@@ -330,7 +330,7 @@ public class TransferUtils {
 			StringBuilder builder, R66Session session, String body,
 			String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
 			String req, boolean pending, boolean transfer, boolean error) {
-		if (dbSession == null || dbSession.isDisconnected) {
+		if (dbSession == null || dbSession.isDisActive) {
 			// do it without DB
 			if (ClientRunner.activeRunners != null) {
 				for (ClientRunner runner : ClientRunner.activeRunners) {

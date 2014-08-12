@@ -31,8 +31,8 @@ import org.apache.thrift.TException;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66File;
@@ -62,7 +62,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66EmbeddedServiceImpl.class);
 	
 	private DbTaskRunner initRequest(R66Request request) {

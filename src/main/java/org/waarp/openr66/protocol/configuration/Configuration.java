@@ -30,20 +30,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.ObjectSizeEstimator;
-import org.jboss.netty.util.Timer;
-import org.jboss.netty.util.internal.ExecutorUtil;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.logging.WaarpLoggerFactory;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.ObjectSizeEstimator;
+import io.netty.util.Timer;
+import io.netty.util.internal.ExecutorUtil;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -56,8 +56,8 @@ import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
@@ -74,20 +74,20 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
-import org.waarp.openr66.protocol.http.HttpPipelineFactory;
+import org.waarp.openr66.protocol.http.HttpInitializer;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
-import org.waarp.openr66.protocol.http.adminssl.HttpSslPipelineFactory;
+import org.waarp.openr66.protocol.http.adminssl.HttpSslInitializer;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
-import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
-import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
 import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -106,7 +106,7 @@ public class Configuration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(Configuration.class);
 
 	// Static values
@@ -467,11 +467,11 @@ public class Configuration {
 	/**
 	 * Factory for NON SSL Server
 	 */
-	protected NetworkServerPipelineFactory networkServerPipelineFactory;
+	protected NetworkServerInitializer networkServerInitializer;
 	/**
 	 * Factory for SSL Server
 	 */
-	protected NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
+	protected NetworkSslServerInitializer networkSslServerInitializer;
 
 	/**
 	 * Bootstrap for Http server
@@ -686,7 +686,7 @@ public class Configuration {
 			return;
 		}
 		localTransaction = new LocalTransaction();
-		InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
+		WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory
 				.getDefaultFactory());
 		objectSizeEstimator = new NetworkPacketSizeEstimator();
 		httpPipelineInit();
@@ -775,8 +775,8 @@ public class Configuration {
 				execServerBoss, execServerWorker, SERVER_THREAD);
 		if (useNOSSL) {
 			serverBootstrap = new ServerBootstrap(serverChannelFactory);
-			networkServerPipelineFactory = new NetworkServerPipelineFactory(true);
-			serverBootstrap.setPipelineFactory(networkServerPipelineFactory);
+			networkServerInitializer = new NetworkServerInitializer(true);
+			serverBootstrap.setInitializer(networkServerInitializer);
 			serverBootstrap.setOption("child.tcpNoDelay", true);
 			serverBootstrap.setOption("child.keepAlive", true);
 			serverBootstrap.setOption("child.reuseAddress", true);
@@ -787,14 +787,14 @@ public class Configuration {
 			bindNoSSL = serverBootstrap.bind(new InetSocketAddress(SERVER_PORT));
 			serverChannelGroup.add(bindNoSSL);
 		} else {
-			networkServerPipelineFactory = null;
+			networkServerInitializer = null;
 			logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
 		}
 
 		if (useSSL && HOST_SSLID != null) {
 			serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-			networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false);
-			serverSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
+			networkSslServerInitializer = new NetworkSslServerInitializer(false);
+			serverSslBootstrap.setInitializer(networkSslServerInitializer);
 			serverSslBootstrap.setOption("child.tcpNoDelay", true);
 			serverSslBootstrap.setOption("child.keepAlive", true);
 			serverSslBootstrap.setOption("child.reuseAddress", true);
@@ -805,7 +805,7 @@ public class Configuration {
 			bindSSL = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT));
 			serverChannelGroup.add(bindSSL);
 		} else {
-			networkSslServerPipelineFactory = null;
+			networkSslServerInitializer = null;
 			logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
 		}
 
@@ -840,7 +840,7 @@ public class Configuration {
 		httpBootstrap = new ServerBootstrap(
 				httpChannelFactory);
 		// Set up the event pipeline factory.
-		httpBootstrap.setPipelineFactory(new HttpPipelineFactory(useHttpCompression));
+		httpBootstrap.setInitializer(new HttpInitializer(useHttpCompression));
 		httpBootstrap.setOption("child.tcpNoDelay", true);
 		httpBootstrap.setOption("child.keepAlive", true);
 		httpBootstrap.setOption("child.reuseAddress", true);
@@ -860,7 +860,7 @@ public class Configuration {
 		httpsBootstrap = new ServerBootstrap(
 				httpsChannelFactory);
 		// Set up the event pipeline factory.
-		httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory(useHttpCompression,
+		httpsBootstrap.setInitializer(new HttpSslInitializer(useHttpCompression,
 				false));
 		httpsBootstrap.setOption("child.tcpNoDelay", true);
 		httpsBootstrap.setOption("child.keepAlive", true);

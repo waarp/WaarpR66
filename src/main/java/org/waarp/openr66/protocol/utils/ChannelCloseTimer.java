@@ -19,10 +19,10 @@ package org.waarp.openr66.protocol.utils;
 
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.openr66.protocol.configuration.Configuration;
 

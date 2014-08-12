@@ -19,17 +19,17 @@ package org.waarp.openr66.context.task.localexec;
 
 import java.net.InetSocketAddress;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.waarp.commandexec.client.LocalExecClientHandler;
-import org.waarp.commandexec.client.LocalExecClientPipelineFactory;
+import org.waarp.commandexec.client.LocalExecClientInitializer;
 import org.waarp.commandexec.utils.LocalExecResult;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
@@ -42,28 +42,28 @@ public class LocalExecClient {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(LocalExecClient.class);
 
 	static public InetSocketAddress address;
 	// Configure the client.
-	static private ClientBootstrap bootstrapLocalExec;
+	static private Bootstrap bootstrapLocalExec;
 	// Configure the pipeline factory.
-	static private LocalExecClientPipelineFactory localExecClientPipelineFactory;
+	static private LocalExecClientInitializer localExecClientInitializer;
 
 	/**
 	 * Initialize the LocalExec Client context
 	 */
 	public static void initialize() {
 		// Configure the client.
-		bootstrapLocalExec = new ClientBootstrap(
+		bootstrapLocalExec = new Bootstrap(
 				new NioClientSocketChannelFactory(
 						Configuration.configuration.getLocalPipelineExecutor(),
 						Configuration.configuration.getLocalPipelineExecutor()));
 		// Configure the pipeline factory.
-		localExecClientPipelineFactory =
-				new LocalExecClientPipelineFactory();
-		bootstrapLocalExec.setPipelineFactory(localExecClientPipelineFactory);
+		localExecClientInitializer =
+				new LocalExecClientInitializer();
+		bootstrapLocalExec.setInitializer(localExecClientInitializer);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class LocalExecClient {
 		}
 		// Shut down all thread pools to exit.
 		bootstrapLocalExec.releaseExternalResources();
-		localExecClientPipelineFactory.releaseResources();
+		localExecClientInitializer.releaseResources();
 	}
 
 	private Channel channel;
@@ -101,7 +101,7 @@ public class LocalExecClient {
 			WaarpFuture futureCompletion) {
 		// Initialize the command context
 		LocalExecClientHandler clientHandler =
-				(LocalExecClientHandler) channel.getPipeline().getLast();
+				(LocalExecClientHandler) channel.pipeline().getLast();
 		// Command to execute
 		clientHandler.initExecClient(delay, command);
 		if (!waitFor) {
@@ -142,7 +142,7 @@ public class LocalExecClient {
 
 		// Wait until the connection attempt succeeds or fails.
 		try {
-			channel = future.await().getChannel();
+			channel = future.await().channel();
 		} catch (InterruptedException e) {
 		}
 		if (!future.isSuccess()) {

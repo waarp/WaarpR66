@@ -28,15 +28,15 @@ import java.util.concurrent.TimeUnit;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.filemonitor.FileMonitor;
 import org.waarp.common.filemonitor.FileMonitorCommandFactory;
 import org.waarp.common.filemonitor.FileMonitorCommandRunnableFuture;
 import org.waarp.common.filemonitor.RegexFileFilter;
 import org.waarp.common.filemonitor.FileMonitor.FileItem;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.common.xml.XmlDecl;
@@ -99,7 +99,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static protected volatile WaarpInternalLogger logger;
+	static protected volatile WaarpLogger logger;
 
 	protected static String _INFO_ARGS = 
 			Messages.getString("SpooledDirectoryTransfer.0"); //$NON-NLS-1$
@@ -187,7 +187,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			long elapseWaarp, boolean parallel, int limitParallel,
 			List<String> waarphost, long minimalSize, boolean logWarn, NetworkTransaction networkTransaction) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
 		this.future = future;
 		this.name = name;
@@ -220,7 +220,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 	@Override
 	public void run() {
-		if (submit && ! DbConstant.admin.isConnected) {
+		if (submit && ! DbConstant.admin.isActive) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 			this.future.cancel();
 			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
@@ -335,7 +335,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 				public void run(FileItem notused) {
 					try {
 						Thread.currentThread().setName("FileMonitorInformation_"+name);
-						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisActive) {
 							DbConstant.admin.session.checkConnectionNoException();
 						}
 						String status = monitorArg.getStatus();
@@ -415,7 +415,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
-			if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+			if (DbConstant.admin.session != null && DbConstant.admin.session.isDisActive) {
 				DbConstant.admin.session.checkConnectionNoException();
 			}
 			boolean finalStatus = false;
@@ -465,7 +465,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 										transaction2.run();
 										// special task
 										future.awaitUninterruptibly();
-										if (! DbConstant.admin.isConnected) {
+										if (! DbConstant.admin.isActive) {
 											DbTaskRunner.removeNoDbSpecialId(specialId);
 										}
 									}
@@ -569,10 +569,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 								runner = r66result.runner;
 								if (runner != null) {
 									specialId = runner.getSpecialId();
-									if (! DbConstant.admin.isConnected && remoteHosts.size() > 1) {
+									if (! DbConstant.admin.isActive && remoteHosts.size() > 1) {
 										DbTaskRunner.removeNoDbSpecialId(specialId);
 										specialId = DbConstant.ILLEGALVALUE;
-									} else if (DbConstant.admin.isConnected) {
+									} else if (DbConstant.admin.isActive) {
 										DbTaskRunner.removeNoDbSpecialId(specialId);
 									}
 									if (isConnectionImpossible) {
@@ -974,7 +974,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			if (arg.sname == null) {
 				arg.sname = Configuration.configuration.HOST_ID+" : "+arg.localDirectory;
 			}
-			if (arg.tosubmit && ! DbConstant.admin.isConnected) {
+			if (arg.tosubmit && ! DbConstant.admin.isActive) {
 				logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 				return false;
 			}
@@ -992,9 +992,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
 		initialize(args, true);
 	}
@@ -1008,12 +1008,12 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 */
 	public static boolean initialize(String[] args, boolean normalStart) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
 		arguments.clear();
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			if (normalStart) {

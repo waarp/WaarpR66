@@ -17,9 +17,9 @@
  */
 package org.waarp.openr66.server;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -33,7 +33,7 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * @author Frederic Bregier
  */
 public class R66Server {
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 
 	/**
 	 * @param args
@@ -42,8 +42,8 @@ public class R66Server {
 	 */
 	public static void main(String[] args)
 			throws OpenR66ProtocolPacketException {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		logger = WaarpInternalLoggerFactory
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		logger = WaarpLoggerFactory
 				.getLogger(R66Server.class);
 		if (args.length < 1) {
 			logger
@@ -67,7 +67,7 @@ public class R66Server {
 
 	public static boolean initialize(String config) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory
+			logger = WaarpLoggerFactory
 					.getLogger(R66Server.class);
 		}
 		if (!FileBasedConfiguration

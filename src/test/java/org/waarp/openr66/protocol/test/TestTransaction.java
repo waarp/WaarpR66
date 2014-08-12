@@ -21,10 +21,10 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -47,7 +47,7 @@ public class TestTransaction implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 
 	final private NetworkTransaction networkTransaction;
 
@@ -60,7 +60,7 @@ public class TestTransaction implements Runnable {
 	public TestTransaction(NetworkTransaction networkTransaction,
 			R66Future future, SocketAddress socketAddress, TestPacket packet) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestTransaction.class);
+			logger = WaarpLoggerFactory.getLogger(TestTransaction.class);
 		}
 		this.networkTransaction = networkTransaction;
 		this.future = future;
@@ -89,10 +89,10 @@ public class TestTransaction implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestTransaction.class);
+			logger = WaarpLoggerFactory.getLogger(TestTransaction.class);
 		}
 		if (args.length < 1) {
 			logger

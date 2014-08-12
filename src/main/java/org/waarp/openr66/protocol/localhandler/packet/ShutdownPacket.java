@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -42,7 +42,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public static ShutdownPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
+			int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		if (headerLength - 1 <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
@@ -77,13 +77,13 @@ public class ShutdownPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
+		end = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (key != null) {
-			header = ChannelBuffers.wrappedBuffer(key);
+			header = ByteBufs.wrappedBuffer(key);
 		}
 	}
 
@@ -91,9 +91,9 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (restart != 0) {
 			byte [] array = {restart};
-			middle = ChannelBuffers.wrappedBuffer(array);
+			middle = ByteBufs.wrappedBuffer(array);
 		} else {
-			middle = ChannelBuffers.EMPTY_BUFFER;
+			middle = ByteBufs.EMPTY_BUFFER;
 		}
 	}
 

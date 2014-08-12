@@ -21,8 +21,8 @@
 package org.waarp.openr66.service;
 
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -39,7 +39,7 @@ public class R66Engine extends EngineAbstract {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66Engine.class);
 	
 	public static WaarpFuture closeFuture = new WaarpFuture(true);

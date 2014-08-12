@@ -19,8 +19,8 @@ package org.waarp.openr66.context.task;
 
 import java.util.concurrent.TimeUnit;
 
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -40,7 +40,7 @@ public class RestartServerTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(RestartServerTask.class);
 
 	/**

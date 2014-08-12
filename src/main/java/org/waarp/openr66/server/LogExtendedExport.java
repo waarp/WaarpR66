@@ -21,11 +21,11 @@ import java.io.File;
 import java.net.SocketAddress;
 import java.sql.Timestamp;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.client.DirectTransfer;
@@ -61,7 +61,7 @@ public class LogExtendedExport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger logger;
+	static volatile WaarpLogger logger;
 
 	protected static String _INFO_ARGS = 
 			"Need at least the configuration file as first argument then optionally\n"
@@ -155,7 +155,7 @@ public class LogExtendedExport implements Runnable {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
+			logger = WaarpLoggerFactory.getLogger(LogExtendedExport.class);
 		}
 		if (! (statusdone || statuserror || statuspending || statustransfer)) {
 			logger.error("No action required");
@@ -278,7 +278,7 @@ public class LogExtendedExport implements Runnable {
 					} else {
 						logsFile = futuretemp.getResult().file.getTrueFile();
 					}
-					if (tryimport && DbConstant.admin.isConnected) {
+					if (tryimport && DbConstant.admin.isActive) {
 						try {
 							DbTaskRunner.loadXml(logsFile);
 						} catch (OpenR66ProtocolBusinessException e) {
@@ -387,13 +387,13 @@ public class LogExtendedExport implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
+			logger = WaarpLoggerFactory.getLogger(LogExtendedExport.class);
 		}
 		if (!getParams(args)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			System.exit(1);
@@ -405,7 +405,7 @@ public class LogExtendedExport implements Runnable {
 				dbhost = new DbHostAuth(DbConstant.admin.session, stohost);
 			} catch (WaarpDatabaseException e) {
 				logger.error("Wrong initialization");
-				if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+				if (DbConstant.admin != null && DbConstant.admin.isActive) {
 					DbConstant.admin.close();
 				}
 				System.exit(2);

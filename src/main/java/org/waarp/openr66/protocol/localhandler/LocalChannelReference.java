@@ -17,12 +17,12 @@
  */
 package org.waarp.openr66.protocol.localhandler;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.channel.Channel;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.RecvThroughHandler;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
@@ -39,7 +39,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
-import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.waarp.openr66.protocol.utils.R66Versions;
@@ -54,7 +54,7 @@ public class LocalChannelReference {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(LocalChannelReference.class);
 
 	/**
@@ -171,7 +171,7 @@ public class LocalChannelReference {
 			Integer remoteId, R66Future futureRequest) throws OpenR66ProtocolRemoteShutdownException {
 		this.localChannel = localChannel;
 		this.networkChannelRef = networkChannelRef;
-		networkServerHandler = (NetworkServerHandler) this.networkChannelRef.getChannel().getPipeline().getLast();
+		networkServerHandler = (NetworkServerHandler) this.networkChannelRef.channel().pipeline().getLast();
 		localId = this.localChannel.getId();
 		this.remoteId = remoteId;
 		if (futureRequest == null) {
@@ -182,8 +182,8 @@ public class LocalChannelReference {
 			}
 			this.futureRequest = futureRequest;
 		}
-		cts = (ChannelTrafficShapingHandler) networkChannelRef.getChannel().getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
-		if (DbConstant.admin.isConnected && ! DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+		cts = (ChannelTrafficShapingHandler) networkChannelRef.channel().pipeline().get(NetworkServerInitializer.LIMITCHANNEL);
+		if (DbConstant.admin.isActive && ! DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
 			try {
 				this.noconcurrencyDbSession = new DbSession(DbConstant.admin, false);
 			} catch (WaarpDatabaseNoConnectionException e) {
@@ -231,7 +231,7 @@ public class LocalChannelReference {
 	 * @return the networkChannelRef
 	 */
 	public Channel getNetworkChannel() {
-		return networkChannelRef.getChannel();
+		return networkChannelRef.channel();
 	}
 
 	/**
@@ -399,13 +399,13 @@ public class LocalChannelReference {
 		R66Result result;
 		try {
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				Channel channel = this.networkChannelRef.getChannel();
-				if (channel != null && channel.isConnected()) {
+				Channel channel = this.networkChannelRef.channel();
+				if (channel != null && channel.isActive()) {
 					if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
 						if (futureConnection.isDone()) {
 							return futureConnection;
 						} else {
-							if (channel.isConnected()) {
+							if (channel.isActive()) {
 								continue;
 							}
 							result = new R66Result(

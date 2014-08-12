@@ -26,8 +26,8 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.client.SpooledDirectoryTransfer;
@@ -46,7 +46,7 @@ public class SpooledEngine extends EngineAbstract {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(SpooledEngine.class);
 	
 	public static final WaarpFuture closeFuture = new WaarpFuture(true);

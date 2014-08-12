@@ -17,12 +17,12 @@
  */
 package org.waarp.openr66.protocol.test;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.RecvThroughHandler;
 import org.waarp.openr66.client.SendThroughClient;
 import org.waarp.openr66.commander.ClientRunner;
@@ -94,11 +94,11 @@ public class TestSendThroughForward extends SendThroughClient {
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * org.waarp.openr66.client.RecvThroughHandler#writeChannelBuffer(org.jboss.netty.buffer
-		 * .ChannelBuffer)
+		 * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
+		 * .ByteBuf)
 		 */
 		@Override
-		public void writeChannelBuffer(ChannelBuffer buffer)
+		public void writeByteBuf(ByteBuf buffer)
 				throws OpenR66ProtocolBusinessException {
 			DataBlock block = new DataBlock();
 			if (buffer.readableBytes() <= 0) {
@@ -160,7 +160,7 @@ public class TestSendThroughForward extends SendThroughClient {
 	@Override
 	public boolean initiateRequest() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestSendThroughForward.class);
+			logger = WaarpLoggerFactory.getLogger(TestSendThroughForward.class);
 		}
 		DbRule rule;
 		try {

@@ -17,9 +17,9 @@
  */
 package org.waarp.openr66.protocol.test;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.buffer.ByteBuf;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.RecvThroughClient;
 import org.waarp.openr66.client.RecvThroughHandler;
@@ -43,11 +43,11 @@ public class TestRecvThroughClient extends RecvThroughClient {
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * org.waarp.openr66.client.RecvThroughHandler#writeChannelBuffer(org.jboss.netty.buffer
-		 * .ChannelBuffer)
+		 * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
+		 * .ByteBuf)
 		 */
 		@Override
-		public void writeChannelBuffer(ChannelBuffer buffer)
+		public void writeByteBuf(ByteBuf buffer)
 				throws OpenR66ProtocolBusinessException {
 			buffer.skipBytes(buffer.readableBytes());
 			// byte [] array = this.getByte(buffer);
@@ -79,13 +79,13 @@ public class TestRecvThroughClient extends RecvThroughClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestRecvThroughHandler.class);
+			logger = WaarpLoggerFactory.getLogger(TestRecvThroughHandler.class);
 		}
 		if (!getParams(args, false)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			System.exit(1);

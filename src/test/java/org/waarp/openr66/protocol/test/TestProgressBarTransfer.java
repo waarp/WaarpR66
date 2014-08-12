@@ -17,9 +17,9 @@
  */
 package org.waarp.openr66.protocol.test;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.ProgressBarTransfer;
 import org.waarp.openr66.context.ErrorCode;
@@ -87,14 +87,14 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ProgressBarTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(ProgressBarTransfer.class);
 		}
 		if (!getParams(args, false)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

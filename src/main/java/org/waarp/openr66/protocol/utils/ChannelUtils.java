@@ -20,23 +20,23 @@ package org.waarp.openr66.protocol.utils;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.group.ChannelGroupFuture;
-import org.jboss.netty.channel.group.ChannelGroupFutureListener;
-import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.TrafficCounter;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.Channels;
+import io.netty.channel.group.ChannelGroupFuture;
+import io.netty.channel.group.ChannelGroupFutureListener;
+import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.TrafficCounter;
 import org.slf4j.LoggerFactory;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
@@ -65,7 +65,7 @@ public class ChannelUtils extends Thread {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(ChannelUtils.class);
 
 	public static final Integer NOCHANNEL = Integer.MIN_VALUE;
@@ -229,7 +229,7 @@ public class ChannelUtils extends Thread {
 	public static ChannelFuture writeBackDataBlock(
 			LocalChannelReference localChannelReference, DataBlock block)
 			throws OpenR66ProtocolPacketException {
-		ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
+		ByteBuf md5 = ByteBufs.EMPTY_BUFFER;
 		DbTaskRunner runner = localChannelReference.getSession().getRunner();
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
 			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
@@ -297,7 +297,7 @@ public class ChannelUtils extends Thread {
 			throw e;
 		}
 		if (wait) {
-			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
+			ChannelFuture future = Channels.writeAndFlush(localChannelReference.getNetworkChannel(),
 					networkPacket);
 			localChannelReference.getNetworkChannelObject().use();
 			try {
@@ -306,7 +306,7 @@ public class ChannelUtils extends Thread {
 				return future;
 			}
 		} else {
-			return Channels.write(localChannelReference.getNetworkChannel(), networkPacket);
+			return Channels.writeAndFlush(localChannelReference.getNetworkChannel(), networkPacket);
 		}
 	}
 
@@ -321,7 +321,7 @@ public class ChannelUtils extends Thread {
 	public final static ChannelFuture writeAbstractLocalPacketToLocal(
 			LocalChannelReference localChannelReference, AbstractLocalPacket packet)
 			throws OpenR66ProtocolPacketException {
-		return Channels.write(localChannelReference.getLocalChannel(), packet);
+		return Channels.writeAndFlush(localChannelReference.getLocalChannel(), packet);
 	}
 
 	/**
@@ -440,7 +440,7 @@ public class ChannelUtils extends Thread {
 	}
 
 	public final static void stopLogger() {
-		if (WaarpInternalLoggerFactory.getDefaultFactory() instanceof WaarpSlf4JLoggerFactory) {
+		if (WaarpLoggerFactory.getDefaultFactory() instanceof WaarpSlf4JLoggerFactory) {
 			LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 			lc.stop();
 		}

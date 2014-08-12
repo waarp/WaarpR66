@@ -19,12 +19,12 @@ package org.waarp.openr66.protocol.localhandler;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
@@ -50,7 +50,7 @@ public class RetrieveRunner extends Thread {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(RetrieveRunner.class);
 
 	private final R66Session session;
@@ -310,7 +310,7 @@ public class RetrieveRunner extends Thread {
 			// last block
 			block.setEOF(true);
 		} else {
-			block.setBlock(ChannelBuffers.wrappedBuffer(data));
+			block.setBlock(ByteBufs.wrappedBuffer(data));
 		}
 		return block;
 	}

@@ -19,21 +19,21 @@ import java.net.ConnectException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.UnsupportedCharsetException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.HttpChunk;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ExceptionEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.HttpChunk;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
@@ -51,22 +51,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Note: by default, no connection are closed except in case of error or if in HTTP 1.0 or explicitly to be closed.
  * @author Frederic Bregier
  */
-public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpstreamHandler {
+public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInboundHandler {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+    private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestR66ClientResponseHandler.class);
     
     private volatile boolean readingChunks;
-    private ChannelBuffer cumulativeBody = null;
+    private ByteBuf cumulativeBody = null;
     protected JsonNode jsonObject = null;
     
     protected void addContent(HttpResponse response) throws HttpIncorrectRequestException {
-    	ChannelBuffer content = response.getContent();
+    	ByteBuf content = response.getContent();
         if (content != null && content.readable()) {
             if (cumulativeBody != null) {
-				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
 			} else {
 				cumulativeBody = content;
 			}
@@ -282,7 +282,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
     }
     
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+    public void channelRead(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
         Object obj = e.getMessage();
         if (!readingChunks && (obj instanceof HttpResponse)) {
@@ -296,31 +296,31 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
                 RestArgument ra = null;
                 if (jsonObject != null) {
                     ra = new RestArgument((ObjectNode) jsonObject);
-                    ((RestFuture) e.getChannel().getAttachment()).setRestArgument(ra);
+                    ((RestFuture) e.channel().getAttachment()).setRestArgument(ra);
                     logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase()+"\n"+ra.prettyPrint());
             	} else {
                     logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase());
             	}
-                if (! afterError(e.getChannel(), ra)) {
-                	((RestFuture) e.getChannel().getAttachment()).cancel();
+                if (! afterError(e.channel(), ra)) {
+                	((RestFuture) e.channel().getAttachment()).cancel();
                 }
-            	if (e.getChannel().isConnected()) {
+            	if (e.channel().isActive()) {
                     logger.debug("Will close");
-                	WaarpSslUtility.closingSslChannel(e.getChannel());
+                	WaarpSslUtility.closingSslChannel(e.channel());
                 }
             } else {
                 addContent(response);
-                actionFromResponse(e.getChannel());
+                actionFromResponse(e.channel());
             }
         } else {
             readingChunks = true;
             HttpChunk chunk = (HttpChunk) e.getMessage();
             if (chunk.isLast()) {
                 readingChunks = false;
-                ChannelBuffer content = chunk.getContent();
+                ByteBuf content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+        				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
         			} else {
         				cumulativeBody = content;
         			}
@@ -338,12 +338,12 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
 	        		}
 	    			cumulativeBody = null;
                 }                
-                actionFromResponse(e.getChannel());
+                actionFromResponse(e.channel());
             } else {
-            	ChannelBuffer content = chunk.getContent();
+            	ByteBuf content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+        				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
         			} else {
         				cumulativeBody = content;
         			}
@@ -357,22 +357,22 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
             throws Exception {
         if (e.getCause() instanceof ClosedChannelException) {
         	logger.debug("Close before ending");
-        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+        	((RestFuture) e.channel().getAttachment()).setFailure(e.getCause());
             return;
         } else if (e.getCause() instanceof ConnectException) {
-            if (ctx.getChannel().isConnected()) {
+            if (ctx.channel().isActive()) {
             	logger.debug("Will close");
-            	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
-            	WaarpSslUtility.closingSslChannel(e.getChannel());
+            	((RestFuture) e.channel().getAttachment()).setFailure(e.getCause());
+            	WaarpSslUtility.closingSslChannel(e.channel());
             }
             return;
         }
         logger.warn("Error", e.getCause());
-        if (e.getChannel() != null && e.getChannel().getAttachment() != null) {
-        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+        if (e.channel() != null && e.channel().getAttachment() != null) {
+        	((RestFuture) e.channel().getAttachment()).setFailure(e.getCause());
         }
         logger.debug("Will close");
-        WaarpSslUtility.closingSslChannel(e.getChannel());
+        WaarpSslUtility.closingSslChannel(e.channel());
     }
 
 }

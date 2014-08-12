@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 /**
@@ -77,7 +77,7 @@ public class LocalPacketFactory {
 	public static final byte JSONREQUESTPACKET = 25;
 
 	/**
-	 * This method create a Packet from the ChannelBuffer.
+	 * This method create a Packet from the ByteBuf.
 	 * 
 	 * @param headerLength
 	 *            length of the header from the current position of the buffer
@@ -87,8 +87,8 @@ public class LocalPacketFactory {
 	 * @return the newly created Packet
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public static AbstractLocalPacket createPacketFromChannelBuffer(
-			int headerLength, int middleLength, int endLength, ChannelBuffer buf)
+	public static AbstractLocalPacket createPacketFromByteBuf(
+			int headerLength, int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		final byte packetType = buf.readByte();
 		switch (packetType) {

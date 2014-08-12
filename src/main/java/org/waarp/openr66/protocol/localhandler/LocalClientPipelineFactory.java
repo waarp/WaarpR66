@@ -17,10 +17,10 @@
  */
 package org.waarp.openr66.protocol.localhandler;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.execution.ExecutionHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.Channels;
+import io.netty.handler.execution.ExecutionHandler;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
 
@@ -29,10 +29,10 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class LocalClientPipelineFactory implements ChannelPipelineFactory {
+public class LocalClientInitializer implements ChannelInitializer<Channel> {
 
-	public ChannelPipeline getPipeline() throws Exception {
-		final ChannelPipeline pipeline = Channels.pipeline();
+	protected void initChannel(Channel ch) throws Exception {
+		final ChannelPipeline pipeline = ch.pipeline();
 		pipeline.addLast("codec", new LocalPacketCodec());
 		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
 				Configuration.configuration.getLocalClientPipelineExecutor()));

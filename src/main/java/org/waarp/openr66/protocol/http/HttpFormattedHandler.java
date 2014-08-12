@@ -23,29 +23,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.traffic.TrafficCounter;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.ExceptionEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.CookieEncoder;
+import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.traffic.TrafficCounter;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
@@ -55,8 +55,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
 import org.waarp.openr66.context.ErrorCode;
@@ -78,11 +78,11 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author Frederic Bregier
  * 
  */
-public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
+public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(HttpFormattedHandler.class);
 
 	private static enum REQUEST {
@@ -230,7 +230,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+	public void channelRead(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
 		isCurrentRequestXml = false;
 		isCurrentRequestJson = false;
@@ -243,12 +243,12 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
+					e.channel(), Configuration.configuration.httpBasePath + uriRequest,
 					"XYZR66NOSESSION");
 			return;
 		}
 		/*try {
-			if (DbConstant.admin.isConnected) {
+			if (DbConstant.admin.isActive) {
 				this.dbSession = new DbSession(DbConstant.admin, false);
 				DbAdmin.nbHttpSession++;
 				this.isPrivateDbSession = true;
@@ -287,7 +287,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			if (request.getMethod() == HttpMethod.GET) {
 				params = queryStringDecoder.getParameters();
 			} else if (request.getMethod() == HttpMethod.POST) {
-				ChannelBuffer content = request.getContent();
+				ByteBuf content = request.getContent();
 				if (content.readable()) {
 					String param = content.toString(WaarpStringUtils.UTF8);
 					queryStringDecoder = new QueryStringDecoder("/?" + param);
@@ -701,8 +701,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	 * @param e
 	 */
 	private void writeResponse(MessageEvent e) {
-		// Convert the response content to a ChannelBuffer.
-		ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent
+		// Convert the response content to a ByteBuf.
+		ByteBuf buf = ByteBufs.copiedBuffer(responseContent
 				.toString(), WaarpStringUtils.UTF8);
 		responseContent.setLength(0);
 		// Decide whether to close the connection or not.
@@ -769,7 +769,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		}
 
 		// Write the response.
-		ChannelFuture future = e.getChannel().write(response);
+		ChannelFuture future = e.channel().writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
@@ -796,11 +796,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		responseContent.append("OpenR66 Web Failure: ");
 		responseContent.append(status.toString());
 		responseContent.append(REQUEST.error.readEnd());
-		response.setContent(ChannelBuffers.copiedBuffer(responseContent
+		response.setContent(ByteBufs.copiedBuffer(responseContent
 				.toString(), WaarpStringUtils.UTF8));
 		responseContent.setLength(0);
 		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(
+		ctx.channel().writeAndFlush(response).addListener(
 				ChannelFutureListener.CLOSE);
 	}
 
@@ -808,7 +808,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
 			throws Exception {
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-				.getExceptionFromTrappedException(e.getChannel(), e);
+				.getExceptionFromTrappedException(e.channel(), e);
 		if (exception != null) {
 			if (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
 				if (e.getCause() instanceof IOException) {
@@ -822,7 +822,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				}
 				logger.warn("Exception in HttpHandler {}", exception.getMessage());
 			}
-			if (e.getChannel().isConnected()) {
+			if (e.channel().isActive()) {
 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			}
 		} else {
@@ -838,8 +838,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelClosed(org
-	 * .jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+	 * @see io.netty.channel.SimpleChannelInboundHandler#channelClosed(org
+	 * .jboss.netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
 	 */
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -855,8 +855,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelConnected
-	 * (org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+	 * @see io.netty.channel.SimpleChannelInboundHandler#channelConnected
+	 * (io.netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
 	 */
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -866,7 +866,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		super.channelConnected(ctx, e);
 		ChannelGroup group = Configuration.configuration.getHttpChannelGroup();
 		if (group != null) {
-			group.add(e.getChannel());
+			group.add(e.channel());
 		}
 	}
 }

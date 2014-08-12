@@ -26,8 +26,8 @@ import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedAuthImpl;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.context.R66Session;
@@ -43,7 +43,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66Auth.class);
 
 	/**

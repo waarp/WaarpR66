@@ -19,14 +19,14 @@ package org.waarp.openr66.protocol.networkhandler;
 
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.timeout.IdleStateHandler;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.util.HashedWheelTimer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.Channels;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.util.HashedWheelTimer;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
@@ -36,7 +36,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
+public class NetworkServerInitializer implements ChannelInitializer<Channel> {
 	/**
 	 * Global HashedWheelTimer
 	 */
@@ -50,12 +50,12 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 
 	protected boolean server = false;
 
-	public NetworkServerPipelineFactory(boolean server) {
+	public NetworkServerInitializer(boolean server) {
 		this.server = server;
 	}
 
-	public ChannelPipeline getPipeline() {
-		final ChannelPipeline pipeline = Channels.pipeline();
+	protected void initChannel(Channel ch) {
+		final ChannelPipeline pipeline = ch.pipeline();
 		pipeline.addLast("codec", new NetworkPacketCodec());
 		GlobalTrafficShapingHandler handler =
 				Configuration.configuration.getGlobalTrafficShapingHandler();

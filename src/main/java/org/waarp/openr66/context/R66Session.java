@@ -28,8 +28,8 @@ import org.waarp.common.exception.IllegalFiniteStateException;
 import org.waarp.common.exception.NoRestartException;
 import org.waarp.common.file.SessionInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.state.MachineState;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66Dir;
@@ -53,7 +53,7 @@ public class R66Session implements SessionInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66Session.class);
 
 	/**

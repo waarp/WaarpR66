@@ -30,10 +30,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.logging.WaarpLoggerFactory;
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -42,8 +42,8 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
@@ -92,7 +92,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public class HttpTestRestR66Client  implements Runnable {
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 	public static int NB = 2;
 
     public static int NBPERTHREAD = 100;
@@ -126,11 +126,11 @@ public class HttpTestRestR66Client  implements Runnable {
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		if (args.length > 2) {
-			InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(Level.DEBUG));
+			WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(Level.DEBUG));
 		} else {
-			InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+			WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		}
-		logger = WaarpInternalLoggerFactory.getLogger(HttpTestRestR66Client.class);
+		logger = WaarpLoggerFactory.getLogger(HttpTestRestR66Client.class);
     	Configuration.configuration.HOST_ID = hostid;
 		if (args.length > 0) {
 			NB = Integer.parseInt(args[0]);
@@ -179,7 +179,7 @@ public class HttpTestRestR66Client  implements Runnable {
         	Configuration.configuration.httpPipelineInit();
         }
 		// Configure the client.
-		clientHelper = new HttpRestR66Client(baseURI, new HttpTestRestClientPipelineFactory(null), Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON);
+		clientHelper = new HttpRestR66Client(baseURI, new HttpTestRestClientInitializer(null), Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON);
 		logger.warn("ClientHelper created");
 		try {
 	        try {

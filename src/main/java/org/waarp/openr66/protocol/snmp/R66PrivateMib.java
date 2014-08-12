@@ -24,8 +24,8 @@ import org.snmp4j.smi.Gauge32;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.VariableBinding;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
@@ -47,7 +47,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66PrivateMib.class);
 
 	/**

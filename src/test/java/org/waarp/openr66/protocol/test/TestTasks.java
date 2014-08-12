@@ -22,7 +22,7 @@ package org.waarp.openr66.protocol.test;
 
 import java.io.File;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -60,7 +60,7 @@ public class TestTasks {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (args.length < 4) {
 			System.err.println("Need config inDirectory outDirectory filename (in inDirectory)");

@@ -19,10 +19,10 @@ package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
@@ -52,7 +52,7 @@ public class Message implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 	
 	protected static String _INFO_ARGS =
 			Messages.getString("Message.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
@@ -109,7 +109,7 @@ public class Message implements Runnable {
 	public Message(NetworkTransaction networkTransaction,
 			R66Future future, String requested, TestPacket packet) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+			logger = WaarpLoggerFactory.getLogger(Message.class);
 		}
 		this.networkTransaction = networkTransaction;
 		this.future = future;
@@ -121,7 +121,7 @@ public class Message implements Runnable {
 	public Message(NetworkTransaction networkTransaction,
 			R66Future future, DbHostAuth hostAuth, TestPacket packet) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+			logger = WaarpLoggerFactory.getLogger(Message.class);
 		}
 		this.networkTransaction = networkTransaction;
 		this.future = future;
@@ -132,7 +132,7 @@ public class Message implements Runnable {
 
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(
+			logger = WaarpLoggerFactory.getLogger(
 					Message.class);
 		}
 		// Connection
@@ -182,9 +182,9 @@ public class Message implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+			logger = WaarpLoggerFactory.getLogger(Message.class);
 		}
 		if (args.length < 5) {
 			logger
@@ -193,7 +193,7 @@ public class Message implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

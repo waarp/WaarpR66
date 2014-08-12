@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -39,7 +39,7 @@ public class TestPacket extends AbstractLocalPacket {
 	private int code = 0;
 
 	public static TestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
+			int middleLength, int endLength, ByteBuf buf) {
 		final byte[] bheader = new byte[headerLength - 1];
 		final byte[] bmiddle = new byte[middleLength];
 		if (headerLength - 1 > 0) {
@@ -60,18 +60,18 @@ public class TestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(4);
+		end = ByteBufs.buffer(4);
 		end.writeInt(code);
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+		header = ByteBufs.wrappedBuffer(sheader.getBytes());
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+		middle = ByteBufs.wrappedBuffer(smiddle.getBytes());
 	}
 
 	@Override

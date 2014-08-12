@@ -19,10 +19,10 @@ package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
@@ -51,7 +51,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static protected volatile WaarpInternalLogger logger;
+	static protected volatile WaarpLogger logger;
 	
 	protected static String _INFO_ARGS = Messages.getString("AbstractBusinessRequest.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
@@ -71,7 +71,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 			NetworkTransaction networkTransaction,
 			BusinessRequestPacket packet) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(clasz);
+			logger = WaarpLoggerFactory.getLogger(clasz);
 		}
 		this.future = future;
 		this.remoteHost = remoteHost;
@@ -141,14 +141,14 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(AbstractBusinessRequest.class);
+			logger = WaarpLoggerFactory.getLogger(AbstractBusinessRequest.class);
 		}
 		if (!getParams(args)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

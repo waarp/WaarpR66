@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -40,7 +40,7 @@ public class StartupPacket extends AbstractLocalPacket {
 	 * @return the new ValidPacket from buffer
 	 */
 	public static StartupPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
+			int middleLength, int endLength, ByteBuf buf) {
 		Integer newId = buf.readInt();
 		return new StartupPacket(newId);
 	}
@@ -54,18 +54,18 @@ public class StartupPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
+		end = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(4);
+		header = ByteBufs.buffer(4);
 		header.writeInt(localId);
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.EMPTY_BUFFER;
+		middle = ByteBufs.EMPTY_BUFFER;
 	}
 
 	/*

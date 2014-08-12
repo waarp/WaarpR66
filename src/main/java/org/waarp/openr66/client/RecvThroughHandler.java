@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.client;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 
 /**
@@ -35,7 +35,7 @@ public abstract class RecvThroughHandler {
 	 *                This exception has to be throw if any error occurs during write in business
 	 *                process.
 	 */
-	abstract public void writeChannelBuffer(ChannelBuffer buffer)
+	abstract public void writeByteBuf(ByteBuf buffer)
 			throws OpenR66ProtocolBusinessException;
 
 	/**
@@ -44,7 +44,7 @@ public abstract class RecvThroughHandler {
 	 * @param buffer
 	 * @return the array of bytes
 	 */
-	protected byte[] getByte(ChannelBuffer buffer) {
+	protected byte[] getByte(ByteBuf buffer) {
 		byte[] dst = new byte[buffer.readableBytes()];
 		buffer.readBytes(dst, 0, dst.length);
 		return dst;

@@ -23,11 +23,11 @@ package org.waarp.openr66.protocol.http.rest.handler;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
@@ -59,7 +59,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+    private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestLogR66Handler.class);
    
 	public HttpRestLogR66Handler(RestConfiguration config, METHOD ... methods) {

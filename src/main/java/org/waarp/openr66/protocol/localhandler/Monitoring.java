@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.protocol.localhandler;
 
-import org.jboss.netty.handler.traffic.TrafficCounter;
+import io.netty.handler.traffic.TrafficCounter;
 import org.joda.time.DateTime;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
@@ -27,8 +27,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.database.model.DbModelFactory;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
@@ -55,7 +55,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(Monitoring.class);
 
 	public WaarpSnmpAgent agent;
@@ -182,7 +182,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		if (session != null) {
 			dbSession = session;
 		} else {
-			if (DbConstant.admin.isConnected) {
+			if (DbConstant.admin.isActive) {
 				try {
 					dbSession = new DbSession(DbConstant.admin, false);
 				} catch (WaarpDatabaseNoConnectionException e) {
@@ -199,7 +199,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	 * Initialize the Db Requests after constructor or after use of releaseResources
 	 */
 	public void initialize() {
-		if (dbSession == null || dbSession.isDisconnected) {
+		if (dbSession == null || dbSession.isDisActive) {
 			logger.warn("Cannot Initialize monitoring");
 			return;
 		}
@@ -266,7 +266,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	 * Release all Db Requests
 	 */
 	public void releaseResources() {
-		if (dbSession == null || dbSession.isDisconnected) {
+		if (dbSession == null || dbSession.isDisActive) {
 			return;
 		}
 		try {
@@ -373,10 +373,10 @@ public class Monitoring implements WaarpInterfaceMonitor {
 			} else {
 				nbMs = nbSecond * 1000;
 			}
-			if (dbSession != null && dbSession.isDisconnected) {
+			if (dbSession != null && dbSession.isDisActive) {
 				dbSession.checkConnectionNoException();
 			}
-			if (dbSession == null || dbSession.isDisconnected) {
+			if (dbSession == null || dbSession.isDisActive) {
 				nbNetworkConnection =
 						Configuration.configuration.getHttpChannelGroup().size() +
 								Configuration.configuration.getServerChannelGroup().size();
@@ -989,7 +989,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		synchronized (trafficCounter) {
 			long val = 0;
 			long limitDate = System.currentTimeMillis() - nbMs;
-			if (dbSession == null || dbSession.isDisconnected) {
+			if (dbSession == null || dbSession.isDisActive) {
 				switch (entry) {
 					case applUptime:
 						return;
@@ -1231,7 +1231,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	protected void run(long nbMs, WaarpDetailedValuesIndex entry) {
 		synchronized (trafficCounter) {
 			long limitDate = System.currentTimeMillis() - nbMs;
-			if (dbSession == null || dbSession.isDisconnected) {
+			if (dbSession == null || dbSession.isDisActive) {
 				switch (entry) {
 					case nbStepNotask:
 						updateDetailedValue(entry.ordinal(), nbCountStepNotask);
@@ -1396,7 +1396,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	protected void run(long nbMs, WaarpErrorValuesIndex entry) {
 		synchronized (trafficCounter) {
 			long limitDate = System.currentTimeMillis() - nbMs;
-			if (dbSession == null || dbSession.isDisconnected) {
+			if (dbSession == null || dbSession.isDisActive) {
 				return;
 			}
 			// Error

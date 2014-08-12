@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.channel.Channel;
+import io.netty.channel.Channels;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -45,7 +45,7 @@ public class NetworkChannelReference {
 	/**
 	 * Internal Logger
 	 */
-	protected static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	protected static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(NetworkChannelReference.class);
 	
 	/**
@@ -137,7 +137,7 @@ public class NetworkChannelReference {
 	public void remove(LocalChannelReference localChannel) {
 		lock.lock();
 		try {
-			if (localChannel.getLocalChannel().isConnected()) {
+			if (localChannel.getLocalChannel().isActive()) {
 				Channels.close(localChannel.getLocalChannel());
 			}
 			localChannelReferences.remove(localChannel);
@@ -191,7 +191,7 @@ public class NetworkChannelReference {
 	
 	@Override
 	public String toString() {
-		return "NC: " + hostId+":"+ (channel != null ? channel.isConnected() : false) + " " +
+		return "NC: " + hostId+":"+ (channel != null ? channel.isActive() : false) + " " +
 				networkAddress + " Count: " + localChannelReferences.size();
 	}
 
@@ -248,7 +248,7 @@ public class NetworkChannelReference {
 	/**
 	 * @return the channel
 	 */
-	public Channel getChannel() {
+	public Channel channel() {
 		return channel;
 	}
 

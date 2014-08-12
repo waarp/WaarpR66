@@ -19,11 +19,11 @@ package org.waarp.openr66.server;
 
 import java.io.File;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.database.DbConstant;
@@ -43,7 +43,7 @@ public class ServerExportConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 
 	/**
 	 * 
@@ -51,9 +51,9 @@ public class ServerExportConfiguration {
 	 *            as configuration file and the directory where to export
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ServerExportConfiguration.class);
+			logger = WaarpLoggerFactory.getLogger(ServerExportConfiguration.class);
 		}
 		if (args.length < 2) {
 			System.err

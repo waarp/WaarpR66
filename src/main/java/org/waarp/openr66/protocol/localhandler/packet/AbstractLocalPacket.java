@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -32,14 +32,14 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public abstract class AbstractLocalPacket {
-	protected ChannelBuffer header;
+	protected ByteBuf header;
 
-	protected ChannelBuffer middle;
+	protected ByteBuf middle;
 
-	protected ChannelBuffer end;
+	protected ByteBuf end;
 
-	public AbstractLocalPacket(ChannelBuffer header, ChannelBuffer middle,
-			ChannelBuffer end) {
+	public AbstractLocalPacket(ByteBuf header, ByteBuf middle,
+			ByteBuf end) {
 		this.header = header;
 		this.middle = middle;
 		this.end = end;
@@ -83,36 +83,36 @@ public abstract class AbstractLocalPacket {
 
 	/**
 	 * @param lcr the LocalChannelReference in use
-	 * @return the ChannelBuffer as LocalPacket
+	 * @return the ByteBuf as LocalPacket
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public ChannelBuffer getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		final ChannelBuffer buf = ChannelBuffers.buffer(4 * 3 + 1);// 3 header
+	public ByteBuf getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+		final ByteBuf buf = ByteBufs.buffer(4 * 3 + 1);// 3 header
 		// lengths+type
 		if (header == null) {
 			createHeader(lcr);
 		}
-		final ChannelBuffer newHeader = header != null ? header
-				: ChannelBuffers.EMPTY_BUFFER;
+		final ByteBuf newHeader = header != null ? header
+				: ByteBufs.EMPTY_BUFFER;
 		final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
 		if (middle == null) {
 			createMiddle(lcr);
 		}
-		final ChannelBuffer newMiddle = middle != null ? middle
-				: ChannelBuffers.EMPTY_BUFFER;
+		final ByteBuf newMiddle = middle != null ? middle
+				: ByteBufs.EMPTY_BUFFER;
 		final int middleLength = newMiddle.readableBytes();
 		if (end == null) {
 			createEnd(lcr);
 		}
-		final ChannelBuffer newEnd = end != null ? end
-				: ChannelBuffers.EMPTY_BUFFER;
+		final ByteBuf newEnd = end != null ? end
+				: ByteBufs.EMPTY_BUFFER;
 		final int endLength = newEnd.readableBytes();
 		buf.writeInt(headerLength);
 		buf.writeInt(middleLength);
 		buf.writeInt(endLength);
 		buf.writeByte(getType());
-		final ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(
+		final ByteBuf ByteBuf = ByteBufs.wrappedBuffer(
 				buf, newHeader, newMiddle, newEnd);
-		return channelBuffer;
+		return ByteBuf;
 	}
 }

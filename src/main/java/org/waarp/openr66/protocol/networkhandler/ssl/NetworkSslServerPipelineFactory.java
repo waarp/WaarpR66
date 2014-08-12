@@ -19,27 +19,27 @@ package org.waarp.openr66.protocol.networkhandler.ssl;
 
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.timeout.IdleStateHandler;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.util.HashedWheelTimer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.Channels;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.util.HashedWheelTimer;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
-import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 /**
  * @author Frederic Bregier
  * 
  */
-public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
+public class NetworkSslServerInitializer implements ChannelInitializer<Channel> {
 	protected final boolean isClient;
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	public static WaarpSecureKeyStore waarpSecureKeyStore;
@@ -54,25 +54,25 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 	 * @param isClient
 	 *            True if this Factory is to be used in Client mode
 	 */
-	public NetworkSslServerPipelineFactory(boolean isClient) {
+	public NetworkSslServerInitializer(boolean isClient) {
 		super();
 		this.isClient = isClient;
 	}
 
-	public ChannelPipeline getPipeline() {
-		final ChannelPipeline pipeline = Channels.pipeline();
+	protected void initChannel(Channel ch) {
+		final ChannelPipeline pipeline = ch.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.
 		SslHandler sslHandler = null;
 		if (isClient) {
 			// Not server: no clientAuthent, no renegotiation
 			sslHandler = 
-					waarpSslContextFactory.initPipelineFactory(false,
+					waarpSslContextFactory.initInitializer(false,
 							false, false);
 			sslHandler.setIssueHandshake(true);
 		} else {
 			// Server: no renegotiation still, but possible clientAuthent
 			sslHandler = 
-					waarpSslContextFactory.initPipelineFactory(true,
+					waarpSslContextFactory.initInitializer(true,
 							waarpSslContextFactory.needClientAuthentication(),
 							true);
 		}
@@ -82,20 +82,20 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 		GlobalTrafficShapingHandler handler = Configuration.configuration
 				.getGlobalTrafficShapingHandler();
 		if (handler != null) {
-			pipeline.addLast(NetworkServerPipelineFactory.LIMIT, handler);
+			pipeline.addLast(NetworkServerInitializer.LIMIT, handler);
 		}
 		ChannelTrafficShapingHandler trafficChannel = null;
 		try {
 			trafficChannel =
 					Configuration.configuration
 							.newChannelTrafficShapingHandler();
-			pipeline.addLast(NetworkServerPipelineFactory.LIMITCHANNEL, trafficChannel);
+			pipeline.addLast(NetworkServerInitializer.LIMITCHANNEL, trafficChannel);
 		} catch (OpenR66ProtocolNoDataException e) {
 		}
 		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
 				Configuration.configuration.getServerPipelineExecutor()));
 
-		pipeline.addLast(NetworkServerPipelineFactory.TIMEOUT,
+		pipeline.addLast(NetworkServerInitializer.TIMEOUT,
 				new IdleStateHandler(timer,
 						0, 0,
 						Configuration.configuration.TIMEOUTCON,

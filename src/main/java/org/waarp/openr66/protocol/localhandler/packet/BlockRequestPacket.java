@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -42,7 +42,7 @@ public class BlockRequestPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException 
 	 */
 	public static BlockRequestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+			int middleLength, int endLength, ByteBuf buf) throws OpenR66ProtocolPacketException {
 		if (headerLength - 2 <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
@@ -66,19 +66,19 @@ public class BlockRequestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
+		end = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(1+key.length);
+		header = ByteBufs.buffer(1+key.length);
 		header.writeByte(block ? 1 : 0);
 		header.writeBytes(key);
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.EMPTY_BUFFER;
+		middle = ByteBufs.EMPTY_BUFFER;
 	}
 
 	/*

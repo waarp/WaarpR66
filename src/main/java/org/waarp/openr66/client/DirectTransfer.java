@@ -17,9 +17,9 @@
  */
 package org.waarp.openr66.client;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -64,7 +64,7 @@ public class DirectTransfer extends AbstractTransfer {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(DirectTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(DirectTransfer.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {
@@ -127,16 +127,16 @@ public class DirectTransfer extends AbstractTransfer {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(DirectTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(DirectTransfer.class);
 		}
 		if (!getParams(args, false)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

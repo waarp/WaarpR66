@@ -19,9 +19,9 @@ package org.waarp.openr66.server;
 
 import java.io.File;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.database.DbConstant;
@@ -41,15 +41,15 @@ public class LogImport {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogImport.class);
+			logger = WaarpLoggerFactory.getLogger(LogImport.class);
 		}
 		if (args.length < 2) {
 			System.err

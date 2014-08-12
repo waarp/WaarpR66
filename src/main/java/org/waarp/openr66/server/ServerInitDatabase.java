@@ -21,11 +21,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
@@ -48,7 +48,7 @@ public class ServerInitDatabase {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger logger;
+	static volatile WaarpLogger logger;
 
 	protected static String _INFO_ARGS = 
 			Messages.getString("ServerInitDatabase.Help"); //$NON-NLS-1$
@@ -103,13 +103,13 @@ public class ServerInitDatabase {
 	 *            as config_database file [rules_directory host_authent limit_configuration]
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
+			logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
 		}
 		if (!getParams(args)) {
 			logger.error(_INFO_ARGS);
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();
@@ -270,7 +270,7 @@ public class ServerInitDatabase {
 	 */
 	public static boolean upgradedb() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
+			logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
 		}
 		// Update tables: runner
 		boolean uptodate = true;

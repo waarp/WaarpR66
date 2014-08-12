@@ -19,7 +19,7 @@ package org.waarp.openr66.client;
 
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -83,7 +83,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ProgressBarTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(ProgressBarTransfer.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {

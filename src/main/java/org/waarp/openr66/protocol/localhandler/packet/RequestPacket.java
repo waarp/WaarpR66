@@ -17,11 +17,11 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -47,7 +47,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(RequestPacket.class);
 	
 
@@ -198,7 +198,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public static RequestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
+			int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		if (headerLength - 1 <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
@@ -316,7 +316,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (fileInformation != null) {
-			end = ChannelBuffers.wrappedBuffer(fileInformation.getBytes());
+			end = ByteBufs.wrappedBuffer(fileInformation.getBytes());
 		}
 	}
 
@@ -330,9 +330,9 @@ public class RequestPacket extends AbstractLocalPacket {
 			ObjectNode node = JsonHandler.createObjectNode();
 			JsonHandler.setValue(node, FIELDS.rule, rulename);
 			JsonHandler.setValue(node, FIELDS.mode, mode);
-			header = ChannelBuffers.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
+			header = ByteBufs.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
 		} else {
-			header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
+			header = ByteBufs.wrappedBuffer(rulename.getBytes(), 
 					PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
 					Integer.toString(mode).getBytes());
 		}
@@ -354,9 +354,9 @@ public class RequestPacket extends AbstractLocalPacket {
 			JsonHandler.setValue(node, FIELDS.id, specialId);
 			JsonHandler.setValue(node, FIELDS.code, code);
 			JsonHandler.setValue(node, FIELDS.length, originalSize);
-			middle = ChannelBuffers.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
+			middle = ByteBufs.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
 		} else {
-			middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 
+			middle = ByteBufs.wrappedBuffer(away, filename.getBytes(), 
 				this.separator.getBytes(), 
 				Integer.toString(blocksize).getBytes(), 
 				this.separator.getBytes(), 

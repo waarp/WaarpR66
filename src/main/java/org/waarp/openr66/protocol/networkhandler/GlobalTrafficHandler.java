@@ -17,12 +17,12 @@
  */
 package org.waarp.openr66.protocol.networkhandler;
 
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.TrafficCounter;
-import org.jboss.netty.util.ObjectSizeEstimator;
-import org.jboss.netty.util.Timer;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.TrafficCounter;
+import io.netty.util.ObjectSizeEstimator;
+import io.netty.util.Timer;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 
 /**
  * Global function
@@ -34,7 +34,7 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(GlobalTrafficHandler.class);
 
 	/**
@@ -54,7 +54,7 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty
+	 * io.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(io.netty
 	 * .handler.traffic.TrafficCounter)
 	 */
 	@SuppressWarnings("unused")

@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.context;
 
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 
 /**
  * Empty Business factory
@@ -30,7 +30,7 @@ public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66DefaultBusinessFactory.class);
 
 	public R66BusinessInterface getBusinessInterface(R66Session session) {

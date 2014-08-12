@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -40,24 +40,24 @@ public class NoOpPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public static NoOpPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
+			int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		return new NoOpPacket();
 	}
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) {
-		end = ChannelBuffers.EMPTY_BUFFER;
+		end = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) {
-		header = ChannelBuffers.EMPTY_BUFFER;
+		header = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) {
-		middle = ChannelBuffers.EMPTY_BUFFER;
+		middle = ByteBufs.EMPTY_BUFFER;
 	}
 
 	@Override

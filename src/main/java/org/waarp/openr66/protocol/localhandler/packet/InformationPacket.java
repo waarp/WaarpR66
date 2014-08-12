@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -50,7 +50,7 @@ public class InformationPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public static InformationPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
+			int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		if (headerLength - 1 <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
@@ -86,7 +86,7 @@ public class InformationPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) {
 		if (filename != null) {
-			end = ChannelBuffers.wrappedBuffer(filename.getBytes());
+			end = ByteBufs.wrappedBuffer(filename.getBytes());
 		}
 	}
 
@@ -95,14 +95,14 @@ public class InformationPacket extends AbstractLocalPacket {
 		if (rulename == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ChannelBuffers.wrappedBuffer(rulename.getBytes());
+		header = ByteBufs.wrappedBuffer(rulename.getBytes());
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				requestedInfo };
-		middle = ChannelBuffers.wrappedBuffer(newbytes);
+		middle = ByteBufs.wrappedBuffer(newbytes);
 	}
 
 	@Override

@@ -19,20 +19,20 @@
  */
 package org.waarp.openr66.protocol.http.rest;
 
-import static org.jboss.netty.channel.Channels.pipeline;
+import static io.netty.channel.Channels.pipeline;
 
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http.HttpContentCompressor;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * Pipeline Factory for Rest HTTP support for R66
@@ -40,24 +40,24 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
  * @author Frederic Bregier
  * 
  */
-public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
+public class HttpRestR66Initializer implements ChannelInitializer<Channel> {
 	private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
     private final RestConfiguration restConfiguration;
     
-    public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory, RestConfiguration configuration) {
+    public HttpRestR66Initializer(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory, RestConfiguration configuration) {
         this.waarpSslContextFactory = waarpSslContextFactory;
         this.useHttpCompression = useHttpCompression;
         this.restConfiguration = configuration;
     }
 
-    public ChannelPipeline getPipeline() throws Exception {
+    protected void initChannel(Channel ch) throws Exception {
         // Create a default pipeline implementation.
         ChannelPipeline pipeline = pipeline();
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initPipelineFactory(true,
+        	SslHandler handler = waarpSslContextFactory.initInitializer(true,
                     false, false);
         	handler.setIssueHandshake(true);
         	pipeline.addLast("ssl", handler);
@@ -68,13 +68,13 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
         /*
         GlobalTrafficShapingHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
-            pipeline.addLast(NetworkServerPipelineFactory.LIMIT, handler);
+            pipeline.addLast(NetworkServerInitializer.LIMIT, handler);
         }
         ChannelTrafficShapingHandler trafficChannel = null;
         try {
             trafficChannel = Configuration.configuration.newChannelTrafficShapingHandler();
             if (trafficChannel != null) {
-                pipeline.addLast(NetworkServerPipelineFactory.LIMITCHANNEL, trafficChannel);
+                pipeline.addLast(NetworkServerInitializer.LIMITCHANNEL, trafficChannel);
             }
         } catch (OpenR66ProtocolNoDataException e) {
         }

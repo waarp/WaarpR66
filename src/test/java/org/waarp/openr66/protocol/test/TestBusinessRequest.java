@@ -20,9 +20,9 @@ package org.waarp.openr66.protocol.test;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.client.BusinessRequest;
@@ -44,7 +44,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 
 	public TestBusinessRequest(NetworkTransaction networkTransaction,
 			R66Future future, String remoteHost, BusinessRequestPacket packet) {
@@ -52,10 +52,10 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestBusinessRequest.class);
+			logger = WaarpLoggerFactory.getLogger(TestBusinessRequest.class);
 		}
 		if (args.length < 1) {
 			logger

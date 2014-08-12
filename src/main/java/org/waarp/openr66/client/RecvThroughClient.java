@@ -18,7 +18,7 @@
 package org.waarp.openr66.client;
 
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -98,7 +98,7 @@ public class RecvThroughClient extends AbstractTransfer {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
+			logger = WaarpLoggerFactory.getLogger(RecvThroughClient.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {

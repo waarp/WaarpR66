@@ -24,20 +24,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
@@ -71,7 +71,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+    private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestR66Handler.class);
 
     public static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
@@ -336,9 +336,9 @@ public class HttpRestR66Handler extends HttpRestHandler {
         ServerBootstrap httpBootstrap = new ServerBootstrap(httpChannelFactory);
 		// Set up the event pipeline factory.
 		if (restConfiguration.REST_SSL) {
-			httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, Configuration.waarpSslContextFactory, restConfiguration));
+			httpBootstrap.setInitializer(new HttpRestR66Initializer(false, Configuration.waarpSslContextFactory, restConfiguration));
 		} else {
-			httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, null, restConfiguration));
+			httpBootstrap.setInitializer(new HttpRestR66Initializer(false, null, restConfiguration));
 		}
 		httpBootstrap.setOption("child.tcpNoDelay", true);
 		httpBootstrap.setOption("child.keepAlive", true);

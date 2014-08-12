@@ -18,8 +18,8 @@ package org.waarp.openr66.protocol.http.rest.test;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.HttpMethod;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpMethod;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;

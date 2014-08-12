@@ -17,11 +17,11 @@
  */
 package org.waarp.openr66.client;
 
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelFuture;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.ChannelFuture;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -143,7 +143,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 	 */
 	public boolean initiateRequest() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SendThroughClient.class);
+			logger = WaarpLoggerFactory.getLogger(SendThroughClient.class);
 		}
 		DbRule rule;
 		try {
@@ -356,7 +356,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 			// last block
 			block.setEOF(true);
 		} else {
-			block.setBlock(ChannelBuffers.wrappedBuffer(data));
+			block.setBlock(ByteBufs.wrappedBuffer(data));
 		}
 		return block;
 	}

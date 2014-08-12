@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.protocol.networkhandler;
 
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.waarp.common.cpu.WaarpConstraintLimitHandler;
 import org.waarp.openr66.protocol.configuration.Configuration;
 

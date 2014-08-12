@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.networkhandler.packet;
 
-import org.jboss.netty.util.DefaultObjectSizeEstimator;
-import org.jboss.netty.util.ObjectSizeEstimator;
+import io.netty.util.DefaultObjectSizeEstimator;
+import io.netty.util.ObjectSizeEstimator;
 
 /**
  * Network Packet size estimator
@@ -31,7 +31,7 @@ public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.netty.handler.execution.ObjectSizeEstimator#estimateSize(java .lang.Object)
+	 * @see io.netty.handler.execution.ObjectSizeEstimator#estimateSize(java .lang.Object)
 	 */
 	public int estimateSize(Object o) {
 		if (!(o instanceof NetworkPacket)) {

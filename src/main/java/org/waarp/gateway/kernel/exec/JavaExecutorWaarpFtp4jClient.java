@@ -22,8 +22,8 @@ import java.io.IOException;
 
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.ftp.client.WaarpFtp4jClient;
 
 /**
@@ -80,7 +80,7 @@ public class JavaExecutorWaarpFtp4jClient implements GatewayRunnable {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(JavaExecutorWaarpFtp4jClient.class);
 
 	boolean waitForValidation;

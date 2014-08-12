@@ -25,24 +25,24 @@
  *
  * <P>Two classes implement this behavior:<br>
  * <ul>
- * <li>{@link org.jboss.netty.handler.traffic.TrafficCounter}: this class implements the counters
+ * <li>{@link io.netty.handler.traffic.TrafficCounter}: this class implements the counters
  *     needed by the handlers. It can be accessed to get some extra information like the read or
  *     write bytes since last check, the read and write bandwidth from last check...</li><br><br>
  *
- * <li>{@link org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler}: this abstract class
+ * <li>{@link io.netty.handler.traffic.AbstractTrafficShapingHandler}: this abstract class
  *     implements the kernel of the traffic shaping. It could be extended to fit your needs. Two
  *     classes are proposed as default implementations: see
- *     {@link org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler} and
- *     {@link org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler} respectively for
+ *     {@link io.netty.handler.traffic.ChannelTrafficShapingHandler} and
+ *     {@link io.netty.handler.traffic.GlobalTrafficShapingHandler} respectively for
  *     Channel traffic shaping and Global traffic shaping.</li><br><br>
  *
  * The insertion in the pipeline of one of those handlers can be wherever you want, but
- * <b>it must be placed before any <tt>{@link org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor}</tt>
+ * <b>it must be placed before any <tt>{@link io.netty.handler.execution.MemoryAwareThreadPoolExecutor}</tt>
  * in your pipeline</b>.<br>
  * <b><i>It is really recommended to have such a</i>
- * <tt>{@link org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor}</tt>
+ * <tt>{@link io.netty.handler.execution.MemoryAwareThreadPoolExecutor}</tt>
  * <i>(either non ordered or </i>
- * <tt>{@link org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor}</tt>
+ * <tt>{@link io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor}</tt>
  * <i>) in your pipeline</i></b>
  * when you want to use this feature with some real traffic shaping, since it will allow to relax the constraint on
  * NioWorker to do other jobs if necessary.<br>
@@ -54,9 +54,9 @@
  * 60KB/s for each channel since NioWorkers are stopping by this handler.<br>
  * When it is used as a read traffic shaper, the handler will set the channel as not readable, so as to relax the
  * NioWorkers.<br><br>
- * An {@link org.jboss.netty.util.ObjectSizeEstimator} can be passed at construction to specify what
+ * An {@link io.netty.util.ObjectSizeEstimator} can be passed at construction to specify what
  * is the size of the object to be read or write accordingly to the type of
- * object. If not specified, it will used the {@link org.jboss.netty.util.DefaultObjectSizeEstimator}
+ * object. If not specified, it will used the {@link io.netty.util.DefaultObjectSizeEstimator}
  * implementation.<br><br>
  * </ul></P>
  *
@@ -68,7 +68,7 @@
  * A value of <tt>0</tt>
  * stands for no limitation, so the traffic shaping is deactivate (on what you specified).<br>
  * You can either change those values with the method <tt>configure</tt> in
- * {@link org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler}.<br>
+ * {@link io.netty.handler.traffic.AbstractTrafficShapingHandler}.<br>
  * <br>
  *
  * <li>To activate or deactivate the statistics, you can adjust the delay to a low (suggested not less than 200ms
@@ -76,8 +76,8 @@
  * or even using <tt>0</tt> which means no computation will be done.</li><br>
  * If you want to do anything with this statistics, just override the <tt>doAccounting</tt> method.<br>
  * This interval can be changed either from the method <tt>configure</tt> in
- * {@link org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler}
- * or directly using the method <tt>configure</tt> of {@link org.jboss.netty.handler.traffic.TrafficCounter}.<br><br>
+ * {@link io.netty.handler.traffic.AbstractTrafficShapingHandler}
+ * or directly using the method <tt>configure</tt> of {@link io.netty.handler.traffic.TrafficCounter}.<br><br>
  *
  * </ul></P><br><br>
  *
@@ -88,8 +88,8 @@
  * <tt>pipeline.addLast("XXXXX_TRAFFIC_SHAPING", myHandler);</tt><br>
  * <tt>...</tt><br>
  * <tt>pipeline.addLast("MemoryExecutor",new ExecutionHandler(memoryAwareThreadPoolExecutor));</tt><br><br>
- * <P>Note that a new {@link org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler} must be
- * created for each new channel, but only one {@link org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler}
+ * <P>Note that a new {@link io.netty.handler.traffic.ChannelTrafficShapingHandler} must be
+ * created for each new channel, but only one {@link io.netty.handler.traffic.GlobalTrafficShapingHandler}
  * must be created for all channels.</P>
  *
  * <P>Note also that you can create different GlobalTrafficShapingHandler if you want to separate classes of
@@ -97,5 +97,5 @@
  *
  * @apiviz.exclude ^java\.lang\.
  */
-package org.jboss.netty.handler.traffic;
+package io.netty.handler.traffic;
 

@@ -19,8 +19,8 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
@@ -50,7 +50,7 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	 * @return the new ValidPacket from buffer
 	 */
 	public static JsonCommandPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
+			int middleLength, int endLength, ByteBuf buf) {
 		final byte[] bheader = new byte[headerLength - 1];
 		final byte[] bmiddle = new byte[middleLength];
 		final byte bend;
@@ -99,21 +99,21 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(1);
+		end = ByteBufs.buffer(1);
 		end.writeByte(send);
 	}
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (request != null) {
-			header = ChannelBuffers.wrappedBuffer(request.getBytes());
+			header = ByteBufs.wrappedBuffer(request.getBytes());
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (result != null) {
-			middle = ChannelBuffers.wrappedBuffer(result.getBytes());
+			middle = ByteBufs.wrappedBuffer(result.getBytes());
 		}
 	}
 

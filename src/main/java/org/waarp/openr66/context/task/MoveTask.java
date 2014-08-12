@@ -18,8 +18,8 @@
 package org.waarp.openr66.context.task;
 
 import org.waarp.common.command.exception.CommandAbstractException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -34,7 +34,7 @@ public class MoveTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(MoveTask.class);
 
 	/**

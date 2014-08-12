@@ -24,8 +24,8 @@ import static org.waarp.openr66.context.R66FiniteDualStates.*;
 
 import java.security.NoSuchAlgorithmException;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
+import io.netty.channel.Channel;
+import io.netty.channel.Channels;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
@@ -33,8 +33,8 @@ import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.task.AbstractTask;
@@ -81,7 +81,7 @@ public class TransferActions extends ServerActions {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(TransferActions.class);
 
 	public TransferActions() {
@@ -696,7 +696,7 @@ public class TransferActions extends ServerActions {
 		}
 		DataBlock dataBlock = new DataBlock();
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
-			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
+			localChannelReference.getRecvThroughHandler().writeByteBuf(packet.getData());
 			session.getRunner().incrementRank();
 			if (packet.getPacketRank() % 100 == 1) {
 				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +

@@ -13,23 +13,23 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package org.jboss.netty.handler.traffic;
+package io.netty.handler.traffic;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelState;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
-import org.jboss.netty.logging.InternalLogger;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.util.DefaultObjectSizeEstimator;
-import org.jboss.netty.util.ExternalResourceReleasable;
-import org.jboss.netty.util.ObjectSizeEstimator;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.Timer;
-import org.jboss.netty.util.TimerTask;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelState;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelHandler;
+import io.netty.logging.InternalLogger;
+import io.netty.logging.WaarpLoggerFactory;
+import io.netty.util.DefaultObjectSizeEstimator;
+import io.netty.util.ExternalResourceReleasable;
+import io.netty.util.ObjectSizeEstimator;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,7 +61,7 @@ public abstract class AbstractTrafficShapingHandler extends
     /**
      * Internal logger
      */
-    static InternalLogger logger = InternalLoggerFactory
+    static InternalLogger logger = WaarpLoggerFactory
             .getInstance(AbstractTrafficShapingHandler.class);
 
     /**
@@ -376,7 +376,7 @@ public abstract class AbstractTrafficShapingHandler extends
     }
 
     /**
-     * Class to implement setReadable at fix time
+     * Class to implement config().setAutoRead at fix time
      */
     private class ReopenReadTimerTask implements TimerTask {
         final ChannelHandlerContext ctx;
@@ -390,21 +390,21 @@ public abstract class AbstractTrafficShapingHandler extends
             }
             /*
             logger.warn("WAKEUP! "+
-                    (ctx != null && ctx.getChannel() != null &&
-                            ctx.getChannel().isConnected()));
+                    (ctx != null && ctx.channel() != null &&
+                            ctx.channel().isActive()));
              */
-            if (ctx != null && ctx.getChannel() != null &&
-                    ctx.getChannel().isConnected()) {
-                //logger.warn(" setReadable TRUE: ");
+            if (ctx != null && ctx.channel() != null &&
+                    ctx.channel().isActive()) {
+                //logger.warn(" config().setAutoRead TRUE: ");
                 // readSuspended = false;
                 ctx.setAttachment(null);
-                ctx.getChannel().setReadable(true);
+                ctx.channel().config().setAutoRead(true);
             }
         }
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent evt)
+    public void channelRead(ChannelHandlerContext ctx, MessageEvent evt)
             throws Exception {
         try {
             long size = objectSizeEstimator.estimateSize(evt.getMessage());
@@ -418,9 +418,9 @@ public abstract class AbstractTrafficShapingHandler extends
                 long wait = trafficCounter.getReadTimeToWait(readLimit, maxTime);
                 if (wait >= MINIMAL_WAIT) { // At least 10ms seems a minimal
                                             // time in order to
-                    Channel channel = ctx.getChannel();
+                    Channel channel = ctx.channel();
                     // try to limit the traffic
-                    if (channel != null && channel.isConnected()) {
+                    if (channel != null && channel.isActive()) {
                         // Channel version
                         if (timer == null) {
                             // Sleep since no executor
@@ -434,7 +434,7 @@ public abstract class AbstractTrafficShapingHandler extends
                         if (ctx.getAttachment() == null) {
                             // readSuspended = true;
                             ctx.setAttachment(Boolean.TRUE);
-                            channel.setReadable(false);
+                            channel.config().setAutoRead(false);
                             // logger.warn("Read will wakeup after "+wait+" ms "+this);
                             TimerTask timerTask = new ReopenReadTimerTask(ctx);
                             timeout = timer.newTimeout(timerTask, wait,
@@ -460,7 +460,7 @@ public abstract class AbstractTrafficShapingHandler extends
             }
         } finally {
             // The message is then just passed to the next handler
-            super.messageReceived(ctx, evt);
+            super.channelRead(ctx, evt);
         }
     }
 
@@ -491,14 +491,14 @@ public abstract class AbstractTrafficShapingHandler extends
         }
     }
     @Override
-    public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
+    public void handleOutband(ChannelHandlerContext ctx, ChannelEvent e)
             throws Exception {
         if (e instanceof ChannelStateEvent) {
             ChannelStateEvent cse = (ChannelStateEvent) e;
             if (cse.getState() == ChannelState.INTEREST_OPS &&
                     (((Integer) cse.getValue()).intValue() & Channel.OP_READ) != 0) {
 
-                // setReadable(true) requested
+                // config().setAutoRead(true) requested
                 boolean readSuspended = ctx.getAttachment() != null;
                 if (readSuspended) {
                     // Drop the request silently if this handler has
@@ -508,7 +508,7 @@ public abstract class AbstractTrafficShapingHandler extends
                 }
             }
         }
-        super.handleDownstream(ctx, e);
+        super.handleOutband(ctx, e);
     }
 
     /**

@@ -27,28 +27,28 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.traffic.TrafficCounter;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.ExceptionEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.CookieEncoder;
+import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.traffic.TrafficCounter;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -61,10 +61,10 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLoggerInterface;
-import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLevel;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLogger;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
@@ -104,11 +104,11 @@ import org.waarp.openr66.protocol.utils.Version;
  * @author Frederic Bregier
  * 
  */
-public class HttpSslHandler extends SimpleChannelUpstreamHandler {
+public class HttpSslHandler extends SimpleChannelInboundHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(HttpSslHandler.class);
 	/**
 	 * Session Management
@@ -1565,7 +1565,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Disconnect")) {
 					String logon = Logon();
 					logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
-							Messages.getString("HttpSslHandler.Disconnected"));
+							Messages.getString("HttpSslHandler.DisActive"));
 					newSession = true;
 					clearSession();
 					forceClose = true;
@@ -1609,7 +1609,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
 		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
-		switch (WaarpInternalLoggerFactory.currentLevel) {
+		switch (WaarpLoggerFactory.currentLevel) {
 			case DEBUG:
 				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "checked");
 				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
@@ -1685,7 +1685,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					} else if (loglevel.equalsIgnoreCase("error")) {
 						level = WaarpLevel.ERROR;
 					}
-					WaarpInternalLoggerFactory.setLogLevel(level);
+					WaarpLoggerFactory.setLogLevel(level);
 					extraInformation = Messages.getString("HttpSslHandler.LangIs")+level.name(); //$NON-NLS-1$
 				} else if (act.equalsIgnoreCase("ExportConfig")) {
 					String directory = Configuration.configuration.baseDirectory +
@@ -1711,7 +1711,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Disconnect")) {
 					String logon = Logon();
 					logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
-							Messages.getString("HttpSslHandler.Disconnected"));
+							Messages.getString("HttpSslHandler.DisActive"));
 					newSession = true;
 					clearSession();
 					forceClose = true;
@@ -1826,7 +1826,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		if (request.getMethod() == HttpMethod.GET) {
 			params = null;
 		} else if (request.getMethod() == HttpMethod.POST) {
-			ChannelBuffer content = request.getContent();
+			ByteBuf content = request.getContent();
 			if (content.readable()) {
 				String param = content.toString(WaarpStringUtils.UTF8);
 				QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?" + param);
@@ -1870,7 +1870,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					"");
 			responseContent.append(logon);
 			clearSession();
-			writeResponse(e.getChannel());
+			writeResponse(e.channel());
 			return;
 		} else if (request.getMethod() == HttpMethod.POST) {
 			getParams();
@@ -1880,7 +1880,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						Messages.getString("HttpSslHandler.EmptyLogin"));
 				responseContent.append(logon);
 				clearSession();
-				writeResponse(e.getChannel());
+				writeResponse(e.channel());
 				return;
 			}
 		}
@@ -1956,7 +1956,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					Messages.getString("HttpSslHandler.BadLogin"));
 			responseContent.append(logon);
 			clearSession();
-			writeResponse(e.getChannel());
+			writeResponse(e.channel());
 		} else {
 			// load DbSession
 			if (this.dbSession != null) {
@@ -1965,7 +1965,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			}
 			if (this.dbSession == null) {
 				try {
-					if (DbConstant.admin.isConnected) {
+					if (DbConstant.admin.isActive) {
 						this.dbSession = new DbSession(DbConstant.admin, false);
 						DbAdmin.nbHttpSession++;
 						this.isPrivateDbSession = true;
@@ -1987,12 +1987,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				dbSessions.put(admin.getValue(), dbSession);
 			}
 			logger.debug("CreateSession: " + uriRequest + ":{}", admin);
-			writeResponse(e.getChannel());
+			writeResponse(e.channel());
 		}
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+	public void channelRead(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		HttpRequest request = this.request = (HttpRequest) e.getMessage();
 		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
 		uriRequest = queryStringDecoder.getPath();
@@ -2000,11 +2000,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
+					e.channel(), Configuration.configuration.httpBasePath + uriRequest,
 					R66SESSION+Configuration.configuration.HOST_ID);
 			return;
 		}
-		checkSession(e.getChannel());
+		checkSession(e.channel());
 		if (!authentHttp.isAuthenticated()) {
 			logger.debug("Not Authent: " + uriRequest + ":{}", authentHttp);
 			checkAuthent(e);
@@ -2080,7 +2080,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				responseContent.append(index());
 				break;
 		}
-		writeResponse(e.getChannel());
+		writeResponse(e.channel());
 	}
 
 	private void checkSession(Channel channel) {
@@ -2103,7 +2103,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						}
 						DbSession dbSession = dbSessions.get(admin.getValue());
 						if (dbSession != null) {
-							if (dbSession.isDisconnected) {
+							if (dbSession.isDisActive) {
 								clearSession();
 							}
 							this.dbSession = dbSession;
@@ -2190,8 +2190,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	 * @param e
 	 */
 	private void writeResponse(Channel channel) {
-		// Convert the response content to a ChannelBuffer.
-		ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(),
+		// Convert the response content to a ByteBuf.
+		ByteBuf buf = ByteBufs.copiedBuffer(responseContent.toString(),
 				WaarpStringUtils.UTF8);
 		responseContent.setLength(0);
 
@@ -2218,7 +2218,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		handleCookies(response);
 
 		// Write the response.
-		ChannelFuture future = channel.write(response);
+		ChannelFuture future = channel.writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -2241,18 +2241,18 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		responseContent.setLength(0);
 		responseContent.append(error(status.toString()));
-		response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(),
+		response.setContent(ByteBufs.copiedBuffer(responseContent.toString(),
 				WaarpStringUtils.UTF8));
 		clearSession();
 		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(WaarpSslUtility.SSLCLOSE);
+		ctx.channel().writeAndFlush(response).addListener(WaarpSslUtility.SSLCLOSE);
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
 			throws Exception {
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-				.getExceptionFromTrappedException(e.getChannel(), e);
+				.getExceptionFromTrappedException(e.channel(), e);
 		if (exception != null) {
 			if (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
 				if (e.getCause() instanceof IOException) {
@@ -2261,7 +2261,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 				logger.warn("Exception in HttpSslHandler {}", exception.getMessage());
 			}
-			if (e.getChannel().isConnected()) {
+			if (e.channel().isActive()) {
 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			}
 		} else {
@@ -2273,7 +2273,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
-		Channel channel = e.getChannel();
+		Channel channel = e.channel();
 		Configuration.configuration.getHttpChannelGroup().add(channel);
 		super.channelOpen(ctx, e);
 	}

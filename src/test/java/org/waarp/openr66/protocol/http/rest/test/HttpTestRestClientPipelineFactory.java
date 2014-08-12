@@ -15,36 +15,36 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
-import static org.jboss.netty.channel.Channels.*;
+import static io.netty.channel.Channels.*;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http.HttpClientCodec;
-import org.jboss.netty.handler.codec.http.HttpContentDecompressor;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Test Rest client pipeline factory
  */
-public class HttpTestRestClientPipelineFactory implements ChannelPipelineFactory {
+public class HttpTestRestClientInitializer implements ChannelInitializer<Channel> {
     private final WaarpSslContextFactory waarpSslContextFactory;
 
-    public HttpTestRestClientPipelineFactory(WaarpSslContextFactory waarpSslContextFactory) {
+    public HttpTestRestClientInitializer(WaarpSslContextFactory waarpSslContextFactory) {
         this.waarpSslContextFactory = waarpSslContextFactory;
     }
 
-    public ChannelPipeline getPipeline() throws Exception {
+    protected void initChannel(Channel ch) throws Exception {
         // Create a default pipeline implementation.
         ChannelPipeline pipeline = pipeline();
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initPipelineFactory(false,
+        	SslHandler handler = waarpSslContextFactory.initInitializer(false,
                     false, false);
         	handler.setIssueHandshake(true);
         	pipeline.addLast("ssl", handler);

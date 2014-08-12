@@ -18,8 +18,8 @@ package org.waarp.gateway.kernel.exec;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.session.CommandExecutorInterface;
 import org.waarp.gateway.kernel.session.HttpAuthInterface;
 
@@ -49,7 +49,7 @@ public abstract class AbstractExecutor {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(AbstractExecutor.class);
 	protected static final String USER = "#USER#";
 	protected static final String ACCOUNT = "#ACCOUNT#";

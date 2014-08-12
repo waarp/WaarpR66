@@ -27,13 +27,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
-import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.utility.DetectionUtils;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
@@ -329,7 +329,7 @@ public class FileUtils {
 	 * @return the R66File
 	 * @throws OpenR66RunnerErrorException
 	 */
-	public final static R66File getFile(WaarpInternalLogger logger, R66Session session, String filenameSrc, 
+	public final static R66File getFile(WaarpLogger logger, R66Session session, String filenameSrc, 
 			boolean isPreStart, boolean isSender, boolean isThrough, R66File file) throws OpenR66RunnerErrorException {
 		String filename;
 		logger.debug("PreStart: "+isPreStart);
@@ -424,7 +424,7 @@ public class FileUtils {
 				@SuppressWarnings("resource")
 				FileOutputStream fileOutputStream = new FileOutputStream(file
 						.getPath(), append);
-				fileChannel = fileOutputStream.getChannel();
+				fileChannel = fileOutputStream.channel();
 				if (append) {
 					// Bug in JVM since it does not respect the API (position
 					// should be set as length)
@@ -441,7 +441,7 @@ public class FileUtils {
 				@SuppressWarnings("resource")
 				FileInputStream fileInputStream = new FileInputStream(file
 						.getPath());
-				fileChannel = fileInputStream.getChannel();
+				fileChannel = fileInputStream.channel();
 			}
 		} catch (FileNotFoundException e) {
 			throw new OpenR66ProtocolSystemException("File not found", e);
@@ -498,14 +498,14 @@ public class FileUtils {
 	 * @param buffer
 	 * @return the hash from the given Buffer
 	 */
-	public final static ChannelBuffer getHash(ChannelBuffer buffer, DigestAlgo algo) {
+	public final static ByteBuf getHash(ByteBuf buffer, DigestAlgo algo) {
 		byte[] newkey;
 		try {
 			newkey = FilesystemBasedDigest.getHash(buffer, algo);
 		} catch (IOException e) {
-			return ChannelBuffers.EMPTY_BUFFER;
+			return ByteBufs.EMPTY_BUFFER;
 		}
-		return ChannelBuffers.wrappedBuffer(newkey);
+		return ByteBufs.wrappedBuffer(newkey);
 	}
 	
 	/**
@@ -513,7 +513,7 @@ public class FileUtils {
 	 * @param digest
 	 * @param buffer
 	 */
-	public static void computeGlobalHash(FilesystemBasedDigest digest, ChannelBuffer buffer) {
+	public static void computeGlobalHash(FilesystemBasedDigest digest, ByteBuf buffer) {
 		if (digest == null) {
 			return;
 		}

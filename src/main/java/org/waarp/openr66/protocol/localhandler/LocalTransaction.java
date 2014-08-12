@@ -21,20 +21,20 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.local.DefaultLocalClientChannelFactory;
-import org.jboss.netty.channel.local.DefaultLocalServerChannelFactory;
-import org.jboss.netty.channel.local.LocalAddress;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.Channels;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.local.DefaultLocalClientChannelFactory;
+import io.netty.channel.local.DefaultLocalServerChannelFactory;
+import io.netty.channel.local.LocalAddress;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
@@ -64,7 +64,7 @@ public class LocalTransaction {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(LocalTransaction.class);
 
 	/**
@@ -87,7 +87,7 @@ public class LocalTransaction {
 
 	private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
 
-	private final ClientBootstrap clientBootstrap = new ClientBootstrap(channelClientFactory);
+	private final Bootstrap Bootstrap = new Bootstrap(channelClientFactory);
 
 	private final ChannelGroup localChannelGroup = new DefaultChannelGroup("LocalChannels");
 
@@ -95,12 +95,12 @@ public class LocalTransaction {
 	 * Constructor
 	 */
 	public LocalTransaction() {
-		serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
+		serverBootstrap.setInitializer(new LocalServerInitializer());
 		serverBootstrap.setOption("connectTimeoutMillis",
 				Configuration.configuration.TIMEOUTCON);
 		serverChannel = serverBootstrap.bind(socketLocalServerAddress);
 		localChannelGroup.add(serverChannel);
-		clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
+		Bootstrap.setInitializer(new LocalClientInitializer());
 	}
 
 	public String hashStatus() {
@@ -155,7 +155,7 @@ public class LocalTransaction {
 									" " + serverChannel.isBound() + " " + serverChannel +
 									" since the local server is in shutdown.");
 				}
-				channelFuture = clientBootstrap.connect(socketLocalServerAddress);
+				channelFuture = Bootstrap.connect(socketLocalServerAddress);
 				try {
 					channelFuture.await();
 				} catch (InterruptedException e1) {
@@ -170,7 +170,7 @@ public class LocalTransaction {
 							e1);
 				}
 				if (channelFuture.isSuccess()) {
-					final Channel channel = channelFuture.getChannel();
+					final Channel channel = channelFuture.channel();
 					localChannelGroup.add(channel);
 					logger.debug("Will start localChannelReference and eventually generate a new Db Connection if not-thread-safe");
 					final LocalChannelReference localChannelReference = new LocalChannelReference(
@@ -183,7 +183,7 @@ public class LocalTransaction {
 					StartupPacket startup = new StartupPacket(
 							localChannelReference.getLocalId());
 					try {
-						Channels.write(channel, startup).await();
+						Channels.writeAndFlush(channel, startup).await();
 					} catch (InterruptedException e) {
 						logger.error("Can't connect to local server due to interruption" + i);
 						throw new OpenR66ProtocolSystemException(
@@ -302,7 +302,7 @@ public class LocalTransaction {
 		Iterator<LocalChannelReference> iterator = collection.iterator();
 		ValidPacket packet = new ValidPacket("Shutdown forced", null,
 				LocalPacketFactory.SHUTDOWNPACKET);
-		ChannelBuffer buffer = null;
+		ByteBuf buffer = null;
 		while (iterator.hasNext()) {
 			LocalChannelReference localChannelReference = iterator.next();
 			logger.info("Inform Shutdown {}", localChannelReference);
@@ -338,7 +338,7 @@ public class LocalTransaction {
 							localChannelReference.getRemoteId(),
 							packet.getType(), buffer);
 					try {
-						Channels.write(localChannelReference.getNetworkChannel(),
+						Channels.writeAndFlush(localChannelReference.getNetworkChannel(),
 								message).await();
 					} catch (InterruptedException e1) {
 					}
@@ -359,7 +359,7 @@ public class LocalTransaction {
 					localChannelReference.getLocalId(),
 					localChannelReference.getRemoteId(), packet.getType(),
 					buffer);
-			Channels.write(localChannelReference.getNetworkChannel(), message);
+			Channels.writeAndFlush(localChannelReference.getNetworkChannel(), message);
 		}
 	}
 
@@ -369,7 +369,7 @@ public class LocalTransaction {
 	public void closeAll() {
 		logger.debug("close All Local Channels");
 		localChannelGroup.close().awaitUninterruptibly();
-		clientBootstrap.releaseExternalResources();
+		Bootstrap.releaseExternalResources();
 		channelClientFactory.releaseExternalResources();
 		serverBootstrap.releaseExternalResources();
 		channelServerFactory.releaseExternalResources();

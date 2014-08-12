@@ -17,14 +17,14 @@
  */
 package org.waarp.openr66.protocol.networkhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.frame.FrameDecoder;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelOutbandHandler;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channels;
+import io.netty.channel.MessageEvent;
+import io.netty.handler.codec.frame.FrameDecoder;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.protocol.localhandler.packet.KeepAlivePacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
@@ -41,16 +41,16 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends FrameDecoder implements
-		ChannelDownstreamHandler {
+		ChannelOutbandHandler {
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
-	 * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
-	 * org.jboss.netty.buffer.ChannelBuffer)
+	 * @see io.netty.handler.codec.frame.FrameDecoder#decode(io.netty
+	 * .channel.ChannelHandlerContext, io.netty.channel.Channel,
+	 * io.netty.buffer.ByteBuf)
 	 */
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel,
-			ChannelBuffer buf) throws Exception {
+			ByteBuf buf) throws Exception {
 		// Make sure if the length field was received.
 		if (buf.readableBytes() < 4) {
 			// The length field was not received yet - return null.
@@ -71,7 +71,7 @@ public class NetworkPacketCodec extends FrameDecoder implements
 		final int remoteId = buf.readInt();
 		final byte code = buf.readByte();
 		int readerInder = buf.readerIndex();
-		ChannelBuffer buffer = buf.slice(readerInder, length - 9);
+		ByteBuf buffer = buf.slice(readerInder, length - 9);
 		buf.skipBytes(length - 9);
 		NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
 		if (code == LocalPacketFactory.KEEPALIVEPACKET) {
@@ -86,17 +86,17 @@ public class NetworkPacketCodec extends FrameDecoder implements
 				if (nc != null) {
 					nc.useIfUsed();
 				}
-				Channels.write(channel, response);
+				Channels.writeAndFlush(channel, response);
 			}
 			// Replaced by a NoOp packet
 			networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket(), null);
-			NetworkServerHandler nsh = (NetworkServerHandler) ctx.getPipeline().getLast();
+			NetworkServerHandler nsh = (NetworkServerHandler) ctx.pipeline().getLast();
 			nsh.setKeepAlivedSent();
 		}
 		return networkPacket;
 	}
 
-	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
+	public void handleOutband(ChannelHandlerContext ctx, ChannelEvent e)
 			throws Exception {
 		if (e instanceof MessageEvent) {
 			final MessageEvent evt = (MessageEvent) e;
@@ -106,10 +106,10 @@ public class NetworkPacketCodec extends FrameDecoder implements
 						msg.getClass().getName());
 			}
 			final NetworkPacket packet = (NetworkPacket) msg;
-			final ChannelBuffer finalBuf = packet.getNetworkPacket();
-			Channels.write(ctx, evt.getFuture(), finalBuf);
+			final ByteBuf finalBuf = packet.getNetworkPacket();
+			Channels.writeAndFlush(ctx, evt.getFuture(), finalBuf);
 		} else {
-			ctx.sendDownstream(e);
+			ctx.sendOutband(e);
 		}
 	}
 

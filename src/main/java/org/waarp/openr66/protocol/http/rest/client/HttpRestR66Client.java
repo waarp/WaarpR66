@@ -23,9 +23,9 @@ package org.waarp.openr66.protocol.http.rest.client;
 
 import java.util.Map;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http.HttpMethod;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.handler.codec.http.HttpMethod;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
@@ -73,12 +73,12 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	/**
 	 * Prepare the future connection
 	 * @param baseUri in general = '/'
-	 * @param pipelineFactory the associated pipelineFactory including the REST handler for client side
+	 * @param Initializer the associated Initializer including the REST handler for client side
 	 * @param client limit number of concurrent connected clients
 	 * @param timeout time out for network connection
 	 */
-	public HttpRestR66Client(String baseUri, ChannelPipelineFactory pipelineFactory, int client, long timeout) {
-		super(baseUri, client, timeout, pipelineFactory);
+	public HttpRestR66Client(String baseUri, ChannelInitializer<Channel> Initializer, int client, long timeout) {
+		super(baseUri, client, timeout, Initializer);
 	}
 
 	/**

@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -46,7 +46,7 @@ public class InternalRunner {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(InternalRunner.class);
 
 	private final ScheduledExecutorService scheduledExecutorService;
@@ -63,7 +63,7 @@ public class InternalRunner {
 	 * @throws WaarpDatabaseSqlException
 	 */
 	public InternalRunner() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		if (DbConstant.admin.isConnected) {
+		if (DbConstant.admin.isActive) {
 			commander = new Commander(this, true);
 		} else {
 			commander = new CommanderNoDb(this, true);
@@ -143,7 +143,7 @@ public class InternalRunner {
 		if (commander != null) {
 			commander.finalize();
 		}
-		if (DbConstant.admin.isConnected) {
+		if (DbConstant.admin.isActive) {
 			commander = new Commander(this);
 		} else {
 			commander = new CommanderNoDb(this);

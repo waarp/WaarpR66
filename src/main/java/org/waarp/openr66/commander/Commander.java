@@ -25,8 +25,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.database.model.DbModelFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostAuth;
@@ -48,7 +48,7 @@ public class Commander implements CommanderInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(Commander.class);
 
 	private static final int LIMITSUBMIT = 100;
@@ -201,7 +201,7 @@ public class Commander implements CommanderInterface {
 
 	public void run() {
 		Thread.currentThread().setName("OpenR66Commander");
-		if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+		if (DbConstant.admin.session != null && DbConstant.admin.session.isDisActive) {
 			DbConstant.admin.session.checkConnectionNoException();
 		}
 		// each time it is runned, it parses all database for updates

@@ -17,14 +17,14 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.frame.FrameDecoder;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelOutbandHandler;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channels;
+import io.netty.channel.MessageEvent;
+import io.netty.handler.codec.frame.FrameDecoder;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
@@ -34,17 +34,17 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author Frederic Bregier
  */
 public class LocalPacketCodec extends FrameDecoder implements
-		ChannelDownstreamHandler {
+		ChannelOutbandHandler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
-	 * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
-	 * org.jboss.netty.buffer.ChannelBuffer)
+	 * @see io.netty.handler.codec.frame.FrameDecoder#decode(io.netty
+	 * .channel.ChannelHandlerContext, io.netty.channel.Channel,
+	 * io.netty.buffer.ByteBuf)
 	 */
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel,
-			ChannelBuffer buf) throws Exception {
+			ByteBuf buf) throws Exception {
 		// Make sure if the length field was received.
 		if (buf.readableBytes() < 4) {
 			// The length field was not received yet - return null.
@@ -55,7 +55,7 @@ public class LocalPacketCodec extends FrameDecoder implements
 		return decodeNetworkPacket(buf);
 	}
 
-	public static AbstractLocalPacket decodeNetworkPacket(ChannelBuffer buf)
+	public static AbstractLocalPacket decodeNetworkPacket(ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		// Mark the current buffer position
 		buf.markReaderIndex();
@@ -75,17 +75,17 @@ public class LocalPacketCodec extends FrameDecoder implements
 			buf.resetReaderIndex();
 			return null;
 		}
-		// createPacketFromChannelBuffer read the buffer
-		return LocalPacketFactory.createPacketFromChannelBuffer(length - 8,
+		// createPacketFromByteBuf read the buffer
+		return LocalPacketFactory.createPacketFromByteBuf(length - 8,
 				middleLength, endLength, buf);
 	}
 
-	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
+	public void handleOutband(ChannelHandlerContext ctx, ChannelEvent e)
 			throws Exception {
 		if (e instanceof MessageEvent) {
 			final MessageEvent evt = (MessageEvent) e;
-			if (evt.getMessage() instanceof ChannelBuffer) {
-				Channels.write(ctx, evt.getFuture(), evt.getMessage());
+			if (evt.getMessage() instanceof ByteBuf) {
+				Channels.writeAndFlush(ctx, evt.getFuture(), evt.getMessage());
 				return;
 			}
 			if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
@@ -94,10 +94,10 @@ public class LocalPacketCodec extends FrameDecoder implements
 			}
 			final AbstractLocalPacket packet = (AbstractLocalPacket) evt
 					.getMessage();
-			final ChannelBuffer buf = packet.getLocalPacket(null);
-			Channels.write(ctx, evt.getFuture(), buf);
+			final ByteBuf buf = packet.getLocalPacket(null);
+			Channels.writeAndFlush(ctx, evt.getFuture(), buf);
 		} else {
-			ctx.sendDownstream(e);
+			ctx.sendOutband(e);
 		}
 	}
 

@@ -26,8 +26,8 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 
 /**
  * ExecuteExecutor class. The given argument will be executed after replacements.
@@ -49,7 +49,7 @@ public class ExecuteExecutor extends AbstractExecutor {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(ExecuteExecutor.class);
 	private final String[] args;
 	private final String arg;

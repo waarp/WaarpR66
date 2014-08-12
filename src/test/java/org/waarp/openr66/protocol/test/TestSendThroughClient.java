@@ -17,13 +17,13 @@
  */
 package org.waarp.openr66.protocol.test;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.channel.ChannelFuture;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.exception.FileEndOfTransferException;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.SendThroughClient;
 import org.waarp.openr66.context.ErrorCode;
@@ -139,14 +139,14 @@ public class TestSendThroughClient extends SendThroughClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestSendThroughClient.class);
+			logger = WaarpLoggerFactory.getLogger(TestSendThroughClient.class);
 		}
 		if (!getParams(args, false)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			System.exit(1);

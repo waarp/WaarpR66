@@ -23,10 +23,10 @@ package org.waarp.openr66.protocol.http.rest.test;
 import java.io.File;
 import java.io.IOException;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.exception.CryptoException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
@@ -75,8 +75,8 @@ public class HttpTestR66PseudoMain {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-        final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        final WaarpLogger logger = WaarpLoggerFactory
                 .getLogger(HttpTestR66PseudoMain.class);
         String pathTemp = "J:/Temp/temp";
         if (!R66Server.initialize(args[0])) {

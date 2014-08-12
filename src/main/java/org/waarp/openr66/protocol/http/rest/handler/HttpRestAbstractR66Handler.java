@@ -26,16 +26,16 @@ import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 import java.io.IOException;
 import java.nio.charset.UnsupportedCharsetException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
@@ -60,7 +60,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+    private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestAbstractR66Handler.class);
    
     public static enum ACTIONS_TYPE {
@@ -135,17 +135,17 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 			RestArgument result, Object body, HttpResponseStatus status) {
 		HttpResponse response = handler.getResponse();
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.write(response);
+			ChannelFuture future = channel.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
 		String answer = result.toString();
-		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+		ByteBuf buffer = ByteBufs.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
 		response.setContent(buffer);
 		logger.debug("Will write: {}", body);
-		ChannelFuture future = channel.write(response);
+		ChannelFuture future = channel.writeAndFlush(response);
 		if (handler.isWillClose()) {
 			System.err.println("Will close session in HttpRestAbstractR66Handler");
 			return future;
@@ -154,7 +154,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 	}
 
 	@Override
-	public Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
+	public Object getBody(HttpRestHandler handler, ByteBuf body, RestArgument arguments,
 			RestArgument result) throws HttpIncorrectRequestException {
 		JsonPacket packet = null;
 		try {

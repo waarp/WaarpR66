@@ -27,7 +27,7 @@ import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.jboss.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFuture;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileEndOfTransferException;
@@ -35,8 +35,8 @@ import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.file.filesystembased.FilesystemBasedDirImpl;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileImpl;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -59,7 +59,7 @@ public class R66File extends FilesystemBasedFileImpl {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(R66File.class);
 
 	/**
@@ -356,7 +356,7 @@ public class R66File extends FilesystemBasedFileImpl {
 		try {
 			@SuppressWarnings("resource")
 			FileInputStream fileInputStream = new FileInputStream(trueFile);
-			fileChannel = fileInputStream.getChannel();
+			fileChannel = fileInputStream.channel();
 			if (getPosition() > 0) {
 				fileChannel = fileChannel.position(getPosition());
 			}
@@ -505,7 +505,7 @@ public class R66File extends FilesystemBasedFileImpl {
 											e);
 							return false;
 						}
-						FileChannel fileChannelOut = fileOutputStream.getChannel();
+						FileChannel fileChannelOut = fileOutputStream.channel();
 						if (get(fileChannelOut)) {
 							delete();
 						} else {
@@ -569,7 +569,7 @@ public class R66File extends FilesystemBasedFileImpl {
 											e);
 							return false;
 						}
-						FileChannel fileChannelOut = fileOutputStream.getChannel();
+						FileChannel fileChannelOut = fileOutputStream.channel();
 						if (get(fileChannelOut)) {
 							delete();
 						} else {

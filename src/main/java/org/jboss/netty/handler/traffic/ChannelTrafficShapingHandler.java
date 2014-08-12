@@ -13,16 +13,16 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package org.jboss.netty.handler.traffic;
+package io.netty.handler.traffic;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
-import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.util.ObjectSizeEstimator;
-import org.jboss.netty.util.Timer;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.execution.MemoryAwareThreadPoolExecutor;
+import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.util.ObjectSizeEstimator;
+import io.netty.util.Timer;
 
 /**
  * This implementation of the {@link AbstractTrafficShapingHandler} is for channel
@@ -38,8 +38,8 @@ import org.jboss.netty.util.Timer;
  *
  * <b>Note that this handler has a Pipeline Coverage of "one" which means a new handler must be created
  * for each new channel as the counter cannot be shared among all channels.</b> For instance, if you have a
- * {@link ChannelPipelineFactory}, you should create a new ChannelTrafficShapingHandler in this
- * {@link ChannelPipelineFactory} each time getPipeline() method is called.<br><br>
+ * {@link ChannelInitializer<Channel>}, you should create a new ChannelTrafficShapingHandler in this
+ * {@link ChannelInitializer<Channel>} each time pipeline() method is called.<br><br>
  *
  * Other arguments can be passed like write or read limitation (in bytes/s where 0 means no limitation)
  * or the check interval (in millisecond) that represents the delay between two computations of the
@@ -129,12 +129,12 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
             throws Exception {
         // readSuspended = true;
         ctx.setAttachment(Boolean.TRUE);
-        ctx.getChannel().setReadable(false);
+        ctx.channel().config().setAutoRead(false);
         if (trafficCounter == null) {
             // create a new counter now
             if (timer != null) {
                 trafficCounter = new TrafficCounter(this, timer, "ChannelTC" +
-                        ctx.getChannel().getId(), checkInterval);
+                        ctx.channel().getId(), checkInterval);
             }
         }
         if (trafficCounter != null) {
@@ -143,7 +143,7 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
         super.channelConnected(ctx, e);
         // readSuspended = false;
         ctx.setAttachment(null);
-        ctx.getChannel().setReadable(true);
+        ctx.channel().config().setAutoRead(true);
     }
 
 }

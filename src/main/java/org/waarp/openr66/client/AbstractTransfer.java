@@ -25,8 +25,8 @@ import java.util.Date;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -55,7 +55,7 @@ public abstract class AbstractTransfer implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static protected volatile WaarpInternalLogger logger;
+	static protected volatile WaarpLogger logger;
 	
 	protected static String _INFO_ARGS = 
 			Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
@@ -98,7 +98,7 @@ public abstract class AbstractTransfer implements Runnable {
 			String rulename, String fileinfo,
 			boolean isMD5, String remoteHost, int blocksize, long id, Timestamp timestart) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(clasz);
+			logger = WaarpLoggerFactory.getLogger(clasz);
 		}
 		this.future = future;
 		this.filename = filename;

@@ -19,8 +19,8 @@ package org.waarp.openr66.context.task;
 
 import java.io.File;
 
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
@@ -45,7 +45,7 @@ public class ChModTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(ChModTask.class);
 
 	/**
@@ -118,11 +118,11 @@ public class ChModTask extends AbstractTask {
 		}
 		boolean result = true;
 		if (isall) {
-			result &= file.setReadable(ar, false);
+			result &= file.config().setAutoRead(ar, false);
 			result &= file.setWritable(aw, false);
 			result &= file.setExecutable(ax, false);
 		}
-		result &= file.setReadable(ur, true);
+		result &= file.config().setAutoRead(ur, true);
 		result &= file.setWritable(uw, true);
 		result &= file.setExecutable(ux, true);
 		if (result) {

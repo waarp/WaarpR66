@@ -29,7 +29,7 @@ import java.util.Locale;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
-import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
+import io.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -45,8 +45,8 @@ import org.waarp.common.exception.CryptoException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedDirImpl;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.xml.XmlDecl;
@@ -67,7 +67,7 @@ import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
-import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
 import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.server.ServerInitDatabase;
 import org.waarp.snmp.SnmpConfiguration;
@@ -82,7 +82,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(FileBasedConfiguration.class);
 
 	/**
@@ -762,7 +762,7 @@ public class FileBasedConfiguration {
 	 * @return True if the authentication of partners is correctly loaded
 	 */
 	private static boolean loadAuthentication(Configuration config) {
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			XmlValue value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
 			if (value != null && (!value.isEmpty())) {
@@ -1150,7 +1150,7 @@ public class FileBasedConfiguration {
 			logger.info("Delay Retry: {}",
 					config.delayRetry);
 		}
-		if (DbConstant.admin.isConnected && updateLimit) {
+		if (DbConstant.admin.isActive && updateLimit) {
 			value = hashConfig.get(XML_SERVER_HOSTID);
 			if (value != null && (!value.isEmpty())) {
 				config.HOST_ID = value.getString();
@@ -1329,7 +1329,7 @@ public class FileBasedConfiguration {
 		if (value == null || (value.isEmpty())) {
 			logger.info("Unable to find Key Path");
 			try {
-				NetworkSslServerPipelineFactory.waarpSecureKeyStore =
+				NetworkSslServerInitializer.waarpSecureKeyStore =
 						new WaarpSecureKeyStore("secret", "secret");
 			} catch (CryptoException e) {
 				logger.error("Bad SecureKeyStore construction");
@@ -1362,7 +1362,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			try {
-				NetworkSslServerPipelineFactory.waarpSecureKeyStore =
+				NetworkSslServerInitializer.waarpSecureKeyStore =
 						new WaarpSecureKeyStore(keypath, keystorepass,
 								keypass);
 			} catch (CryptoException e) {
@@ -1375,7 +1375,7 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
 		if (value == null || (value.isEmpty())) {
 			logger.info("Unable to find TRUST Key Path");
-			NetworkSslServerPipelineFactory.waarpSecureKeyStore.initEmptyTrustStore();
+			NetworkSslServerInitializer.waarpSecureKeyStore.initEmptyTrustStore();
 		} else {
 			String keypath = value.getString();
 			if ((keypath == null) || (keypath.isEmpty())) {
@@ -1398,16 +1398,16 @@ public class FileBasedConfiguration {
 				useClientAuthent = value.getBoolean();
 			}
 			try {
-				NetworkSslServerPipelineFactory.waarpSecureKeyStore.initTrustStore(keypath,
+				NetworkSslServerInitializer.waarpSecureKeyStore.initTrustStore(keypath,
 						keystorepass, useClientAuthent);
 			} catch (CryptoException e) {
 				logger.error("Bad TrustKeyStore construction");
 				return false;
 			}
 		}
-		NetworkSslServerPipelineFactory.waarpSslContextFactory =
+		NetworkSslServerInitializer.waarpSslContextFactory =
 				new WaarpSslContextFactory(
-						NetworkSslServerPipelineFactory.waarpSecureKeyStore);
+						NetworkSslServerInitializer.waarpSecureKeyStore);
 		return true;
 	}
 
@@ -1618,7 +1618,7 @@ public class FileBasedConfiguration {
 	 * @return True if OK
 	 */
 	private static boolean loadFromDatabase(Configuration config) {
-		if (DbConstant.admin.isConnected) {
+		if (DbConstant.admin.isActive) {
 			// load from database the limit to apply
 			try {
 				DbConfiguration configuration = new DbConfiguration(
@@ -1984,7 +1984,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load Limit configuration");
 			return false;
 		}
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			if (!loadAuthentication(config)) {
 				logger.error("Cannot load Authentication configuration");
@@ -2036,7 +2036,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load Limit configuration");
 			return false;
 		}
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			if (!loadAuthentication(config)) {
 				logger.error("Cannot load Authentication configuration");
@@ -2121,7 +2121,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load Network configuration");
 			return false;
 		}
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			if (!loadAuthentication(config)) {
 				logger.error("Cannot load Authentication configuration");
@@ -2214,7 +2214,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load configuration from Database");
 			return false;
 		}
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			if (!loadAuthentication(config)) {
 				logger.error("Cannot load Authentication configuration");
@@ -2279,7 +2279,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load Database configuration");
 			return false;
 		}
-		logger.info("Is Client connected to database: "+DbConstant.admin.isConnected);
+		logger.info("Is Client connected to database: "+DbConstant.admin.isActive);
 		if (!loadClientParam(config)) {
 			logger.error("Cannot load Client Parameters");
 			return false;
@@ -2302,7 +2302,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load configuration from Database");
 			return false;
 		}
-		if (!DbConstant.admin.isConnected) {
+		if (!DbConstant.admin.isActive) {
 			// if no database, must load authentication from file
 			if (!loadAuthentication(config)) {
 				logger.error("Cannot load Authentication configuration");

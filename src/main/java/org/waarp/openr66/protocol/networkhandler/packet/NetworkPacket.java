@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.networkhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
@@ -31,7 +31,7 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
  * @author Frederic Bregier
  */
 public class NetworkPacket {
-	private final ChannelBuffer buffer;
+	private final ByteBuf buffer;
 
 	private final int remoteId;
 
@@ -46,7 +46,7 @@ public class NetworkPacket {
 	 * @param buffer
 	 */
 	public NetworkPacket(int localId, int remoteId, byte code,
-			ChannelBuffer buffer) {
+			ByteBuf buffer) {
 		this.remoteId = remoteId;
 		this.localId = localId;
 		this.code = code;
@@ -71,7 +71,7 @@ public class NetworkPacket {
 	/**
 	 * @return the buffer
 	 */
-	public ChannelBuffer getBuffer() {
+	public ByteBuf getBuffer() {
 		return buffer;
 	}
 
@@ -97,15 +97,15 @@ public class NetworkPacket {
 	}
 
 	/**
-	 * @return The corresponding ChannelBuffer
+	 * @return The corresponding ByteBuf
 	 */
-	public ChannelBuffer getNetworkPacket() {
-		final ChannelBuffer buf = ChannelBuffers.dynamicBuffer(13);
+	public ByteBuf getNetworkPacket() {
+		final ByteBuf buf = ByteBufs.dynamicBuffer(13);
 		buf.writeInt(buffer.readableBytes() + 9);
 		buf.writeInt(remoteId);
 		buf.writeInt(localId);
 		buf.writeByte(code);
-		return ChannelBuffers.wrappedBuffer(buf, buffer);
+		return ByteBufs.wrappedBuffer(buf, buffer);
 	}
 
 	@Override

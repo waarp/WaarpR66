@@ -17,8 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufs;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
@@ -36,9 +36,9 @@ public class DataPacket extends AbstractLocalPacket {
 
 	private final int lengthPacket;
 
-	private final ChannelBuffer data;
+	private final ByteBuf data;
 
-	private final ChannelBuffer key;
+	private final ByteBuf key;
 
 	/**
 	 * @param headerLength
@@ -49,7 +49,7 @@ public class DataPacket extends AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public static DataPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
+			int middleLength, int endLength, ByteBuf buf)
 			throws OpenR66ProtocolPacketException {
 		if (headerLength - 1 <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
@@ -58,14 +58,14 @@ public class DataPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		int packetRank = buf.readInt();
-		ChannelBuffer data = buf.readBytes(middleLength);
+		ByteBuf data = buf.readBytes(middleLength);
 		int readerIndex = buf.readerIndex();
-		ChannelBuffer key;
+		ByteBuf key;
 		if (endLength > 0) {
 			key = buf.slice(readerIndex, endLength);
 			buf.skipBytes(endLength);
 		} else {
-			key = ChannelBuffers.EMPTY_BUFFER;
+			key = ByteBufs.EMPTY_BUFFER;
 		}
 		return new DataPacket(packetRank, data, key);
 	}
@@ -75,10 +75,10 @@ public class DataPacket extends AbstractLocalPacket {
 	 * @param data
 	 * @param key
 	 */
-	public DataPacket(int packetRank, ChannelBuffer data, ChannelBuffer key) {
+	public DataPacket(int packetRank, ByteBuf data, ByteBuf key) {
 		this.packetRank = packetRank;
 		this.data = data;
-		this.key = key == null ? ChannelBuffers.EMPTY_BUFFER : key;
+		this.key = key == null ? ByteBufs.EMPTY_BUFFER : key;
 		lengthPacket = data.readableBytes();
 	}
 
@@ -89,7 +89,7 @@ public class DataPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(4);
+		header = ByteBufs.buffer(4);
 		header.writeInt(packetRank);
 	}
 
@@ -129,14 +129,14 @@ public class DataPacket extends AbstractLocalPacket {
 	/**
 	 * @return the data
 	 */
-	public ChannelBuffer getData() {
+	public ByteBuf getData() {
 		return data;
 	}
 
 	/**
 	 * @return the key
 	 */
-	public ChannelBuffer getKey() {
+	public ByteBuf getKey() {
 		return key;
 	}
 
@@ -145,10 +145,10 @@ public class DataPacket extends AbstractLocalPacket {
 	 * @return True if the Hashed key is valid (or no key is set)
 	 */
 	public boolean isKeyValid(DigestAlgo algo) {
-		if (key == null || key == ChannelBuffers.EMPTY_BUFFER) {
+		if (key == null || key == ByteBufs.EMPTY_BUFFER) {
 			return true;
 		}
-		ChannelBuffer newbufkey = FileUtils.getHash(data, algo);
-		return ChannelBuffers.equals(key, newbufkey);
+		ByteBuf newbufkey = FileUtils.getHash(data, algo);
+		return ByteBufs.equals(key, newbufkey);
 	}
 }

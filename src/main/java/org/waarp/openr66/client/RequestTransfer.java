@@ -22,12 +22,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -70,7 +70,7 @@ public class RequestTransfer implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger logger;
+	static volatile WaarpLogger logger;
 
 	protected static String _INFO_ARGS = 
 			Messages.getString("RequestTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
@@ -226,7 +226,7 @@ public class RequestTransfer implements Runnable {
 	
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(RequestTransfer.class);
 		}
 		DbTaskRunner runner = null;
 		try {
@@ -626,16 +626,16 @@ public class RequestTransfer implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(RequestTransfer.class);
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

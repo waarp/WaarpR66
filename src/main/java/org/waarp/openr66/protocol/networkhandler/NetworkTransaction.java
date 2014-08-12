@@ -31,22 +31,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelPipelineException;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPipelineException;
+import io.netty.channel.Channels;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.lru.SynchronizedLruCache;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -69,7 +69,7 @@ import org.waarp.openr66.protocol.localhandler.packet.AuthentPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerHandler;
-import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
@@ -83,7 +83,7 @@ public class NetworkTransaction {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(NetworkTransaction.class);
 
 	/**
@@ -154,24 +154,24 @@ public class NetworkTransaction {
 			execServerWorker,
 			Configuration.configuration.CLIENT_THREAD);
 
-	private final ClientBootstrap clientBootstrap = new ClientBootstrap(
+	private final Bootstrap Bootstrap = new Bootstrap(
 			channelClientFactory);
-	private final ClientBootstrap clientSslBootstrap = new ClientBootstrap(
+	private final Bootstrap clientSslBootstrap = new Bootstrap(
 			channelClientFactory);
 	private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
 			"NetworkChannels");
 
 	public NetworkTransaction() {
-		NetworkServerPipelineFactory networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
-		clientBootstrap.setPipelineFactory(networkServerPipelineFactory);
-		clientBootstrap.setOption("tcpNoDelay", true);
-		clientBootstrap.setOption("reuseAddress", true);
-		clientBootstrap.setOption("connectTimeoutMillis",
+		NetworkServerInitializer networkServerInitializer = new NetworkServerInitializer(false);
+		Bootstrap.setInitializer(networkServerInitializer);
+		Bootstrap.setOption("tcpNoDelay", true);
+		Bootstrap.setOption("reuseAddress", true);
+		Bootstrap.setOption("connectTimeoutMillis",
 				Configuration.configuration.TIMEOUTCON);
 		if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
-			NetworkSslServerPipelineFactory networkSslServerPipelineFactory =
-					new NetworkSslServerPipelineFactory(true);
-			clientSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
+			NetworkSslServerInitializer networkSslServerInitializer =
+					new NetworkSslServerInitializer(true);
+			clientSslBootstrap.setInitializer(networkSslServerInitializer);
 			clientSslBootstrap.setOption("tcpNoDelay", true);
 			clientSslBootstrap.setOption("reuseAddress", true);
 			clientSslBootstrap.setOption("connectTimeoutMillis",
@@ -480,7 +480,7 @@ public class NetworkTransaction {
 							throw new OpenR66ProtocolNoConnectionException("No SSL support");
 						}
 					} else {
-						channelFuture = clientBootstrap.connect(socketServerAddress);
+						channelFuture = Bootstrap.connect(socketServerAddress);
 					}
 				} catch (ChannelPipelineException e) {
 					throw new OpenR66ProtocolNoConnectionException(
@@ -491,7 +491,7 @@ public class NetworkTransaction {
 				} catch (InterruptedException e1) {
 				}
 				if (channelFuture.isSuccess()) {
-					final Channel channel = channelFuture.getChannel();
+					final Channel channel = channelFuture.channel();
 					if (isSSL) {
 						if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
 							logger.debug("KO CONNECT since SSL handshake is over");
@@ -1080,10 +1080,10 @@ public class NetworkTransaction {
 					"Remote Host is blacklisted");
 		}
 		nc = getNCR(address);
-		if (nc != null && (nc.isShuttingDown || ! nc.getChannel().isConnected())) {
-			logger.debug("HOST IS DISCONNECTED: {}", address);
+		if (nc != null && (nc.isShuttingDown || ! nc.channel().isActive())) {
+			logger.debug("HOST IS DisActive: {}", address);
 			throw new OpenR66ProtocolRemoteShutdownException(
-					"Remote Host is disconnected");
+					"Remote Host is disActive");
 		}
 		if (nc == null) {
 			throw new OpenR66ProtocolNoDataException("Channel not found");
@@ -1148,7 +1148,7 @@ public class NetworkTransaction {
 				return;
 			}
 			logger.debug("Will remove Shutdown for : {}", ncr);
-			if (ncr.channel != null && ncr.channel.isConnected()) {
+			if (ncr.channel != null && ncr.channel.isActive()) {
 				WaarpSslUtility.closingSslChannel(ncr.channel);
 			}
 			removeShutdownNCR(ncr);
@@ -1223,7 +1223,7 @@ public class NetworkTransaction {
 		}
 		closeRetrieveExecutors();
 		networkChannelGroup.close().awaitUninterruptibly();
-		clientBootstrap.releaseExternalResources();
+		Bootstrap.releaseExternalResources();
 		clientSslBootstrap.releaseExternalResources();
 		channelClientFactory.releaseExternalResources();
 		try {

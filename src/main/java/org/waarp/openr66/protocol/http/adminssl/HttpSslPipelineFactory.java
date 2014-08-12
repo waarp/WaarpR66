@@ -17,36 +17,36 @@
  */
 package org.waarp.openr66.protocol.http.adminssl;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpContentCompressor;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.execution.ExecutionHandler;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.Channels;
+import io.netty.handler.codec.http.HttpChunkAggregator;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * @author Frederic Bregier
  * 
  */
-public class HttpSslPipelineFactory implements ChannelPipelineFactory {
+public class HttpSslInitializer implements ChannelInitializer<Channel> {
 	public boolean useHttpCompression = false;
 	public boolean enableRenegotiation = false;
 
-	public HttpSslPipelineFactory(boolean useHttpCompression,
+	public HttpSslInitializer(boolean useHttpCompression,
 			boolean enableRenegotiation) {
 		this.useHttpCompression = useHttpCompression;
 		this.enableRenegotiation = enableRenegotiation;
 	}
 
-	public ChannelPipeline getPipeline() {
-		final ChannelPipeline pipeline = Channels.pipeline();
+	protected void initChannel(Channel ch) {
+		final ChannelPipeline pipeline = ch.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.
-        SslHandler sslhandler = Configuration.waarpSslContextFactory.initPipelineFactory(true,
+        SslHandler sslhandler = Configuration.waarpSslContextFactory.initInitializer(true,
 				false, enableRenegotiation);
         sslhandler.setIssueHandshake(true);
         pipeline.addLast("ssl", sslhandler);

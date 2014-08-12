@@ -18,8 +18,8 @@
 package org.waarp.openr66.context.task.test;
 
 import org.waarp.common.command.exception.CommandAbstractException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.filesystem.R66File;
 import org.waarp.openr66.context.task.AbstractExecJavaTask;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -40,7 +40,7 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(TestExecJavaTask.class);
 
 	@Override

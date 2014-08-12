@@ -18,15 +18,15 @@
 package org.waarp.openr66.protocol.networkhandler.ssl;
 
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.handler.ssl.SslHandler;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.handler.ssl.SslHandler;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.future.WaarpFuture;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
@@ -47,7 +47,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(NetworkSslServerHandler.class);
 
 	/**
@@ -91,7 +91,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	@Override
 	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
-		Channel channel = e.getChannel();
+		Channel channel = e.channel();
 		logger.debug("Add channel to ssl");
 		WaarpSslUtility.addSslOpenedChannel(channel);
 		isSSL = true;
@@ -102,7 +102,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
 		// Check first if allowed
-		Channel networkChannel = e.getChannel();
+		Channel networkChannel = e.channel();
 		if (NetworkTransaction.isBlacklisted(networkChannel)) {
 			logger.warn("Connection refused since Partner is in BlackListed from "+networkChannel.getRemoteAddress().toString());
 			isBlackListed = true;
@@ -113,18 +113,18 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 			return;
 		}
 		// Get the SslHandler in the current pipeline.
-		// We added it in NetworkSslServerPipelineFactory.
-		final ChannelHandler handler = ctx.getPipeline().getFirst();
+		// We added it in NetworkSslServerInitializer.
+		final ChannelHandler handler = ctx.pipeline().first();
 		if (handler instanceof SslHandler) {
 			final SslHandler sslHandler = (SslHandler) handler;
 			if (sslHandler.isIssueHandshake()) {
 				// client side
-				WaarpSslUtility.setStatusSslConnectedChannel(ctx.getChannel(), true);
+				WaarpSslUtility.setStatusSslConnectedChannel(ctx.channel(), true);
 			} else {
 				// server side
 				// Get the SslHandler and begin handshake ASAP.
 				// Get notified when SSL handshake is done.
-				if (! WaarpSslUtility.runHandshake(ctx.getChannel())) {
+				if (! WaarpSslUtility.runHandshake(ctx.channel())) {
 					Configuration.configuration.r66Mib.notifyError(
 							"SSL Connection Error", "During Handshake");
 				}

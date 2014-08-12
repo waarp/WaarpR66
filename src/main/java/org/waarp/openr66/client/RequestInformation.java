@@ -19,9 +19,9 @@ package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -54,7 +54,7 @@ public class RequestInformation implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger logger;
+	static volatile WaarpLogger logger;
 
 	protected static String _INFO_ARGS = 
 			Messages.getString("RequestInformation.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
@@ -168,7 +168,7 @@ public class RequestInformation implements Runnable {
 
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestInformation.class);
+			logger = WaarpLoggerFactory.getLogger(RequestInformation.class);
 		}
 		InformationPacket request = null;
 		if (code != -1) {
@@ -224,16 +224,16 @@ public class RequestInformation implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestInformation.class);
+			logger = WaarpLoggerFactory.getLogger(RequestInformation.class);
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

@@ -19,11 +19,11 @@ package org.waarp.openr66.server;
 
 import java.net.SocketAddress;
 
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.channel.Channels;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -56,7 +56,7 @@ public class ConfigImport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger logger;
+	static volatile WaarpLogger logger;
 	
 	protected static String _INFO_ARGS = "Need at least the configuration file as first argument then at least one from\n"
 			+
@@ -156,7 +156,7 @@ public class ConfigImport implements Runnable {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ConfigImport.class);
+			logger = WaarpLoggerFactory.getLogger(ConfigImport.class);
 		}
 		SocketAddress socketAddress;
 		try {
@@ -358,13 +358,13 @@ public class ConfigImport implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ConfigImport.class);
+			logger = WaarpLoggerFactory.getLogger(ConfigImport.class);
 		}
 		if (!getParams(args)) {
 			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			System.exit(1);

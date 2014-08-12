@@ -27,16 +27,16 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.Channels;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.Channels;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -77,7 +77,7 @@ public abstract class ConnectionActions {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(ConnectionActions.class);
 
 	/**
@@ -208,7 +208,7 @@ public abstract class ConnectionActions {
 				session.setStatus(52);
 			} else {
 				logger.debug("Local Server Channel Closed but no LocalChannelReference: " +
-								e.getChannel().getId());
+								e.channel().getId());
 			}
 			// Now if runner is not yet finished, finish it by force
 			if (mustFinalize && localChannelReference != null
@@ -262,11 +262,11 @@ public abstract class ConnectionActions {
 		if (localChannelReference == null) {
 			session.newState(ERROR);
 			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
-			if (channel.isConnected()) {
+			if (channel.isActive()) {
 				ErrorPacket error = new ErrorPacket("Cannot startup connection",
 						ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
 				try {
-					Channels.write(channel, error).await();
+					Channels.writeAndFlush(channel, error).await();
 				} catch (InterruptedException e) {
 				}
 				// Cannot do writeBack(error, true);
@@ -278,7 +278,7 @@ public abstract class ConnectionActions {
 		session.newState(STARTUP);
 		localChannelReference.validateStartup(true);
 		session.setLocalChannelReference(localChannelReference);
-		Channels.write(channel, packet);
+		Channels.writeAndFlush(channel, packet);
 		session.setStatus(41);
 	}
 

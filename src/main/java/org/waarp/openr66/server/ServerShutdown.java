@@ -19,10 +19,10 @@ package org.waarp.openr66.server;
 
 import java.net.SocketAddress;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -59,8 +59,8 @@ public class ServerShutdown {
 	 */
 	public static void main(String[] args)
 			throws OpenR66ProtocolPacketException {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		final WaarpLogger logger = WaarpLoggerFactory
 				.getLogger(ServerShutdown.class);
 		if (args.length < 1) {
 			logger

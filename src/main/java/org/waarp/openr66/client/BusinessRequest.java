@@ -18,9 +18,9 @@
 package org.waarp.openr66.client;
 
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -43,7 +43,7 @@ public class BusinessRequest extends AbstractBusinessRequest {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger logger;
+	private static WaarpLogger logger;
 	/**
 	 * Default class
 	 */
@@ -55,10 +55,10 @@ public class BusinessRequest extends AbstractBusinessRequest {
 	}
 
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
 				null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(BusinessRequest.class);
+			logger = WaarpLoggerFactory.getLogger(BusinessRequest.class);
 		}
 		if (args.length < 5) {
 			logger
@@ -69,7 +69,7 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		classname = DEFAULT_CLASS;
 		if (!getParams(args) || classarg == null) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();

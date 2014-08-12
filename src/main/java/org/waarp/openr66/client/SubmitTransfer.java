@@ -19,10 +19,10 @@ package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
@@ -53,9 +53,9 @@ public class SubmitTransfer extends AbstractTransfer {
 
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
 		}
-		if (! DbConstant.admin.isConnected) {
+		if (! DbConstant.admin.isActive) {
 			logger.debug("Client not connected");
 			R66Result result = new R66Result(new OpenR66DatabaseGlobalException("No database connexion"), null, true,
 					ErrorCode.Internal, null);
@@ -124,16 +124,16 @@ public class SubmitTransfer extends AbstractTransfer {
 	 *            false(default) and the blocksize if different than default
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
+			logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
 		}
 		if (!getParams(args, true)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+			if (DbConstant.admin != null && DbConstant.admin.isActive) {
 				DbConstant.admin.close();
 			}
 			ChannelUtils.stopLogger();
