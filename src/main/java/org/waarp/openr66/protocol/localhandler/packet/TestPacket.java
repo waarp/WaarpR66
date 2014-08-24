@@ -66,12 +66,12 @@ public class TestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ByteBufs.wrappedBuffer(sheader.getBytes());
+		header = Unpooled.wrappedBuffer(sheader.getBytes());
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ByteBufs.wrappedBuffer(smiddle.getBytes());
+		middle = Unpooled.wrappedBuffer(smiddle.getBytes());
 	}
 
 	@Override

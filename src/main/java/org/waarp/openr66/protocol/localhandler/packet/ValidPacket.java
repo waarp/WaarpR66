@@ -79,14 +79,14 @@ public class ValidPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (sheader != null) {
-			header = ByteBufs.wrappedBuffer(sheader.getBytes());
+			header = Unpooled.wrappedBuffer(sheader.getBytes());
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (smiddle != null) {
-			middle = ByteBufs.wrappedBuffer(smiddle.getBytes());
+			middle = Unpooled.wrappedBuffer(smiddle.getBytes());
 		}
 	}
 

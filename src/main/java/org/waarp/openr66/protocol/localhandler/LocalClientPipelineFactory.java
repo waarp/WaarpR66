@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.localhandler;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.channel.Channels;
 import io.netty.handler.execution.ExecutionHandler;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -29,7 +29,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class LocalClientInitializer implements ChannelInitializer<Channel> {
+public class LocalClientInitializer implements ChannelInitializer<SocketChannel> {
 
 	protected void initChannel(Channel ch) throws Exception {
 		final ChannelPipeline pipeline = ch.pipeline();

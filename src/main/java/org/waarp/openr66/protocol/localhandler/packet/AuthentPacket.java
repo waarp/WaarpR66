@@ -138,7 +138,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		if (hostId == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ByteBufs.wrappedBuffer(hostId.getBytes());
+		header = Unpooled.wrappedBuffer(hostId.getBytes());
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		if (key == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		middle = ByteBufs.wrappedBuffer(key);
+		middle = Unpooled.wrappedBuffer(key);
 	}
 
 	@Override

@@ -80,7 +80,7 @@ public class BusinessRequestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ByteBufs.wrappedBuffer(sheader.getBytes());
+		header = Unpooled.wrappedBuffer(sheader.getBytes());
 	}
 
 	@Override

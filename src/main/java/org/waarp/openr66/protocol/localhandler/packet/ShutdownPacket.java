@@ -83,7 +83,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (key != null) {
-			header = ByteBufs.wrappedBuffer(key);
+			header = Unpooled.wrappedBuffer(key);
 		}
 	}
 
@@ -91,7 +91,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (restart != 0) {
 			byte [] array = {restart};
-			middle = ByteBufs.wrappedBuffer(array);
+			middle = Unpooled.wrappedBuffer(array);
 		} else {
 			middle = ByteBufs.EMPTY_BUFFER;
 		}

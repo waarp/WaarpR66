@@ -120,14 +120,14 @@ public class EndTransferPacket extends AbstractLocalPacket {
 	public void createHeader(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				request };
-		header = ByteBufs.wrappedBuffer(newbytes);
+		header = Unpooled.wrappedBuffer(newbytes);
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				way };
-		middle = ByteBufs.wrappedBuffer(newbytes);
+		middle = Unpooled.wrappedBuffer(newbytes);
 	}
 
 	@Override

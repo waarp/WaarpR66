@@ -141,7 +141,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
 		String answer = result.toString();
-		ByteBuf buffer = ByteBufs.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+		ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
 		response.setContent(buffer);
 		logger.debug("Will write: {}", body);

@@ -66,7 +66,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
     	ByteBuf content = response.getContent();
         if (content != null && content.readable()) {
             if (cumulativeBody != null) {
-				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
+				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
 			} else {
 				cumulativeBody = content;
 			}
@@ -320,7 +320,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
                 ByteBuf content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
+        				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
         			} else {
         				cumulativeBody = content;
         			}
@@ -343,7 +343,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
             	ByteBuf content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ByteBufs.wrappedBuffer(cumulativeBody, content);
+        				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
         			} else {
         				cumulativeBody = content;
         			}

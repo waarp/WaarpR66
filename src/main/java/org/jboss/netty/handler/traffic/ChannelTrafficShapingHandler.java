@@ -16,7 +16,7 @@
 package io.netty.handler.traffic;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.channel.ChannelStateEvent;
 import io.netty.handler.execution.ExecutionHandler;
 import io.netty.handler.execution.MemoryAwareThreadPoolExecutor;
@@ -38,8 +38,8 @@ import io.netty.util.Timer;
  *
  * <b>Note that this handler has a Pipeline Coverage of "one" which means a new handler must be created
  * for each new channel as the counter cannot be shared among all channels.</b> For instance, if you have a
- * {@link ChannelInitializer<Channel>}, you should create a new ChannelTrafficShapingHandler in this
- * {@link ChannelInitializer<Channel>} each time pipeline() method is called.<br><br>
+ * {@link ChannelInitializer<SocketChannel>}, you should create a new ChannelTrafficShapingHandler in this
+ * {@link ChannelInitializer<SocketChannel>} each time pipeline() method is called.<br><br>
  *
  * Other arguments can be passed like write or read limitation (in bytes/s where 0 means no limitation)
  * or the check interval (in millisecond) that represents the delay between two computations of the

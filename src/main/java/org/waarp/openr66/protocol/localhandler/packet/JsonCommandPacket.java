@@ -106,14 +106,14 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (request != null) {
-			header = ByteBufs.wrappedBuffer(request.getBytes());
+			header = Unpooled.wrappedBuffer(request.getBytes());
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (result != null) {
-			middle = ByteBufs.wrappedBuffer(result.getBytes());
+			middle = Unpooled.wrappedBuffer(result.getBytes());
 		}
 	}
 

@@ -117,7 +117,7 @@ public class EndRequestPacket extends AbstractLocalPacket {
 	public void createMiddle(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				way };
-		middle = ByteBufs.wrappedBuffer(newbytes);
+		middle = Unpooled.wrappedBuffer(newbytes);
 	}
 
 	@Override

@@ -26,7 +26,7 @@ import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
@@ -40,7 +40,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * @author Frederic Bregier
  * 
  */
-public class HttpRestR66Initializer implements ChannelInitializer<Channel> {
+public class HttpRestR66Initializer implements ChannelInitializer<SocketChannel> {
 	private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
     private final RestConfiguration restConfiguration;

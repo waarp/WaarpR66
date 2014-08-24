@@ -105,7 +105,7 @@ public class NetworkPacket {
 		buf.writeInt(remoteId);
 		buf.writeInt(localId);
 		buf.writeByte(code);
-		return ByteBufs.wrappedBuffer(buf, buffer);
+		return Unpooled.wrappedBuffer(buf, buffer);
 	}
 
 	@Override

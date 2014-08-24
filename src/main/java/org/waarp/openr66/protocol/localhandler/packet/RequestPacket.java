@@ -316,7 +316,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (fileInformation != null) {
-			end = ByteBufs.wrappedBuffer(fileInformation.getBytes());
+			end = Unpooled.wrappedBuffer(fileInformation.getBytes());
 		}
 	}
 
@@ -330,9 +330,9 @@ public class RequestPacket extends AbstractLocalPacket {
 			ObjectNode node = JsonHandler.createObjectNode();
 			JsonHandler.setValue(node, FIELDS.rule, rulename);
 			JsonHandler.setValue(node, FIELDS.mode, mode);
-			header = ByteBufs.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
+			header = Unpooled.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
 		} else {
-			header = ByteBufs.wrappedBuffer(rulename.getBytes(), 
+			header = Unpooled.wrappedBuffer(rulename.getBytes(), 
 					PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
 					Integer.toString(mode).getBytes());
 		}
@@ -354,9 +354,9 @@ public class RequestPacket extends AbstractLocalPacket {
 			JsonHandler.setValue(node, FIELDS.id, specialId);
 			JsonHandler.setValue(node, FIELDS.code, code);
 			JsonHandler.setValue(node, FIELDS.length, originalSize);
-			middle = ByteBufs.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
+			middle = Unpooled.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
 		} else {
-			middle = ByteBufs.wrappedBuffer(away, filename.getBytes(), 
+			middle = Unpooled.wrappedBuffer(away, filename.getBytes(), 
 				this.separator.getBytes(), 
 				Integer.toString(blocksize).getBytes(), 
 				this.separator.getBytes(), 

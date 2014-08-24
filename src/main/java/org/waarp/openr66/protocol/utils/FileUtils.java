@@ -505,7 +505,7 @@ public class FileUtils {
 		} catch (IOException e) {
 			return ByteBufs.EMPTY_BUFFER;
 		}
-		return ByteBufs.wrappedBuffer(newkey);
+		return Unpooled.wrappedBuffer(newkey);
 	}
 	
 	/**

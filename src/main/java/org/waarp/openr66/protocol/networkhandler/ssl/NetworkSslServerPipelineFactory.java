@@ -20,7 +20,7 @@ package org.waarp.openr66.protocol.networkhandler.ssl;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.channel.Channels;
 import io.netty.handler.execution.ExecutionHandler;
 import io.netty.handler.ssl.SslHandler;
@@ -39,7 +39,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * @author Frederic Bregier
  * 
  */
-public class NetworkSslServerInitializer implements ChannelInitializer<Channel> {
+public class NetworkSslServerInitializer implements ChannelInitializer<SocketChannel> {
 	protected final boolean isClient;
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	public static WaarpSecureKeyStore waarpSecureKeyStore;

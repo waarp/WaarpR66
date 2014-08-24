@@ -86,7 +86,7 @@ public class InformationPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) {
 		if (filename != null) {
-			end = ByteBufs.wrappedBuffer(filename.getBytes());
+			end = Unpooled.wrappedBuffer(filename.getBytes());
 		}
 	}
 
@@ -95,14 +95,14 @@ public class InformationPacket extends AbstractLocalPacket {
 		if (rulename == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ByteBufs.wrappedBuffer(rulename.getBytes());
+		header = Unpooled.wrappedBuffer(rulename.getBytes());
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				requestedInfo };
-		middle = ByteBufs.wrappedBuffer(newbytes);
+		middle = Unpooled.wrappedBuffer(newbytes);
 	}
 
 	@Override

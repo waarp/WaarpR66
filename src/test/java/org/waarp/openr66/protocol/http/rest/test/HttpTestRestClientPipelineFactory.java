@@ -18,7 +18,7 @@ package org.waarp.openr66.protocol.http.rest.test;
 import static io.netty.channel.Channels.*;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.execution.ExecutionHandler;
@@ -31,7 +31,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 /**
  * Test Rest client pipeline factory
  */
-public class HttpTestRestClientInitializer implements ChannelInitializer<Channel> {
+public class HttpTestRestClientInitializer implements ChannelInitializer<SocketChannel> {
     private final WaarpSslContextFactory waarpSslContextFactory;
 
     public HttpTestRestClientInitializer(WaarpSslContextFactory waarpSslContextFactory) {

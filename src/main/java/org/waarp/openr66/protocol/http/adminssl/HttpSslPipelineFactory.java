@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.http.adminssl;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.channel.Channels;
 import io.netty.handler.codec.http.HttpChunkAggregator;
 import io.netty.handler.codec.http.HttpContentCompressor;
@@ -33,7 +33,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  * 
  */
-public class HttpSslInitializer implements ChannelInitializer<Channel> {
+public class HttpSslInitializer implements ChannelInitializer<SocketChannel> {
 	public boolean useHttpCompression = false;
 	public boolean enableRenegotiation = false;
 

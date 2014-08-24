@@ -20,7 +20,7 @@ package org.waarp.openr66.protocol.http;
 import static io.netty.channel.Channels.pipeline;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.handler.codec.http.HttpChunkAggregator;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpRequestDecoder;
@@ -35,7 +35,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  * 
  */
-public class HttpInitializer implements ChannelInitializer<Channel> {
+public class HttpInitializer implements ChannelInitializer<SocketChannel> {
 	public boolean useHttpCompression = false;
 
 	public HttpInitializer(boolean useHttpCompression) {

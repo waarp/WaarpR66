@@ -310,7 +310,7 @@ public class RetrieveRunner extends Thread {
 			// last block
 			block.setEOF(true);
 		} else {
-			block.setBlock(ByteBufs.wrappedBuffer(data));
+			block.setBlock(Unpooled.wrappedBuffer(data));
 		}
 		return block;
 	}

@@ -20,7 +20,7 @@ package org.waarp.openr66.protocol.networkhandler;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.channel.Channels;
 import io.netty.handler.execution.ExecutionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -36,7 +36,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class NetworkServerInitializer implements ChannelInitializer<Channel> {
+public class NetworkServerInitializer implements ChannelInitializer<SocketChannel> {
 	/**
 	 * Global HashedWheelTimer
 	 */

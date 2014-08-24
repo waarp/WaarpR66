@@ -24,7 +24,7 @@ package org.waarp.openr66.protocol.http.rest.client;
 import java.util.Map;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer<Channel>;
+import io.netty.channel.ChannelInitializer<SocketChannel>;
 import io.netty.handler.codec.http.HttpMethod;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
@@ -77,7 +77,7 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	 * @param client limit number of concurrent connected clients
 	 * @param timeout time out for network connection
 	 */
-	public HttpRestR66Client(String baseUri, ChannelInitializer<Channel> Initializer, int client, long timeout) {
+	public HttpRestR66Client(String baseUri, ChannelInitializer<SocketChannel> Initializer, int client, long timeout) {
 		super(baseUri, client, timeout, Initializer);
 	}
 
