@@ -108,7 +108,7 @@ public class TestSendThroughForward extends SendThroughClient {
 				block.setBlock(buffer);
 			}
 			try {
-				client.writeWhenPossible(block).await();
+				client.writeWhenPossible(block).await(Configuration.configuration.TIMEOUTCON);
 			} catch (OpenR66RunnerErrorException e) {
 				client.transferInError(e);
 			} catch (OpenR66ProtocolPacketException e) {

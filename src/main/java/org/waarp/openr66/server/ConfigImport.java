@@ -19,8 +19,6 @@ package org.waarp.openr66.server;
 
 import java.net.SocketAddress;
 
-import io.netty.channel.Channels;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -215,7 +213,7 @@ public class ConfigImport implements Runnable {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			localChannelReference = null;
 			dbhost = null;
 			valid = null;
@@ -227,7 +225,7 @@ public class ConfigImport implements Runnable {
 		dbhost = null;
 		future.awaitUninterruptibly();
 		logger.debug("Request done with " + (future.isSuccess() ? "success" : "error"));
-		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference.getLocalChannel().close();
 		localChannelReference = null;
 	}
 

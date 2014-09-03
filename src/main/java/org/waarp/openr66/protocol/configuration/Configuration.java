@@ -32,18 +32,16 @@ import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
-import io.netty.logging.WaarpLoggerFactory;
 import io.netty.util.HashedWheelTimer;
-import io.netty.util.ObjectSizeEstimator;
 import io.netty.util.Timer;
-import io.netty.util.internal.ExecutorUtil;
+
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -60,6 +58,7 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
@@ -80,13 +79,11 @@ import org.waarp.openr66.protocol.http.adminssl.HttpSslInitializer;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
-import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
-import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
 import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
@@ -106,8 +103,7 @@ public class Configuration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(Configuration.class);
+	private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(Configuration.class);
 
 	// Static values
 	/**
@@ -161,10 +157,9 @@ public class Configuration {
 	/**
 	 * FileParameter
 	 */
-	private static final FilesystemBasedFileParameterImpl fileParameter =
-			new FilesystemBasedFileParameterImpl();
+	private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
 
-	public R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
+	public final R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
 	// Global Dynamic values
 	/**
 	 * Version validation
@@ -177,23 +172,23 @@ public class Configuration {
 	/**
 	 * White List of allowed Partners to use Business Requests
 	 */
-	public HashSet<String> businessWhiteSet = new HashSet<String>();
+	public final HashSet<String> businessWhiteSet = new HashSet<String>();
 	/**
 	 * Roles list for identified partners
 	 */
-	public HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
+	public final HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
 	/**
 	 * Aliases list for identified partners
 	 */
-	public HashMap<String, String> aliases = new HashMap<String, String>();
+	public final HashMap<String, String> aliases = new HashMap<String, String>();
 	/**
 	 * reverse Aliases list for identified partners
 	 */
-	public HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
+	public final HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
 	/**
 	 * Versions for each HostID
 	 */
-	public ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
+	public final ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
 	/**
 	 * Actual Host ID
 	 */
@@ -286,7 +281,7 @@ public class Configuration {
 	/**
 	 * Rest configuration list
 	 */
-	public List<RestConfiguration> restConfigurations = new ArrayList<RestConfiguration>();
+	public final List<RestConfiguration> restConfigurations = new ArrayList<RestConfiguration>();
 	
 	/**
 	 * Base Directory
@@ -408,53 +403,22 @@ public class Configuration {
 	public boolean isServer = false;
 
 	/**
-	 * ExecutorService Server Boss
-	 */
-	protected ExecutorService execServerBoss = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss", false));
-
-	/**
-	 * ExecutorService Server Worker
-	 */
-	protected ExecutorService execServerWorker = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerWorker"));
-
-	/**
 	 * ExecutorService Other Worker
 	 */
-	protected ExecutorService execOtherWorker = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("OtherWorker"));
+	protected final ExecutorService execOtherWorker = Executors.newCachedThreadPool(new WaarpThreadFactory("OtherWorker"));
 	
+	protected final EventLoopGroup bossGroup;
+	protected final EventLoopGroup workerGroup;
+    protected final EventLoopGroup handlerGroup;
+    protected final EventLoopGroup subTaskGroup;
+    protected final EventLoopGroup httpBossGroup;
+    protected final EventLoopGroup httpWorkerGroup;
+
 	/**
 	 * ExecutorService Scheduled tasks
 	 */
 	protected final ScheduledExecutorService scheduledExecutorService;
 	
-	/**
-	 * ChannelFactory for Server part
-	 */
-	protected ChannelFactory serverChannelFactory = null;
-
-	/**
-	 * ThreadPoolExecutor for Server
-	 */
-	protected OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
-
-	/**
-	 * ThreadPoolExecutor for LocalServer
-	 */
-	private OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
-
-	/**
-	 * ThreadPoolExecutor for LocalClient
-	 */
-	private OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
-
-	/**
-	 * ThreadPoolExecutor for Http and Https Server
-	 */
-	protected OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
-
 	/**
 	 * Bootstrap for server
 	 */
@@ -482,14 +446,6 @@ public class Configuration {
 	 */
 	protected ServerBootstrap httpsBootstrap = null;
 	/**
-	 * ChannelFactory for HttpServer part
-	 */
-	protected ChannelFactory httpChannelFactory = null;
-	/**
-	 * ChannelFactory for HttpsServer part
-	 */
-	protected ChannelFactory httpsChannelFactory = null;
-	/**
 	 * List of all Http Channels to enable the close call on them using Netty ChannelGroup
 	 */
 	protected ChannelGroup httpChannelGroup = null;
@@ -497,33 +453,17 @@ public class Configuration {
 	/**
 	 * Timer for CloseOpertations
 	 */
-	private Timer timerCloseOperations =
+	private final Timer timerCloseOperations =
 			new HashedWheelTimer(
 					new WaarpThreadFactory(
 							"TimerClose"),
 					50,
 					TimeUnit.MILLISECONDS,
 					1024);
-
-	/**
-	 * Timer for TrafficCounter
-	 */
-	protected Timer timerTrafficCounter =
-			new HashedWheelTimer(
-					new WaarpThreadFactory(
-							"TimerTraffic"),
-					10,
-					TimeUnit.MILLISECONDS,
-					1024);
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
 	protected GlobalTrafficHandler globalTrafficShapingHandler = null;
-
-	/**
-	 * ObjectSizeEstimator
-	 */
-	protected ObjectSizeEstimator objectSizeEstimator = null;
 
 	/**
 	 * LocalTransaction
@@ -548,8 +488,7 @@ public class Configuration {
 	/**
 	 * Constraint Limit Handler on CPU usage and Connection limitation
 	 */
-	public R66ConstraintLimitHandler constraintLimitHandler =
-			new R66ConstraintLimitHandler();
+	public R66ConstraintLimitHandler constraintLimitHandler = new R66ConstraintLimitHandler();
 	/**
 	 * Do we check Remote Address from DbHost
 	 */
@@ -604,7 +543,7 @@ public class Configuration {
 	
 	public boolean isExecuteErrorBeforeTransferAllowed = true;
 
-	public ShutdownConfiguration shutdownConfiguration = new ShutdownConfiguration();
+	public final ShutdownConfiguration shutdownConfiguration = new ShutdownConfiguration();
 	
 	public boolean isHostProxyfied = false;
 	
@@ -628,6 +567,12 @@ public class Configuration {
 		new R66ShutdownHook(shutdownConfiguration);
 		computeNbThreads();
 		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
+        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss"));
+        workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
+        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 100, new WaarpThreadFactory("Handler"));
+        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 100, new WaarpThreadFactory("SubTask"));
+        httpBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpBoss"));
+        httpWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpWorker"));
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
 		if (! SystemPropertyUtil.isFileEncodingCorrect()) {
@@ -686,9 +631,7 @@ public class Configuration {
 			return;
 		}
 		localTransaction = new LocalTransaction();
-		WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory
-				.getDefaultFactory());
-		objectSizeEstimator = new NetworkPacketSizeEstimator();
+		WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
 		httpPipelineInit();
 		if (warnOnStartup) {
 			logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
@@ -697,18 +640,6 @@ public class Configuration {
 			logger.info("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
 					+ " Runner Thread: " + RUNNER_THREAD);
 		}
-		serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
-				TimeUnit.MILLISECONDS, objectSizeEstimator,
-				new WaarpThreadFactory("ServerExecutor"));
-		localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-				1000, TimeUnit.MILLISECONDS, new LocalPacketSizeEstimator(),
-				new WaarpThreadFactory("LocalExecutor"));
-		localClientPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-				1000, TimeUnit.MILLISECONDS, new LocalPacketSizeEstimator(),
-				new WaarpThreadFactory("LocalClientExecutor"));
 		if (useLocalExec) {
 			LocalExecClient.initialize();
 		}
@@ -716,12 +647,6 @@ public class Configuration {
 	}
 
 	public void httpPipelineInit() {
-		if (objectSizeEstimator == null) {
-			objectSizeEstimator = new NetworkPacketSizeEstimator();
-		}
-		httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
-				TimeUnit.MILLISECONDS, objectSizeEstimator, new WaarpThreadFactory("HttpExecutor"));
 	}
 
 	/**
@@ -769,50 +694,43 @@ public class Configuration {
 		// add into configuration
 		this.constraintLimitHandler.setServer(true);
 		// Global Server
-		serverChannelGroup = new DefaultChannelGroup("OpenR66");
-
-		serverChannelFactory = new NioServerSocketChannelFactory(
-				execServerBoss, execServerWorker, SERVER_THREAD);
+		serverChannelGroup = new DefaultChannelGroup("OpenR66", handlerGroup.next());
 		if (useNOSSL) {
-			serverBootstrap = new ServerBootstrap(serverChannelFactory);
+            serverBootstrap = new ServerBootstrap();
+		    WaarpNettyUtil.setServerBootstrap(serverBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
 			networkServerInitializer = new NetworkServerInitializer(true);
-			serverBootstrap.setInitializer(networkServerInitializer);
-			serverBootstrap.setOption("child.tcpNoDelay", true);
-			serverBootstrap.setOption("child.keepAlive", true);
-			serverBootstrap.setOption("child.reuseAddress", true);
-			serverBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-			serverBootstrap.setOption("tcpNoDelay", true);
-			serverBootstrap.setOption("reuseAddress", true);
-			serverBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
-			bindNoSSL = serverBootstrap.bind(new InetSocketAddress(SERVER_PORT));
-			serverChannelGroup.add(bindNoSSL);
+			serverBootstrap.childHandler(networkServerInitializer);
+			ChannelFuture future = serverBootstrap.bind(new InetSocketAddress(SERVER_PORT)).awaitUninterruptibly();
+			if (future.isSuccess()) {
+			    bindNoSSL = future.channel();
+			    serverChannelGroup.add(bindNoSSL);
+			} else {
+		         logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
+			}
 		} else {
 			networkServerInitializer = null;
 			logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
 		}
 
 		if (useSSL && HOST_SSLID != null) {
-			serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-			networkSslServerInitializer = new NetworkSslServerInitializer(false);
-			serverSslBootstrap.setInitializer(networkSslServerInitializer);
-			serverSslBootstrap.setOption("child.tcpNoDelay", true);
-			serverSslBootstrap.setOption("child.keepAlive", true);
-			serverSslBootstrap.setOption("child.reuseAddress", true);
-			serverSslBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-			serverSslBootstrap.setOption("tcpNoDelay", true);
-			serverSslBootstrap.setOption("reuseAddress", true);
-			serverSslBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
-			bindSSL = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT));
-			serverChannelGroup.add(bindSSL);
+		    serverSslBootstrap = new ServerBootstrap();
+            WaarpNettyUtil.setServerBootstrap(serverSslBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
+            networkSslServerInitializer = new NetworkSslServerInitializer(false);
+            serverSslBootstrap.childHandler(networkServerInitializer);
+            ChannelFuture future = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT)).awaitUninterruptibly();
+            if (future.isSuccess()) {
+                bindSSL = future.channel();
+                serverChannelGroup.add(bindSSL);
+            } else {
+                 logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
+            }
 		} else {
 			networkSslServerInitializer = null;
 			logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
 		}
 
 		// Factory for TrafficShapingHandler
-		globalTrafficShapingHandler = new GlobalTrafficHandler(
-				objectSizeEstimator, timerTrafficCounter,
-				serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
+		globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
 		this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
 
 		// Now start the InternalRunner
@@ -831,46 +749,28 @@ public class Configuration {
 		// Now start the HTTP support
 		logger.info(Messages.getString("Configuration.HTTPStart") + SERVER_HTTPPORT +  //$NON-NLS-1$
 				" HTTPS: " + SERVER_HTTPSPORT);
-		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
+		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66", handlerGroup.next());
 		// Configure the server.
-		httpChannelFactory = new NioServerSocketChannelFactory(
-				execServerBoss,
-				execServerWorker,
-				SERVER_THREAD);
-		httpBootstrap = new ServerBootstrap(
-				httpChannelFactory);
+		httpBootstrap = new ServerBootstrap();
+		WaarpNettyUtil.setServerBootstrap(httpBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);
 		// Set up the event pipeline factory.
-		httpBootstrap.setInitializer(new HttpInitializer(useHttpCompression));
-		httpBootstrap.setOption("child.tcpNoDelay", true);
-		httpBootstrap.setOption("child.keepAlive", true);
-		httpBootstrap.setOption("child.reuseAddress", true);
-		httpBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-		httpBootstrap.setOption("tcpNoDelay", true);
-		httpBootstrap.setOption("reuseAddress", true);
-		httpBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+		httpBootstrap.childHandler(new HttpInitializer(useHttpCompression));
 		// Bind and start to accept incoming connections.
-		httpChannelGroup.add(httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)));
-
+		ChannelFuture future = httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)).awaitUninterruptibly();
+		if (future.isSuccess()) {
+		      httpChannelGroup.add(future.channel());
+		}
 		// Now start the HTTPS support
 		// Configure the server.
-		httpsChannelFactory = new NioServerSocketChannelFactory(
-				execServerBoss,
-				execServerWorker,
-				SERVER_THREAD);
-		httpsBootstrap = new ServerBootstrap(
-				httpsChannelFactory);
+		httpsBootstrap = new ServerBootstrap();
 		// Set up the event pipeline factory.
-		httpsBootstrap.setInitializer(new HttpSslInitializer(useHttpCompression,
-				false));
-		httpsBootstrap.setOption("child.tcpNoDelay", true);
-		httpsBootstrap.setOption("child.keepAlive", true);
-		httpsBootstrap.setOption("child.reuseAddress", true);
-		httpsBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-		httpsBootstrap.setOption("tcpNoDelay", true);
-		httpsBootstrap.setOption("reuseAddress", true);
-		httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+        WaarpNettyUtil.setServerBootstrap(httpsBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);
+		httpsBootstrap.childHandler(new HttpSslInitializer(useHttpCompression, false));
 		// Bind and start to accept incoming connections.
-		httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
+		future = httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)).awaitUninterruptibly();
+        if (future.isSuccess()) {
+              httpChannelGroup.add(future.channel());
+        }
 	}
 	
 	public void startRestSupport() {
@@ -928,15 +828,38 @@ public class Configuration {
 	 */
 	public void unbindServer() {
 		if (bindNoSSL != null) {
-			bindNoSSL.unbind();
+			bindNoSSL.close();
 			bindNoSSL = null;
 		}
 		if (bindSSL != null) {
-			bindSSL.unbind();
+			bindSSL.close();
 			bindSSL = null;
 		}
 	}
 
+	public void shutdownGracefully()  {
+        if (! bossGroup.isShuttingDown()) {
+            bossGroup.shutdownGracefully();
+        }
+        if (! workerGroup.isShuttingDown()) {
+            workerGroup.shutdownGracefully();
+        }
+        if (! handlerGroup.isShuttingDown()) {
+            handlerGroup.shutdownGracefully();
+        }
+        if (! httpBossGroup.isShuttingDown()) {
+            httpBossGroup.shutdownGracefully();
+        }
+        if (! httpWorkerGroup.isShuttingDown()) {
+            httpWorkerGroup.shutdownGracefully();
+        }
+        if (! handlerGroup.isShuttingDown()) {
+            handlerGroup.shutdownGracefully();
+        }
+        if (! subTaskGroup.isShuttingDown()) {
+            subTaskGroup.shutdownGracefully();
+        }
+	}
 	/**
 	 * Stops the server
 	 * 
@@ -956,20 +879,9 @@ public class Configuration {
 			monitoring.releaseResources();
 			monitoring = null;
 		}
-		if (execServerBoss != null) {
-			ExecutorUtil.terminate(execServerBoss);
-			execServerBoss = null;
-		}
-		if (execServerWorker != null) {
-			ExecutorUtil.terminate(execServerWorker);
-			execServerWorker = null;
-		}
+		shutdownGracefully();
 		if (execOtherWorker != null) {
 			execOtherWorker.shutdownNow();
-			execOtherWorker = null;
-		}
-		if (timerTrafficCounter != null) {
-			timerTrafficCounter.stop();
 		}
 		if (timerCloseOperations != null) {
 			timerCloseOperations.stop();
@@ -991,27 +903,9 @@ public class Configuration {
 			localTransaction.closeAll();
 			localTransaction = null;
 		}
-		if (serverPipelineExecutor != null) {
-			ExecutorUtil.terminate(serverPipelineExecutor);
-			serverPipelineExecutor = null;
-		}
-		if (localPipelineExecutor != null) {
-			ExecutorUtil.terminate(localPipelineExecutor);
-			localPipelineExecutor = null;
-		}
-		if (localClientPipelineExecutor != null) {
-			ExecutorUtil.terminate(localClientPipelineExecutor);
-			localClientPipelineExecutor = null;
-		}
-		if (httpPipelineExecutor != null) {
-			ExecutorUtil.terminate(httpPipelineExecutor);
-			httpPipelineExecutor = null;
-		}
+        shutdownGracefully();
 		if (useLocalExec) {
 			LocalExecClient.releaseResources();
-		}
-		if (timerTrafficCounter != null) {
-			timerTrafficCounter.stop();
 		}
 		if (timerCloseOperations != null) {
 			timerCloseOperations.stop();
@@ -1061,8 +955,7 @@ public class Configuration {
 		if (writeGlobalLimit <= 0) {
 			newWriteLimit = 0;
 		}
-		long newReadLimit = readGlobalLimit > 1024 ? readGlobalLimit
-				: serverGlobalReadLimit;
+		long newReadLimit = readGlobalLimit > 1024 ? readGlobalLimit : serverGlobalReadLimit;
 		if (readGlobalLimit <= 0) {
 			newReadLimit = 0;
 		}
@@ -1070,8 +963,7 @@ public class Configuration {
 		serverGlobalWriteLimit = newWriteLimit;
 		this.delayLimit = delayLimit;
 		if (globalTrafficShapingHandler != null) {
-			globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit,
-					delayLimit);
+			globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
 			logger.warn(Messages.getString("Configuration.BandwidthChange"), globalTrafficShapingHandler); //$NON-NLS-1$
 		}
 		newWriteLimit = writeSessionLimit > 1024 ? writeSessionLimit
@@ -1115,9 +1007,7 @@ public class Configuration {
 		if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
 			throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
 		}
-		return new ChannelTrafficHandler(objectSizeEstimator,
-				timerTrafficCounter, serverChannelWriteLimit,
-				serverChannelReadLimit, delayLimit);
+		return new ChannelTrafficHandler(serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
 	}
 
 	/**
@@ -1126,13 +1016,6 @@ public class Configuration {
 	 */
 	public ExecutorService getExecutorService() {
 		return execOtherWorker;
-	}
-
-	/**
-	 * @return the timer
-	 */
-	public Timer getTimerTraffic() {
-		return timerTrafficCounter;
 	}
 
 	public Timer getTimerClose() {
@@ -1154,62 +1037,48 @@ public class Configuration {
 	}
 
 	/**
-	 * @return the serverChannelFactory
-	 */
-	public ChannelFactory getServerChannelFactory() {
-		return serverChannelFactory;
-	}
-
-	/**
 	 * @return the httpChannelGroup
 	 */
 	public ChannelGroup getHttpChannelGroup() {
 		return httpChannelGroup;
 	}
 
-	/**
-	 * @return the httpChannelFactory
-	 */
-	public ChannelFactory getHttpChannelFactory() {
-		return httpChannelFactory;
-	}
+    /**
+     * @return the serverPipelineExecutor
+     */
+    public EventLoopGroup getNetworkWorkerGroup() {
+        return workerGroup;
+    }
 
-	/**
-	 * @return the httpsChannelFactory
-	 */
-	public ChannelFactory getHttpsChannelFactory() {
-		return httpsChannelFactory;
-	}
-
-	/**
+    /**
 	 * @return the serverPipelineExecutor
 	 */
-	public OrderedMemoryAwareThreadPoolExecutor getServerPipelineExecutor() {
-		return serverPipelineExecutor;
+	public EventLoopGroup getHandlerGroup() {
+		return handlerGroup;
 	}
 
-	/**
-	 * @return the localPipelineExecutor
-	 */
-	public OrderedMemoryAwareThreadPoolExecutor getLocalPipelineExecutor() {
-		return localPipelineExecutor;
-	}
+    /**
+     * @return the subTaskGroup
+     */
+    public EventLoopGroup getSubTaskGroup() {
+        return subTaskGroup;
+    }
 
-	/**
-	 * @return the localPipelineExecutor
-	 */
-	public OrderedMemoryAwareThreadPoolExecutor getLocalClientPipelineExecutor() {
-		return localClientPipelineExecutor;
-	}
+    /**
+     * @return the httpBossGroup
+     */
+    public EventLoopGroup getHttpBossGroup() {
+        return httpBossGroup;
+    }
 
-	/**
-	 * @return the httpPipelineExecutor
-	 */
-	public OrderedMemoryAwareThreadPoolExecutor getHttpPipelineExecutor() {
-		return httpPipelineExecutor;
-	}
+    /**
+     * @return the httpWorkerGroup
+     */
+    public EventLoopGroup getHttpWorkerGroup() {
+        return httpWorkerGroup;
+    }
 
-	/**
+    /**
 	 * @return the localTransaction
 	 */
 	public LocalTransaction getLocalTransaction() {

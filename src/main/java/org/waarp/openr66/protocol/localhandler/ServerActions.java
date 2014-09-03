@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 
 import io.netty.channel.Channel;
-import io.netty.channel.Channels;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
@@ -156,7 +155,7 @@ public class ServerActions extends ConnectionActions {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
 			logger.warn("Valid TEST MESSAGE from "+
 					session.getAuth().getUser()+
-					" ["+localChannelReference.getNetworkChannel().getRemoteAddress()+
+					" ["+localChannelReference.getNetworkChannel().remoteAddress()+
 					"] Msg=" +packet.toString());
 			ChannelCloseTimer.closeFutureChannel(channel);
 		} else {
@@ -199,7 +198,7 @@ public class ServerActions extends ConnectionActions {
 		if (validPacket != null) {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
-			Channels.close(channel);
+			channel.close();
 		} else {
 			session.newState(ERROR);
 			ErrorPacket error = new ErrorPacket("Error while Request " + request,
@@ -280,7 +279,7 @@ public class ServerActions extends ConnectionActions {
 				} catch (OpenR66ProtocolPacketException e) {
 				}
 				session.setStatus(27);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.VALIDPACKET: {
@@ -329,7 +328,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.REQUESTUSERPACKET: {
@@ -351,12 +350,12 @@ public class ServerActions extends ConnectionActions {
 					default:
 						localChannelReference.invalidateRequest(resulttest);
 						session.setStatus(102);
-						Channels.close(channel);
+						channel.close();
 						return;
 				}
 				localChannelReference.validateRequest(resulttest);
 				session.setStatus(28);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.LOGPACKET:
@@ -431,7 +430,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.CONFEXPORTPACKET: {
@@ -456,7 +455,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.CONFIMPORTPACKET: {
@@ -580,7 +579,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.INFORMATIONPACKET: {
@@ -590,7 +589,7 @@ public class ServerActions extends ConnectionActions {
 						ErrorCode.CompleteOk, null);
 				resulttest.other = packet;
 				localChannelReference.validateRequest(resulttest);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.BANDWIDTHPACKET: {
@@ -621,7 +620,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.TESTPACKET: {
@@ -631,7 +630,7 @@ public class ServerActions extends ConnectionActions {
 						ErrorCode.CompleteOk, null);
 				resulttest.other = packet;
 				localChannelReference.validateRequest(resulttest);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			default:
@@ -682,7 +681,7 @@ public class ServerActions extends ConnectionActions {
 			} catch (OpenR66ProtocolPacketException e) {
 			}
 			session.setStatus(99);
-			Channels.close(channel);
+			channel.close();
 			return;
 		}
 		json.setRequestUserPacket(packet.getTypeValid());
@@ -730,7 +729,7 @@ public class ServerActions extends ConnectionActions {
 								valid, true);
 					} catch (OpenR66ProtocolPacketException e) {
 					}
-					Channels.close(channel);
+					channel.close();
 				}
 				break;
 			}
@@ -771,7 +770,7 @@ public class ServerActions extends ConnectionActions {
 				if (validPacket != null) {
 					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 							validPacket, true);
-					Channels.close(channel);
+					channel.close();
 				} else {
 					session.newState(ERROR);
 					ErrorPacket error = new ErrorPacket("Error while Request " + node,
@@ -795,7 +794,7 @@ public class ServerActions extends ConnectionActions {
 					} catch (OpenR66ProtocolPacketException e) {
 					}
 					session.setStatus(27);
-					Channels.close(channel);
+					channel.close();
 				} else {
 					result.other = packet;
 					localChannelReference.invalidateRequest(result);
@@ -834,7 +833,7 @@ public class ServerActions extends ConnectionActions {
 				} catch (OpenR66ProtocolPacketException e) {
 				}
 				session.setStatus(27);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.VALIDPACKET: {
@@ -856,7 +855,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.REQUESTUSERPACKET: {
@@ -878,12 +877,12 @@ public class ServerActions extends ConnectionActions {
 					default:
 						localChannelReference.invalidateRequest(resulttest);
 						session.setStatus(102);
-						Channels.close(channel);
+						channel.close();
 						return;
 				}
 				localChannelReference.validateRequest(resulttest);
 				session.setStatus(28);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.LOGPACKET:
@@ -922,7 +921,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.CONFEXPORTPACKET: {
@@ -959,7 +958,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.CONFIMPORTPACKET: {
@@ -981,7 +980,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.BANDWIDTHPACKET: {
@@ -1007,7 +1006,7 @@ public class ServerActions extends ConnectionActions {
 							valid, true);
 				} catch (OpenR66ProtocolPacketException e) {
 				}
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			case LocalPacketFactory.TESTPACKET: {
@@ -1017,7 +1016,7 @@ public class ServerActions extends ConnectionActions {
 						ErrorCode.CompleteOk, null);
 				resulttest.other = packet;
 				localChannelReference.validateRequest(resulttest);
-				Channels.close(channel);
+				channel.close();
 				break;
 			}
 			default:
@@ -2054,7 +2053,7 @@ public class ServerActions extends ConnectionActions {
 					valid, true);
 		} catch (OpenR66ProtocolPacketException e) {
 		}
-		Channels.close(channel);
+		channel.close();
 	}
 
 

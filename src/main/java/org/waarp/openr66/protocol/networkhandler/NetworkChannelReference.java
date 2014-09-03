@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.netty.channel.Channel;
-import io.netty.channel.Channels;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -88,7 +87,7 @@ public class NetworkChannelReference {
 
 	public NetworkChannelReference(Channel networkChannel, ReentrantLock lock) {
 		this.channel = networkChannel;
-		this.networkAddress = channel.getRemoteAddress();
+		this.networkAddress = channel.remoteAddress();
 		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
 		this.lock = lock;
 	}
@@ -138,7 +137,7 @@ public class NetworkChannelReference {
 		lock.lock();
 		try {
 			if (localChannel.getLocalChannel().isActive()) {
-				Channels.close(localChannel.getLocalChannel());
+			    localChannel.getLocalChannel().close();
 			}
 			localChannelReferences.remove(localChannel);
 			//Do not since it prevents shutdown: lastTimeUsed = System.currentTimeMillis();
@@ -173,14 +172,14 @@ public class NetworkChannelReference {
 					}
 				}
 			}
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 		}
 		try {
 			Thread.sleep(Configuration.RETRYINMS*20);
 		} catch (InterruptedException e) {
 		}
 		for (LocalChannelReference localChannelReference : toCloseLater) {
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 		}
 		toCloseLater.clear();
 	}
@@ -202,7 +201,7 @@ public class NetworkChannelReference {
 			if (obj2.channel == null || this.channel == null) {
 				return false;
 			}
-			return (obj2.channel.getId().compareTo(this.channel.getId()) == 0);
+			return (obj2.channel.id().compareTo(this.channel.id()) == 0);
 		}
 		return false;
 	}
@@ -212,7 +211,7 @@ public class NetworkChannelReference {
 		if (this.channel == null) {
 			return Integer.MIN_VALUE;
 		}
-		return this.channel.getId();
+		return this.channel.id().hashCode();
 	}
 
 	/**

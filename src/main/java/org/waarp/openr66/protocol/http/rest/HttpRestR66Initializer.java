@@ -19,18 +19,15 @@
  */
 package org.waarp.openr66.protocol.http.rest;
 
-import static io.netty.channel.Channels.pipeline;
-
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
@@ -40,7 +37,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * @author Frederic Bregier
  * 
  */
-public class HttpRestR66Initializer implements ChannelInitializer<SocketChannel> {
+public class HttpRestR66Initializer extends ChannelInitializer<SocketChannel> {
 	private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
     private final RestConfiguration restConfiguration;
@@ -51,20 +48,17 @@ public class HttpRestR66Initializer implements ChannelInitializer<SocketChannel>
         this.restConfiguration = configuration;
     }
 
-    protected void initChannel(Channel ch) throws Exception {
+    protected void initChannel(SocketChannel ch) throws Exception {
         // Create a default pipeline implementation.
-        ChannelPipeline pipeline = pipeline();
+        ChannelPipeline pipeline = ch.pipeline();
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initInitializer(true,
-                    false, false);
-        	handler.setIssueHandshake(true);
+        	SslHandler handler = waarpSslContextFactory.initInitializer(true, false);
         	pipeline.addLast("ssl", handler);
         }
         
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast("codec", new HttpServerCodec());
         /*
         GlobalTrafficShapingHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
@@ -79,14 +73,11 @@ public class HttpRestR66Initializer implements ChannelInitializer<SocketChannel>
         } catch (OpenR66ProtocolNoDataException e) {
         }
         */
-        pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-                Configuration.configuration.getHttpPipelineExecutor()));
         if (useHttpCompression) {
             pipeline.addLast("deflater", new HttpContentCompressor());
         }
         pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
         HttpRestR66Handler r66handler = new HttpRestR66Handler(restConfiguration);
-        pipeline.addLast("handler", r66handler);
-        return pipeline;
+        pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler", r66handler);
     }
 }

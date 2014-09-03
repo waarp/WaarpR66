@@ -30,8 +30,8 @@ import java.util.concurrent.TimeUnit;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.Channels;
+import io.netty.channel.ChannelHandlerContext;
+
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.digest.FilesystemBasedDigest;
@@ -135,7 +135,7 @@ public abstract class ConnectionActions {
 	 * Operations to ensure that channel closing is done correctly
 	 * @param e
 	 */
-	public void channelClosed(ChannelStateEvent e) {
+	public void channelClosed(ChannelHandlerContext e) {
 		try {
 			logger.debug("Local Server Channel Closed: {} {}",
 					(localChannelReference != null ? localChannelReference
@@ -208,7 +208,7 @@ public abstract class ConnectionActions {
 				session.setStatus(52);
 			} else {
 				logger.debug("Local Server Channel Closed but no LocalChannelReference: " +
-								e.channel().getId());
+								e.channel().id());
 			}
 			// Now if runner is not yet finished, finish it by force
 			if (mustFinalize && localChannelReference != null
@@ -266,7 +266,7 @@ public abstract class ConnectionActions {
 				ErrorPacket error = new ErrorPacket("Cannot startup connection",
 						ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
 				try {
-					Channels.writeAndFlush(channel, error).await();
+				    channel.writeAndFlush(error).await();
 				} catch (InterruptedException e) {
 				}
 				// Cannot do writeBack(error, true);
@@ -278,7 +278,7 @@ public abstract class ConnectionActions {
 		session.newState(STARTUP);
 		localChannelReference.validateStartup(true);
 		session.setLocalChannelReference(localChannelReference);
-		Channels.writeAndFlush(channel, packet);
+		channel.writeAndFlush(packet);
 		session.setStatus(41);
 	}
 
@@ -293,15 +293,15 @@ public abstract class ConnectionActions {
 	private final void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
 		logger.error(Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
-			localChannelReference.getNetworkChannel().getRemoteAddress()+
+			localChannelReference.getNetworkChannel().remoteAddress()+
 			" : " + packet.getHostId());
 		logger.debug(Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
-				localChannelReference.getNetworkChannel().getRemoteAddress()+
+				localChannelReference.getNetworkChannel().remoteAddress()+
 				" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
 			Configuration.configuration.r66Mib.notifyError(
 					"Connection not allowed from "+
-					localChannelReference.getNetworkChannel().getRemoteAddress()
+					localChannelReference.getNetworkChannel().remoteAddress()
 					+" since "+e1.getMessage(), packet.getHostId());
 		}
 		DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
@@ -312,7 +312,7 @@ public abstract class ConnectionActions {
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
 						Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
-						localChannelReference.getNetworkChannel().getRemoteAddress(),
+						localChannelReference.getNetworkChannel().remoteAddress(),
 						e1), session, true,
 				ErrorCode.BadAuthent, null);
 		localChannelReference.invalidateRequest(result);
@@ -464,7 +464,7 @@ public abstract class ConnectionActions {
 	 */
 	public void connectionError(Channel channel, ConnectionErrorPacket packet) {
 		// do something according to the error
-		logger.error(channel.getId() + ": " + packet.toString());
+		logger.error(channel.id() + ": " + packet.toString());
 		ErrorCode code = ErrorCode.ConnectionImpossible;
 		if (packet.getSmiddle() != null) {
 			code = ErrorCode.getFromCode(packet.getSmiddle());
@@ -475,7 +475,7 @@ public abstract class ConnectionActions {
 		// True since closing
 		session.newState(ERROR);
 		session.setStatus(45);
-		Channels.close(channel);
+		channel.close();
 	}
 
 	/**
@@ -518,7 +518,7 @@ public abstract class ConnectionActions {
 			// already canceled or successful
 			return;
 		}
-		logger.error(channel.getId() + ": " + packet.toString());
+		logger.error(channel.id() + ": " + packet.toString());
 		session.setStatus(46);
 		ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
 		session.getLocalChannelReference().setErrorMessage(packet.getSheader(), code);

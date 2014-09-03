@@ -20,11 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpMethod;
+
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RootOptionsRestMethodHandler;
+import org.waarp.gateway.kernel.rest.client.HttpRestClientSimpleResponseHandler;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
@@ -116,7 +118,7 @@ public class HttpTestResponseHandler extends HttpRestR66ClientResponseHandler {
         HttpTestRestR66Client.count.incrementAndGet();
 		boolean newMessage = false;
     	AtomicInteger counter = null;
-    	RestFuture future = (RestFuture) channel.getAttachment();
+        RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
     	if (future.getOtherObject() == null) {
     		counter = new AtomicInteger();
     		future.setOtherObject(counter);

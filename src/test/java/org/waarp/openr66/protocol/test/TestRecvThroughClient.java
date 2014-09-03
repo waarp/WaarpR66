@@ -18,7 +18,6 @@
 package org.waarp.openr66.protocol.test;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.RecvThroughClient;

@@ -17,17 +17,13 @@
  */
 package org.waarp.openr66.protocol.http;
 
-import static io.netty.channel.Channels.pipeline;
-
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
-import io.netty.handler.codec.http.HttpChunkAggregator;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.execution.ExecutionHandler;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Pipeline Factory for HTTP support
@@ -35,27 +31,22 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  * 
  */
-public class HttpInitializer implements ChannelInitializer<SocketChannel> {
+public class HttpInitializer extends ChannelInitializer<SocketChannel> {
 	public boolean useHttpCompression = false;
 
 	public HttpInitializer(boolean useHttpCompression) {
 		this.useHttpCompression = useHttpCompression;
 	}
 
-	protected void initChannel(Channel ch) throws Exception {
-		// Create a default pipeline implementation.
-		ChannelPipeline pipeline = pipeline();
-
-		pipeline.addLast("decoder", new HttpRequestDecoder());
-		pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
-		pipeline.addLast("encoder", new HttpResponseEncoder());
-		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-				Configuration.configuration.getHttpPipelineExecutor()));
-		pipeline.addLast("streamer", new ChunkedWriteHandler());
-		if (useHttpCompression) {
-			pipeline.addLast("deflater", new HttpContentCompressor());
-		}
-		pipeline.addLast("handler", new HttpFormattedHandler());
-		return pipeline;
-	}
+	@Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        final ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast("decoder", new HttpServerCodec());
+        pipeline.addLast("aggregator", new HttpObjectAggregator(1048576));
+        pipeline.addLast("streamer", new ChunkedWriteHandler());
+        if (useHttpCompression) {
+            pipeline.addLast("deflater", new HttpContentCompressor());
+        }
+        pipeline.addLast("handler", new HttpFormattedHandler());
+    }
 }

@@ -29,7 +29,6 @@ import javax.net.ssl.SSLException;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
-import io.netty.channel.ExceptionEvent;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -54,8 +53,8 @@ public class OpenR66ExceptionTrappedFactory {
 	 *         should be ignored
 	 */
 	public static OpenR66Exception getExceptionFromTrappedException(
-			Channel channel, ExceptionEvent e) {
-		final Throwable e1 = e.getCause();
+			Channel channel, Throwable throwable) {
+		final Throwable e1 = throwable;
 		if (e1 instanceof ConnectException) {
 			final ConnectException e2 = (ConnectException) e1;
 			logger.debug("Connection impossible since {} with Channel {}", e2

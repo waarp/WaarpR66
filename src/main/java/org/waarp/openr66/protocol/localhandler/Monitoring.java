@@ -77,7 +77,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	private final TrafficCounter trafficCounter =
 			Configuration.configuration
 					.getGlobalTrafficShapingHandler()
-					.getTrafficCounter();
+					.trafficCounter();
 
 	// Overall status including past, future and current transfers
 	private DbPreparedStatement countInfo = null;
@@ -380,8 +380,8 @@ public class Monitoring implements WaarpInterfaceMonitor {
 				nbNetworkConnection =
 						Configuration.configuration.getHttpChannelGroup().size() +
 								Configuration.configuration.getServerChannelGroup().size();
-				bandwidthIn = trafficCounter.getLastReadThroughput() >> 7;// B/s -> Kb/s
-				bandwidthOut = trafficCounter.getLastWriteThroughput() >> 7;
+				bandwidthIn = trafficCounter.lastReadThroughput() >> 7;// B/s -> Kb/s
+				bandwidthOut = trafficCounter.lastWriteThroughput() >> 7;
 				nbThread = Thread.activeCount();
 				secondsRunning = (limitDate - startMonitor) / 1000;
 
@@ -404,8 +404,8 @@ public class Monitoring implements WaarpInterfaceMonitor {
 				nbCountAllRunningStep = nbCountInfoRunning;
 			} else {
 				nbNetworkConnection = DbAdmin.getNbConnection();
-				bandwidthIn = trafficCounter.getLastReadThroughput() >> 7;// B/s -> Kb/s
-				bandwidthOut = trafficCounter.getLastWriteThroughput() >> 7;
+				bandwidthIn = trafficCounter.lastReadThroughput() >> 7;// B/s -> Kb/s
+				bandwidthOut = trafficCounter.lastWriteThroughput() >> 7;
 				nbThread = Thread.activeCount();
 				secondsRunning = (limitDate - startMonitor) / 1000;
 
@@ -1030,11 +1030,11 @@ public class Monitoring implements WaarpInterfaceMonitor {
 						updateGlobalValue(entry.ordinal(), nbOutErrorTransfer);
 						return;
 					case applInboundBandwidthKBS:
-						val = trafficCounter.getLastReadThroughput() >> 10;// B/s -> KB/s
+						val = trafficCounter.lastReadThroughput() >> 10;// B/s -> KB/s
 						updateGlobalValue(entry.ordinal(), val);
 						return;
 					case applOutboundBandwidthKBS:
-						val = trafficCounter.getLastWriteThroughput() >> 10;
+						val = trafficCounter.lastWriteThroughput() >> 10;
 						updateGlobalValue(entry.ordinal(), val);
 						return;
 					case nbInfoUnknown:
@@ -1149,11 +1149,11 @@ public class Monitoring implements WaarpInterfaceMonitor {
 						updateGlobalValue(entry.ordinal(), nbOutErrorTransfer);
 						return;
 					case applInboundBandwidthKBS:
-						val = trafficCounter.getLastReadThroughput() >> 10;// B/s -> KB/s
+						val = trafficCounter.lastReadThroughput() >> 10;// B/s -> KB/s
 						updateGlobalValue(entry.ordinal(), val);
 						return;
 					case applOutboundBandwidthKBS:
-						val = trafficCounter.getLastWriteThroughput() >> 10;
+						val = trafficCounter.lastWriteThroughput() >> 10;
 						updateGlobalValue(entry.ordinal(), val);
 						return;
 					case nbInfoUnknown:

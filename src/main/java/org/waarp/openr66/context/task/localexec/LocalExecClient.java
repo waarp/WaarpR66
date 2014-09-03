@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
+
 import org.waarp.commandexec.client.LocalExecClientHandler;
 import org.waarp.commandexec.client.LocalExecClientInitializer;
 import org.waarp.commandexec.utils.LocalExecResult;
@@ -30,6 +30,7 @@ import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
@@ -55,15 +56,13 @@ public class LocalExecClient {
 	 * Initialize the LocalExec Client context
 	 */
 	public static void initialize() {
-		// Configure the client.
-		bootstrapLocalExec = new Bootstrap(
-				new NioClientSocketChannelFactory(
-						Configuration.configuration.getLocalPipelineExecutor(),
-						Configuration.configuration.getLocalPipelineExecutor()));
-		// Configure the pipeline factory.
-		localExecClientInitializer =
-				new LocalExecClientInitializer();
-		bootstrapLocalExec.setInitializer(localExecClientInitializer);
+        // Configure the client.
+        bootstrapLocalExec = new Bootstrap();
+        WaarpNettyUtil.setBootstrap(bootstrapLocalExec, Configuration.configuration.getSubTaskGroup(), 
+                (int) Configuration.configuration.TIMEOUTCON);
+        // Configure the pipeline factory.
+        localExecClientInitializer = new LocalExecClientInitializer();
+        bootstrapLocalExec.handler(localExecClientInitializer);
 	}
 
 	/**
@@ -74,7 +73,7 @@ public class LocalExecClient {
 			return;
 		}
 		// Shut down all thread pools to exit.
-		bootstrapLocalExec.releaseExternalResources();
+		bootstrapLocalExec.group().shutdownGracefully();
 		localExecClientInitializer.releaseResources();
 	}
 
@@ -101,7 +100,7 @@ public class LocalExecClient {
 			WaarpFuture futureCompletion) {
 		// Initialize the command context
 		LocalExecClientHandler clientHandler =
-				(LocalExecClientHandler) channel.pipeline().getLast();
+				(LocalExecClientHandler) channel.pipeline().last();
 		// Command to execute
 		clientHandler.initExecClient(delay, command);
 		if (!waitFor) {
@@ -142,11 +141,11 @@ public class LocalExecClient {
 
 		// Wait until the connection attempt succeeds or fails.
 		try {
-			channel = future.await().channel();
+			channel = future.await().sync().channel();
 		} catch (InterruptedException e) {
 		}
 		if (!future.isSuccess()) {
-			logger.error("Client Not Connected", future.getCause());
+			logger.error("Client Not Connected", future.cause());
 			return false;
 		}
 		return true;
@@ -159,7 +158,7 @@ public class LocalExecClient {
 		// Close the connection. Make sure the close operation ends because
 		// all I/O operations are asynchronous in Netty.
 		try {
-			WaarpSslUtility.closingSslChannel(channel).await();
+			WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.TIMEOUTCON);
 		} catch (InterruptedException e) {
 		}
 	}

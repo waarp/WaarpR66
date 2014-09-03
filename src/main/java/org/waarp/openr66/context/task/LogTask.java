@@ -22,8 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import io.netty.logging.InternalLogLevel;
-
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -71,8 +70,8 @@ public class LogTask extends AbstractTask {
 		String finalValue = argRule;
 		finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
 		String tempValue = finalValue.toUpperCase();
-		InternalLogLevel finalLevel = InternalLogLevel.WARN;
-		for (InternalLogLevel level : InternalLogLevel.values()) {
+		WaarpLogLevel finalLevel = WaarpLogLevel.WARN;
+		for (WaarpLogLevel level : WaarpLogLevel.values()) {
 			if (tempValue.startsWith(level.name())) {
 				finalLevel = level;
 				break;

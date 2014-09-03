@@ -28,7 +28,7 @@ import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
@@ -424,7 +424,7 @@ public class FileUtils {
 				@SuppressWarnings("resource")
 				FileOutputStream fileOutputStream = new FileOutputStream(file
 						.getPath(), append);
-				fileChannel = fileOutputStream.channel();
+				fileChannel = fileOutputStream.getChannel();
 				if (append) {
 					// Bug in JVM since it does not respect the API (position
 					// should be set as length)
@@ -441,7 +441,7 @@ public class FileUtils {
 				@SuppressWarnings("resource")
 				FileInputStream fileInputStream = new FileInputStream(file
 						.getPath());
-				fileChannel = fileInputStream.channel();
+				fileChannel = fileInputStream.getChannel();
 			}
 		} catch (FileNotFoundException e) {
 			throw new OpenR66ProtocolSystemException("File not found", e);
@@ -503,7 +503,7 @@ public class FileUtils {
 		try {
 			newkey = FilesystemBasedDigest.getHash(buffer, algo);
 		} catch (IOException e) {
-			return ByteBufs.EMPTY_BUFFER;
+			return Unpooled.EMPTY_BUFFER;
 		}
 		return Unpooled.wrappedBuffer(newkey);
 	}

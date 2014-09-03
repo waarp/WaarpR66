@@ -118,11 +118,11 @@ public class ChModTask extends AbstractTask {
 		}
 		boolean result = true;
 		if (isall) {
-			result &= file.config().setAutoRead(ar, false);
+			result &= file.setReadable(ar, false);
 			result &= file.setWritable(aw, false);
 			result &= file.setExecutable(ax, false);
 		}
-		result &= file.config().setAutoRead(ur, true);
+		result &= file.setReadable(ur, true);
 		result &= file.setWritable(uw, true);
 		result &= file.setExecutable(ux, true);
 		if (result) {

@@ -17,7 +17,6 @@
  */
 package org.waarp.openr66.protocol.test;
 
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;

@@ -26,10 +26,10 @@ import java.util.List;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import io.netty.handler.codec.http.HttpResponseStatus;
+
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.database.DbSession;
@@ -38,6 +38,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
@@ -71,8 +72,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
 	/**
      * Internal Logger
      */
-    private static final WaarpLogger logger = WaarpLoggerFactory
-            .getLogger(HttpRestR66Handler.class);
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpRestR66Handler.class);
 
     public static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
     
@@ -302,11 +302,10 @@ public class HttpRestR66Handler extends HttpRestHandler {
 		arguments.methodFromHeader();
     }
 
-	
-	@Override
-	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-		super.channelClosed(ctx, e);
-		serverHandler.channelClosed(e);
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+		serverHandler.channelClosed(ctx);
 	}
 
 
@@ -329,29 +328,28 @@ public class HttpRestR66Handler extends HttpRestHandler {
 			group = Configuration.configuration.getHttpChannelGroup();
 		}
 		// Configure the server.
-        NioServerSocketChannelFactory httpChannelFactory = new NioServerSocketChannelFactory(
-				Configuration.configuration.getExecutorService(),
-				Configuration.configuration.getExecutorService(),
-				Configuration.configuration.SERVER_THREAD);
-        ServerBootstrap httpBootstrap = new ServerBootstrap(httpChannelFactory);
+		ServerBootstrap httpBootstrap = new ServerBootstrap();
+        WaarpNettyUtil.setServerBootstrap(httpBootstrap, Configuration.configuration.getHttpBossGroup(), 
+                Configuration.configuration.getHttpWorkerGroup(), (int) Configuration.configuration.TIMEOUTCON);
 		// Set up the event pipeline factory.
 		if (restConfiguration.REST_SSL) {
-			httpBootstrap.setInitializer(new HttpRestR66Initializer(false, Configuration.waarpSslContextFactory, restConfiguration));
+			httpBootstrap.childHandler(new HttpRestR66Initializer(false, Configuration.waarpSslContextFactory, restConfiguration));
 		} else {
-			httpBootstrap.setInitializer(new HttpRestR66Initializer(false, null, restConfiguration));
+			httpBootstrap.childHandler(new HttpRestR66Initializer(false, null, restConfiguration));
 		}
-		httpBootstrap.setOption("child.tcpNoDelay", true);
-		httpBootstrap.setOption("child.keepAlive", true);
-		httpBootstrap.setOption("child.reuseAddress", true);
-		httpBootstrap.setOption("child.connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
-		httpBootstrap.setOption("tcpNoDelay", true);
-		httpBootstrap.setOption("reuseAddress", true);
-		httpBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
 		// Bind and start to accept incoming connections.
+		ChannelFuture future;
 		if (restConfiguration != null && ! restConfiguration.REST_ADDRESS.isEmpty()) {
-			group.add(httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_ADDRESS, restConfiguration.REST_PORT)));
+		    future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_ADDRESS, restConfiguration.REST_PORT));
 		} else {
-			group.add(httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_PORT)));
+		    future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_PORT));
+		}
+		try {
+            future.await();
+        } catch (InterruptedException e) {
+        }
+		if (future.isSuccess()) {
+		    group.add(future.channel());
 		}
 	}
 }

@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.localhandler.packet;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -87,25 +87,25 @@ public abstract class AbstractLocalPacket {
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public ByteBuf getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		final ByteBuf buf = ByteBufs.buffer(4 * 3 + 1);// 3 header
+		final ByteBuf buf = Unpooled.buffer(4 * 3 + 1);// 3 header
 		// lengths+type
 		if (header == null) {
 			createHeader(lcr);
 		}
 		final ByteBuf newHeader = header != null ? header
-				: ByteBufs.EMPTY_BUFFER;
+				: Unpooled.EMPTY_BUFFER;
 		final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
 		if (middle == null) {
 			createMiddle(lcr);
 		}
 		final ByteBuf newMiddle = middle != null ? middle
-				: ByteBufs.EMPTY_BUFFER;
+				: Unpooled.EMPTY_BUFFER;
 		final int middleLength = newMiddle.readableBytes();
 		if (end == null) {
 			createEnd(lcr);
 		}
 		final ByteBuf newEnd = end != null ? end
-				: ByteBufs.EMPTY_BUFFER;
+				: Unpooled.EMPTY_BUFFER;
 		final int endLength = newEnd.readableBytes();
 		buf.writeInt(headerLength);
 		buf.writeInt(middleLength);

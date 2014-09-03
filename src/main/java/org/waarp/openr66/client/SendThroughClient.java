@@ -17,8 +17,9 @@
  */
 package org.waarp.openr66.client;
 
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
+
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -288,7 +289,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 							.getFutureEndTransfer().getResult());
 				}
 				if (taskRunner != null && taskRunner.isSelfRequested()) {
-					ChannelUtils.close(localChannelReference.getLocalChannel());
+				    ChannelUtils.close(localChannelReference.getLocalChannel());
 				}
 			} else {
 				transferInError(null);

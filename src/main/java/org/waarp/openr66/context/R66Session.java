@@ -341,8 +341,8 @@ public class R66Session implements SessionInterface {
 		this.localChannelReference = localChannelReference;
 		this.localChannelReference.setSession(this);
 		if (this.localChannelReference.getNetworkChannel() != null) {
-			this.raddress = this.localChannelReference.getNetworkChannel().getRemoteAddress();
-			this.laddress = this.localChannelReference.getNetworkChannel().getLocalAddress();
+			this.raddress = this.localChannelReference.getNetworkChannel().remoteAddress();
+			this.laddress = this.localChannelReference.getNetworkChannel().localAddress();
 		} else {
 			this.raddress = this.laddress = new InetSocketAddress(0);
 		}

@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.localhandler.packet;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -125,7 +125,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		byte [] bversion = version != null ? version.getBytes() : null;
-		end = ByteBufs.buffer(5+(version != null ? bversion.length : 0));
+		end = Unpooled.buffer(5+(version != null ? bversion.length : 0));
 		end.writeInt(localId);
 		end.writeByte(way);
 		if (version != null) {

@@ -33,21 +33,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelPipelineException;
-import io.netty.channel.Channels;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import io.netty.channel.local.LocalChannel;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
+
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.lru.SynchronizedLruCache;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -137,45 +138,21 @@ public class NetworkTransaction {
 	private static final ExecutorService retrieveExecutor = Executors
 			.newCachedThreadPool(new WaarpThreadFactory("RetrieveExecutor"));
 
-	/**
-	 * ExecutorService Server Boss
-	 */
-	private final ExecutorService execServerBoss = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerBossRetrieve"));
-
-	/**
-	 * ExecutorService Server Worker
-	 */
-	private final ExecutorService execServerWorker = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerWorkerRetrieve"));
-
-	private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
-			execServerBoss,
-			execServerWorker,
-			Configuration.configuration.CLIENT_THREAD);
-
-	private final Bootstrap Bootstrap = new Bootstrap(
-			channelClientFactory);
-	private final Bootstrap clientSslBootstrap = new Bootstrap(
-			channelClientFactory);
-	private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
-			"NetworkChannels");
+	private final Bootstrap clientBootstrap;
+	private final Bootstrap clientSslBootstrap;
+	private final ChannelGroup networkChannelGroup;
 
 	public NetworkTransaction() {
+	    networkChannelGroup = new DefaultChannelGroup("NetworkChannels", Configuration.configuration.getSubTaskGroup().next());
 		NetworkServerInitializer networkServerInitializer = new NetworkServerInitializer(false);
-		Bootstrap.setInitializer(networkServerInitializer);
-		Bootstrap.setOption("tcpNoDelay", true);
-		Bootstrap.setOption("reuseAddress", true);
-		Bootstrap.setOption("connectTimeoutMillis",
-				Configuration.configuration.TIMEOUTCON);
+		clientBootstrap = new Bootstrap();
+		WaarpNettyUtil.setBootstrap(clientBootstrap, Configuration.configuration.getNetworkWorkerGroup(), (int) Configuration.configuration.TIMEOUTCON);
+		clientBootstrap.handler(networkServerInitializer);
+        clientSslBootstrap = new Bootstrap();
 		if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
-			NetworkSslServerInitializer networkSslServerInitializer =
-					new NetworkSslServerInitializer(true);
-			clientSslBootstrap.setInitializer(networkSslServerInitializer);
-			clientSslBootstrap.setOption("tcpNoDelay", true);
-			clientSslBootstrap.setOption("reuseAddress", true);
-			clientSslBootstrap.setOption("connectTimeoutMillis",
-					Configuration.configuration.TIMEOUTCON);
+			NetworkSslServerInitializer networkSslServerInitializer = new NetworkSslServerInitializer(true);
+	        WaarpNettyUtil.setBootstrap(clientSslBootstrap, Configuration.configuration.getNetworkWorkerGroup(), (int) Configuration.configuration.TIMEOUTCON);
+			clientSslBootstrap.handler(networkSslServerInitializer);
 		} else {
 			if (Configuration.configuration.warnOnStartup) {
 				logger.warn("No SSL support configured");
@@ -433,7 +410,7 @@ public class NetworkTransaction {
 			R66Result finalValue = new R66Result(
 					exc, null, true, ErrorCode.ConnectionImpossible, null);
 			localChannelReference.invalidateRequest(finalValue);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			throw exc;
 		}
 		return localChannelReference;
@@ -480,7 +457,7 @@ public class NetworkTransaction {
 							throw new OpenR66ProtocolNoConnectionException("No SSL support");
 						}
 					} else {
-						channelFuture = Bootstrap.connect(socketServerAddress);
+						channelFuture = clientBootstrap.connect(socketServerAddress);
 					}
 				} catch (ChannelPipelineException e) {
 					throw new OpenR66ProtocolNoConnectionException(
@@ -495,7 +472,7 @@ public class NetworkTransaction {
 					if (isSSL) {
 						if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
 							logger.debug("KO CONNECT since SSL handshake is over");
-							Channels.close(channel);
+							channel.close();
 							throw new OpenR66ProtocolNoConnectionException(
 									"Cannot finish connect to remote server");
 						}
@@ -513,20 +490,20 @@ public class NetworkTransaction {
 						throw new OpenR66ProtocolNoConnectionException(
 								"Cannot connect to remote server due to interruption");
 					}
-					if (channelFuture.getCause() instanceof ConnectException) {
+					if (channelFuture.cause() instanceof ConnectException) {
 						logger.debug("KO CONNECT:" +
-								channelFuture.getCause().getMessage());
+								channelFuture.cause().getMessage());
 						throw new OpenR66ProtocolNoConnectionException(
 								"Cannot connect to remote server", channelFuture
-										.getCause());
+										.cause());
 					} else {
 						logger.debug("KO CONNECT but retry", channelFuture
-								.getCause());
+								.cause());
 					}
 				}
 			}
 			throw new OpenR66ProtocolNetworkException(
-					"Cannot connect to remote server", channelFuture.getCause());
+					"Cannot connect to remote server", channelFuture.cause());
 		} finally {
 			socketLock.unlock();
 		}
@@ -586,7 +563,7 @@ public class NetworkTransaction {
 				}
 			}
 			localChannelReference.invalidateRequest(finalValue);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			throw new OpenR66ProtocolNetworkException(e1);
 		}
 		logger.debug("Will send request of connection validation");
@@ -607,7 +584,7 @@ public class NetworkTransaction {
 				} catch (OpenR66ProtocolPacketException e1) {
 				}
 			}
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			throw new OpenR66ProtocolNetworkException("Bad packet", e);
 		}
 		R66Future future = localChannelReference.getFutureValidateConnection();
@@ -629,7 +606,7 @@ public class NetworkTransaction {
 				} catch (OpenR66ProtocolPacketException e) {
 				}
 			}
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			try {
 				Thread.sleep(Configuration.RETRYINMS*20);
 			} catch (InterruptedException e) {
@@ -647,7 +624,7 @@ public class NetworkTransaction {
 	 */
 	public static NetworkChannelReference addNetworkChannel(Channel channel)
 			throws OpenR66ProtocolRemoteShutdownException {
-		SocketAddress socketAddress = channel.getRemoteAddress();
+		SocketAddress socketAddress = channel.remoteAddress();
 		ReentrantLock socketLock = getChannelLock(socketAddress);
 		socketLock.lock();
 		try {
@@ -787,7 +764,7 @@ public class NetworkTransaction {
 		if (! Configuration.configuration.blacklistBadAuthent) {
 			return false;
 		}
-		SocketAddress address = channel.getRemoteAddress();
+		SocketAddress address = channel.remoteAddress();
 		NetworkChannelReference networkChannelReference = getBlacklistNCR(address);
 		return (networkChannelReference != null);
 	}
@@ -933,8 +910,8 @@ public class NetworkTransaction {
 	 */
 	private static class CloseFutureChannel implements TimerTask {
 
-		private static SortedSet<Integer> inCloseRunning =
-				Collections.synchronizedSortedSet(new TreeSet<Integer>());
+		private static SortedSet<ChannelId> inCloseRunning =
+				Collections.synchronizedSortedSet(new TreeSet<ChannelId>());
 		private final NetworkChannelReference networkChannelReference;
 
 		/**
@@ -944,7 +921,7 @@ public class NetworkTransaction {
 		 */
 		private CloseFutureChannel(NetworkChannelReference networkChannelReference)
 				throws OpenR66RunnerErrorException {
-			if (!inCloseRunning.add(networkChannelReference.channel.getId()))
+			if (!inCloseRunning.add(networkChannelReference.channel.id()))
 				throw new OpenR66RunnerErrorException("Already scheduled");
 			this.networkChannelReference = networkChannelReference;
 		}
@@ -967,7 +944,7 @@ public class NetworkTransaction {
 					networkChannelReference.isShuttingDown = true;
 					WaarpSslUtility.closingSslChannel(networkChannelReference.channel);
 				}
-				inCloseRunning.remove(networkChannelReference.channel.getId());
+				inCloseRunning.remove(networkChannelReference.channel.id());
 			} finally {
 				networkChannelReference.lock.unlock();
 			}
@@ -1096,8 +1073,8 @@ public class NetworkTransaction {
 	 * @return the associated NetworkChannelReference immediately (if known)
 	 */
 	public static final NetworkChannelReference getImmediateNetworkChannel(Channel channel) {
-		if (channel.getRemoteAddress() != null) {
-			return getNCR(channel.getRemoteAddress());
+		if (channel.remoteAddress() != null) {
+			return getNCR(channel.remoteAddress());
 		}
 		return null;
 	}
@@ -1109,10 +1086,10 @@ public class NetworkTransaction {
 	 * 
 	 */
 	private static class R66ShutdownNetworkChannelTimerTask implements TimerTask {
-		private static SortedSet<Integer> inShutdownRunning =
-				Collections.synchronizedSortedSet(new TreeSet<Integer>());
-		private static SortedSet<Integer> inBlacklistedRunning =
-				Collections.synchronizedSortedSet(new TreeSet<Integer>());
+		private static SortedSet<ChannelId> inShutdownRunning =
+				Collections.synchronizedSortedSet(new TreeSet<ChannelId>());
+		private static SortedSet<ChannelId> inBlacklistedRunning =
+				Collections.synchronizedSortedSet(new TreeSet<ChannelId>());
 		/**
 		 * NCR to remove
 		 */
@@ -1128,11 +1105,11 @@ public class NetworkTransaction {
 		public R66ShutdownNetworkChannelTimerTask(NetworkChannelReference ncr, boolean blackListed) throws OpenR66RunnerErrorException {
 			super();
 			if (blackListed) {
-				if (!inBlacklistedRunning.add(ncr.channel.getId())) {
+				if (!inBlacklistedRunning.add(ncr.channel.id())) {
 					throw new OpenR66RunnerErrorException("Already scheduled");
 				}
 			} else {
-				if (ncr.channel != null && !inShutdownRunning.add(ncr.channel.getId())) {
+				if (ncr.channel != null && !inShutdownRunning.add(ncr.channel.id())) {
 					throw new OpenR66RunnerErrorException("Already scheduled");
 				}
 			}
@@ -1144,7 +1121,7 @@ public class NetworkTransaction {
 			if (isBlacklisted) {
 				logger.debug("Will remove Blacklisted for : {}", ncr);
 				removeBlacklistNCR(ncr);
-				inBlacklistedRunning.remove(ncr.channel.getId());
+				inBlacklistedRunning.remove(ncr.channel.id());
 				return;
 			}
 			logger.debug("Will remove Shutdown for : {}", ncr);
@@ -1153,7 +1130,7 @@ public class NetworkTransaction {
 			}
 			removeShutdownNCR(ncr);
 			if (ncr.channel != null) {
-				inShutdownRunning.remove(ncr.channel.getId());
+				inShutdownRunning.remove(ncr.channel.id());
 			}
 		}
 	}
@@ -1172,7 +1149,7 @@ public class NetworkTransaction {
 	 * @param session
 	 * @param channel
 	 */
-	public static void runRetrieve(R66Session session, Channel channel) {
+	public static void runRetrieve(R66Session session, LocalChannel channel) {
 		RetrieveRunner retrieveRunner = new RetrieveRunner(session, channel);
 		retrieveRunnerConcurrentHashMap.put(session.getLocalChannelReference().getLocalId(),
 				retrieveRunner);
@@ -1223,9 +1200,6 @@ public class NetworkTransaction {
 		}
 		closeRetrieveExecutors();
 		networkChannelGroup.close().awaitUninterruptibly();
-		Bootstrap.releaseExternalResources();
-		clientSslBootstrap.releaseExternalResources();
-		channelClientFactory.releaseExternalResources();
 		try {
 			Thread.sleep(Configuration.WAITFORNETOP);
 		} catch (InterruptedException e) {

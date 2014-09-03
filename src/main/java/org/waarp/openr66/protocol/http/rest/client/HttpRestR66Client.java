@@ -24,8 +24,10 @@ package org.waarp.openr66.protocol.http.rest.client;
 import java.util.Map;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpMethod;
+
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;

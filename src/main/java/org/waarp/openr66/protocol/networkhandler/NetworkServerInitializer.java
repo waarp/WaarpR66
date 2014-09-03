@@ -19,14 +19,14 @@ package org.waarp.openr66.protocol.networkhandler;
 
 import java.util.concurrent.TimeUnit;
 
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
-import io.netty.channel.Channels;
-import io.netty.handler.execution.ExecutionHandler;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.HashedWheelTimer;
+
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
@@ -36,12 +36,11 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class NetworkServerInitializer implements ChannelInitializer<SocketChannel> {
+public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> {
 	/**
 	 * Global HashedWheelTimer
 	 */
-	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration
-			.getTimerClose();
+	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
 
 	public static final String TIMEOUT = "timeout";
 	public static final String READTIMEOUT = "readTimeout";
@@ -54,34 +53,24 @@ public class NetworkServerInitializer implements ChannelInitializer<SocketChanne
 		this.server = server;
 	}
 
-	protected void initChannel(Channel ch) {
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
 		final ChannelPipeline pipeline = ch.pipeline();
 		pipeline.addLast("codec", new NetworkPacketCodec());
-		GlobalTrafficShapingHandler handler =
-				Configuration.configuration.getGlobalTrafficShapingHandler();
+        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
+		GlobalTrafficShapingHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
 		if (handler != null) {
 			pipeline.addLast(LIMIT, handler);
 		}
 		ChannelTrafficShapingHandler trafficChannel = null;
 		try {
-			trafficChannel =
-					Configuration.configuration
-							.newChannelTrafficShapingHandler();
+			trafficChannel = Configuration.configuration .newChannelTrafficShapingHandler();
 			if (trafficChannel != null) {
 				pipeline.addLast(LIMITCHANNEL, trafficChannel);
 			}
 		} catch (OpenR66ProtocolNoDataException e) {
 		}
-		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-				Configuration.configuration.getServerPipelineExecutor()));
-
-		pipeline.addLast(TIMEOUT,
-				new IdleStateHandler(timer,
-						0, 0,
-						Configuration.configuration.TIMEOUTCON,
-						TimeUnit.MILLISECONDS));
-		pipeline.addLast("handler", new NetworkServerHandler(this.server));
-		return pipeline;
+		pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler", new NetworkServerHandler(this.server));
 	}
 
 }

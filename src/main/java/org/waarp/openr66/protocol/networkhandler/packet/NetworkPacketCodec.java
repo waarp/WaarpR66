@@ -17,15 +17,12 @@
  */
 package org.waarp.openr66.protocol.networkhandler.packet;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelOutbandHandler;
-import io.netty.channel.ChannelEvent;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.Channels;
-import io.netty.channel.MessageEvent;
-import io.netty.handler.codec.frame.FrameDecoder;
-import org.waarp.common.exception.InvalidArgumentException;
+import io.netty.handler.codec.ByteToMessageCodec;
+
 import org.waarp.openr66.protocol.localhandler.packet.KeepAlivePacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
@@ -40,23 +37,16 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * 
  * @author Frederic Bregier
  */
-public class NetworkPacketCodec extends FrameDecoder implements
-		ChannelOutbandHandler {
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.handler.codec.frame.FrameDecoder#decode(io.netty
-	 * .channel.ChannelHandlerContext, io.netty.channel.Channel,
-	 * io.netty.buffer.ByteBuf)
-	 */
+public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
+
 	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel,
-			ByteBuf buf) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
 		// Make sure if the length field was received.
 		if (buf.readableBytes() < 4) {
 			// The length field was not received yet - return null.
 			// This method will be invoked again when more packets are
 			// received and appended to the buffer.
-			return null;
+			return;
 		}
 		// Mark the current buffer position
 		buf.markReaderIndex();
@@ -64,7 +54,7 @@ public class NetworkPacketCodec extends FrameDecoder implements
 		final int length = buf.readInt();
 		if (buf.readableBytes() < length) {
 			buf.resetReaderIndex();
-			return null;
+			return;
 		}
 		// Now we can read the two Ids
 		final int localId = buf.readInt();
@@ -82,35 +72,25 @@ public class NetworkPacketCodec extends FrameDecoder implements
 				NetworkPacket response =
 						new NetworkPacket(ChannelUtils.NOCHANNEL,
 								ChannelUtils.NOCHANNEL, keepAlivePacket, null);
-				NetworkChannelReference nc = NetworkTransaction.getImmediateNetworkChannel(channel);
+				NetworkChannelReference nc = NetworkTransaction.getImmediateNetworkChannel(ctx.channel());
 				if (nc != null) {
 					nc.useIfUsed();
 				}
-				Channels.writeAndFlush(channel, response);
+				ctx.writeAndFlush(response.getNetworkPacket());
 			}
 			// Replaced by a NoOp packet
 			networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket(), null);
-			NetworkServerHandler nsh = (NetworkServerHandler) ctx.pipeline().getLast();
+			NetworkServerHandler nsh = (NetworkServerHandler) ctx.pipeline().last();
 			nsh.setKeepAlivedSent();
 		}
-		return networkPacket;
+		out.add(networkPacket);
 	}
 
-	public void handleOutband(ChannelHandlerContext ctx, ChannelEvent e)
-			throws Exception {
-		if (e instanceof MessageEvent) {
-			final MessageEvent evt = (MessageEvent) e;
-			Object msg = evt.getMessage();
-			if (!(msg instanceof NetworkPacket)) {
-				throw new InvalidArgumentException("Incorrect write object: " +
-						msg.getClass().getName());
-			}
-			final NetworkPacket packet = (NetworkPacket) msg;
-			final ByteBuf finalBuf = packet.getNetworkPacket();
-			Channels.writeAndFlush(ctx, evt.getFuture(), finalBuf);
-		} else {
-			ctx.sendOutband(e);
-		}
+	@Override
+    protected void encode(ChannelHandlerContext ctx, NetworkPacket msg, ByteBuf out) throws Exception {
+        final NetworkPacket packet = (NetworkPacket) msg;
+        final ByteBuf finalBuf = packet.getNetworkPacket();
+        out.writeBytes(finalBuf);
 	}
 
 }

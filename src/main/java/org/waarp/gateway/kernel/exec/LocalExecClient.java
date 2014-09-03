@@ -17,13 +17,13 @@
 package org.waarp.gateway.kernel.exec;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import org.waarp.commandexec.client.LocalExecClientHandler;
 import org.waarp.commandexec.client.LocalExecClientInitializer;
 import org.waarp.commandexec.utils.LocalExecResult;
@@ -31,7 +31,9 @@ import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpThreadFactory;
+import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Client to execute external command through Waarp Local Exec
@@ -51,25 +53,20 @@ public class LocalExecClient {
 	static private Bootstrap bootstrapLocalExec;
 	// Configure the pipeline factory.
 	static private LocalExecClientInitializer localExecClientInitializer;
-	static private OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
+    static private EventLoopGroup localPipelineExecutor;
 
 	/**
 	 * Initialize the LocalExec Client context
 	 */
 	public static void initialize(int CLIENT_THREAD, long maxGlobalMemory) {
-		localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-				1000, TimeUnit.MILLISECONDS,
+	    localPipelineExecutor = new NioEventLoopGroup(CLIENT_THREAD * 100,
 				new WaarpThreadFactory("LocalExecutor"));
-		// Configure the client.
-		bootstrapLocalExec = new Bootstrap(
-				new NioClientSocketChannelFactory(
-						localPipelineExecutor,
-						localPipelineExecutor));
-		// Configure the pipeline factory.
-		localExecClientInitializer =
-				new LocalExecClientInitializer();
-		bootstrapLocalExec.setInitializer(localExecClientInitializer);
+        // Configure the client.
+	    bootstrapLocalExec = new Bootstrap();
+        WaarpNettyUtil.setBootstrap(bootstrapLocalExec, localPipelineExecutor, (int) Configuration.configuration.TIMEOUTCON);
+        // Configure the pipeline factory.
+        localExecClientInitializer = new LocalExecClientInitializer();
+        bootstrapLocalExec.handler(localExecClientInitializer);
 	}
 
 	/**
@@ -80,7 +77,7 @@ public class LocalExecClient {
 			return;
 		}
 		// Shut down all thread pools to exit.
-		bootstrapLocalExec.releaseExternalResources();
+		bootstrapLocalExec.group().shutdownGracefully();
 		localExecClientInitializer.releaseResources();
 	}
 
@@ -106,7 +103,7 @@ public class LocalExecClient {
 	public void runOneCommand(String command, long delay, WaarpFuture futureCompletion) {
 		// Initialize the command context
 		LocalExecClientHandler clientHandler =
-				(LocalExecClientHandler) channel.pipeline().getLast();
+				(LocalExecClientHandler) channel.pipeline().last();
 		// Command to execute
 		clientHandler.initExecClient(delay, command);
 		// Wait for the end of the exec command
@@ -137,11 +134,11 @@ public class LocalExecClient {
 
 		// Wait until the connection attempt succeeds or fails.
 		try {
-			channel = future.await().channel();
+			channel = future.await().sync().channel();
 		} catch (InterruptedException e) {
 		}
 		if (!future.isSuccess()) {
-			logger.error("Client Not Connected", future.getCause());
+			logger.error("Client Not Connected", future.cause());
 			return false;
 		}
 		return true;
@@ -154,7 +151,7 @@ public class LocalExecClient {
 		// Close the connection. Make sure the close operation ends because
 		// all I/O operations are asynchronous in Netty.
 		try {
-			WaarpSslUtility.closingSslChannel(channel).await();
+			WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.TIMEOUTCON);
 		} catch (InterruptedException e) {
 		}
 	}

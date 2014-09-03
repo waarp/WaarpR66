@@ -19,7 +19,6 @@ package org.waarp.openr66.server;
 
 import java.net.SocketAddress;
 
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;

@@ -19,9 +19,10 @@ package org.waarp.openr66.protocol.localhandler;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.netty.buffer.ByteBufs;
-import io.netty.channel.Channel;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.local.LocalChannel;
+
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -57,7 +58,7 @@ public class RetrieveRunner extends Thread {
 
 	private final LocalChannelReference localChannelReference;
 
-	private final Channel channel;
+	private final LocalChannel channel;
 
 	private boolean done = false;
 
@@ -76,7 +77,7 @@ public class RetrieveRunner extends Thread {
 	 * @param channel
 	 *            local channel
 	 */
-	public RetrieveRunner(R66Session session, Channel channel) {
+	public RetrieveRunner(R66Session session, LocalChannel channel) {
 		this.session = session;
 		localChannelReference = this.session.getLocalChannelReference();
 		this.channel = channel;
@@ -97,7 +98,7 @@ public class RetrieveRunner extends Thread {
 	public void run() {
 		boolean requestValidDone = false;
 		try {
-			Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
+			Thread.currentThread().setName("RetrieveRunner: " + channel.id());
 			try {
 				if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
 					logger.debug("Restart from POSTTASK: EndTransfer");

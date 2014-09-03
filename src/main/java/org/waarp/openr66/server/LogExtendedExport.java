@@ -21,8 +21,6 @@ import java.io.File;
 import java.net.SocketAddress;
 import java.sql.Timestamp;
 
-import io.netty.channel.Channels;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -215,7 +213,7 @@ public class LogExtendedExport implements Runnable {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			localChannelReference = null;
 			host = null;
 			valid = null;
@@ -231,7 +229,7 @@ public class LogExtendedExport implements Runnable {
 			try {
 				importLog(newFuture);
 			} catch (OpenR66ProtocolBusinessException e) {
-				Channels.close(localChannelReference.getLocalChannel());
+				localChannelReference.getLocalChannel().close();
 				localChannelReference = null;
 				return;
 			}
@@ -247,7 +245,7 @@ public class LogExtendedExport implements Runnable {
 			}
 			future.cancel();
 		}
-		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference.getLocalChannel().close();
 		localChannelReference = null;
 	}
 	

@@ -18,27 +18,23 @@
 package org.waarp.openr66.protocol.localhandler;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
-import io.netty.channel.Channels;
-import io.netty.handler.execution.ExecutionHandler;
-import org.waarp.openr66.protocol.configuration.Configuration;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.local.LocalChannel;
+
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
 
 /**
- * Pipeline Factory for Local Server
+ * Pipeline Factory for Local Client
  * 
  * @author Frederic Bregier
  */
-public class LocalServerInitializer implements ChannelInitializer<SocketChannel> {
+public class LocalClientInitializer extends ChannelInitializer<LocalChannel> {
 
-	protected void initChannel(Channel ch) throws Exception {
+    @Override
+    protected void initChannel(LocalChannel ch) throws Exception {
 		final ChannelPipeline pipeline = ch.pipeline();
 		pipeline.addLast("codec", new LocalPacketCodec());
-		ExecutionHandler handler = new ExecutionHandler(
-				Configuration.configuration.getLocalPipelineExecutor());
-		pipeline.addLast("pipelineExecutor", handler);
-		pipeline.addLast("handler", new LocalServerHandler());
-		return pipeline;
+		pipeline.addLast("handler", new LocalClientHandler());
 	}
 
 }

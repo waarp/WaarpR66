@@ -18,6 +18,7 @@
 package org.waarp.openr66.protocol.localhandler.packet;
 
 import io.netty.buffer.ByteBuf;
+
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 /**
@@ -158,4 +159,15 @@ public class LocalPacketFactory {
 						"Unvalid Packet Type received: " + packetType);
 		}
 	}
+	
+    public static final int estimateSize(Object o) {
+        if (!(o instanceof AbstractLocalPacket)) {
+            // Type unimplemented
+            return -1;
+        }
+        AbstractLocalPacket packet = (AbstractLocalPacket) o;
+        int size = packet.header.readableBytes() + packet.middle.readableBytes() + packet.end.readableBytes();
+        return size;
+    }
+
 }

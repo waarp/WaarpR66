@@ -20,7 +20,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -110,9 +110,9 @@ public class EndTransferPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) {
 		if (hashOptional == null) {
-			end = ByteBufs.EMPTY_BUFFER;
+			end = Unpooled.EMPTY_BUFFER;
 		} else {
-			end = ByteBufs.copiedBuffer(hashOptional, Charset.defaultCharset());
+			end = Unpooled.copiedBuffer(hashOptional, Charset.defaultCharset());
 		}
 	}
 

@@ -28,27 +28,26 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.ExceptionEvent;
-import io.netty.channel.MessageEvent;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.CookieEncoder;
 import io.netty.handler.codec.http.DefaultCookie;
-import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
+
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -61,10 +60,9 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLogger;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
@@ -104,12 +102,11 @@ import org.waarp.openr66.protocol.utils.Version;
  * @author Frederic Bregier
  * 
  */
-public class HttpSslHandler extends SimpleChannelInboundHandler {
+public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(HttpSslHandler.class);
+	private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpSslHandler.class);
 	/**
 	 * Session Management
 	 */
@@ -119,7 +116,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 	
 	private R66Session authentHttp = new R66Session();
 
-	private HttpRequest request;
+	private FullHttpRequest request;
 	private boolean newSession = false;
 	private volatile Cookie admin = null;
 	private final StringBuilder responseContent = new StringBuilder();
@@ -201,8 +198,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		}
 
 		public String readBodyHeader() {
-			return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath
-					+ this.headerBody);
+			return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.headerBody);
 		}
 
 		public String readBody() {
@@ -210,8 +206,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		}
 
 		public String readBodyEnd() {
-			return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath
-					+ this.endBody);
+			return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.endBody);
 		}
 
 		public String readEnd() {
@@ -278,11 +273,11 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 					Messages.getString("HttpSslHandler.0")); //$NON-NLS-1$
 		}
 		TrafficCounter trafficCounter =
-				Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
+				Configuration.configuration.getGlobalTrafficShapingHandler().trafficCounter();
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-				Messages.getString("HttpSslHandler.IN") + (trafficCounter.getLastReadThroughput() >> 17) + //$NON-NLS-1$
+				Messages.getString("HttpSslHandler.IN") + (trafficCounter.lastReadThroughput() >> 17) + //$NON-NLS-1$
 						Messages.getString("HttpSslHandler.OUT") + //$NON-NLS-1$
-						(trafficCounter.getLastWriteThroughput() >> 17) + "Mbits");
+						(trafficCounter.lastWriteThroughput() >> 17) + "Mbits");
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
 				""+LIMITROW);
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
@@ -1485,8 +1480,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		} else {
 			uri = "Spooled.html";
 		}
-		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-		params = queryStringDecoder.getParameters();
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
+		params = queryStringDecoder.parameters();
 		String name = null;
 		if (params.containsKey("name")) {
 			name = getTrimValue("name");
@@ -1502,7 +1497,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		}
 		if (name != null && ! name.isEmpty()) {
 			// name is specified
-			uri = request.getUri();
+			uri = request.uri();
 			if (istatus != 0) {
 				uri += "&status="+istatus;
 			}
@@ -1609,7 +1604,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
 		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
-		switch (WaarpLoggerFactory.currentLevel) {
+		switch (WaarpLoggerFactory.getLogLevel()) {
 			case DEBUG:
 				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "checked");
 				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
@@ -1675,15 +1670,15 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 					extraInformation = Messages.getString("HttpSslHandler.LangIs")+"Web: "+lang+" OpenR66: "+Messages.slocale; //$NON-NLS-1$
 				} else if (act.equalsIgnoreCase("Level")) {
 					String loglevel = getTrimValue("loglevel");
-					WaarpInternalLoggerInterface.WaarpLevel level = WaarpLevel.WARN;
+					WaarpLogLevel level = WaarpLogLevel.WARN;
 					if (loglevel.equalsIgnoreCase("debug")) {
-						level = WaarpLevel.DEBUG;
+						level = WaarpLogLevel.DEBUG;
 					} else if (loglevel.equalsIgnoreCase("info")) {
-						level = WaarpLevel.INFO;
+						level = WaarpLogLevel.INFO;
 					} else if (loglevel.equalsIgnoreCase("warn")) {
-						level = WaarpLevel.WARN;
+						level = WaarpLogLevel.WARN;
 					} else if (loglevel.equalsIgnoreCase("error")) {
-						level = WaarpLevel.ERROR;
+						level = WaarpLogLevel.ERROR;
 					}
 					WaarpLoggerFactory.setLogLevel(level);
 					extraInformation = Messages.getString("HttpSslHandler.LangIs")+level.name(); //$NON-NLS-1$
@@ -1823,14 +1818,14 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 	}
 
 	private void getParams() {
-		if (request.getMethod() == HttpMethod.GET) {
+		if (request.method() == HttpMethod.GET) {
 			params = null;
-		} else if (request.getMethod() == HttpMethod.POST) {
-			ByteBuf content = request.getContent();
-			if (content.readable()) {
+		} else if (request.method() == HttpMethod.POST) {
+			ByteBuf content = request.content();
+			if (content.isReadable()) {
 				String param = content.toString(WaarpStringUtils.UTF8);
 				QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?" + param);
-				params = queryStringDecoder2.getParameters();
+				params = queryStringDecoder2.parameters();
 				if (params.containsKey(sLIMITROW)) {
 					String snb = getTrimValue(sLIMITROW);
 					if (snb != null) {
@@ -1848,8 +1843,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 
 	private void clearSession() {
 		if (admin != null) {
-			R66Session lsession = sessions.remove(admin.getValue());
-			DbSession ldbsession = dbSessions.remove(admin.getValue());
+			R66Session lsession = sessions.remove(admin.value());
+			DbSession ldbsession = dbSessions.remove(admin.value());
 			admin = null;
 			if (lsession != null) {
 				lsession.setStatus(75);
@@ -1862,9 +1857,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		}
 	}
 
-	private void checkAuthent(MessageEvent e) {
+	private void checkAuthent(ChannelHandlerContext e) {
 		newSession = true;
-		if (request.getMethod() == HttpMethod.GET) {
+		if (request.method() == HttpMethod.GET) {
 			String logon = Logon();
 			logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
 					"");
@@ -1872,7 +1867,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 			clearSession();
 			writeResponse(e.channel());
 			return;
-		} else if (request.getMethod() == HttpMethod.POST) {
+		} else if (request.method() == HttpMethod.POST) {
 			getParams();
 			if (params == null) {
 				String logon = Logon();
@@ -1981,33 +1976,33 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 			clearSession();
 			admin = new DefaultCookie(R66SESSION+Configuration.configuration.HOST_ID, Configuration.configuration.HOST_ID +
 					Long.toHexString(random.nextLong()));
-			sessions.put(admin.getValue(), this.authentHttp);
+			sessions.put(admin.value(), this.authentHttp);
 			authentHttp.setStatus(72);
 			if (this.isPrivateDbSession) {
-				dbSessions.put(admin.getValue(), dbSession);
+				dbSessions.put(admin.value(), dbSession);
 			}
 			logger.debug("CreateSession: " + uriRequest + ":{}", admin);
 			writeResponse(e.channel());
 		}
 	}
 
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		HttpRequest request = this.request = (HttpRequest) e.getMessage();
-		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-		uriRequest = queryStringDecoder.getPath();
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+        FullHttpRequest request = this.request = msg;
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
+		uriRequest = queryStringDecoder.path();
 		logger.debug("Msg: " + uriRequest);
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					e.channel(), Configuration.configuration.httpBasePath + uriRequest,
+					ctx.channel(), Configuration.configuration.httpBasePath + uriRequest,
 					R66SESSION+Configuration.configuration.HOST_ID);
 			return;
 		}
-		checkSession(e.channel());
+		checkSession(ctx.channel());
 		if (!authentHttp.isAuthenticated()) {
 			logger.debug("Not Authent: " + uriRequest + ":{}", authentHttp);
-			checkAuthent(e);
+			checkAuthent(ctx);
 			return;
 		}
 		String find = uriRequest;
@@ -2080,20 +2075,19 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 				responseContent.append(index());
 				break;
 		}
-		writeResponse(e.channel());
+		writeResponse(ctx.channel());
 	}
 
 	private void checkSession(Channel channel) {
 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
-			CookieDecoder cookieDecoder = new CookieDecoder();
-			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			Set<Cookie> cookies = CookieDecoder.decode(cookieString);
 			if (!cookies.isEmpty()) {
 				for (Cookie elt : cookies) {
-					if (elt.getName().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
+					if (elt.name().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
 						logger.debug("Found session: "+elt);
 						admin = elt;
-						R66Session session = sessions.get(admin.getValue());
+						R66Session session = sessions.get(admin.value());
 						if (session != null) {
 							authentHttp = session;
 							authentHttp.setStatus(73);
@@ -2101,7 +2095,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 							admin = null;
 							continue;
 						}
-						DbSession dbSession = dbSessions.get(admin.getValue());
+						DbSession dbSession = dbSessions.get(admin.value());
 						if (dbSession != null) {
 							if (dbSession.isDisActive) {
 								clearSession();
@@ -2111,9 +2105,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 							admin = null;
 							continue;
 						}
-					} else if (elt.getName().equalsIgnoreCase(I18NEXT)) {
+					} else if (elt.name().equalsIgnoreCase(I18NEXT)) {
 						logger.debug("Found i18next: "+elt);
-						lang = elt.getValue();
+						lang = elt.value();
 					}
 				}
 			}
@@ -2127,59 +2121,44 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		boolean i18nextFound = false;
 		if (cookieString != null) {
-			CookieDecoder cookieDecoder = new CookieDecoder();
-			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			Set<Cookie> cookies = CookieDecoder.decode(cookieString);
 			if (!cookies.isEmpty()) {
 				// Reset the sessions if necessary.
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				boolean findSession = false;
 				for (Cookie cookie : cookies) {
-					if (cookie.getName().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
+					if (cookie.name().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
 						if (newSession) {
 							findSession = false;
 						} else {
 							findSession = true;
-							cookieEncoder.addCookie(cookie);
-							response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-							cookieEncoder = new CookieEncoder(true);
+							response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 						}
-					} else if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+					} else if (cookie.name().equalsIgnoreCase(I18NEXT)) {
 						i18nextFound = true;
 						cookie.setValue(lang);
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 					} else {
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 					}
 				}
 				if (! i18nextFound) {
 					Cookie cookie = new DefaultCookie(I18NEXT, lang);
-					cookieEncoder.addCookie(cookie);
-					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-					cookieEncoder = new CookieEncoder(true);
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 				}
 				newSession = false;
 				if (!findSession) {
 					if (admin != null) {
-						cookieEncoder.addCookie(admin);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(admin));
 						logger.debug("AddSession: " + uriRequest + ":{}", admin);
 					}
 				}
 			}
 		} else {
-			CookieEncoder cookieEncoder = new CookieEncoder(true);
 			Cookie cookie = new DefaultCookie(I18NEXT, lang);
-			cookieEncoder.addCookie(cookie);
-			response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 			if (admin != null) {
-				cookieEncoder = new CookieEncoder(true);
-				cookieEncoder.addCookie(admin);
 				logger.debug("AddSession: " + uriRequest + ":{}", admin);
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(admin));
 			}
 		}
 	}
@@ -2191,7 +2170,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 	 */
 	private void writeResponse(Channel channel) {
 		// Convert the response content to a ByteBuf.
-		ByteBuf buf = ByteBufs.copiedBuffer(responseContent.toString(),
+		ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(),
 				WaarpStringUtils.UTF8);
 		responseContent.setLength(0);
 
@@ -2202,8 +2181,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 				(!keepAlive) || forceClose;
 
 		// Build the response object.
-		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-		response.setContent(buf);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		if (keepAlive) {
 			response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -2235,33 +2214,34 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 	 * @param status
 	 */
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(
-				HttpVersion.HTTP_1_1, status);
-		response.headers().set(
-				HttpHeaders.Names.CONTENT_TYPE, "text/html");
+        responseContent.setLength(0);
+        responseContent.append(error(status.toString()));
+        FullHttpResponse response = new DefaultFullHttpResponse(
+				HttpVersion.HTTP_1_1, status,
+				Unpooled.copiedBuffer(responseContent.toString(),
+		                WaarpStringUtils.UTF8));
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		responseContent.setLength(0);
-		responseContent.append(error(status.toString()));
-		response.setContent(ByteBufs.copiedBuffer(responseContent.toString(),
-				WaarpStringUtils.UTF8));
 		clearSession();
 		// Close the connection as soon as the error message is sent.
 		ctx.channel().writeAndFlush(response).addListener(WaarpSslUtility.SSLCLOSE);
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-				.getExceptionFromTrappedException(e.channel(), e);
+				.getExceptionFromTrappedException(ctx.channel(), cause);
 		if (exception != null) {
 			if (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
-				if (e.getCause() instanceof IOException) {
+				if (cause instanceof IOException) {
 					// Nothing to do
 					return;
 				}
 				logger.warn("Exception in HttpSslHandler {}", exception.getMessage());
 			}
-			if (e.channel().isActive()) {
+			if (ctx.channel().isActive()) {
 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			}
 		} else {
@@ -2271,11 +2251,10 @@ public class HttpSslHandler extends SimpleChannelInboundHandler {
 	}
 
 	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
-		Channel channel = e.channel();
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		Channel channel = ctx.channel();
 		Configuration.configuration.getHttpChannelGroup().add(channel);
-		super.channelOpen(ctx, e);
+		super.channelActive(ctx);
 	}
 	
 }

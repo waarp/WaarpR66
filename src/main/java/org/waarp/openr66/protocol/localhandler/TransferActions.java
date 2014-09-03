@@ -25,7 +25,8 @@ import static org.waarp.openr66.context.R66FiniteDualStates.*;
 import java.security.NoSuchAlgorithmException;
 
 import io.netty.channel.Channel;
-import io.netty.channel.Channels;
+import io.netty.channel.local.LocalChannel;
+
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
@@ -148,7 +149,7 @@ public class TransferActions extends ServerActions {
 	 * @throws OpenR66ProtocolSystemException
 	 * @throws OpenR66RunnerErrorException
 	 */
-	public void request(Channel channel, RequestPacket packet)
+	public void request(LocalChannel channel, RequestPacket packet)
 			throws OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException,
 			OpenR66RunnerErrorException, OpenR66ProtocolSystemException,
 			OpenR66ProtocolBusinessException {
@@ -877,7 +878,7 @@ public class TransferActions extends ServerActions {
 				logger
 						.error(Messages.getString("LocalServerHandler.20")); //$NON-NLS-1$
 				session.setStatus(23);
-				Channels.close(channel);
+				channel.close();
 				return;
 			}
 		} else {

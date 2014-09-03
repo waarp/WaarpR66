@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
-import io.netty.logging.WaarpLoggerFactory;
+
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.filemonitor.FileMonitor;
 import org.waarp.common.filemonitor.FileMonitorCommandFactory;

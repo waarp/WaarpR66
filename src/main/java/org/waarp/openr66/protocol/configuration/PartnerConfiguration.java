@@ -120,7 +120,7 @@ public class PartnerConfiguration {
 			String realjson = json.substring(pos);
 			ObjectNode info = JsonHandler.getFromString(realjson);
 			if (info != null) {
-				root.putAll(info);
+				root.setAll(info);
 			}
 		}
 		if (this.isProxified()) {

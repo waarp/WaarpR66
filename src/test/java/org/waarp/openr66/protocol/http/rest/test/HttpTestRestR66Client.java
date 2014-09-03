@@ -32,8 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import io.netty.logging.WaarpLoggerFactory;
+
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -42,6 +41,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.json.JsonHandler;
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -51,6 +51,7 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.gateway.kernel.rest.RestMethodHandler;
+import org.waarp.gateway.kernel.rest.client.HttpRestClientSimpleResponseHandler;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.task.test.TestExecJavaTask;
@@ -81,8 +82,6 @@ import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownOrBlockJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
-
-import ch.qos.logback.classic.Level;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -126,7 +125,7 @@ public class HttpTestRestR66Client  implements Runnable {
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		if (args.length > 2) {
-			WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(Level.DEBUG));
+			WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(WaarpLogLevel.DEBUG));
 		} else {
 			WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		}
@@ -174,10 +173,6 @@ public class HttpTestRestR66Client  implements Runnable {
 		}
 		Configuration.configuration.cryptoKey = des;
     	HttpRestR66Handler.instantiateHandlers(HttpTestR66PseudoMain.config);
-	    OrderedMemoryAwareThreadPoolExecutor executor = Configuration.configuration.getHttpPipelineExecutor();
-        if (executor == null) {
-        	Configuration.configuration.httpPipelineInit();
-        }
 		// Configure the client.
 		clientHelper = new HttpRestR66Client(baseURI, new HttpTestRestClientInitializer(null), Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON);
 		logger.warn("ClientHelper created");
@@ -553,10 +548,10 @@ public class HttpTestRestR66Client  implements Runnable {
 				answer.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
 				break;
 			default:
-				RestFuture future = (RestFuture) channel.getAttachment();
-				future.cancel();
+                RestFuture restFuture = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
+				restFuture.cancel();
 	        	WaarpSslUtility.closingSslChannel(channel);
-	            return future;
+	            return restFuture;
         }
     	RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.GET, host, data.uri, key, value, null,
     			JsonHandler.writeAsString(answer));
@@ -586,7 +581,7 @@ public class HttpTestRestR66Client  implements Runnable {
 		logger.debug("Send query");
         AbstractDbData dbData = getItem(data);
         if (dbData == null) {
-			RestFuture future = (RestFuture) channel.getAttachment();
+            RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
 			future.cancel();
         	WaarpSslUtility.closingSslChannel(channel);
             return future;
@@ -633,7 +628,7 @@ public class HttpTestRestR66Client  implements Runnable {
 		logger.debug("Send query");
         AbstractDbData dbData = getItem(data);
         if (dbData == null) {
-			RestFuture future = (RestFuture) channel.getAttachment();
+            RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
 			future.cancel();
         	WaarpSslUtility.closingSslChannel(channel);
             return future;
@@ -711,7 +706,7 @@ public class HttpTestRestR66Client  implements Runnable {
 				answer.put(DbTaskRunner.Columns.FILEINFO.name(), "New Fileinfo");
 				break;
 			default:
-				RestFuture future = (RestFuture) channel.getAttachment();
+                RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
 				future.cancel();
 	        	WaarpSslUtility.closingSslChannel(channel);
 	            return future;
@@ -896,7 +891,7 @@ public class HttpTestRestR66Client  implements Runnable {
     
     protected static RestFuture action(Channel channel, HttpMethod method, String uri, JsonPacket packet) {
         if (packet == null) {
-			RestFuture future = (RestFuture) channel.getAttachment();
+            RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
 			future.cancel();
         	WaarpSslUtility.closingSslChannel(channel);
             return future;

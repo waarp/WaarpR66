@@ -21,17 +21,17 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.Channels;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelGroupFutureListener;
-import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import io.netty.channel.local.LocalChannel;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.handler.traffic.TrafficCounter;
+
 import org.slf4j.LoggerFactory;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.file.DataBlock;
@@ -77,8 +77,7 @@ public class ChannelUtils extends Thread {
 	 * @return the remote InetAddress
 	 */
 	public final static InetAddress getRemoteInetAddress(Channel channel) {
-		InetSocketAddress socketAddress = (InetSocketAddress) channel
-				.getRemoteAddress();
+		InetSocketAddress socketAddress = (InetSocketAddress) channel.remoteAddress();
 		if (socketAddress == null) {
 			socketAddress = new InetSocketAddress(20);
 		}
@@ -92,8 +91,7 @@ public class ChannelUtils extends Thread {
 	 * @return the local InetAddress
 	 */
 	public final static InetAddress getLocalInetAddress(Channel channel) {
-		final InetSocketAddress socketAddress = (InetSocketAddress) channel
-				.getLocalAddress();
+		final InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 		return socketAddress.getAddress();
 	}
 
@@ -104,7 +102,7 @@ public class ChannelUtils extends Thread {
 	 * @return the remote InetSocketAddress
 	 */
 	public final static InetSocketAddress getRemoteInetSocketAddress(Channel channel) {
-		return (InetSocketAddress) channel.getRemoteAddress();
+		return (InetSocketAddress) channel.remoteAddress();
 	}
 
 	/**
@@ -114,7 +112,7 @@ public class ChannelUtils extends Thread {
 	 * @return the local InetSocketAddress
 	 */
 	public final static InetSocketAddress getLocalInetSocketAddress(Channel channel) {
-		return (InetSocketAddress) channel.getLocalAddress();
+		return (InetSocketAddress) channel.localAddress();
 	}
 
 	/**
@@ -124,27 +122,19 @@ public class ChannelUtils extends Thread {
 	 */
 	private static class R66ChannelGroupFutureListener implements
 			ChannelGroupFutureListener {
-		OrderedMemoryAwareThreadPoolExecutor pool;
 		String name;
-		ChannelFactory channelFactory;
+		EventLoopGroup group;
 
-		public R66ChannelGroupFutureListener(
-				String name,
-				OrderedMemoryAwareThreadPoolExecutor pool,
-				ChannelFactory channelFactory) {
+		public R66ChannelGroupFutureListener(String name, EventLoopGroup group) {
 			this.name = name;
-			this.pool = pool;
-			this.channelFactory = channelFactory;
+			this.group = group;
 		}
 
 		public void operationComplete(ChannelGroupFuture future)
 				throws Exception {
 			logger.info("Start with shutdown external resources for " + name);
-			if (pool != null) {
-				pool.shutdownNow();
-			}
-			if (channelFactory != null) {
-				channelFactory.releaseExternalResources();
+			if (group != null) {
+				group.shutdownGracefully();
 			}
 			logger.info("Done with shutdown " + name);
 		}
@@ -159,17 +149,13 @@ public class ChannelUtils extends Thread {
 		if (Configuration.configuration.getServerChannelGroup() == null) {
 			return 0;
 		}
-		final int result = Configuration.configuration.getServerChannelGroup()
-				.size();
+		final int result = Configuration.configuration.getServerChannelGroup().size();
 		logger.info("ServerChannelGroup: " + result);
 		Configuration.configuration.getServerChannelGroup().close()
 				.addListener(
 						new R66ChannelGroupFutureListener(
 								"ServerChannelGroup",
-								Configuration.configuration
-										.getServerPipelineExecutor(),
-								Configuration.configuration
-										.getServerChannelFactory()));
+								Configuration.configuration.getHandlerGroup()));
 		return result;
 	}
 
@@ -182,17 +168,9 @@ public class ChannelUtils extends Thread {
 		if (Configuration.configuration.getHttpChannelGroup() == null) {
 			return 0;
 		}
-		final int result = Configuration.configuration.getHttpChannelGroup()
-				.size();
+		final int result = Configuration.configuration.getHttpChannelGroup().size();
 		logger.debug("HttpChannelGroup: " + result);
-		Configuration.configuration.getHttpChannelGroup().close()
-				.addListener(
-						new R66ChannelGroupFutureListener(
-								"HttpChannelGroup",
-								null,
-								Configuration.configuration
-										.getHttpChannelFactory()));
-		Configuration.configuration.getHttpsChannelFactory().releaseExternalResources();
+		Configuration.configuration.getHttpChannelGroup().close();
 		return result;
 	}
 
@@ -210,13 +188,13 @@ public class ChannelUtils extends Thread {
 	 * To be used only with LocalChannel (NetworkChannel could be using SSL)
 	 * @param channel
 	 */
-	public final static void close(Channel channel) {
+	public final static void close(LocalChannel channel) {
 		try {
 			Thread.sleep(Configuration.WAITFORNETOP);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		Channels.close(channel);
+		channel.close();
 	}
 
 	/**
@@ -229,7 +207,7 @@ public class ChannelUtils extends Thread {
 	public static ChannelFuture writeBackDataBlock(
 			LocalChannelReference localChannelReference, DataBlock block)
 			throws OpenR66ProtocolPacketException {
-		ByteBuf md5 = ByteBufs.EMPTY_BUFFER;
+		ByteBuf md5 = Unpooled.EMPTY_BUFFER;
 		DbTaskRunner runner = localChannelReference.getSession().getRunner();
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
 			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
@@ -237,8 +215,7 @@ public class ChannelUtils extends Thread {
 		if (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
 			localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
 		}
-		DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
-				.copy(), md5);
+		DataPacket data = new DataPacket(runner.getRank(), block.getBlock().copy(), md5);
 		ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
 		runner.incrementRank();
 		return future;
@@ -253,8 +230,7 @@ public class ChannelUtils extends Thread {
 	public final static void writeEndTransfer(
 			LocalChannelReference localChannelReference)
 			throws OpenR66ProtocolPacketException {
-		EndTransferPacket packet = new EndTransferPacket(
-				LocalPacketFactory.REQUESTPACKET);
+		EndTransferPacket packet = new EndTransferPacket(LocalPacketFactory.REQUESTPACKET);
 		localChannelReference.sessionNewState(R66FiniteDualStates.ENDTRANSFERS);
 		writeAbstractLocalPacket(localChannelReference, packet, true);
 	}
@@ -297,16 +273,16 @@ public class ChannelUtils extends Thread {
 			throw e;
 		}
 		if (wait) {
-			ChannelFuture future = Channels.writeAndFlush(localChannelReference.getNetworkChannel(),
-					networkPacket);
+			ChannelFuture future = localChannelReference.getNetworkChannel().writeAndFlush(networkPacket);
 			localChannelReference.getNetworkChannelObject().use();
 			try {
-				return future.await();
+				future.await(Configuration.configuration.TIMEOUTCON);
+				return future;
 			} catch (InterruptedException e) {
 				return future;
 			}
 		} else {
-			return Channels.writeAndFlush(localChannelReference.getNetworkChannel(), networkPacket);
+			return localChannelReference.getNetworkChannel().writeAndFlush(networkPacket);
 		}
 	}
 
@@ -321,7 +297,7 @@ public class ChannelUtils extends Thread {
 	public final static ChannelFuture writeAbstractLocalPacketToLocal(
 			LocalChannelReference localChannelReference, AbstractLocalPacket packet)
 			throws OpenR66ProtocolPacketException {
-		return Channels.writeAndFlush(localChannelReference.getLocalChannel(), packet);
+		return localChannelReference.getLocalChannel().writeAndFlush(packet);
 	}
 
 	/**
@@ -347,11 +323,11 @@ public class ChannelUtils extends Thread {
 	public static final long willBeWaitingWriting(ChannelTrafficShapingHandler cts, int size) {
 		long currentTime = System.currentTimeMillis();
 		if (cts != null && Configuration.configuration.serverChannelWriteLimit > 0) {
-			TrafficCounter tc = cts.getTrafficCounter();
+			TrafficCounter tc = cts.trafficCounter();
 			if (tc != null) {
 				long wait = waitTraffic(Configuration.configuration.serverChannelWriteLimit,
-						tc.getCurrentWrittenBytes() + size,
-						tc.getLastTime(), currentTime);
+						tc.currentWrittenBytes() + size,
+						tc.lastTime(), currentTime);
 				if (wait > 0) {
 					return wait;
 				}
@@ -361,11 +337,11 @@ public class ChannelUtils extends Thread {
 			GlobalTrafficShapingHandler gts = Configuration.configuration
 					.getGlobalTrafficShapingHandler();
 			if (gts != null) {
-				TrafficCounter tc = gts.getTrafficCounter();
+				TrafficCounter tc = gts.trafficCounter();
 				if (tc != null) {
 					long wait = waitTraffic(Configuration.configuration.serverGlobalWriteLimit,
-							tc.getCurrentWrittenBytes() + size,
-							tc.getLastTime(), currentTime);
+							tc.currentWrittenBytes() + size,
+							tc.lastTime(), currentTime);
 					if (wait > 0) {
 						return wait;
 					}
@@ -414,8 +390,7 @@ public class ChannelUtils extends Thread {
 			Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
 		}
 		if (Configuration.configuration.getGlobalTrafficShapingHandler() != null) {
-			Configuration.configuration.getGlobalTrafficShapingHandler()
-				.releaseExternalResources();
+			Configuration.configuration.getGlobalTrafficShapingHandler().release();
 		}
 		logger.info("Exit Shutdown Http");
 		terminateHttpChannels();

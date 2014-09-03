@@ -18,11 +18,9 @@
 package org.waarp.openr66.protocol.networkhandler;
 
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
-import io.netty.handler.traffic.TrafficCounter;
-import io.netty.util.ObjectSizeEstimator;
-import io.netty.util.Timer;
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
+import io.netty.util.concurrent.EventExecutorGroup;
+
+import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 
 /**
  * Global function
@@ -31,11 +29,6 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * 
  */
 public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(GlobalTrafficHandler.class);
 
 	/**
 	 * @param objectSizeEstimator
@@ -44,24 +37,19 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 	 * @param readLimit
 	 * @param checkInterval
 	 */
-	public GlobalTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
-			Timer timer, long writeLimit, long readLimit,
-			long checkInterval) {
-		super(objectSizeEstimator, timer, writeLimit, readLimit,
-				checkInterval);
+	public GlobalTrafficHandler(EventExecutorGroup executor, long writeLimit, long readLimit, long checkInterval) {
+		super(executor, writeLimit, readLimit, checkInterval);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * io.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(io.netty
-	 * .handler.traffic.TrafficCounter)
-	 */
-	@SuppressWarnings("unused")
-	@Override
-	protected void doAccounting(TrafficCounter counter) {
-		if (false)
-			logger.debug(this.toString() + "    {}", counter);
-	}
+    @Override
+    protected long calculateSize(Object msg) {
+        if (!(msg instanceof NetworkPacket)) {
+            // Type unimplemented
+            return super.calculateSize(msg);
+        }
+        NetworkPacket packet = (NetworkPacket) msg;
+        int size = packet.getBuffer().readableBytes() + 13;
+        return size;
+    }
 
 }

@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.localhandler.packet;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
@@ -65,7 +65,7 @@ public class DataPacket extends AbstractLocalPacket {
 			key = buf.slice(readerIndex, endLength);
 			buf.skipBytes(endLength);
 		} else {
-			key = ByteBufs.EMPTY_BUFFER;
+			key = Unpooled.EMPTY_BUFFER;
 		}
 		return new DataPacket(packetRank, data, key);
 	}
@@ -78,7 +78,7 @@ public class DataPacket extends AbstractLocalPacket {
 	public DataPacket(int packetRank, ByteBuf data, ByteBuf key) {
 		this.packetRank = packetRank;
 		this.data = data;
-		this.key = key == null ? ByteBufs.EMPTY_BUFFER : key;
+		this.key = key == null ? Unpooled.EMPTY_BUFFER : key;
 		lengthPacket = data.readableBytes();
 	}
 
@@ -89,7 +89,7 @@ public class DataPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ByteBufs.buffer(4);
+		header = Unpooled.buffer(4);
 		header.writeInt(packetRank);
 	}
 
@@ -145,10 +145,10 @@ public class DataPacket extends AbstractLocalPacket {
 	 * @return True if the Hashed key is valid (or no key is set)
 	 */
 	public boolean isKeyValid(DigestAlgo algo) {
-		if (key == null || key == ByteBufs.EMPTY_BUFFER) {
+		if (key == null || key == Unpooled.EMPTY_BUFFER) {
 			return true;
 		}
 		ByteBuf newbufkey = FileUtils.getHash(data, algo);
-		return ByteBufs.equals(key, newbufkey);
+		return key.equals(newbufkey);
 	}
 }

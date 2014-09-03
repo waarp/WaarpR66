@@ -18,7 +18,9 @@
 package org.waarp.openr66.protocol.localhandler;
 
 import io.netty.channel.Channel;
+import io.netty.channel.local.LocalChannel;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.logging.WaarpLogger;
@@ -60,7 +62,7 @@ public class LocalChannelReference {
 	/**
 	 * Local Channel
 	 */
-	private final Channel localChannel;
+	private final LocalChannel localChannel;
 
 	/**
 	 * Network Channel Ref
@@ -167,12 +169,12 @@ public class LocalChannelReference {
 	 * @param futureRequest
 	 * @throws OpenR66ProtocolRemoteShutdownException 
 	 */
-	public LocalChannelReference(Channel localChannel, NetworkChannelReference networkChannelRef,
+	public LocalChannelReference(LocalChannel localChannel, NetworkChannelReference networkChannelRef,
 			Integer remoteId, R66Future futureRequest) throws OpenR66ProtocolRemoteShutdownException {
 		this.localChannel = localChannel;
 		this.networkChannelRef = networkChannelRef;
-		networkServerHandler = (NetworkServerHandler) this.networkChannelRef.channel().pipeline().getLast();
-		localId = this.localChannel.getId();
+		networkServerHandler = (NetworkServerHandler) this.networkChannelRef.channel().pipeline().last();
+		localId = this.localChannel.id().hashCode();
 		this.remoteId = remoteId;
 		if (futureRequest == null) {
 			this.futureRequest = new R66Future(true);
@@ -223,7 +225,7 @@ public class LocalChannelReference {
 	/**
 	 * @return the localChannel
 	 */
-	public Channel getLocalChannel() {
+	public LocalChannel getLocalChannel() {
 		return localChannel;
 	}
 

@@ -145,7 +145,7 @@ public class R66File extends FilesystemBasedFileImpl {
 				} catch (FileEndOfTransferException e) {
 					// Wait for last write
 					try {
-						future1.await();
+						future1.await(Configuration.configuration.TIMEOUTCON);
 					} catch (InterruptedException e1) {
 					}
 					if (future1.isSuccess()) {
@@ -159,7 +159,7 @@ public class R66File extends FilesystemBasedFileImpl {
 					FileUtils.computeGlobalHash(digest, block.getBlock());
 				}
 				try {
-					future1.await();
+					future1.await(Configuration.configuration.TIMEOUTCON);
 				} catch (InterruptedException e) {
 				}
 				if (!future1.isSuccess()) {
@@ -174,7 +174,7 @@ public class R66File extends FilesystemBasedFileImpl {
 			// Wait for last write
 			if (future1 != null) {
 				try {
-					future1.await();
+					future1.await(Configuration.configuration.TIMEOUTCON);
 				} catch (InterruptedException e) {
 				}
 				if (!future1.isSuccess()) {
@@ -356,7 +356,7 @@ public class R66File extends FilesystemBasedFileImpl {
 		try {
 			@SuppressWarnings("resource")
 			FileInputStream fileInputStream = new FileInputStream(trueFile);
-			fileChannel = fileInputStream.channel();
+			fileChannel = fileInputStream.getChannel();
 			if (getPosition() > 0) {
 				fileChannel = fileChannel.position(getPosition());
 			}
@@ -505,7 +505,7 @@ public class R66File extends FilesystemBasedFileImpl {
 											e);
 							return false;
 						}
-						FileChannel fileChannelOut = fileOutputStream.channel();
+						FileChannel fileChannelOut = fileOutputStream.getChannel();
 						if (get(fileChannelOut)) {
 							delete();
 						} else {
@@ -569,7 +569,7 @@ public class R66File extends FilesystemBasedFileImpl {
 											e);
 							return false;
 						}
-						FileChannel fileChannelOut = fileOutputStream.channel();
+						FileChannel fileChannelOut = fileOutputStream.getChannel();
 						if (get(fileChannelOut)) {
 							delete();
 						} else {

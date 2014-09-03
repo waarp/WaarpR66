@@ -24,28 +24,26 @@ import java.util.Map;
 import java.util.Set;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.ExceptionEvent;
-import io.netty.channel.MessageEvent;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.CookieEncoder;
 import io.netty.handler.codec.http.DefaultCookie;
-import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
+
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
@@ -78,7 +76,7 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author Frederic Bregier
  * 
  */
-public class HttpFormattedHandler extends SimpleChannelInboundHandler {
+public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	/**
 	 * Internal Logger
 	 */
@@ -142,21 +140,14 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX, XXXLANGXXX;
 	}
 
-	public static final int LIMITROW = 60; // better
-											// if
-											// it
-											// can
-											// be
-											// divided
-											// by
-											// 4
+	public static final int LIMITROW = 60; // better if it can be divided by 4
 	private static final String I18NEXT = "i18next";
 	
 	public final R66Session authentHttp = new R66Session();
 
 	private String lang = Messages.slocale;
 
-	private HttpRequest request;
+	private FullHttpRequest request;
 
 	private final StringBuilder responseContent = new StringBuilder();
 
@@ -207,11 +198,11 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
 				Configuration.configuration.HOST_ID);
 		TrafficCounter trafficCounter =
-				Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
+				Configuration.configuration.getGlobalTrafficShapingHandler().trafficCounter();
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-				"IN:" + (trafficCounter.getLastReadThroughput() / 131072) +
+				"IN:" + (trafficCounter.lastReadThroughput() / 131072) +
 						"Mbits&nbsp;&nbsp;OUT:" +
-						(trafficCounter.getLastWriteThroughput() / 131072) + "Mbits");
+						(trafficCounter.lastWriteThroughput() / 131072) + "Mbits");
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
 		return builder.toString();
 	}
@@ -229,21 +220,19 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		return value;
 	}
 
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, MessageEvent e)
-			throws Exception {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
 		isCurrentRequestXml = false;
 		isCurrentRequestJson = false;
 		status = HttpResponseStatus.OK;
-		HttpRequest request = this.request = (HttpRequest) e.getMessage();
-		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request
-				.getUri());
-		uriRequest = queryStringDecoder.getPath();
+		FullHttpRequest request = this.request = msg;
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
+		uriRequest = queryStringDecoder.path();
 		logger.debug("Msg: " + uriRequest);
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					e.channel(), Configuration.configuration.httpBasePath + uriRequest,
+					ctx.channel(), Configuration.configuration.httpBasePath + uriRequest,
 					"XYZR66NOSESSION");
 			return;
 		}
@@ -284,19 +273,19 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 				isCurrentRequestJson = true;
 			}
 			// Get the params according to get or post
-			if (request.getMethod() == HttpMethod.GET) {
-				params = queryStringDecoder.getParameters();
-			} else if (request.getMethod() == HttpMethod.POST) {
-				ByteBuf content = request.getContent();
-				if (content.readable()) {
+			if (request.method() == HttpMethod.GET) {
+				params = queryStringDecoder.parameters();
+			} else if (request.method() == HttpMethod.POST) {
+				ByteBuf content = request.content();
+				if (content.isReadable()) {
 					String param = content.toString(WaarpStringUtils.UTF8);
 					queryStringDecoder = new QueryStringDecoder("/?" + param);
 				} else {
 					responseContent.append(REQUEST.index.readFileUnique(this));
-					writeResponse(e);
+					writeResponse(ctx);
 					return;
 				}
-				params = queryStringDecoder.getParameters();
+				params = queryStringDecoder.parameters();
 			}
 			boolean getMenu = (cval == 'z');
 			boolean extraBoolean = false;
@@ -383,7 +372,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 						responseContent.append(REQUEST.index.readFileUnique(this));
 				}
 			}
-			writeResponse(e);
+			writeResponse(ctx);
 		} finally {
 			if (this.isPrivateDbSession && dbSession != null) {
 				dbSession.forceDisconnect();
@@ -681,7 +670,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		}
 		if (name != null && ! name.isEmpty()) {
 			// name is specified
-			uri = request.getUri();
+			uri = request.uri();
 			if (istatus != 0) {
 				uri += "&status="+istatus;
 			}
@@ -700,10 +689,9 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 	 * 
 	 * @param e
 	 */
-	private void writeResponse(MessageEvent e) {
+	private void writeResponse(ChannelHandlerContext e) {
 		// Convert the response content to a ByteBuf.
-		ByteBuf buf = ByteBufs.copiedBuffer(responseContent
-				.toString(), WaarpStringUtils.UTF8);
+		ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
 		responseContent.setLength(0);
 		// Decide whether to close the connection or not.
 		boolean keepAlive = HttpHeaders.isKeepAlive(request);
@@ -712,9 +700,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 				(!keepAlive);
 
 		// Build the response object.
-		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-				status);
-		response.setContent(buf);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
 		if (isCurrentRequestXml) {
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
 		} else if (isCurrentRequestJson) {
@@ -729,42 +716,32 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		if (!close) {
 			// There's no need to add 'Content-Length' header
 			// if this is the last response.
-			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String
-					.valueOf(buf.readableBytes()));
+			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
 		}
 
 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
-			CookieDecoder cookieDecoder = new CookieDecoder();
-			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			Set<Cookie> cookies = CookieDecoder.decode(cookieString);
 			boolean i18nextFound = false;
 			if (!cookies.isEmpty()) {
 				// Reset the cookies if necessary.
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				for (Cookie cookie : cookies) {
-					if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+					if (cookie.name().equalsIgnoreCase(I18NEXT)) {
 						i18nextFound = true;
 						cookie.setValue(lang);
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 					} else {
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 					}
 				}
 				if (! i18nextFound) {
 					Cookie cookie = new DefaultCookie(I18NEXT, lang);
-					cookieEncoder.addCookie(cookie);
-					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 				}
 			}
 			if (! i18nextFound) {
 				Cookie cookie = new DefaultCookie(I18NEXT, lang);
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
-				cookieEncoder.addCookie(cookie);
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 			}
 		}
 
@@ -788,16 +765,15 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 	 * @param status
 	 */
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-				status);
+        responseContent.setLength(0);
+        responseContent.append(REQUEST.error.readHeader(this));
+        responseContent.append("OpenR66 Web Failure: ");
+        responseContent.append(status.toString());
+        responseContent.append(REQUEST.error.readEnd());
+        ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-		responseContent.setLength(0);
-		responseContent.append(REQUEST.error.readHeader(this));
-		responseContent.append("OpenR66 Web Failure: ");
-		responseContent.append(status.toString());
-		responseContent.append(REQUEST.error.readEnd());
-		response.setContent(ByteBufs.copiedBuffer(responseContent
-				.toString(), WaarpStringUtils.UTF8));
 		responseContent.setLength(0);
 		// Close the connection as soon as the error message is sent.
 		ctx.channel().writeAndFlush(response).addListener(
@@ -805,13 +781,13 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-				.getExceptionFromTrappedException(e.channel(), e);
+				.getExceptionFromTrappedException(ctx.channel(), cause);
 		if (exception != null) {
 			if (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
-				if (e.getCause() instanceof IOException) {
+				if (cause instanceof IOException) {
 					if (this.isPrivateDbSession && dbSession != null) {
 						dbSession.forceDisconnect();
 						DbAdmin.nbHttpSession--;
@@ -822,7 +798,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 				}
 				logger.warn("Exception in HttpHandler {}", exception.getMessage());
 			}
-			if (e.channel().isActive()) {
+			if (ctx.channel().isActive()) {
 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			}
 		} else {
@@ -836,16 +812,10 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelInboundHandler#channelClosed(org
-	 * .jboss.netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
-	 */
-	@Override
-	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
 		logger.debug("Closed");
-		super.channelClosed(ctx, e);
 		if (this.isPrivateDbSession && dbSession != null) {
 			dbSession.forceDisconnect();
 			DbAdmin.nbHttpSession--;
@@ -853,20 +823,15 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelInboundHandler#channelConnected
-	 * (io.netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
-	 */
-	@Override
-	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		logger.debug("Connected");
 		authentHttp.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
-		super.channelConnected(ctx, e);
+        super.channelActive(ctx);
 		ChannelGroup group = Configuration.configuration.getHttpChannelGroup();
 		if (group != null) {
-			group.add(e.channel());
+			group.add(ctx.channel());
 		}
 	}
 }

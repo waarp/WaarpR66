@@ -21,7 +21,6 @@ import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import io.netty.channel.Channels;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -325,7 +324,7 @@ public class ClientRunner extends Thread {
 		taskRunnerRetryHashMap.remove(taskRunner.getKey());
 		logger.info("Request done with {}", (transfer.isSuccess() ? "success"
 				: "error"));
-		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference.getLocalChannel().close();
 		// now reload TaskRunner if it still exists (light client can forget it)
 		boolean isSender = taskRunner.isSender();
 		if (transfer.isSuccess()) {
@@ -519,7 +518,7 @@ public class ClientRunner extends Thread {
 				logger.warn("Cannot transfer request to " + host.toString());
 				this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED,
 						ErrorCode.Internal, true);
-				Channels.close(localChannelReference.getLocalChannel());
+				localChannelReference.getLocalChannel().close();
 				localChannelReference = null;
 				host = null;
 				request = null;
@@ -555,7 +554,7 @@ public class ClientRunner extends Thread {
 			// propose to redo
 			logger.warn("Cannot transfer request to " + host.toString());
 			this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.Internal, true);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			localChannelReference = null;
 			host = null;
 			request = null;

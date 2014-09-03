@@ -15,53 +15,38 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
-import static io.netty.channel.Channels.*;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentDecompressor;
-import io.netty.handler.execution.ExecutionHandler;
-import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
-import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Test Rest client pipeline factory
  */
-public class HttpTestRestClientInitializer implements ChannelInitializer<SocketChannel> {
+public class HttpTestRestClientInitializer extends ChannelInitializer<SocketChannel> {
     private final WaarpSslContextFactory waarpSslContextFactory;
 
     public HttpTestRestClientInitializer(WaarpSslContextFactory waarpSslContextFactory) {
         this.waarpSslContextFactory = waarpSslContextFactory;
     }
 
-    protected void initChannel(Channel ch) throws Exception {
-        // Create a default pipeline implementation.
-        ChannelPipeline pipeline = pipeline();
+    protected void initChannel(SocketChannel ch) throws Exception {
+     // Create a default pipeline implementation.
+        ChannelPipeline pipeline = ch.pipeline();
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initInitializer(false,
-                    false, false);
-        	handler.setIssueHandshake(true);
-        	pipeline.addLast("ssl", handler);
+            SslHandler handler = waarpSslContextFactory.initInitializer(false, false);
+            pipeline.addLast("ssl", handler);
         }
 
         pipeline.addLast("codec", new HttpClientCodec());
-
-        OrderedMemoryAwareThreadPoolExecutor executor = 
-                Configuration.configuration.getHttpPipelineExecutor();
-        if (executor == null) {
-        	Configuration.configuration.httpPipelineInit();
-        	executor = 
-                    Configuration.configuration.getHttpPipelineExecutor();
-        }
-        if (executor != null) {
-        	pipeline.addLast("pipelineExecutor", new ExecutionHandler(executor));
-        }
         // Remove the following line if you don't want automatic content
         // decompression.
         pipeline.addLast("inflater", new HttpContentDecompressor());
@@ -70,6 +55,5 @@ public class HttpTestRestClientInitializer implements ChannelInitializer<SocketC
         pipeline.addLast("streamer", new ChunkedWriteHandler());
 
         pipeline.addLast("handler", new HttpTestResponseHandler());
-        return pipeline;
     }
 }

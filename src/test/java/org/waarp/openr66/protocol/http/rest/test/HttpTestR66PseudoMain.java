@@ -23,7 +23,6 @@ package org.waarp.openr66.protocol.http.rest.test;
 import java.io.File;
 import java.io.IOException;
 
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;

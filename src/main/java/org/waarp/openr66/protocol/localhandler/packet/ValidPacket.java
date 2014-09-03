@@ -18,7 +18,7 @@
 package org.waarp.openr66.protocol.localhandler.packet;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufs;
+import io.netty.buffer.Unpooled;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -72,7 +72,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ByteBufs.buffer(1);
+		end = Unpooled.buffer(1);
 		end.writeByte(send);
 	}
 

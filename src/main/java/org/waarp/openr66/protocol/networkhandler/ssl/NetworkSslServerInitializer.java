@@ -20,14 +20,14 @@ package org.waarp.openr66.protocol.networkhandler.ssl;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelInitializer<SocketChannel>;
-import io.netty.channel.Channels;
-import io.netty.handler.execution.ExecutionHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.HashedWheelTimer;
+
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -39,15 +39,14 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * @author Frederic Bregier
  * 
  */
-public class NetworkSslServerInitializer implements ChannelInitializer<SocketChannel> {
+public class NetworkSslServerInitializer extends ChannelInitializer<SocketChannel> {
 	protected final boolean isClient;
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	public static WaarpSecureKeyStore waarpSecureKeyStore;
 	/**
 	 * Global HashedWheelTimer
 	 */
-	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration
-			.getTimerClose();
+	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
 
 	/**
 	 * 
@@ -59,26 +58,26 @@ public class NetworkSslServerInitializer implements ChannelInitializer<SocketCha
 		this.isClient = isClient;
 	}
 
-	protected void initChannel(Channel ch) {
+	@Override
+    protected void initChannel(SocketChannel ch) throws Exception {
 		final ChannelPipeline pipeline = ch.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.
 		SslHandler sslHandler = null;
 		if (isClient) {
 			// Not server: no clientAuthent, no renegotiation
 			sslHandler = 
-					waarpSslContextFactory.initInitializer(false,
-							false, false);
-			sslHandler.setIssueHandshake(true);
+					waarpSslContextFactory.initInitializer(false, false);
 		} else {
 			// Server: no renegotiation still, but possible clientAuthent
 			sslHandler = 
 					waarpSslContextFactory.initInitializer(true,
-							waarpSslContextFactory.needClientAuthentication(),
-							true);
+							waarpSslContextFactory.needClientAuthentication());
 		}
 		pipeline.addLast("ssl", sslHandler);
 
 		pipeline.addLast("codec", new NetworkPacketCodec());
+        pipeline.addLast(NetworkServerInitializer.TIMEOUT, 
+                new IdleStateHandler(0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
 		GlobalTrafficShapingHandler handler = Configuration.configuration
 				.getGlobalTrafficShapingHandler();
 		if (handler != null) {
@@ -92,15 +91,6 @@ public class NetworkSslServerInitializer implements ChannelInitializer<SocketCha
 			pipeline.addLast(NetworkServerInitializer.LIMITCHANNEL, trafficChannel);
 		} catch (OpenR66ProtocolNoDataException e) {
 		}
-		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-				Configuration.configuration.getServerPipelineExecutor()));
-
-		pipeline.addLast(NetworkServerInitializer.TIMEOUT,
-				new IdleStateHandler(timer,
-						0, 0,
-						Configuration.configuration.TIMEOUTCON,
-						TimeUnit.MILLISECONDS));
-		pipeline.addLast("handler", new NetworkSslServerHandler(!this.isClient));
-		return pipeline;
+		pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler", new NetworkSslServerHandler(!this.isClient));
 	}
 }

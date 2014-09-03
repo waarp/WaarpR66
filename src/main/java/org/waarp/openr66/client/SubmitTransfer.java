@@ -19,7 +19,6 @@ package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
 
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;

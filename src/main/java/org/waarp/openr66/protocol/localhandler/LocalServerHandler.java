@@ -22,13 +22,10 @@ import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 import static org.waarp.openr66.context.R66FiniteDualStates.INFORMATION;
 import static org.waarp.openr66.context.R66FiniteDualStates.SHUTDOWN;
 import static org.waarp.openr66.context.R66FiniteDualStates.TEST;
-
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.Channels;
-import io.netty.channel.ExceptionEvent;
-import io.netty.channel.MessageEvent;
-import io.netty.channel.SimpleChannelHandler;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.local.LocalChannel;
+
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -83,7 +80,7 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * 
  * @author frederic bregier
  */
-public class LocalServerHandler extends SimpleChannelHandler {
+public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
 	/**
 	 * Internal Logger
 	 */
@@ -94,38 +91,22 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private TransferActions serverHandler = new TransferActions();
 	
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
-	 * netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
-	 */
-	@Override
-	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-		serverHandler.channelClosed(e);
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		serverHandler.channelClosed(ctx);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
-	 * .netty.channel.ChannelHandlerContext, io.netty.channel.ChannelStateEvent)
-	 */
-	@Override
-	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		serverHandler.newSession();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelHandler#channelRead(org.jboss
-	 * .netty.channel.ChannelHandlerContext, io.netty.channel.MessageEvent)
-	 */
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, MessageEvent e)
-			throws OpenR66Exception {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, AbstractLocalPacket msg) throws Exception {
 		// action as requested and answer if necessary
-		final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
+		final AbstractLocalPacket packet = msg;
 		if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
-			serverHandler.startup(e.channel(), (StartupPacket) packet);
+			serverHandler.startup(ctx.channel(), (StartupPacket) packet);
 		} else {
 			if (serverHandler.getLocalChannelReference() == null) {
 				logger.error("No LocalChannelReference at " +
@@ -137,10 +118,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						ErrorCode.ConnectionImpossible.getCode(),
 						ErrorPacket.FORWARDCLOSECODE);
 				try {
-					Channels.writeAndFlush(e.channel(), errorPacket).await();
+				    ctx.channel().writeAndFlush(errorPacket).await();
 				} catch (InterruptedException e1) {
 				}
-				ChannelUtils.close(e.channel());
+				ChannelUtils.close((LocalChannel) ctx.channel());
 				if (Configuration.configuration.r66Mib != null) {
 					Configuration.configuration.r66Mib.notifyWarning(
 							"No LocalChannelReference", packet.getClass().getSimpleName());
@@ -149,7 +130,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			switch (packet.getType()) {
 				case LocalPacketFactory.AUTHENTPACKET: {
-					serverHandler.authent(e.channel(), (AuthentPacket) packet);
+					serverHandler.authent(ctx.channel(), (AuthentPacket) packet);
 					break;
 				}
 				// Already done case LocalPacketFactory.STARTUPPACKET:
@@ -159,7 +140,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						logger.debug("DATA RANK: " + ((DataPacket) packet).getPacketRank() + " : " +
 								serverHandler.getSession().getRunner().getRank());
 					}
-					serverHandler.data(e.channel(), (DataPacket) packet);
+					serverHandler.data(ctx.channel(), (DataPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.VALIDPACKET: {
@@ -184,29 +165,29 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								newSize = -1;
 							}
 						}
-						serverHandler.requestChangeNameSize(e.channel(), newfilename, newSize);
+						serverHandler.requestChangeNameSize(ctx.channel(), newfilename, newSize);
 					} else {
-						serverHandler.valid(e.channel(), (ValidPacket) packet);
+						serverHandler.valid(ctx.channel(), (ValidPacket) packet);
 					}
 					break;
 				}
 				case LocalPacketFactory.ERRORPACKET: {
 					serverHandler.getSession().newState(ERROR);
-					serverHandler.errorMesg(e.channel(), (ErrorPacket) packet);
+					serverHandler.errorMesg(ctx.channel(), (ErrorPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.CONNECTERRORPACKET: {
-					serverHandler.connectionError(e.channel(),
+					serverHandler.connectionError(ctx.channel(),
 							(ConnectionErrorPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.REQUESTPACKET: {
-					serverHandler.request(e.channel(), (RequestPacket) packet);
+					serverHandler.request((LocalChannel) ctx.channel(), (RequestPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.SHUTDOWNPACKET: {
 					serverHandler.getSession().newState(SHUTDOWN);
-					serverHandler.shutdown(e.channel(), (ShutdownPacket) packet);
+					serverHandler.shutdown(ctx.channel(), (ShutdownPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.STOPPACKET:
@@ -227,33 +208,33 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							ErrorCode.Unimplemented.getCode(),
 							ErrorPacket.FORWARDCLOSECODE);
 					ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
-					ChannelUtils.close(e.channel());
+					ChannelUtils.close((LocalChannel) ctx.channel());
 					break;
 				}
 				case LocalPacketFactory.TESTPACKET: {
 					serverHandler.getSession().newState(TEST);
-					serverHandler.test(e.channel(), (TestPacket) packet);
+					serverHandler.test(ctx.channel(), (TestPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.ENDTRANSFERPACKET: {
-					serverHandler.endTransfer(e.channel(), (EndTransferPacket) packet);
+					serverHandler.endTransfer(ctx.channel(), (EndTransferPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.INFORMATIONPACKET: {
 					serverHandler.getSession().newState(INFORMATION);
-					serverHandler.information(e.channel(), (InformationPacket) packet);
+					serverHandler.information(ctx.channel(), (InformationPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.ENDREQUESTPACKET: {
-					serverHandler.endRequest(e.channel(), (EndRequestPacket) packet);
+					serverHandler.endRequest(ctx.channel(), (EndRequestPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.BUSINESSREQUESTPACKET: {
-					serverHandler.businessRequest(e.channel(), (BusinessRequestPacket) packet);
+					serverHandler.businessRequest(ctx.channel(), (BusinessRequestPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.BLOCKREQUESTPACKET: {
-					serverHandler.blockRequest(e.channel(), (BlockRequestPacket) packet);
+					serverHandler.blockRequest(ctx.channel(), (BlockRequestPacket) packet);
 					break;
 				}
 				case LocalPacketFactory.JSONREQUESTPACKET: {
@@ -281,7 +262,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						} catch (OpenR66ProtocolPacketException e2) {
 						}
 						serverHandler.getSession().setStatus(99);
-						Channels.close(e.channel());
+						ctx.channel().close();
 						return;
 					}
 					json.setRequestUserPacket(((JsonCommandPacket) packet).getTypeValid());
@@ -295,9 +276,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						long newSize = node.getFilesize();
 						logger.debug("NewSize "+ newSize + " NewName "+newfilename);
 						// potential file size changed
-						serverHandler.requestChangeNameSize(e.channel(), newfilename, newSize);
+						serverHandler.requestChangeNameSize(ctx.channel(), newfilename, newSize);
 					} else {
-						serverHandler.jsonCommand(e.channel(), (JsonCommandPacket) packet);
+						serverHandler.jsonCommand(ctx.channel(), (JsonCommandPacket) packet);
 					}
 					break;
 				}
@@ -314,28 +295,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							"Unkown Mesg: " + packet.getClass().getName(),
 							ErrorCode.Unimplemented.getCode(), ErrorPacket.FORWARDCLOSECODE);
 					ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
-					ChannelUtils.close(e.channel());
+					ChannelUtils.close((LocalChannel) ctx.channel());
 				}
 			}
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss
-	 * .netty.channel.ChannelHandlerContext, io.netty.channel.ExceptionEvent)
-	 */
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		// inform clients
 		logger.debug("Exception and isFinished: "+
-				(serverHandler.getLocalChannelReference() != null && serverHandler.getLocalChannelReference().getFutureRequest().isDone()), e.getCause());
+				(serverHandler.getLocalChannelReference() != null && serverHandler.getLocalChannelReference().getFutureRequest().isDone()), cause);
 		if (serverHandler.getLocalChannelReference() != null && serverHandler.getLocalChannelReference().getFutureRequest().isDone()) {
-			Channels.close(e.channel());
+			ctx.channel().close();
 			return;
 		}
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-				.getExceptionFromTrappedException(e.channel(), e);
+				.getExceptionFromTrappedException(ctx.channel(), cause);
 		ErrorCode code = null;
 		if (exception != null) {
 			serverHandler.getSession().newState(ERROR);
@@ -401,7 +377,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					code = ErrorCode.QueryAlreadyFinished;
 					try {
 						serverHandler.tryFinalizeRequest(new R66Result(serverHandler.getSession(), true, code, serverHandler.getSession().getRunner()));
-						ChannelCloseTimer.closeFutureChannel(e.channel());
+						ChannelCloseTimer.closeFutureChannel(ctx.channel());
 						return;
 					} catch (OpenR66RunnerErrorException e1) {
 					} catch (OpenR66ProtocolSystemException e1) {
@@ -410,7 +386,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					code = ErrorCode.QueryStillRunning;
 					// nothing is to be done
 					logger.error("Will close channel since ", exception);
-					Channels.close(e.channel());
+					ctx.channel().close();
 					serverHandler.getSession().setStatus(56);
 					return;
 				} else if (exception instanceof OpenR66ProtocolBusinessRemoteFileNotFoundException) {
@@ -494,17 +470,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
 				logger.error("Will close channel {}", exception.getMessage());
-				Channels.close(e.channel());
+				ctx.channel().close();
 				serverHandler.getSession().setStatus(56);
 				return;
 			} else if (exception instanceof OpenR66ProtocolNoConnectionException) {
 				logger.error("Will close channel {}", exception.getMessage());
-				Channels.close(e.channel());
+				ctx.channel().close();
 				serverHandler.getSession().setStatus(57);
 				return;
 			}
 			serverHandler.getSession().setStatus(58);
-			ChannelCloseTimer.closeFutureChannel(e.channel());
+			ChannelCloseTimer.closeFutureChannel(ctx.channel());
 		} else {
 			// Nothing to do
 			serverHandler.getSession().setStatus(59);

@@ -22,8 +22,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import io.netty.channel.Channels;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLogger;
@@ -511,7 +509,7 @@ public class RequestTransfer implements Runnable {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			localChannelReference = null;
 			host = null;
 			packet = null;
@@ -525,7 +523,7 @@ public class RequestTransfer implements Runnable {
 		host = null;
 		future.awaitUninterruptibly();
 
-		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference.getLocalChannel().close();
 		localChannelReference = null;
 
 		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
@@ -597,7 +595,7 @@ public class RequestTransfer implements Runnable {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			localChannelReference = null;
 			host = null;
 			packet = null;
@@ -611,7 +609,7 @@ public class RequestTransfer implements Runnable {
 		host = null;
 		future.awaitUninterruptibly();
 
-		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference.getLocalChannel().close();
 		localChannelReference = null;
 
 		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));

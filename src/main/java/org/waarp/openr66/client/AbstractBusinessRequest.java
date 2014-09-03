@@ -19,8 +19,6 @@ package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
 
-import io.netty.channel.Channels;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -129,7 +127,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 		} catch (OpenR66ProtocolPacketException e) {
 			future.setResult(null);
 			future.setFailure(e);
-			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference.getLocalChannel().close();
 			return;
 		}
 

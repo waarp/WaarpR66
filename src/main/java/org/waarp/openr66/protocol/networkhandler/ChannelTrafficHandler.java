@@ -18,48 +18,33 @@
 package org.waarp.openr66.protocol.networkhandler;
 
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.handler.traffic.TrafficCounter;
-import io.netty.util.ObjectSizeEstimator;
-import io.netty.util.Timer;
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
+
+import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 
 /**
  * @author Frederic Bregier
  * 
  */
 public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(ChannelTrafficHandler.class);
 
 	/**
-	 * @param objectSizeEstimator
-	 * @param timer
 	 * @param writeLimit
 	 * @param readLimit
 	 * @param checkInterval
 	 */
-	public ChannelTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
-			Timer timer, long writeLimit, long readLimit,
-			long checkInterval) {
-		super(objectSizeEstimator, timer, writeLimit, readLimit,
-				checkInterval);
+	public ChannelTrafficHandler(long writeLimit, long readLimit, long checkInterval) {
+		super(writeLimit, readLimit, checkInterval);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * io.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(io.netty
-	 * .handler.traffic.TrafficCounter)
-	 */
-	@SuppressWarnings("unused")
-	@Override
-	protected void doAccounting(TrafficCounter counter) {
-		if (false)
-			logger.debug(this.toString() + "    {}", counter);
-	}
+    @Override
+    protected long calculateSize(Object msg) {
+        if (!(msg instanceof NetworkPacket)) {
+            // Type unimplemented
+            return super.calculateSize(msg);
+        }
+        NetworkPacket packet = (NetworkPacket) msg;
+        int size = packet.getBuffer().readableBytes() + 13;
+        return size;
+    }
 
 }

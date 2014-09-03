@@ -18,7 +18,6 @@
 package org.waarp.openr66.protocol.test;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.logging.WaarpLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.exception.FileEndOfTransferException;
 import org.waarp.common.exception.FileTransferException;
@@ -91,14 +90,14 @@ public class TestSendThroughClient extends SendThroughClient {
 					// Wait for last write
 					retrieveDone = true;
 					try {
-						future1.await();
+						future1.await(Configuration.configuration.TIMEOUTCON);
 					} catch (InterruptedException e1) {
 					}
 					return future1.isSuccess();
 				}
 				future2 = this.writeWhenPossible(block);
 				try {
-					future1.await();
+					future1.await(Configuration.configuration.TIMEOUTCON);
 				} catch (InterruptedException e) {
 				}
 				if (!future1.isSuccess()) {
@@ -109,7 +108,7 @@ public class TestSendThroughClient extends SendThroughClient {
 			// Wait for last write
 			if (future1 != null) {
 				try {
-					future1.await();
+					future1.await(Configuration.configuration.TIMEOUTCON);
 				} catch (InterruptedException e) {
 				}
 				return future1.isSuccess();

@@ -75,7 +75,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			JsonNode node = RestArgument.getId(arg);
 			String id;
@@ -96,7 +96,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			return new DbRule(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
@@ -109,7 +109,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 			RestArgument arguments, RestArgument result, Object body)
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		String rule = arg.path(FILTER_ARGS.IDRULE.name()).asText();
 		if (rule == null || rule.isEmpty()) {
 			rule = null;

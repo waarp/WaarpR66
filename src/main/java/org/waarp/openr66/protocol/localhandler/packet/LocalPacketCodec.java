@@ -17,15 +17,12 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelOutbandHandler;
-import io.netty.channel.ChannelEvent;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.Channels;
-import io.netty.channel.MessageEvent;
-import io.netty.handler.codec.frame.FrameDecoder;
-import org.waarp.common.exception.InvalidArgumentException;
+import io.netty.handler.codec.ByteToMessageCodec;
+
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 /**
@@ -33,26 +30,21 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * 
  * @author Frederic Bregier
  */
-public class LocalPacketCodec extends FrameDecoder implements
-		ChannelOutbandHandler {
+public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.netty.handler.codec.frame.FrameDecoder#decode(io.netty
-	 * .channel.ChannelHandlerContext, io.netty.channel.Channel,
-	 * io.netty.buffer.ByteBuf)
-	 */
-	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel,
-			ByteBuf buf) throws Exception {
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
 		// Make sure if the length field was received.
 		if (buf.readableBytes() < 4) {
 			// The length field was not received yet - return null.
 			// This method will be invoked again when more packets are
 			// received and appended to the buffer.
-			return null;
+			return;
 		}
-		return decodeNetworkPacket(buf);
+		AbstractLocalPacket newbuf = decodeNetworkPacket(buf);
+		if (newbuf != null) {
+		    out.add(newbuf);
+		}
 	}
 
 	public static AbstractLocalPacket decodeNetworkPacket(ByteBuf buf)
@@ -80,25 +72,14 @@ public class LocalPacketCodec extends FrameDecoder implements
 				middleLength, endLength, buf);
 	}
 
-	public void handleOutband(ChannelHandlerContext ctx, ChannelEvent e)
-			throws Exception {
-		if (e instanceof MessageEvent) {
-			final MessageEvent evt = (MessageEvent) e;
-			if (evt.getMessage() instanceof ByteBuf) {
-				Channels.writeAndFlush(ctx, evt.getFuture(), evt.getMessage());
-				return;
-			}
-			if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
-				throw new InvalidArgumentException("Incorrect write object: " +
-						evt.getMessage().getClass().getName());
-			}
-			final AbstractLocalPacket packet = (AbstractLocalPacket) evt
-					.getMessage();
-			final ByteBuf buf = packet.getLocalPacket(null);
-			Channels.writeAndFlush(ctx, evt.getFuture(), buf);
-		} else {
-			ctx.sendOutband(e);
-		}
+    @Override
+    protected void encode(ChannelHandlerContext ctx, AbstractLocalPacket msg, ByteBuf out) throws Exception {
+        /*if (msg instanceof ByteBuf) {
+            out.writeBytes((ByteBuf) msg);
+            return;
+        }*/
+        final ByteBuf buf = msg.getLocalPacket(null);
+        out.writeBytes(buf);
 	}
 
 }
