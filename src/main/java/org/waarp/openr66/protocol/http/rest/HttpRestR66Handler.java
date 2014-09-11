@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -229,7 +228,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
    	public ServerActions serverHandler = new ServerActions();
    	
 	@Override
-    protected void checkConnection(Channel channel) throws HttpInvalidAuthenticationException {
+    protected void checkConnection(ChannelHandlerContext ctx) throws HttpInvalidAuthenticationException {
 		logger.debug("Request: {} ### {}",arguments,response);
 		String user = null;
 		String key = null;
@@ -339,7 +338,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
 		}
 		// Bind and start to accept incoming connections.
 		ChannelFuture future;
-		if (restConfiguration != null && ! restConfiguration.REST_ADDRESS.isEmpty()) {
+		if (restConfiguration != null && restConfiguration.REST_ADDRESS != null && ! restConfiguration.REST_ADDRESS.isEmpty()) {
 		    future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_ADDRESS, restConfiguration.REST_PORT));
 		} else {
 		    future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_PORT));

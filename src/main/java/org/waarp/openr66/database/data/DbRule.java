@@ -86,7 +86,7 @@ public class DbRule extends AbstractDbData {
 			Types.VARCHAR, Types.VARCHAR,
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-			Types.INTEGER, Types.VARCHAR };
+			Types.INTEGER, Types.NVARCHAR };
 
 	public static final String table = " RULES ";
 

@@ -19,6 +19,7 @@ package org.waarp.openr66.protocol.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -569,8 +570,8 @@ public class Configuration {
 		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
         bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss"));
         workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
-        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 100, new WaarpThreadFactory("Handler"));
-        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 100, new WaarpThreadFactory("SubTask"));
+        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Handler"));
+        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
         httpBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpBoss"));
         httpWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpWorker"));
 		// Init FiniteStates
@@ -640,6 +641,7 @@ public class Configuration {
 			logger.info("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
 					+ " Runner Thread: " + RUNNER_THREAD);
 		}
+        logger.info("Current launched threads: "+ManagementFactory.getThreadMXBean().getThreadCount());
 		if (useLocalExec) {
 			LocalExecClient.initialize();
 		}
@@ -678,6 +680,7 @@ public class Configuration {
 		startMonitoring();
 		launchStatistics();
 		startRestSupport();
+		logger.info("Current launched threads: "+ManagementFactory.getThreadMXBean().getThreadCount());
 	}
 	/**
 	 * Used to log statistics information regularly
@@ -716,7 +719,7 @@ public class Configuration {
 		    serverSslBootstrap = new ServerBootstrap();
             WaarpNettyUtil.setServerBootstrap(serverSslBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
             networkSslServerInitializer = new NetworkSslServerInitializer(false);
-            serverSslBootstrap.childHandler(networkServerInitializer);
+            serverSslBootstrap.childHandler(networkSslServerInitializer);
             ChannelFuture future = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT)).awaitUninterruptibly();
             if (future.isSuccess()) {
                 bindSSL = future.channel();

@@ -165,7 +165,7 @@ public class DbTaskRunner extends AbstractDbData {
 			Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
 			Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.INTEGER,
 			Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
-			Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
+			Types.NVARCHAR, Types.NVARCHAR, Types.NVARCHAR, Types.BIGINT };
 
 	public static final String table = " RUNNER ";
 

@@ -1857,7 +1857,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 		}
 	}
 
-	private void checkAuthent(ChannelHandlerContext e) {
+	private void checkAuthent(ChannelHandlerContext ctx) {
 		newSession = true;
 		if (request.method() == HttpMethod.GET) {
 			String logon = Logon();
@@ -1865,7 +1865,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 					"");
 			responseContent.append(logon);
 			clearSession();
-			writeResponse(e.channel());
+			writeResponse(ctx);
 			return;
 		} else if (request.method() == HttpMethod.POST) {
 			getParams();
@@ -1875,7 +1875,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 						Messages.getString("HttpSslHandler.EmptyLogin"));
 				responseContent.append(logon);
 				clearSession();
-				writeResponse(e.channel());
+				writeResponse(ctx);
 				return;
 			}
 		}
@@ -1951,7 +1951,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 					Messages.getString("HttpSslHandler.BadLogin"));
 			responseContent.append(logon);
 			clearSession();
-			writeResponse(e.channel());
+			writeResponse(ctx);
 		} else {
 			// load DbSession
 			if (this.dbSession != null) {
@@ -1982,7 +1982,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 				dbSessions.put(admin.value(), dbSession);
 			}
 			logger.debug("CreateSession: " + uriRequest + ":{}", admin);
-			writeResponse(e.channel());
+			writeResponse(ctx);
 		}
 	}
 
@@ -1995,7 +1995,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					ctx.channel(), Configuration.configuration.httpBasePath + uriRequest,
+					ctx, Configuration.configuration.httpBasePath + uriRequest,
 					R66SESSION+Configuration.configuration.HOST_ID);
 			return;
 		}
@@ -2075,7 +2075,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 				responseContent.append(index());
 				break;
 		}
-		writeResponse(ctx.channel());
+		writeResponse(ctx);
 	}
 
 	private void checkSession(Channel channel) {
@@ -2166,9 +2166,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 	/**
 	 * Write the response
 	 * 
-	 * @param e
+	 * @param ctx
 	 */
-	private void writeResponse(Channel channel) {
+	private void writeResponse(ChannelHandlerContext ctx) {
 		// Convert the response content to a ByteBuf.
 		ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(),
 				WaarpStringUtils.UTF8);
@@ -2197,7 +2197,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 		handleCookies(response);
 
 		// Write the response.
-		ChannelFuture future = channel.writeAndFlush(response);
+		ChannelFuture future = ctx.writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -2225,7 +2225,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 		responseContent.setLength(0);
 		clearSession();
 		// Close the connection as soon as the error message is sent.
-		ctx.channel().writeAndFlush(response).addListener(WaarpSslUtility.SSLCLOSE);
+		ctx.writeAndFlush(response).addListener(WaarpSslUtility.SSLCLOSE);
 	}
 
 	@Override

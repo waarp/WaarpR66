@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.networkhandler;
 import java.net.BindException;
 import java.net.SocketAddress;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -355,14 +356,15 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
 				}
 			}
 		}
-		localChannelReference.getLocalChannel().writeAndFlush(packet.getBuffer());
+		ByteBuf buf = packet.getBuffer();
+		localChannelReference.getLocalChannel().writeAndFlush(buf);
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 	    Channel channel = ctx.channel();
 		if (isBlackListed) {
-			logger.info("While partner is blacklisted, Network Channel Exception: {}", channel.id(), cause);
+			logger.info("While partner is blacklisted, Network Channel Exception: {}", channel.id(), cause.getClass().getName()+" : "+cause);
 			// ignore
 			return;
 		}
@@ -370,7 +372,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
 		if (cause instanceof ReadTimeoutException) {
 			ReadTimeoutException exception = (ReadTimeoutException) cause;
 			// No read for too long
-			logger.error("ReadTimeout so Will close NETWORK channel {}", exception.getMessage());
+			logger.error("ReadTimeout so Will close NETWORK channel {}", exception.getClass().getName()+" : "+exception.getMessage());
 			ChannelCloseTimer.closeFutureChannel(channel);
 			return;
 		}
@@ -387,26 +389,26 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
 				if (this.networkChannelReference != null && this.networkChannelReference.nbLocalChannels() > 0) {
 					logger.debug(
 							"Network Channel Exception: {} {}", channel.id(),
-							exception.getMessage());
+							exception.getClass().getName()+" : "+exception.getMessage());
 				}
 				logger.debug("Will close NETWORK channel");
 				ChannelCloseTimer.closeFutureChannel(channel);
 				return;
 			} else if (exception instanceof OpenR66ProtocolNoConnectionException) {
 				logger.debug("Connection impossible with NETWORK channel {}",
-						exception.getMessage());
+				        exception.getClass().getName()+" : "+exception.getMessage());
 				channel.close();
 				return;
 			} else {
 				logger.debug(
 						"Network Channel Exception: {} {}", channel.id(),
-						exception.getMessage());
+						exception.getClass().getName()+" : "+exception.getMessage());
 			}
 			final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(
-					exception.getMessage(), null);
+			        exception.getClass().getName()+" : "+exception.getMessage(), null);
 			writeError(channel, ChannelUtils.NOCHANNEL,
 					ChannelUtils.NOCHANNEL, errorPacket);
-			logger.debug("Will close NETWORK channel: {}", exception.getMessage());
+			logger.debug("Will close NETWORK channel: {}", exception.getClass().getName()+" : "+exception.getMessage());
 			ChannelCloseTimer.closeFutureChannel(channel);
 		} else {
 			// Nothing to do

@@ -64,7 +64,7 @@ public class DbHostAuth extends AbstractDbData {
 
 	public static final int[] dbTypes = {
 			Types.VARCHAR, Types.INTEGER, Types.BIT,
-			Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
+			Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.NVARCHAR };
 
 	public static final String table = " HOSTS ";
 

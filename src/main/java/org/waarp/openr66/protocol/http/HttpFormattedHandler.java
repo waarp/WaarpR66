@@ -232,7 +232,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
-					ctx.channel(), Configuration.configuration.httpBasePath + uriRequest,
+					ctx, Configuration.configuration.httpBasePath + uriRequest,
 					"XYZR66NOSESSION");
 			return;
 		}
@@ -687,9 +687,9 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 	/**
 	 * Write the response
 	 * 
-	 * @param e
+	 * @param ctx
 	 */
-	private void writeResponse(ChannelHandlerContext e) {
+	private void writeResponse(ChannelHandlerContext ctx) {
 		// Convert the response content to a ByteBuf.
 		ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
 		responseContent.setLength(0);
@@ -746,7 +746,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 		}
 
 		// Write the response.
-		ChannelFuture future = e.channel().writeAndFlush(response);
+		ChannelFuture future = ctx.writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
@@ -776,7 +776,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		responseContent.setLength(0);
 		// Close the connection as soon as the error message is sent.
-		ctx.channel().writeAndFlush(response).addListener(
+		ctx.writeAndFlush(response).addListener(
 				ChannelFutureListener.CLOSE);
 	}
 

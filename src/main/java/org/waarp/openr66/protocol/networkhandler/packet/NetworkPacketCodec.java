@@ -23,6 +23,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.KeepAlivePacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
@@ -38,7 +39,7 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
-
+    
 	@Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
 		// Make sure if the length field was received.
@@ -52,6 +53,9 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
 		buf.markReaderIndex();
 		// Read the length field
 		final int length = buf.readInt();
+		if (length < 9) {
+		    throw new OpenR66ProtocolPacketException("Incorrect decode first field in Network Packet: "+length+" < 9");
+		}
 		if (buf.readableBytes() < length) {
 			buf.resetReaderIndex();
 			return;
@@ -62,6 +66,7 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
 		final byte code = buf.readByte();
 		int readerInder = buf.readerIndex();
 		ByteBuf buffer = buf.slice(readerInder, length - 9);
+		buffer.retain();
 		buf.skipBytes(length - 9);
 		NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
 		if (code == LocalPacketFactory.KEEPALIVEPACKET) {
@@ -91,6 +96,7 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
         final NetworkPacket packet = (NetworkPacket) msg;
         final ByteBuf finalBuf = packet.getNetworkPacket();
         out.writeBytes(finalBuf);
+        msg.getBuffer().release();
 	}
 
 }

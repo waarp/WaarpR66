@@ -28,12 +28,13 @@ import java.nio.charset.UnsupportedCharsetException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.FileUpload;
+
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -131,20 +132,20 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 	}
 
 	@Override
-	public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments,
+	public ChannelFuture sendResponse(HttpRestHandler handler, ChannelHandlerContext ctx, RestArgument arguments,
 			RestArgument result, Object body, HttpResponseStatus status) {
         String answer = result.toString();
         ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		HttpResponse response = handler.getResponse(buffer);
         response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.writeAndFlush(response);
+			ChannelFuture future = ctx.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
 		logger.debug("Will write: {}", body);
-		ChannelFuture future = channel.writeAndFlush(response);
+		ChannelFuture future = ctx.writeAndFlush(response);
 		if (handler.isWillClose()) {
 			System.err.println("Will close session in HttpRestAbstractR66Handler");
 			return future;

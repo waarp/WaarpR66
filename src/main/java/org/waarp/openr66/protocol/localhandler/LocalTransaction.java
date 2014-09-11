@@ -95,12 +95,7 @@ public class LocalTransaction {
 	    serverBootstrap.group(Configuration.configuration.getHandlerGroup());
 	    serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
 	    serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
-	    serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-	    serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
-	    serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
 	    serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
-	    serverBootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
-	    serverBootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
 		serverBootstrap.childHandler(new LocalServerInitializer());
 		try {
             serverChannel = serverBootstrap.bind(socketLocalServerAddress).sync().channel();
@@ -111,12 +106,7 @@ public class LocalTransaction {
 
 		clientBootstrap.channel(LocalChannel.class);
 		clientBootstrap.group(Configuration.configuration.getHandlerGroup());
-		clientBootstrap.option(ChannelOption.TCP_NODELAY, true);
-		clientBootstrap.option(ChannelOption.SO_REUSEADDR, true);
-		clientBootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 		clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
-		clientBootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
-		clientBootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
         clientBootstrap.handler(new LocalClientInitializer());
 	}
 

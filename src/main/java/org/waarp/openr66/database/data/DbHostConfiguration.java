@@ -78,7 +78,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
 	public static final int[] dbTypes = {
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-			Types.INTEGER, Types.VARCHAR };
+			Types.INTEGER, Types.NVARCHAR };
 
 	public static final String table = " HOSTCONFIG ";
 
@@ -1221,7 +1221,17 @@ public class DbHostConfiguration extends AbstractDbData {
 		DbHostConfiguration hostConfiguration;
 		try {
 			hostConfiguration = new DbHostConfiguration(dbSession, hostid);
+		} catch (WaarpDatabaseNoDataException e) {
+		    hostConfiguration = new DbHostConfiguration(dbSession, hostid, null, null, null, null);
+		    try {
+                hostConfiguration.insert();
+            } catch (WaarpDatabaseException e1) {
+                logger.debug("Not inserted?", e1);
+                // ignore and return
+                return;
+            }
 		} catch (WaarpDatabaseException e) {
+		    logger.debug("Not found?", e);
 			// ignore and return
 			return;
 		}
@@ -1241,6 +1251,7 @@ public class DbHostConfiguration extends AbstractDbData {
 		try {
 			hostConfiguration.update();
 		} catch (WaarpDatabaseException e) {
+            logger.debug("Not update?", e);
 			// ignore
 			return;
 		}
