@@ -86,6 +86,11 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			ChannelUtils.stopLogger();
 			System.exit(2);
 		}
+        if (! submit && dbrule.isRecvMode() && networkTransaction == null) {
+            logger.error(Messages.getString("Configuration.WrongInit")+" => -client argument is missing"); //$NON-NLS-1$
+            ChannelUtils.stopLogger();
+            System.exit(2);
+        }
 		List<String> files = null;
 		if (dbrule.isSendMode()) {
 			files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);

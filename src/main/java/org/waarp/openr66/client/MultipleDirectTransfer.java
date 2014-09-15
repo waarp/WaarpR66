@@ -95,7 +95,8 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						}
 					}
 				} else {
-					logger.error(Messages.getString("Transfer.6")+filename+ " to "+requested + ": "+ futureInfo.getCause().getMessage()); //$NON-NLS-1$
+					logger.error(Messages.getString("Transfer.6")+filename+ " to "+requested + ": "+ 
+					        (futureInfo.getCause() == null ? "" : futureInfo.getCause().getMessage())); //$NON-NLS-1$
 				}
 			}
 		}

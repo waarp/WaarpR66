@@ -78,6 +78,6 @@ public class HttpRestR66Initializer extends ChannelInitializer<SocketChannel> {
         }
         pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
         HttpRestR66Handler r66handler = new HttpRestR66Handler(restConfiguration);
-        pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler", r66handler);
+        pipeline.addLast(Configuration.configuration.getSubTaskGroup(), "handler", r66handler);
     }
 }
