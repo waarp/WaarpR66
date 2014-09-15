@@ -66,6 +66,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
     protected void addContent(FullHttpResponse response) throws HttpIncorrectRequestException {
     	ByteBuf content = response.content();
         if (content != null && content.isReadable()) {
+            content.retain();
             if (cumulativeBody != null) {
 				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
 			} else {
@@ -313,14 +314,15 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
             } else {
                 if (response instanceof FullHttpResponse) {
                     addContent((FullHttpResponse) response);
+                    actionFromResponse(ctx.channel());
                 }
-                actionFromResponse(ctx.channel());
             }
         } else {
             HttpContent chunk = (HttpContent) msg;
             if (chunk instanceof LastHttpContent) {
                 ByteBuf content = chunk.content();
                 if (content != null && content.isReadable()) {
+                    content.retain();
                     if (cumulativeBody != null) {
         				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
         			} else {
@@ -344,6 +346,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
             } else {
             	ByteBuf content = chunk.content();
                 if (content != null && content.isReadable()) {
+                    content.retain();
                     if (cumulativeBody != null) {
         				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
         			} else {

@@ -256,13 +256,6 @@ public class R66Session implements SessionInterface {
 			runner.clear();
 		}
 		*/
-		if (state != null) {
-			try {
-				state.setCurrent(R66FiniteDualStates.CLOSEDCHANNEL);
-			} catch (IllegalFiniteStateException e) {
-			}
-			// R66FiniteDualStates.endSessionMachineSate(state);
-		}
 		// No clean of file since it can be used after channel is closed
 		isReady = false;
 		if (businessObject != null) {

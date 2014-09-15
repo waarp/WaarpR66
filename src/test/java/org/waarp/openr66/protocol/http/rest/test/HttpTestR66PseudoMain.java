@@ -49,7 +49,7 @@ public class HttpTestR66PseudoMain {
     		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
 		}
         configuration.REST_AUTHENTICATED = true;
-        configuration.initializeKey(new File("J:/GG/R66/conf/key.sha256"));
+        configuration.initializeKey(new File("/opt/R66/certs/key.sha256"));
         configuration.REST_TIME_LIMIT = 10000;
         configuration.REST_SIGNATURE = true;
         configuration.REST_ADDRESS = "127.0.0.1";
@@ -77,7 +77,7 @@ public class HttpTestR66PseudoMain {
 		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpLogger logger = WaarpLoggerFactory
                 .getLogger(HttpTestR66PseudoMain.class);
-        String pathTemp = "J:/Temp/temp";
+        String pathTemp = "/tmp";
         if (!R66Server.initialize(args[0])) {
         	System.err.println("Error during startup");
         	System.exit(1);

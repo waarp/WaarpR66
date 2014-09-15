@@ -137,6 +137,9 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 						isAdmin = true;
 					}
 				}
+				if (isAdmin) {
+				    role.setRole(ROLE.FULLADMIN);
+				}
 			}
 			logger.debug(this.role.toString());
 			return true;

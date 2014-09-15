@@ -59,13 +59,13 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 					logger.info("Will NOT close the channel: " + rank);
 				} else {
 					logger.info("Continue: " + rank);
-				}
-				if (session.getLocalChannelReference() != null) {
-					try {
-						ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-								packet, true);
-					} catch (OpenR66ProtocolPacketException e) {
-					}
+    				if (session.getLocalChannelReference() != null) {
+    					try {
+    						ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
+    								packet, true);
+    					} catch (OpenR66ProtocolPacketException e) {
+    					}
+    				}
 				}
 				this.status = 0;
 				return;

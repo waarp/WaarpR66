@@ -97,6 +97,7 @@ public class HttpTestRestR66Client  implements Runnable {
     public static int NBPERTHREAD = 100;
     
     private static HttpRestR66Client clientHelper;
+    private static final String keydesfilename = "/opt/R66/certs/test-key.des";
 	private static final String baseURI = "/";
 	private static String host = "127.0.0.1";
     
@@ -158,7 +159,7 @@ public class HttpTestRestR66Client  implements Runnable {
         if (HttpTestR66PseudoMain.config.REST_ADDRESS != null) {
         	host = HttpTestR66PseudoMain.config.REST_ADDRESS;
         }
-        String filename = "J:/GG/R66/certs/test-key.des";
+        String filename = keydesfilename;
         Configuration.configuration.cryptoFile = filename;
 		File keyfile = new File(filename);
 		Des des = new Des();

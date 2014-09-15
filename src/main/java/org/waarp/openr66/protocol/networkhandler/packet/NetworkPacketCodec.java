@@ -96,7 +96,8 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
         final NetworkPacket packet = (NetworkPacket) msg;
         final ByteBuf finalBuf = packet.getNetworkPacket();
         out.writeBytes(finalBuf);
-        msg.getBuffer().release();
+        finalBuf.release();
+        //msg.getBuffer().release();
 	}
 
 }

@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.utils;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -189,13 +190,12 @@ public class ChannelUtils extends Thread {
 	 * To be used only with LocalChannel (NetworkChannel could be using SSL)
 	 * @param channel
 	 */
-	public final static void close(LocalChannel channel) {
-		try {
-			Thread.sleep(Configuration.WAITFORNETOP);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		channel.close();
+	public final static void close(final LocalChannel channel) {
+	    channel.eventLoop().schedule(new Runnable() {
+            public void run() {
+                channel.close();
+            }
+        }, Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 	}
 
 	/**

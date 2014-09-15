@@ -45,6 +45,7 @@ import io.netty.util.TimerTask;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.future.WaarpLock;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.lru.SynchronizedLruCache;
@@ -90,7 +91,7 @@ public class NetworkTransaction {
 	/**
 	 * To protect access to socketLocks when no address associated
 	 */
-	private static final ReentrantLock emptyLock = new ReentrantLock();
+	private static final WaarpLock emptyLock = new WaarpLock();
 	/**
 	 * Lock for Lock management operations
 	 */
@@ -98,13 +99,13 @@ public class NetworkTransaction {
 	/**
 	 * Hashmap for lock based on remote address 
 	 */
-	private static final SynchronizedLruCache<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = 
-			new SynchronizedLruCache<Integer, ReentrantLock>(20000, 180000);
+	private static final SynchronizedLruCache<Integer, WaarpLock> reentrantLockOnSocketAddressConcurrentHashMap = 
+			new SynchronizedLruCache<Integer, WaarpLock>(20000, 180000);
 	/**
 	 * Hashmap for lock based on remote string address 
 	 */
-	private static final SynchronizedLruCache<String, ReentrantLock> reentrantLockOnStringAddressConcurrentHashMap = 
-			new SynchronizedLruCache<String, ReentrantLock>(20000, 180000);
+	private static final SynchronizedLruCache<String, WaarpLock> reentrantLockOnStringAddressConcurrentHashMap = 
+			new SynchronizedLruCache<String, WaarpLock>(20000, 180000);
 	/**
 	 * Hashmap for Currently Shutdown remote host based on socketAddress.hashCode()
 	 */
@@ -183,16 +184,16 @@ public class NetworkTransaction {
 		return partial;
 	}
 	
-	private static final ReentrantLock getLockNCR(SocketAddress sa) {
+	private static final WaarpLock getLockNCR(SocketAddress sa) {
 		return reentrantLockOnSocketAddressConcurrentHashMap.get(sa.hashCode());
 	}
-	private static final void addLockNCR(SocketAddress sa, ReentrantLock lock) {
+	private static final void addLockNCR(SocketAddress sa, WaarpLock lock) {
 		reentrantLockOnSocketAddressConcurrentHashMap.put(sa.hashCode(), lock);
 	}
-	private static final ReentrantLock getLockCNC(String name) {
+	private static final WaarpLock getLockCNC(String name) {
 		return reentrantLockOnStringAddressConcurrentHashMap.get(name);
 	}
-	private static final void addLockCNC(String name, ReentrantLock lock) {
+	private static final void addLockCNC(String name, WaarpLock lock) {
 		reentrantLockOnStringAddressConcurrentHashMap.put(name, lock);
 	}
 	private static final void addNCR(NetworkChannelReference ncr) {
@@ -238,7 +239,7 @@ public class NetworkTransaction {
 		return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(((InetSocketAddress) sa).getAddress().getHostAddress().hashCode());
 	}
 	
-	private static final ReentrantLock getChannelLock(SocketAddress socketAddress) {
+	private static final WaarpLock getChannelLock(SocketAddress socketAddress) {
 		lockOfLock.lock();
 		try {
 			if (socketAddress == null) {
@@ -246,9 +247,9 @@ public class NetworkTransaction {
 				logger.info("SocketAddress empty here !");
 				return emptyLock;
 			}
-			ReentrantLock socketLock = getLockNCR(socketAddress);
+			WaarpLock socketLock = getLockNCR(socketAddress);
 			if (socketLock == null) {
-				socketLock = new ReentrantLock(true);
+				socketLock = new WaarpLock(true);
 			}
 			// update TTL
 			addLockNCR(socketAddress, socketLock);
@@ -266,7 +267,7 @@ public class NetworkTransaction {
 			lockOfLock.unlock();
 		}
 	}
-	private static final ReentrantLock getRequesterLock(String requester) {
+	private static final WaarpLock getRequesterLock(String requester) {
 		lockOfLock.lock();
 		try {
 			if (requester == null) {
@@ -274,9 +275,9 @@ public class NetworkTransaction {
 				logger.info("Requester empty here !");
 				return emptyLock;
 			}
-			ReentrantLock socketLock = getLockCNC(requester);
+			WaarpLock socketLock = getLockCNC(requester);
 			if (socketLock == null) {
-				socketLock = new ReentrantLock(true);
+				socketLock = new WaarpLock(true);
 			}
 			// update TTL
 			addLockCNC(requester, socketLock);
@@ -382,8 +383,10 @@ public class NetworkTransaction {
 						"Cannot connect to remote server due to local overload");
 			}
 		}
+		WaarpLock socketLock = getChannelLock(socketAddress);
 		try {
-			networkChannelReference = createNewConnection(socketAddress, isSSL);
+            socketLock.lock();
+            networkChannelReference = createNewConnection(socketAddress, isSSL);
 			try {
 				localChannelReference = Configuration.configuration
 						.getLocalTransaction().createNewClient(networkChannelReference,
@@ -394,6 +397,7 @@ public class NetworkTransaction {
 			}
 			ok = true;
 		} finally {
+		    socketLock.unlock();
 			if (!ok) {
 				if (networkChannelReference != null) {
 					checkClosingNetworkChannel(networkChannelReference, null);
@@ -429,84 +433,79 @@ public class NetworkTransaction {
 			throws OpenR66ProtocolNetworkException,
 			OpenR66ProtocolRemoteShutdownException,
 			OpenR66ProtocolNoConnectionException {
-		ReentrantLock socketLock = getChannelLock(socketServerAddress);
-		socketLock.lock();
-		try {
-			NetworkChannelReference networkChannelReference;
-			try {
-				networkChannelReference = getRemoteChannel(socketServerAddress);
-			} catch (OpenR66ProtocolNoDataException e1) {
-				networkChannelReference = null;
-			}
-			if (networkChannelReference != null) {
-				networkChannelReference.use();
-				logger.info("Already Connected: {}", networkChannelReference);
-				return networkChannelReference;
-			}
-			logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
-			ChannelFuture channelFuture = null;
-			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				if (R66ShutdownHook.isShutdownStarting()) {
-					throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
-				}
-				try {
-					if (isSSL) {
-						if (Configuration.configuration.HOST_SSLID != null) {
-							channelFuture = clientSslBootstrap.connect(socketServerAddress);
-						} else {
-							throw new OpenR66ProtocolNoConnectionException("No SSL support");
-						}
-					} else {
-						channelFuture = clientBootstrap.connect(socketServerAddress);
-					}
-				} catch (ChannelPipelineException e) {
-					throw new OpenR66ProtocolNoConnectionException(
-							"Cannot connect to remote server due to a channel exception");
-				}
-				try {
-					channelFuture.await();
-				} catch (InterruptedException e1) {
-				}
-				if (channelFuture.isSuccess()) {
-					final Channel channel = channelFuture.channel();
-					if (isSSL) {
-						if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
-							logger.debug("KO CONNECT since SSL handshake is over");
-							channel.close();
-							throw new OpenR66ProtocolNoConnectionException(
-									"Cannot finish connect to remote server");
-						}
-					}
-					networkChannelGroup.add(channel);
-					networkChannelReference = new NetworkChannelReference(channel, socketLock);
-					addNCR(networkChannelReference);
-					return networkChannelReference;
-				} else {
-					try {
-						Thread.sleep(Configuration.WAITFORNETOP);
-					} catch (InterruptedException e) {
-					}
-					if (!channelFuture.isDone()) {
-						throw new OpenR66ProtocolNoConnectionException(
-								"Cannot connect to remote server due to interruption");
-					}
-					if (channelFuture.cause() instanceof ConnectException) {
-						logger.debug("KO CONNECT:" +
-								channelFuture.cause().getMessage());
-						throw new OpenR66ProtocolNoConnectionException(
-								"Cannot connect to remote server", channelFuture
-										.cause());
-					} else {
-						logger.debug("KO CONNECT but retry", channelFuture
-								.cause());
-					}
-				}
-			}
-			throw new OpenR66ProtocolNetworkException(
-					"Cannot connect to remote server", channelFuture.cause());
-		} finally {
-			socketLock.unlock();
-		}
+	    WaarpLock socketLock = getChannelLock(socketServerAddress);
+        NetworkChannelReference networkChannelReference;
+        try {
+            networkChannelReference = getRemoteChannel(socketServerAddress);
+        } catch (OpenR66ProtocolNoDataException e1) {
+            networkChannelReference = null;
+        }
+        if (networkChannelReference != null) {
+            networkChannelReference.use();
+            logger.info("Already Connected: {}", networkChannelReference);
+            return networkChannelReference;
+        }
+        logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
+        ChannelFuture channelFuture = null;
+        for (int i = 0; i < Configuration.RETRYNB; i++) {
+            if (R66ShutdownHook.isShutdownStarting()) {
+                throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
+            }
+            try {
+                if (isSSL) {
+                    if (Configuration.configuration.HOST_SSLID != null) {
+                        channelFuture = clientSslBootstrap.connect(socketServerAddress);
+                    } else {
+                        throw new OpenR66ProtocolNoConnectionException("No SSL support");
+                    }
+                } else {
+                    channelFuture = clientBootstrap.connect(socketServerAddress);
+                }
+            } catch (ChannelPipelineException e) {
+                throw new OpenR66ProtocolNoConnectionException(
+                        "Cannot connect to remote server due to a channel exception");
+            }
+            try {
+                channelFuture.await();
+            } catch (InterruptedException e1) {
+            }
+            if (channelFuture.isSuccess()) {
+                final Channel channel = channelFuture.channel();
+                if (isSSL) {
+                    if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
+                        logger.debug("KO CONNECT since SSL handshake is over");
+                        channel.close();
+                        throw new OpenR66ProtocolNoConnectionException(
+                                "Cannot finish connect to remote server");
+                    }
+                }
+                networkChannelGroup.add(channel);
+                networkChannelReference = new NetworkChannelReference(channel, socketLock);
+                addNCR(networkChannelReference);
+                return networkChannelReference;
+            } else {
+                try {
+                    Thread.sleep(Configuration.WAITFORNETOP);
+                } catch (InterruptedException e) {
+                }
+                if (!channelFuture.isDone()) {
+                    throw new OpenR66ProtocolNoConnectionException(
+                            "Cannot connect to remote server due to interruption");
+                }
+                if (channelFuture.cause() instanceof ConnectException) {
+                    logger.debug("KO CONNECT:" +
+                            channelFuture.cause().getMessage());
+                    throw new OpenR66ProtocolNoConnectionException(
+                            "Cannot connect to remote server", channelFuture
+                                    .cause());
+                } else {
+                    logger.debug("KO CONNECT but retry", channelFuture
+                            .cause());
+                }
+            }
+        }
+        throw new OpenR66ProtocolNetworkException(
+                "Cannot connect to remote server", channelFuture.cause());
 	}
 
 	/**
@@ -522,9 +521,15 @@ public class NetworkTransaction {
 	public static LocalChannelReference createConnectionFromNetworkChannelStartup(NetworkChannelReference networkChannelReference,
 			NetworkPacket packet)
 			throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException, OpenR66ProtocolNoConnectionException {
-		return Configuration.configuration
-				.getLocalTransaction().createNewClient(networkChannelReference,
-						packet.getRemoteId(), null);
+	    WaarpLock lock = networkChannelReference.getLock();
+        try {
+            lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+    		return Configuration.configuration
+    				.getLocalTransaction().createNewClient(networkChannelReference,
+    						packet.getRemoteId(), null);
+        } finally {
+            lock.unlock();
+        }
 	}
 
 	/**
@@ -625,8 +630,8 @@ public class NetworkTransaction {
 	public static NetworkChannelReference addNetworkChannel(Channel channel)
 			throws OpenR66ProtocolRemoteShutdownException {
 		SocketAddress socketAddress = channel.remoteAddress();
-		ReentrantLock socketLock = getChannelLock(socketAddress);
-		socketLock.lock();
+		WaarpLock socketLock = getChannelLock(socketAddress);
+        socketLock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			NetworkChannelReference nc = null;
 			try {
@@ -640,7 +645,7 @@ public class NetworkTransaction {
 			}
 			return nc;
 		} finally {
-			socketLock.unlock();
+            socketLock.unlock();
 		}
 	}
 	
@@ -649,8 +654,8 @@ public class NetworkTransaction {
 	 * @param socketAddress
 	 */
 	public static void proposeShutdownNetworkChannel(SocketAddress socketAddress) {
-		ReentrantLock lock = getChannelLock(socketAddress);
-		lock.lock();
+	    WaarpLock lock = getChannelLock(socketAddress);
+        lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			logger.info("Seem Shutdown: {}", socketAddress);
 			if (containsShutdownNCR(socketAddress)) {
@@ -680,7 +685,7 @@ public class NetworkTransaction {
 				// ignore
 			}
 		} finally {
-			lock.unlock();
+            lock.unlock();
 		}
 	}
 
@@ -718,11 +723,11 @@ public class NetworkTransaction {
 	 * @param networkChannelReference
 	 */
 	public static void shuttingDownNetworkChannel(NetworkChannelReference networkChannelReference) {
-		networkChannelReference.lock.lock();
+        networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			shuttingDownNetworkChannelInternal(networkChannelReference);
 		} finally {
-			networkChannelReference.lock.unlock();
+	        networkChannelReference.lock.unlock();
 		}
 	}
 
@@ -732,7 +737,7 @@ public class NetworkTransaction {
 	 * @return True if this channel is now blacklisted for a while
 	 */
 	public static boolean shuttingDownNetworkChannelBlackList(NetworkChannelReference networkChannelReference) {
-		networkChannelReference.lock.lock();
+        networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			shuttingDownNetworkChannelInternal(networkChannelReference);
 			if (! Configuration.configuration.blacklistBadAuthent) {
@@ -752,7 +757,7 @@ public class NetworkTransaction {
 			}
 			return true;
 		} finally {
-			networkChannelReference.lock.unlock();
+            networkChannelReference.lock.unlock();
 		}
 	}
 	/**
@@ -789,8 +794,8 @@ public class NetworkTransaction {
 			return false;
 		}
 		ClientNetworkChannels clientNetworkChannels = null;
-		ReentrantLock lock = getRequesterLock(requester);
-		lock.lock();
+		WaarpLock lock = getRequesterLock(requester);
+        lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
 			logger.info("AddClient: shutdown previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
@@ -798,7 +803,7 @@ public class NetworkTransaction {
 				return clientNetworkChannels.shutdownAllNetworkChannels();
 			}
 		} finally {
-			lock.unlock();
+	        lock.unlock();
 			removeRequesterLock();
 		}
 		return false;
@@ -812,8 +817,8 @@ public class NetworkTransaction {
 	 */
 	public static void addClient(NetworkChannelReference networkChannelReference, String requester) {
 		if (networkChannelReference != null && requester != null) {
-			ReentrantLock lock = getRequesterLock(requester);
-			lock.lock();
+		    WaarpLock lock = getRequesterLock(requester);
+            lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 			try {
 				ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
 				if (clientNetworkChannels == null) {
@@ -823,15 +828,15 @@ public class NetworkTransaction {
 				logger.debug("AddClient: add count? "+clientNetworkChannels.size() + " for "+requester);
 				clientNetworkChannels.add(networkChannelReference);
 			} finally {
-				lock.unlock();
+                lock.unlock();
 			}
 		}
 	}
 	
 	private static void removeClient(NetworkChannelReference networkChannelReference, String requester, ClientNetworkChannels clientNetworkChannels) {
 		if (networkChannelReference != null && clientNetworkChannels != null && requester != null) {
-			ReentrantLock lock = getRequesterLock(requester);
-			lock.lock();
+		    WaarpLock lock = getRequesterLock(requester);
+            lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 			try {
 				clientNetworkChannels.remove(networkChannelReference);
 				logger.debug("removeClient: remove for :"+requester+ " still "+clientNetworkChannels.size());
@@ -839,7 +844,7 @@ public class NetworkTransaction {
 					clientNetworkChannelsPerHostId.remove(requester);
 				}
 			} finally {
-				lock.unlock();
+                lock.unlock();
 			}
 		}
 	}
@@ -865,7 +870,7 @@ public class NetworkTransaction {
 		if (networkChannelReference == null) {
 			return;
 		}
-		networkChannelReference.lock.lock();
+        networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			if (! networkChannelReference.isShuttingDown) {
 				networkChannelReference.shutdownAllLocalChannels();
@@ -883,7 +888,7 @@ public class NetworkTransaction {
 				}
 			}
 		} finally {
-			networkChannelReference.lock.unlock();
+            networkChannelReference.lock.unlock();
 			removeChannelLock();
 		}
 	}
@@ -927,7 +932,7 @@ public class NetworkTransaction {
 		}
 
 		public void run(Timeout timeout) throws Exception {
-			networkChannelReference.lock.lock();
+	        networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 			try {
 				logger.debug("NC count: {}", networkChannelReference);
 				if (networkChannelReference.nbLocalChannels() <= 0) {
@@ -946,7 +951,7 @@ public class NetworkTransaction {
 				}
 				inCloseRunning.remove(networkChannelReference.channel.id());
 			} finally {
-				networkChannelReference.lock.unlock();
+		        networkChannelReference.lock.unlock();
 			}
 		}
 
@@ -960,7 +965,7 @@ public class NetworkTransaction {
 	 */
 	public static int checkClosingNetworkChannel(NetworkChannelReference networkChannelReference, 
 			LocalChannelReference localChannelReference) {
-		networkChannelReference.lock.lock();
+        networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			logger.debug("Close con: " + networkChannelReference);
 			if (localChannelReference != null) {
@@ -980,7 +985,7 @@ public class NetworkTransaction {
 			logger.debug("NC left: {}", networkChannelReference);
 			return count;
 		} finally {
-			networkChannelReference.lock.unlock();
+            networkChannelReference.lock.unlock();
 		}
 	}
 

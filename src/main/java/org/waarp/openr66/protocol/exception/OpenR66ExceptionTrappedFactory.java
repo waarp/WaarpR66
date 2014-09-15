@@ -63,9 +63,7 @@ public class OpenR66ExceptionTrappedFactory {
 					"Connection impossible", e2);
 		} else if (e1 instanceof ChannelException) {
 			final ChannelException e2 = (ChannelException) e1;
-			logger
-					.info(
-							"Connection (example: timeout) impossible since {} with Channel {}",
+			logger.info("Connection (example: timeout) impossible since {} with Channel {}",
 							e2.getMessage(), channel);
 			return new OpenR66ProtocolNetworkException(
 					"Connection (example: timeout) impossible", e2);
@@ -79,6 +77,10 @@ public class OpenR66ExceptionTrappedFactory {
 			logger.debug("Connection closed before end");
 			return new OpenR66ProtocolBusinessNoWriteBackException(
 					"Connection closed before end", e1);
+        } else if (e1 instanceof IllegalMonitorStateException) {
+            logger.debug("Try to release a lock incorrectly", e1);
+            return new OpenR66ProtocolBusinessNoWriteBackException(
+                    "Ignored exception", e1);
 		} else if (e1 instanceof OpenR66ProtocolBusinessCancelException) {
 			final OpenR66ProtocolBusinessCancelException e2 = (OpenR66ProtocolBusinessCancelException) e1;
 			logger.debug("Request is canceled: {}", e2.getMessage());

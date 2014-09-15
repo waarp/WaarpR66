@@ -569,11 +569,11 @@ public class Configuration {
 		computeNbThreads();
 		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
         bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss"));
-        workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
-        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Handler"));
+        workerGroup = new NioEventLoopGroup(CLIENT_THREAD*2, new WaarpThreadFactory("Worker"));
+        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD*10, new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
-        httpBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpBoss"));
-        httpWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("HttpWorker"));
+        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
+        httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD*10, new WaarpThreadFactory("HttpWorker"));
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
 		if (! SystemPropertyUtil.isFileEncodingCorrect()) {
@@ -697,7 +697,7 @@ public class Configuration {
 		// add into configuration
 		this.constraintLimitHandler.setServer(true);
 		// Global Server
-		serverChannelGroup = new DefaultChannelGroup("OpenR66", handlerGroup.next());
+		serverChannelGroup = new DefaultChannelGroup("OpenR66", subTaskGroup.next());
 		if (useNOSSL) {
             serverBootstrap = new ServerBootstrap();
 		    WaarpNettyUtil.setServerBootstrap(serverBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
@@ -752,7 +752,7 @@ public class Configuration {
 		// Now start the HTTP support
 		logger.info(Messages.getString("Configuration.HTTPStart") + SERVER_HTTPPORT +  //$NON-NLS-1$
 				" HTTPS: " + SERVER_HTTPSPORT);
-		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66", handlerGroup.next());
+		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66", subTaskGroup.next());
 		// Configure the server.
 		httpBootstrap = new ServerBootstrap();
 		WaarpNettyUtil.setServerBootstrap(httpBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);

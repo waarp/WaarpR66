@@ -21,9 +21,13 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.Channel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+
+import org.waarp.common.future.WaarpLock;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -54,8 +58,12 @@ public class NetworkChannelReference {
 	/**
 	 * Associated LocalChannelReference
 	 */
-	private ConcurrentLinkedQueue<LocalChannelReference> localChannelReferences =
+	private final ConcurrentLinkedQueue<LocalChannelReference> localChannelReferences =
 			new ConcurrentLinkedQueue<LocalChannelReference>();
+	/**
+	 * Group for all Local Channels
+	 */
+	private final ChannelGroup localChannels;
 	/**
 	 * Network Channel
 	 */
@@ -79,24 +87,26 @@ public class NetworkChannelReference {
 	/**
 	 * Associated lock
 	 */
-	protected final ReentrantLock lock;
+	protected final WaarpLock lock;
 	/**
 	 * Last Time in ms this channel was used by a LocalChannel
 	 */
 	private long lastTimeUsed = System.currentTimeMillis();
 
-	public NetworkChannelReference(Channel networkChannel, ReentrantLock lock) {
+	public NetworkChannelReference(Channel networkChannel, WaarpLock lock) {
 		this.channel = networkChannel;
 		this.networkAddress = channel.remoteAddress();
 		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
 		this.lock = lock;
+        localChannels = new DefaultChannelGroup(Configuration.configuration.getSubTaskGroup().next());
 	}
 	
-	public NetworkChannelReference(SocketAddress address, ReentrantLock lock) {
+	public NetworkChannelReference(SocketAddress address, WaarpLock lock) {
 		this.channel = null;
 		this.networkAddress = address;
 		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
 		this.lock = lock;
+		localChannels = new DefaultChannelGroup(Configuration.configuration.getSubTaskGroup().next());
 	}
 
 	public void add(LocalChannelReference localChannel)
@@ -107,6 +117,7 @@ public class NetworkChannelReference {
 		}
 		use();
 		localChannelReferences.add(localChannel);
+		localChannels.add(localChannel.getLocalChannel());
 	}
 	
 	/**
@@ -134,7 +145,7 @@ public class NetworkChannelReference {
 	 * @param localChannel
 	 */
 	public void remove(LocalChannelReference localChannel) {
-		lock.lock();
+        lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 		try {
 			if (localChannel.getLocalChannel().isActive()) {
 			    localChannel.getLocalChannel().close();
@@ -142,7 +153,7 @@ public class NetworkChannelReference {
 			localChannelReferences.remove(localChannel);
 			//Do not since it prevents shutdown: lastTimeUsed = System.currentTimeMillis();
 		} finally {
-			lock.unlock();
+            lock.unlock();
 		}
 	}
 
@@ -268,7 +279,7 @@ public class NetworkChannelReference {
 	/**
 	 * @return the lock
 	 */
-	public ReentrantLock getLock() {
+	public WaarpLock getLock() {
 		return lock;
 	}
 

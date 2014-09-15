@@ -83,7 +83,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		for (int i = 0; i < nb; i++) {
 			arrayFuture[i] = new R66Future(true);
 			BusinessRequestPacket packet = new BusinessRequestPacket(
-					TestExecJavaTask.class.getName() + " business 0 other arguments", 0);
+					TestExecJavaTask.class.getName() + " business 0 simple business request", 0);
 			TestBusinessRequest transaction = new TestBusinessRequest(
 					networkTransaction, arrayFuture[i], host.getHostid(),
 					packet);
@@ -122,7 +122,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		future = new R66Future(true);
 		classname = BusinessRequest.DEFAULT_CLASS;
 		packet =
-				new BusinessRequestPacket(classname + " EXECJAVA "+TestExecJavaTask.class.getName()+" business 0 other arguments 0", 0);
+				new BusinessRequestPacket(classname + " EXECJAVA "+TestExecJavaTask.class.getName()+" business 0 execjava business request 0", 0);
 		transaction = new BusinessRequest(
 				networkTransaction, future, host.getHostid(), packet);
 		transaction.run();
