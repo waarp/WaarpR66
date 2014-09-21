@@ -15,12 +15,24 @@
  */
 package org.jboss.netty.handler.traffic;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.jboss.netty.channel.ChannelHandler.Sharable;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.util.ObjectSizeEstimator;
+import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
+import org.jboss.netty.util.TimerTask;
+
 
 /**
  * This implementation of the {@link AbstractTrafficShapingHandler} is for global
@@ -61,6 +73,8 @@ import org.jboss.netty.util.Timer;
  */
 @Sharable
 public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
+    private Map<Integer, List<ToSend>> messagesQueues = new HashMap<Integer, List<ToSend>>();
+
     /**
      * Create the global TrafficCounter
      */
@@ -136,4 +150,75 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
         createGlobalTrafficCounter();
     }
 
+    private static final class ToSend {
+        final long date;
+        final MessageEvent toSend;
+
+        private ToSend(final long delay, final MessageEvent toSend) {
+            this.date = System.currentTimeMillis() + delay;
+            this.toSend = toSend;
+        }
+    }
+
+    @Override
+    protected synchronized void submitWrite(final ChannelHandlerContext ctx, final MessageEvent evt, final long delay)
+            throws Exception {
+        Integer key = ctx.getChannel().getId();
+        List<ToSend> messagesQueue = messagesQueues.get(key);
+        if (delay == 0 && (messagesQueue == null || messagesQueue.isEmpty())) {
+            internalSubmitWrite(ctx, evt);
+            return;
+        }
+        if (timer == null) {
+            // Sleep since no executor
+            Thread.sleep(delay);
+            internalSubmitWrite(ctx, evt);
+            return;
+        }
+        if (messagesQueue == null) {
+            messagesQueue = new LinkedList<ToSend>();
+            messagesQueues.put(key, messagesQueue);
+        }
+        final ToSend newToSend = new ToSend(delay, evt);
+        messagesQueue.add(newToSend);
+        final List<ToSend> mqfinal = messagesQueue;
+        timer.newTimeout(new TimerTask() {
+            public void run(Timeout timeout) throws Exception {
+                sendAllValid(ctx, mqfinal);
+            }
+        }, delay + 1, TimeUnit.MILLISECONDS);
+    }
+
+    private synchronized void sendAllValid(ChannelHandlerContext ctx, final List<ToSend> messagesQueue)
+            throws Exception {
+        while (!messagesQueue.isEmpty()) {
+            ToSend newToSend = messagesQueue.remove(0);
+            if (newToSend.date <= System.currentTimeMillis()) {
+                internalSubmitWrite(ctx, newToSend.toSend);
+            } else {
+                messagesQueue.add(0, newToSend);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
+            throws Exception {
+        Integer key = ctx.getChannel().getId();
+        List<ToSend> messagesQueue = new LinkedList<ToSend>();
+        messagesQueues.put(key, messagesQueue);
+        super.channelConnected(ctx, e);
+    }
+
+    @Override
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
+            throws Exception {
+        Integer key = ctx.getChannel().hashCode();
+        List<ToSend> mq = messagesQueues.remove(key);
+        if (mq != null) {
+            mq.clear();
+        }
+        super.channelClosed(ctx, e);
+    }
 }

@@ -196,6 +196,8 @@
   	"filtre18": "Alias pour les noms des partenaires. Le format est comme suit:",
   	"filtre19": "Autres informations:",
   	"filtre20": "Autre information (comme la version courrante ). Ne modifiez pas manuellement sauf si vous savez ce que vous faites.",
+  	"filtre21": "Délai du limiteur de bande passante (ms):",
+  	"filtre22": "Délai du limiteur de bande passante entre deux vérifications en ms. Doit être supérieur à 100ms.",
   	"text2": "Exportation de la configuration dans le répertoire d'archive",
   	"text3": "Vous pouvez exporter les règles et authentifications dans le répertoire d'archive en cliquant sur le bouton.",
   	"text4": "Déconnecter l'administrateur OpenR66",

@@ -136,7 +136,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
-		Channel netChannel = e.getChannel();
+		Channel netChannel = ctx.getChannel();
 		this.remoteAddress = netChannel.getRemoteAddress();
 		logger.debug("Will the Connection be refused if Partner is BlackListed from "+remoteAddress.toString());
 		if (NetworkTransaction.isBlacklisted(netChannel)) {

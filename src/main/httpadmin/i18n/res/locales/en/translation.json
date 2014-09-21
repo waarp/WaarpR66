@@ -196,6 +196,8 @@
   	"filtre18": "Aliases for partner's names. The format is as:",
   	"filtre19": "Other informations:",
   	"filtre20": "Other information (as current version). Should not be modified manually except if you know what you are doing.",
+  	"filtre21": "Delay for Traffic Shaping (ms):",
+  	"filtre22": "Delay for Traffic Shaping between two checks in ms. Must be greater than 100ms.",
   	"text2": "Export config in archive directory",
   	"text3": "You can export rules and authentications to archive directory by clicking on this button.",
   	"text4": "Disconnect from OpenR66 administrator",

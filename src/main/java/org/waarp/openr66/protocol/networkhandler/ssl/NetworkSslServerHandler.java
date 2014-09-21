@@ -95,14 +95,16 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		logger.debug("Add channel to ssl");
 		WaarpSslUtility.addSslOpenedChannel(channel);
 		isSSL = true;
+		logger.debug("Added channel to ssl");
 		super.channelOpen(ctx, e);
 	}
 
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
+		logger.debug("Channel connected");
 		// Check first if allowed
-		Channel networkChannel = e.getChannel();
+		Channel networkChannel = ctx.getChannel();
 		if (NetworkTransaction.isBlacklisted(networkChannel)) {
 			logger.warn("Connection refused since Partner is in BlackListed from "+networkChannel.getRemoteAddress().toString());
 			isBlackListed = true;
@@ -117,6 +119,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		final ChannelHandler handler = ctx.getPipeline().getFirst();
 		if (handler instanceof SslHandler) {
 			final SslHandler sslHandler = (SslHandler) handler;
+			logger.debug("SslHandler found");
 			if (sslHandler.isIssueHandshake()) {
 				// client side
 				WaarpSslUtility.setStatusSslConnectedChannel(ctx.getChannel(), true);
@@ -128,7 +131,8 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 					Configuration.configuration.r66Mib.notifyError(
 							"SSL Connection Error", "During Handshake");
 				}
-			}				
+			}
+			logger.debug("Ssl done for channel");
 		} else {
 			logger.error("SSL Not found");
 		}

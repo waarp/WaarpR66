@@ -423,6 +423,11 @@ public class FileBasedConfiguration {
 	private static final String XML_DBPASSWD = "dbpasswd";
 
 	/**
+	 * Database Checking
+	 */
+	private static final String XML_DBCHECK = "dbcheck";
+
+	/**
 	 * Check version in protocol
 	 */
 	private static final String XML_CHECKVERSION = "checkversion";
@@ -552,6 +557,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_DBSERVER),
 			new XmlDecl(XmlType.STRING, XML_DBUSER),
 			new XmlDecl(XmlType.STRING, XML_DBPASSWD),
+			new XmlDecl(XmlType.BOOLEAN, XML_DBCHECK),
 			new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB)
 	};
 
@@ -1701,6 +1707,10 @@ public class FileBasedConfiguration {
 					dbpasswd.isEmpty()) {
 				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Correct DB data"); //$NON-NLS-1$
 				return false;
+			}
+			value = hashConfig.get(XML_DBCHECK);
+			if (value != null && (!value.isEmpty())) {
+				checkDatabase = value.getBoolean();
 			}
 			try {
 				DbConstant.admin =
