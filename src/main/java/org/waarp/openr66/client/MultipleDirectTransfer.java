@@ -20,6 +20,8 @@ package org.waarp.openr66.client;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.command.exception.CommandAbstractException;
@@ -90,9 +92,18 @@ public class MultipleDirectTransfer extends DirectTransfer {
 					if (valid != null) {
 						String line = valid.getSheader();
 						String []lines = line.split("\n");
+
+						String patternStr = filename.replace(".", "\\.").replace("?", ".").replace("*", ".*?");
+						Pattern pattern = Pattern.compile(patternStr);
+
 						for (String string : lines) {
-							File tmpFile = new File(string);
-							files.add(tmpFile.getName());
+							Matcher matcher = pattern.matcher(string);
+							if (matcher.find()) {
+								files.add(matcher.group(0));
+							} else {
+								logger.warning(Messages.getString("Transfer.7") + filename);
+							}
+
 						}
 					}
 				} else {
