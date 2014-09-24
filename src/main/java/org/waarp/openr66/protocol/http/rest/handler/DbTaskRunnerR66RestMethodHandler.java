@@ -88,7 +88,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			JsonNode node = RestArgument.getId(arg);
 			long id;
@@ -112,7 +112,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			return new DbTaskRunner(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
@@ -125,7 +125,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			RestArgument arguments, RestArgument result, Object body)
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		int limit = arg.path(FILTER_ARGS.LIMIT.name()).asInt(0);
 		boolean orderBySpecialId = arg.path(FILTER_ARGS.ORDERBYID.name()).asBoolean(false);
 		JsonNode node = arg.path(FILTER_ARGS.STARTID.name());

@@ -108,7 +108,7 @@ public class OutputFormat extends JsonHandler {
 	public void setValue(Map<String, Object> values) {
 		String json = writeAsString(values);
 		ObjectNode temp = getFromString(json);
-		node.putAll(temp);
+		node.setAll(temp);
 	}
 
 	/**
@@ -118,14 +118,14 @@ public class OutputFormat extends JsonHandler {
 	public void setValueString(Map<String, String> values) {
 		String json = writeAsString(values);
 		ObjectNode temp = getFromString(json);
-		node.putAll(temp);
+		node.setAll(temp);
 	}
 	/**
 	 * 
 	 * @param node
 	 */
 	public void setValueString(ObjectNode node) {
-		node.putAll(node);
+		node.setAll(node);
 	}
 
 	/**
