@@ -45,7 +45,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 	}
 
 	public static final int[] dbTypes = {
-			Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR };
+			Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.NVARCHAR };
 
 	public static final String table = " MULTIPLEMONITOR ";
 

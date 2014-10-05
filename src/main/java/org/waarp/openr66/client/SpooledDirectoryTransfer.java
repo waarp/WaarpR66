@@ -360,9 +360,14 @@ public class SpooledDirectoryTransfer implements Runnable {
 								if (! future.isSuccess()) {
 									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
 								} else {
-									status = (String) future.getResult().other;
-									if (status.equalsIgnoreCase(NEEDFULL)) {
+									R66Result result = future.getResult();
+									if (result == null) {
 										monitorArg.setNextAsFullStatus();
+									} else {
+										status = (String) result.other;
+										if (status == null || status.equalsIgnoreCase(NEEDFULL)) {
+											monitorArg.setNextAsFullStatus();
+										}
 									}
 									logger.debug("Inform back Waarp hosts over for: "+host);
 								}

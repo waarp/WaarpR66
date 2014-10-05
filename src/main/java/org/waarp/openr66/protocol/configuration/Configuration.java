@@ -37,6 +37,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -355,7 +356,7 @@ public class Configuration {
 	/**
 	 * Delay in ms between two checks
 	 */
-	public long delayLimit = 10000;
+	public long delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
 
 	/**
 	 * Does this OpenR66 server will use and accept SSL connections
@@ -849,7 +850,9 @@ public class Configuration {
 		httpBootstrap.setOption("reuseAddress", true);
 		httpBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 		// Bind and start to accept incoming connections.
-		httpChannelGroup.add(httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)));
+		if (SERVER_HTTPPORT > 0) {
+			httpChannelGroup.add(httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)));
+		}
 
 		// Now start the HTTPS support
 		// Configure the server.
@@ -870,7 +873,9 @@ public class Configuration {
 		httpsBootstrap.setOption("reuseAddress", true);
 		httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 		// Bind and start to accept incoming connections.
-		httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
+		if (SERVER_HTTPSPORT > 0) {
+			httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
+		}
 	}
 	
 	public void startRestSupport() {
