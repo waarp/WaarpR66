@@ -92,7 +92,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						String []lines = line.split("\n");
 						for (String string : lines) {
 							File tmpFile = new File(string);
-							files.add(tmpFile.getName());
+							files.add(tmpFile.getPath());
 						}
 					}
 				} else {

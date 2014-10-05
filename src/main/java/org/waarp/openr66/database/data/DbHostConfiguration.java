@@ -78,7 +78,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
 	public static final int[] dbTypes = {
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-			Types.INTEGER, Types.VARCHAR };
+			Types.INTEGER, Types.NVARCHAR };
 
 	public static final String table = " HOSTCONFIG ";
 

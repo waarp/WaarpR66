@@ -223,7 +223,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXHOSTIDXXX, XXXADMINXXX, XXXVERSIONXXX, XXXBANDWIDTHXXX,
 		XXXXSESSIONLIMITRXXX, XXXXSESSIONLIMITWXXX,
 		XXXXCHANNELLIMITRXXX, XXXXCHANNELLIMITWXXX,
-		XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
+		XXXXDELAYTRAFFICXXX, XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
 		XXXLOCALXXX, XXXNETWORKXXX,
 		XXXERRORMESGXXX,
 		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX, XXXLIMITROWXXX, 
@@ -1600,6 +1600,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				Long.toString(Configuration.configuration.serverChannelWriteLimit));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverChannelReadLimit));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYTRAFFICXXX.toString(),
+				Long.toString(Configuration.configuration.delayLimit));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
 				Long.toString(Configuration.configuration.delayCommander));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
@@ -1757,6 +1759,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     long lglobalr;
 					long lsessionw;
 					long lglobalw;
+					long delay;
 					try {
 						if (bsessionr != null) {
 							lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
@@ -1776,9 +1779,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						if (bglobalw != null) {
 							lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
 						}
+						String dtra = getTrimValue("DTRA");
+						delay = Configuration.configuration.delayLimit;
+						if (dtra != null) {
+							delay = (Long.parseLong(dtra) / 10) * 10;
+							if (delay < 100) {
+								delay = 100;
+							}
+						}
 						Configuration.configuration.changeNetworkLimit(
 								lglobalw, lglobalr, lsessionw, lsessionr,
-								Configuration.configuration.delayLimit);
+								delay);
 						String dcomm = getTrimValue("DCOM");
 						if (dcomm != null) {
 							Configuration.configuration.delayCommander = Long.parseLong(dcomm);

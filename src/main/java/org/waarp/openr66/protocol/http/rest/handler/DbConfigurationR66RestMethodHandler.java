@@ -74,7 +74,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			JsonNode node = RestArgument.getId(arg);
 			String id;
@@ -95,7 +95,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		try {
 			return new DbConfiguration(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
@@ -108,7 +108,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
 			RestArgument arguments, RestArgument result, Object body)
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.putAll(arguments.getBody());
+		arg.setAll(arguments.getBody());
 		String host = arg.path(FILTER_ARGS.HOSTID.name()).asText();
 		if (host == null || host.isEmpty()) {
 			host = null;

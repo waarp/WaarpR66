@@ -15,14 +15,21 @@
  */
 package org.jboss.netty.handler.traffic;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.util.ObjectSizeEstimator;
+import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
+import org.jboss.netty.util.TimerTask;
 
 /**
  * This implementation of the {@link AbstractTrafficShapingHandler} is for channel
@@ -60,6 +67,9 @@ import org.jboss.netty.util.Timer;
  * </ul><br>
  */
 public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler {
+    private List<ToSend> messagesQueue = new LinkedList<ToSend>();
+    private long queueSize;
+    private volatile Timeout writeTimeout;
 
     public ChannelTrafficShapingHandler(Timer timer, long writeLimit,
             long readLimit, long checkInterval) {
@@ -115,11 +125,75 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
         super(objectSizeEstimator, timer);
     }
 
+    private static final class ToSend {
+        final long date;
+        final MessageEvent toSend;
+
+        private ToSend(final long delay, final MessageEvent toSend) {
+            this.date = System.currentTimeMillis() + delay;
+            this.toSend = toSend;
+        }
+    }
+
+    @Override
+    protected synchronized void submitWrite(final ChannelHandlerContext ctx, final MessageEvent evt, final long size,
+            final long delay) throws Exception {
+        if (delay == 0 && messagesQueue.isEmpty()) {
+            trafficCounter.bytesRealWriteFlowControl(size);
+            internalSubmitWrite(ctx, evt);
+            return;
+        }
+        if (timer == null) {
+            // Sleep since no executor
+            Thread.sleep(delay);
+            trafficCounter.bytesRealWriteFlowControl(size);
+            internalSubmitWrite(ctx, evt);
+            return;
+        }
+        final ToSend newToSend = new ToSend(delay, evt);
+        messagesQueue.add(newToSend);
+        queueSize += size;
+        checkWriteSuspend(ctx, delay, queueSize);
+        writeTimeout = timer.newTimeout(new TimerTask() {
+            public void run(Timeout timeout) throws Exception {
+                sendAllValid(ctx);
+            }
+        }, delay + 1, TimeUnit.MILLISECONDS);
+    }
+
+    private synchronized void sendAllValid(ChannelHandlerContext ctx) throws Exception {
+        while (!messagesQueue.isEmpty()) {
+            ToSend newToSend = messagesQueue.remove(0);
+            if (newToSend.date <= System.currentTimeMillis()) {
+                long size = calculateSize(newToSend.toSend.getMessage());
+                trafficCounter.bytesRealWriteFlowControl(size);
+                queueSize -= size;
+                internalSubmitWrite(ctx, newToSend.toSend);
+            } else {
+                messagesQueue.add(0, newToSend);
+                break;
+            }
+        }
+        if (messagesQueue.isEmpty()) {
+            releaseWriteSuspended(ctx);
+        }
+    }
+    /**
+    *
+    * @return current size in bytes of the write buffer
+    */
+   public long queueSize() {
+       return queueSize;
+   }
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         if (trafficCounter != null) {
             trafficCounter.stop();
+        }
+        messagesQueue.clear();
+        if (writeTimeout != null) {
+            writeTimeout.cancel();
         }
         super.channelClosed(ctx, e);
     }
@@ -128,7 +202,8 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         // readSuspended = true;
-        ctx.setAttachment(Boolean.TRUE);
+        ReadWriteStatus rws = checkAttachment(ctx);
+        rws.readSuspend = true;
         ctx.getChannel().setReadable(false);
         if (trafficCounter == null) {
             // create a new counter now
@@ -140,10 +215,9 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
         if (trafficCounter != null) {
             trafficCounter.start();
         }
-        super.channelConnected(ctx, e);
-        // readSuspended = false;
-        ctx.setAttachment(null);
+        rws.readSuspend = false;
         ctx.getChannel().setReadable(true);
+        super.channelConnected(ctx, e);
     }
 
 }
