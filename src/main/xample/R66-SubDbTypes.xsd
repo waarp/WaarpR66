@@ -74,6 +74,18 @@ Database User's Password
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element
+                name="dbcheck"
+                type="booleanType" minOccurs="0" default="True">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Database check enabling at startup" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Database check enabling at startup
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

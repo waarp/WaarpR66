@@ -56,6 +56,7 @@
 <MENU_INSERTION nom="dbserver"/>
 <MENU_INSERTION nom="dbuser"/>
 <MENU_INSERTION nom="dbpasswd"/>
+<MENU_INSERTION nom="dbcheck"/>
 <MENU_INSERTION nom="businessids"/>
 <MENU_INSERTION nom="alias"/>
 <MENU_INSERTION nom="realid"/>
@@ -146,6 +147,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="dbserver"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="dbuser"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="dbpasswd"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="dbcheck"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="businessids"/>
 <AFFICHAGE_ELEMENT type="zone" element="alias"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="realid"/>
@@ -480,6 +482,12 @@ Database User
 <TITRE>dbpasswd</TITRE>
 <DOCUMENTATION>
 Database User's Password
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="dbcheck">
+<TITRE>dbcheck</TITRE>
+<DOCUMENTATION>
+Database check enabling at startup
                     </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="businessids">
