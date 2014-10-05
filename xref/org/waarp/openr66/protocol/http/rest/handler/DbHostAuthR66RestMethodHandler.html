@@ -87,7 +87,7 @@
 <a class="jxr_linenumber" name="77" href="#77">77</a>  			RestArgument result, Object body) <strong class="jxr_keyword">throws</strong> HttpIncorrectRequestException,
 <a class="jxr_linenumber" name="78" href="#78">78</a>  			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 <a class="jxr_linenumber" name="79" href="#79">79</a>  		ObjectNode arg = arguments.getUriArgs().deepCopy();
-<a class="jxr_linenumber" name="80" href="#80">80</a>  		arg.putAll(arguments.getBody());
+<a class="jxr_linenumber" name="80" href="#80">80</a>  		arg.setAll(arguments.getBody());
 <a class="jxr_linenumber" name="81" href="#81">81</a>  		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="82" href="#82">82</a>  			JsonNode node = RestArgument.getId(arg);
 <a class="jxr_linenumber" name="83" href="#83">83</a>  			String id;
@@ -108,7 +108,7 @@
 <a class="jxr_linenumber" name="98" href="#98">98</a>  			RestArgument result, Object body) <strong class="jxr_keyword">throws</strong> HttpIncorrectRequestException,
 <a class="jxr_linenumber" name="99" href="#99">99</a>  			HttpInvalidAuthenticationException {
 <a class="jxr_linenumber" name="100" href="#100">100</a> 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-<a class="jxr_linenumber" name="101" href="#101">101</a> 		arg.putAll(arguments.getBody());
+<a class="jxr_linenumber" name="101" href="#101">101</a> 		arg.setAll(arguments.getBody());
 <a class="jxr_linenumber" name="102" href="#102">102</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="103" href="#103">103</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(handler.getDbSession(), arg);
 <a class="jxr_linenumber" name="104" href="#104">104</a> 		} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -121,7 +121,7 @@
 <a class="jxr_linenumber" name="111" href="#111">111</a> 			RestArgument arguments, RestArgument result, Object body)
 <a class="jxr_linenumber" name="112" href="#112">112</a> 			<strong class="jxr_keyword">throws</strong> HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 <a class="jxr_linenumber" name="113" href="#113">113</a> 		ObjectNode arg = arguments.getUriArgs().deepCopy();
-<a class="jxr_linenumber" name="114" href="#114">114</a> 		arg.putAll(arguments.getBody());
+<a class="jxr_linenumber" name="114" href="#114">114</a> 		arg.setAll(arguments.getBody());
 <a class="jxr_linenumber" name="115" href="#115">115</a> 		String host = arg.path(FILTER_ARGS.HOSTID.name()).asText();
 <a class="jxr_linenumber" name="116" href="#116">116</a> 		<strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong> || host.isEmpty()) {
 <a class="jxr_linenumber" name="117" href="#117">117</a> 			host = <strong class="jxr_keyword">null</strong>;

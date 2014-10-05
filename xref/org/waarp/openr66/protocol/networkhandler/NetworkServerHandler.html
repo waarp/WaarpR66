@@ -146,7 +146,7 @@
 <a class="jxr_linenumber" name="136" href="#136">136</a> 	@Override
 <a class="jxr_linenumber" name="137" href="#137">137</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 <a class="jxr_linenumber" name="138" href="#138">138</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolNetworkException {
-<a class="jxr_linenumber" name="139" href="#139">139</a> 		Channel netChannel = e.getChannel();
+<a class="jxr_linenumber" name="139" href="#139">139</a> 		Channel netChannel = ctx.getChannel();
 <a class="jxr_linenumber" name="140" href="#140">140</a> 		<strong class="jxr_keyword">this</strong>.remoteAddress = netChannel.getRemoteAddress();
 <a class="jxr_linenumber" name="141" href="#141">141</a> 		logger.debug(<span class="jxr_string">"Will the Connection be refused if Partner is BlackListed from "</span>+remoteAddress.toString());
 <a class="jxr_linenumber" name="142" href="#142">142</a> 		<strong class="jxr_keyword">if</strong> (NetworkTransaction.isBlacklisted(netChannel)) {

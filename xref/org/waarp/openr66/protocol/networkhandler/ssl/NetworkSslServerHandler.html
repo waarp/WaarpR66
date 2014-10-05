@@ -105,46 +105,50 @@
 <a class="jxr_linenumber" name="95" href="#95">95</a>  		logger.debug(<span class="jxr_string">"Add channel to ssl"</span>);
 <a class="jxr_linenumber" name="96" href="#96">96</a>  		WaarpSslUtility.addSslOpenedChannel(channel);
 <a class="jxr_linenumber" name="97" href="#97">97</a>  		isSSL = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="98" href="#98">98</a>  		<strong class="jxr_keyword">super</strong>.channelOpen(ctx, e);
-<a class="jxr_linenumber" name="99" href="#99">99</a>  	}
-<a class="jxr_linenumber" name="100" href="#100">100</a> 
-<a class="jxr_linenumber" name="101" href="#101">101</a> 	@Override
-<a class="jxr_linenumber" name="102" href="#102">102</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
-<a class="jxr_linenumber" name="103" href="#103">103</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolNetworkException {
-<a class="jxr_linenumber" name="104" href="#104">104</a> 		<em class="jxr_comment">// Check first if allowed</em>
-<a class="jxr_linenumber" name="105" href="#105">105</a> 		Channel networkChannel = e.getChannel();
-<a class="jxr_linenumber" name="106" href="#106">106</a> 		<strong class="jxr_keyword">if</strong> (NetworkTransaction.isBlacklisted(networkChannel)) {
-<a class="jxr_linenumber" name="107" href="#107">107</a> 			logger.warn(<span class="jxr_string">"Connection refused since Partner is in BlackListed from "</span>+networkChannel.getRemoteAddress().toString());
-<a class="jxr_linenumber" name="108" href="#108">108</a> 			isBlackListed = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="109" href="#109">109</a> 			Configuration.configuration.r66Mib.notifyError(
-<a class="jxr_linenumber" name="110" href="#110">110</a> 					<span class="jxr_string">"Black Listed connection temptative"</span>, <span class="jxr_string">"During Handshake"</span>);
-<a class="jxr_linenumber" name="111" href="#111">111</a> 			<em class="jxr_comment">// close immediately the connection</em>
-<a class="jxr_linenumber" name="112" href="#112">112</a> 			WaarpSslUtility.closingSslChannel(networkChannel);
-<a class="jxr_linenumber" name="113" href="#113">113</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="114" href="#114">114</a> 		}
-<a class="jxr_linenumber" name="115" href="#115">115</a> 		<em class="jxr_comment">// Get the SslHandler in the current pipeline.</em>
-<a class="jxr_linenumber" name="116" href="#116">116</a> 		<em class="jxr_comment">// We added it in NetworkSslServerPipelineFactory.</em>
-<a class="jxr_linenumber" name="117" href="#117">117</a> 		<strong class="jxr_keyword">final</strong> ChannelHandler handler = ctx.getPipeline().getFirst();
-<a class="jxr_linenumber" name="118" href="#118">118</a> 		<strong class="jxr_keyword">if</strong> (handler instanceof SslHandler) {
-<a class="jxr_linenumber" name="119" href="#119">119</a> 			<strong class="jxr_keyword">final</strong> SslHandler sslHandler = (SslHandler) handler;
-<a class="jxr_linenumber" name="120" href="#120">120</a> 			<strong class="jxr_keyword">if</strong> (sslHandler.isIssueHandshake()) {
-<a class="jxr_linenumber" name="121" href="#121">121</a> 				<em class="jxr_comment">// client side</em>
-<a class="jxr_linenumber" name="122" href="#122">122</a> 				WaarpSslUtility.setStatusSslConnectedChannel(ctx.getChannel(), <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="123" href="#123">123</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="124" href="#124">124</a> 				<em class="jxr_comment">// server side</em>
-<a class="jxr_linenumber" name="125" href="#125">125</a> 				<em class="jxr_comment">// Get the SslHandler and begin handshake ASAP.</em>
-<a class="jxr_linenumber" name="126" href="#126">126</a> 				<em class="jxr_comment">// Get notified when SSL handshake is done.</em>
-<a class="jxr_linenumber" name="127" href="#127">127</a> 				<strong class="jxr_keyword">if</strong> (! WaarpSslUtility.runHandshake(ctx.getChannel())) {
-<a class="jxr_linenumber" name="128" href="#128">128</a> 					Configuration.configuration.r66Mib.notifyError(
-<a class="jxr_linenumber" name="129" href="#129">129</a> 							<span class="jxr_string">"SSL Connection Error"</span>, <span class="jxr_string">"During Handshake"</span>);
-<a class="jxr_linenumber" name="130" href="#130">130</a> 				}
-<a class="jxr_linenumber" name="131" href="#131">131</a> 			}				
-<a class="jxr_linenumber" name="132" href="#132">132</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="133" href="#133">133</a> 			logger.error(<span class="jxr_string">"SSL Not found"</span>);
-<a class="jxr_linenumber" name="134" href="#134">134</a> 		}
-<a class="jxr_linenumber" name="135" href="#135">135</a> 		<strong class="jxr_keyword">super</strong>.channelConnected(ctx, e);
-<a class="jxr_linenumber" name="136" href="#136">136</a> 	}
-<a class="jxr_linenumber" name="137" href="#137">137</a> }
+<a class="jxr_linenumber" name="98" href="#98">98</a>  		logger.debug(<span class="jxr_string">"Added channel to ssl"</span>);
+<a class="jxr_linenumber" name="99" href="#99">99</a>  		<strong class="jxr_keyword">super</strong>.channelOpen(ctx, e);
+<a class="jxr_linenumber" name="100" href="#100">100</a> 	}
+<a class="jxr_linenumber" name="101" href="#101">101</a> 
+<a class="jxr_linenumber" name="102" href="#102">102</a> 	@Override
+<a class="jxr_linenumber" name="103" href="#103">103</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
+<a class="jxr_linenumber" name="104" href="#104">104</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolNetworkException {
+<a class="jxr_linenumber" name="105" href="#105">105</a> 		logger.debug(<span class="jxr_string">"Channel connected"</span>);
+<a class="jxr_linenumber" name="106" href="#106">106</a> 		<em class="jxr_comment">// Check first if allowed</em>
+<a class="jxr_linenumber" name="107" href="#107">107</a> 		Channel networkChannel = ctx.getChannel();
+<a class="jxr_linenumber" name="108" href="#108">108</a> 		<strong class="jxr_keyword">if</strong> (NetworkTransaction.isBlacklisted(networkChannel)) {
+<a class="jxr_linenumber" name="109" href="#109">109</a> 			logger.warn(<span class="jxr_string">"Connection refused since Partner is in BlackListed from "</span>+networkChannel.getRemoteAddress().toString());
+<a class="jxr_linenumber" name="110" href="#110">110</a> 			isBlackListed = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="111" href="#111">111</a> 			Configuration.configuration.r66Mib.notifyError(
+<a class="jxr_linenumber" name="112" href="#112">112</a> 					<span class="jxr_string">"Black Listed connection temptative"</span>, <span class="jxr_string">"During Handshake"</span>);
+<a class="jxr_linenumber" name="113" href="#113">113</a> 			<em class="jxr_comment">// close immediately the connection</em>
+<a class="jxr_linenumber" name="114" href="#114">114</a> 			WaarpSslUtility.closingSslChannel(networkChannel);
+<a class="jxr_linenumber" name="115" href="#115">115</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="116" href="#116">116</a> 		}
+<a class="jxr_linenumber" name="117" href="#117">117</a> 		<em class="jxr_comment">// Get the SslHandler in the current pipeline.</em>
+<a class="jxr_linenumber" name="118" href="#118">118</a> 		<em class="jxr_comment">// We added it in NetworkSslServerPipelineFactory.</em>
+<a class="jxr_linenumber" name="119" href="#119">119</a> 		<strong class="jxr_keyword">final</strong> ChannelHandler handler = ctx.getPipeline().getFirst();
+<a class="jxr_linenumber" name="120" href="#120">120</a> 		<strong class="jxr_keyword">if</strong> (handler instanceof SslHandler) {
+<a class="jxr_linenumber" name="121" href="#121">121</a> 			<strong class="jxr_keyword">final</strong> SslHandler sslHandler = (SslHandler) handler;
+<a class="jxr_linenumber" name="122" href="#122">122</a> 			logger.debug(<span class="jxr_string">"SslHandler found"</span>);
+<a class="jxr_linenumber" name="123" href="#123">123</a> 			<strong class="jxr_keyword">if</strong> (sslHandler.isIssueHandshake()) {
+<a class="jxr_linenumber" name="124" href="#124">124</a> 				<em class="jxr_comment">// client side</em>
+<a class="jxr_linenumber" name="125" href="#125">125</a> 				WaarpSslUtility.setStatusSslConnectedChannel(ctx.getChannel(), <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="126" href="#126">126</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="127" href="#127">127</a> 				<em class="jxr_comment">// server side</em>
+<a class="jxr_linenumber" name="128" href="#128">128</a> 				<em class="jxr_comment">// Get the SslHandler and begin handshake ASAP.</em>
+<a class="jxr_linenumber" name="129" href="#129">129</a> 				<em class="jxr_comment">// Get notified when SSL handshake is done.</em>
+<a class="jxr_linenumber" name="130" href="#130">130</a> 				<strong class="jxr_keyword">if</strong> (! WaarpSslUtility.runHandshake(ctx.getChannel())) {
+<a class="jxr_linenumber" name="131" href="#131">131</a> 					Configuration.configuration.r66Mib.notifyError(
+<a class="jxr_linenumber" name="132" href="#132">132</a> 							<span class="jxr_string">"SSL Connection Error"</span>, <span class="jxr_string">"During Handshake"</span>);
+<a class="jxr_linenumber" name="133" href="#133">133</a> 				}
+<a class="jxr_linenumber" name="134" href="#134">134</a> 			}
+<a class="jxr_linenumber" name="135" href="#135">135</a> 			logger.debug(<span class="jxr_string">"Ssl done for channel"</span>);
+<a class="jxr_linenumber" name="136" href="#136">136</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="137" href="#137">137</a> 			logger.error(<span class="jxr_string">"SSL Not found"</span>);
+<a class="jxr_linenumber" name="138" href="#138">138</a> 		}
+<a class="jxr_linenumber" name="139" href="#139">139</a> 		<strong class="jxr_keyword">super</strong>.channelConnected(ctx, e);
+<a class="jxr_linenumber" name="140" href="#140">140</a> 	}
+<a class="jxr_linenumber" name="141" href="#141">141</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
