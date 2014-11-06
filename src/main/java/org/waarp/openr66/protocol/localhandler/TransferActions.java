@@ -583,15 +583,18 @@ public class TransferActions extends ServerActions {
 			OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
 		if (!session.isAuthenticated()) {
 			logger.debug("Not authenticated while Data received");
+            packet.clear();
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while Data received");
 		}
 		if (!session.isReady()) {
 			logger.debug("No request prepared");
+            packet.clear();
 			throw new OpenR66ProtocolBusinessException("No request prepared");
 		}
 		if (session.getRunner().isSender()) {
 			logger.debug("Not in receive MODE but receive a packet");
+            packet.clear();
 			throw new OpenR66ProtocolBusinessException(
 					"Not in receive MODE but receive a packet");
 		}
@@ -600,9 +603,11 @@ public class TransferActions extends ServerActions {
 			if (localChannelReference.getFutureEndTransfer().isFailed()) {
 				// nothing to do since already done
 				session.setStatus(94);
+	            packet.clear();
 				return;
 			}
 			errorToSend("Transfer in error due previously aborted transmission", ErrorCode.TransferError, channel, 95);
+            packet.clear();
 			return;
 		}
 		if (packet.getPacketRank() != session.getRunner().getRank()) {
@@ -613,6 +618,7 @@ public class TransferActions extends ServerActions {
 						session.getRunner().getRank()+ " from {}", session.getRunner());
 				errorToSend("Too much Bad Rank in transmission: " +
 					packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
+				packet.clear();
 				return;
 			}
 			// Fix the rank if possible
@@ -630,6 +636,7 @@ public class TransferActions extends ServerActions {
 							session.getRunner().getRank());
 					errorToSend("Bad Rank in transmission even after retry: " +
 							packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
+		            packet.clear();
 					return;
 				}
 			} else {
@@ -639,6 +646,7 @@ public class TransferActions extends ServerActions {
 				errorToSend("Bad Rank in transmission: " +
 						packet.getPacketRank()+ " > " +
 								session.getRunner().getRank(), ErrorCode.TransferError, channel, 20);
+	            packet.clear();
 				return;
 			}
 		}
@@ -651,6 +659,7 @@ public class TransferActions extends ServerActions {
 						(originalSize/session.getRunner().getBlocksize()+1)+" from {}", session.getRunner());
 				errorToSend("Too much data transferred: " +
 						packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
+	            packet.clear();
 				return;
 			}
 		}
@@ -662,6 +671,7 @@ public class TransferActions extends ServerActions {
 				logger.error(Messages.getString("LocalServerHandler.17"), packet, localChannelReference.getPartner().getDigestAlgo().name); //$NON-NLS-1$
 				errorToSend("Transfer in error due to bad Hash on data packet ("+localChannelReference.getPartner().getDigestAlgo().name+")",
 						ErrorCode.MD5Error, channel, 21);
+	            packet.clear();
 				return;
 			}
 		}
@@ -696,12 +706,16 @@ public class TransferActions extends ServerActions {
 		}
 		DataBlock dataBlock = new DataBlock();
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
-			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
-			session.getRunner().incrementRank();
-			if (packet.getPacketRank() % 100 == 1) {
-				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
-					session.getRunner().getRank());
-			}
+		    try {
+    			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
+    			session.getRunner().incrementRank();
+    			if (packet.getPacketRank() % 100 == 1) {
+    				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
+    					session.getRunner().getRank());
+    			}
+		    } finally {
+		        packet.clear();
+		    }
 		} else {
 			dataBlock.setBlock(packet.getData());
 			try {
@@ -715,6 +729,9 @@ public class TransferActions extends ServerActions {
 				errorToSend("Transfer in error",
 						ErrorCode.TransferError, channel, 22);
 				return;
+			} finally {
+			    dataBlock.clear();
+			    packet.clear();
 			}
 		}
 	}
@@ -958,6 +975,7 @@ public class TransferActions extends ServerActions {
 			} catch (OpenR66RunnerErrorException e) {
 				// ignore
 			}
+			runner.clean();
 		}
 		String optional = null;
 		if (session.getExtendedProtocol()) {

@@ -31,7 +31,7 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
  * @author Frederic Bregier
  */
 public class NetworkPacket {
-	private final ChannelBuffer buffer;
+	private ChannelBuffer buffer;
 
 	private final int remoteId;
 
@@ -114,4 +114,10 @@ public class NetworkPacket {
 				" Length: " + buffer.readableBytes();
 	}
 
+	public void clear() {
+	    if (buffer != null) {
+	        buffer.clear();
+	        buffer = null;
+	    }
+	}
 }

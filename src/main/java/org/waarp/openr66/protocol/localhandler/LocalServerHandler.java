@@ -145,6 +145,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					Configuration.configuration.r66Mib.notifyWarning(
 							"No LocalChannelReference", packet.getClass().getSimpleName());
 				}
+				packet.clear();
 				return;
 			}
 			switch (packet.getType()) {
@@ -168,6 +169,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							(!serverHandler.getSession().isAuthenticated())) {
 						logger.warn("Valid packet received while not authenticated: {} {}", packet, serverHandler.getSession());
 						serverHandler.getSession().newState(ERROR);
+						packet.clear();
 						throw new OpenR66ProtocolNotAuthenticatedException(
 								"Not authenticated while Valid received");
 					}
@@ -185,6 +187,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							}
 						}
 						serverHandler.requestChangeNameSize(e.getChannel(), newfilename, newSize);
+                        packet.clear();
 					} else {
 						serverHandler.valid(e.getChannel(), (ValidPacket) packet);
 					}
@@ -228,6 +231,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							ErrorPacket.FORWARDCLOSECODE);
 					ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
 					ChannelUtils.close(e.getChannel());
+                    packet.clear();
 					break;
 				}
 				case LocalPacketFactory.TESTPACKET: {
@@ -315,6 +319,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							ErrorCode.Unimplemented.getCode(), ErrorPacket.FORWARDCLOSECODE);
 					ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
 					ChannelUtils.close(e.getChannel());
+                    packet.clear();
 				}
 			}
 		}

@@ -115,4 +115,19 @@ public abstract class AbstractLocalPacket {
 				buf, newHeader, newMiddle, newEnd);
 		return channelBuffer;
 	}
+	
+	public void clear() {
+	    if (header != null) {
+	        header.clear();
+	        header = null;
+	    }
+	    if (middle != null) {
+	        middle.clear();
+	        middle = null;
+	    }
+	    if (end != null) {
+	        end.clear();
+	        end = null;
+	    }
+	}
 }

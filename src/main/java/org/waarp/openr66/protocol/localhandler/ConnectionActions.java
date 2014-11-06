@@ -136,13 +136,14 @@ public abstract class ConnectionActions {
 	 * @param e
 	 */
 	public void channelClosed(ChannelStateEvent e) {
+	    DbTaskRunner runner = null;
 		try {
 			logger.debug("Local Server Channel Closed: {} {}",
 					(localChannelReference != null ? localChannelReference
 							: "no LocalChannelReference"), (session.getRunner() != null ?
 							session.getRunner().toShortString() : "no runner"));
 			// clean session objects like files
-			DbTaskRunner runner = session.getRunner();
+			runner = session.getRunner();
 			boolean mustFinalize = true;
 			if (localChannelReference != null &&
 					localChannelReference.getFutureRequest().isDone()) {
@@ -229,6 +230,9 @@ public abstract class ConnectionActions {
 				}
 			}
 		} finally {
+            if (runner != null) {
+                runner.clean();
+            }
 			if (localChannelReference != null) {
 				localChannelReference.close();
 			}

@@ -36,9 +36,9 @@ public class DataPacket extends AbstractLocalPacket {
 
 	private final int lengthPacket;
 
-	private final ChannelBuffer data;
+	private ChannelBuffer data;
 
-	private final ChannelBuffer key;
+	private ChannelBuffer key;
 
 	/**
 	 * @param headerLength
@@ -58,12 +58,10 @@ public class DataPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		int packetRank = buf.readInt();
-		ChannelBuffer data = buf.readBytes(middleLength);
-		int readerIndex = buf.readerIndex();
+		ChannelBuffer data = buf.readSlice(middleLength);
 		ChannelBuffer key;
 		if (endLength > 0) {
-			key = buf.slice(readerIndex, endLength);
-			buf.skipBytes(endLength);
+			key = buf.readSlice(endLength);
 		} else {
 			key = ChannelBuffers.EMPTY_BUFFER;
 		}
@@ -149,6 +147,20 @@ public class DataPacket extends AbstractLocalPacket {
 			return true;
 		}
 		ChannelBuffer newbufkey = FileUtils.getHash(data, algo);
-		return ChannelBuffers.equals(key, newbufkey);
+		boolean check = ChannelBuffers.equals(key, newbufkey);
+        newbufkey.clear();
+		return check;
+	}
+
+	public void clear() {
+	    super.clear();
+	    if (data != null) {
+	        data.clear();
+	        data = null;
+	    }
+	    if (key != null) {
+	        key.clear();
+	        key = null;
+	    }
 	}
 }

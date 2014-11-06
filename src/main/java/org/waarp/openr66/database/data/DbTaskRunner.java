@@ -193,6 +193,8 @@ public class DbTaskRunner extends AbstractDbData {
 
 	private R66Session session;
 
+	volatile DbPreparedStatement preparedStatementUpdate = null;
+
 	/**
 	 * Last step
 	 */
@@ -1345,14 +1347,48 @@ public class DbTaskRunner extends AbstractDbData {
 			if (RequestPacket.isCompatibleMode(mode, 
 					isSender ? RequestPacket.TRANSFERMODE.RECVMODE.ordinal() : 
 					RequestPacket.TRANSFERMODE.SENDMODE.ordinal())) {
-				super.update();
+				optimizedUpdate();//super.update();
 			}
 		} else {
-			super.update();
+		    optimizedUpdate();//super.update();
 		}
 	}
 
 	/**
+     * Update Runner using special PreparedStatement
+     * 
+     * @throws WaarpDatabaseException
+     */
+    protected void optimizedUpdate() throws WaarpDatabaseException {
+        setToArray();
+        // getting the preparedStatement
+        if (preparedStatementUpdate == null) {
+            preparedStatementUpdate = new DbPreparedStatement(dbSession);
+            preparedStatementUpdate.createPrepareStatement("UPDATE " + getTable() +
+                    " SET " + getUpdateAllFields() + " WHERE " +
+                    getWherePrimaryKey());
+            dbSession.addLongTermPreparedStatement(preparedStatementUpdate);
+        }
+        try {
+            setValues(preparedStatementUpdate, allFields);
+            int count = preparedStatementUpdate.executeUpdate();
+            if (count <= 0) {
+                throw new WaarpDatabaseNoDataException("No row found");
+            }
+            isSaved = true;
+        } finally {
+            //preparedStatement.realClose();
+        }
+    }
+
+    public void clean() {
+        if (dbSession != null && preparedStatementUpdate != null) {
+            dbSession.removeLongTermPreparedStatements(preparedStatementUpdate);
+            preparedStatementUpdate.realClose();
+            preparedStatementUpdate = null;
+        }
+    }
+    /**
 	 * Special method used to force insert in case of SelfSubmit
 	 * @throws WaarpDatabaseException 
 	 */
@@ -3468,7 +3504,11 @@ public class DbTaskRunner extends AbstractDbData {
 		rank++;
 		allFields[Columns.RANK.ordinal()].setValue(rank);
 		isSaved = false;
-		if (rank % 10 == 0) {
+		int modulo = 10;
+		if (! DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+		    modulo = 100; // bug in JDBC MariaDB/MysQL which tends to consume more Memory
+		}
+		if (rank % modulo == 0) {
 			// Save each 10 blocks
 			try {
 				update();

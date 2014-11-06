@@ -21,6 +21,8 @@ import java.net.BindException;
 import java.net.SocketAddress;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
@@ -201,11 +203,16 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		} else {
 			keepAlivedSent = 1;
 			KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
-			NetworkPacket response =
+			final NetworkPacket response =
 					new NetworkPacket(ChannelUtils.NOCHANNEL,
 							ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 			logger.info("Write KAlive");
-			Channels.write(e.getChannel(), response);
+			Channels.write(e.getChannel(), response).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    response.clear();
+                }
+            });
 		}
 	}
 
@@ -224,6 +231,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			if (networkChannelReference != null) {
 				networkChannelReference.useIfUsed();
 			}
+			packet.clear();
 			// Do nothing
 			return;
 		} else if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
@@ -244,6 +252,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 								" : " +
 								e.getChannel().getRemoteAddress() + " : " + nb);
 				WaarpSslUtility.closingSslChannel(e.getChannel());
+				packet.clear();
 				return;
 			}
 		} else if (packet.getCode() == LocalPacketFactory.KEEPALIVEPACKET) {
@@ -256,16 +265,22 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						LocalPacketCodec.decodeNetworkPacket(packet.getBuffer());
 				if (keepAlivePacket.isToValidate()) {
 					keepAlivePacket.validate();
-					NetworkPacket response =
+					final NetworkPacket response =
 							new NetworkPacket(ChannelUtils.NOCHANNEL,
 									ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 					logger.info("Answer KAlive");
-					Channels.write(e.getChannel(), response);
+					Channels.write(e.getChannel(), response).addListener(new ChannelFutureListener() {
+		                @Override
+		                public void operationComplete(ChannelFuture future) throws Exception {
+		                    response.clear();
+		                }
+		            });
 				} else {
 					logger.info("Get KAlive");
 				}
 			} catch (OpenR66ProtocolPacketException e1) {
 			}
+			packet.clear();
 			return;
 		}
 		logger.debug("GET MSG: "+packet.getCode());
@@ -443,6 +458,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			}
 		} catch (InterruptedException e) {
 		}
+		networkPacket.clear();
+		error.clear();
 	}
 
 	/**

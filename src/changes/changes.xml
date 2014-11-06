@@ -5,7 +5,15 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-        <release version="2.4.29" date="2014-10-05" description="Fix release">
+        <release version="2.4.30" date="2014-12-01" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix Database memory consumption with MySQL/MariaDB</action>
+            <action dev="Frederic Bregier" type="fix">Optimize some preparedStatement by allocating one per transfer</action>
+            <action dev="Frederic Bregier" type="fix">Optimize memory allocation during file writing operations</action>
+            <action dev="Frederic Bregier" type="fix">Fix issue on Netty 3.9.4 with GlobalTrafficShaping</action>
+            <action dev="Frederic Bregier" type="fix">Fix Waarp status feedback in DirectTransfer client</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
+	    <release version="2.4.29" date="2014-10-05" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Clean HTTP support to only support i18n version</action>
             <action dev="Frederic Bregier" type="add">Add web administrator option to change the delay in TrafficShaping</action>
             <action dev="Frederic Bregier" type="fix">Fix issue on Netty 3.9.4 with GlobalTrafficShaping</action>

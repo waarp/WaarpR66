@@ -221,6 +221,9 @@ public class DirectTransfer extends AbstractTransfer {
 					outputFormat.sysout();
 				}
 				networkTransaction.closeAll();
+				if (result.code == ErrorCode.CompleteOk) {
+	                System.exit(0);
+				}
 				System.exit(result.code.ordinal());
 			}
 		} catch (Throwable e) {

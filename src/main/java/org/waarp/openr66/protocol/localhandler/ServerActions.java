@@ -159,6 +159,7 @@ public class ServerActions extends ConnectionActions {
 					" ["+localChannelReference.getNetworkChannel().getRemoteAddress()+
 					"] Msg=" +packet.toString());
 			ChannelCloseTimer.closeFutureChannel(channel);
+            packet.clear();
 		} else {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 		}
@@ -180,6 +181,7 @@ public class ServerActions extends ConnectionActions {
 		byte request = packet.getRequest();
 		String rulename = packet.getRulename();
 		String filename = packet.getFilename();
+        packet.clear();
 		long id = DbConstant.ILLEGALVALUE;
 		if (request == -1) {
 			try {
@@ -229,6 +231,7 @@ public class ServerActions extends ConnectionActions {
 				(!session.isAuthenticated())) {
 			logger.warn("Valid packet received while not authenticated: {} {}", packet, session);
 			session.newState(ERROR);
+            packet.clear();
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while Valid received");
 		}
@@ -377,6 +380,7 @@ public class ServerActions extends ConnectionActions {
 				String sstart = packet.getSheader();
 				String sstop = packet.getSmiddle();
 				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET);
+                packet.clear();
 				Timestamp start = (sstart == null || sstart.isEmpty()) ? null :
 						Timestamp.valueOf(sstart);
 				Timestamp stop = (sstop == null || sstop.isEmpty()) ? null :
@@ -439,6 +443,7 @@ public class ServerActions extends ConnectionActions {
 				String srule = packet.getSmiddle();
 				boolean bhost = Boolean.parseBoolean(shost);
 				boolean brule = Boolean.parseBoolean(srule);
+                packet.clear();
 				session.newState(VALIDOTHER);
 				String [] sresult = configExport(bhost, brule, false, false, false);
 				R66Result result = null;
@@ -485,6 +490,7 @@ public class ServerActions extends ConnectionActions {
 				srule = srule.substring(2);
 				boolean bhost = ! shost.isEmpty();
 				boolean brule = ! srule.isEmpty();
+                packet.clear();
 				if (bhost) {
 					DbHostAuth[] oldHosts = null;
 					if (bhostPurge) {
@@ -596,6 +602,7 @@ public class ServerActions extends ConnectionActions {
 			case LocalPacketFactory.BANDWIDTHPACKET: {
 				String[] splitglobal = packet.getSheader().split(" ");
 				String[] splitsession = packet.getSmiddle().split(" ");
+                packet.clear();
 				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
 				ValidPacket valid = null;
 				if (splitglobal.length < 2 || splitsession.length < 2) {
@@ -636,6 +643,7 @@ public class ServerActions extends ConnectionActions {
 			}
 			default:
 				logger.info("Validation is ignored: " + packet.getTypeValid());
+                packet.clear();
 		}
 	}
 
@@ -1908,6 +1916,7 @@ public class ServerActions extends ConnectionActions {
 			OpenR66ProtocolBusinessException {
 		session.newState(SHUTDOWN);
 		shutdown(packet.getKey(), packet.isRestart());
+        packet.clear();
 	}
 
 	/**
@@ -1988,6 +1997,7 @@ public class ServerActions extends ConnectionActions {
 			}
 			session.setStatus(204);
 		}
+        packet.clear();
 	}
 
 	/**
@@ -2055,6 +2065,7 @@ public class ServerActions extends ConnectionActions {
 		} catch (OpenR66ProtocolPacketException e) {
 		}
 		Channels.close(channel);
+        packet.clear();
 	}
 
 

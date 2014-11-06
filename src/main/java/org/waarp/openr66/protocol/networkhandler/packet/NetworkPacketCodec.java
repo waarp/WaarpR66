@@ -21,6 +21,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelEvent;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
@@ -108,9 +110,14 @@ public class NetworkPacketCodec extends FrameDecoder implements
 			final NetworkPacket packet = (NetworkPacket) msg;
 			final ChannelBuffer finalBuf = packet.getNetworkPacket();
 			Channels.write(ctx, evt.getFuture(), finalBuf);
+			evt.getFuture().addListener(new ChannelFutureListener() {
+		        @Override
+		        public void operationComplete(ChannelFuture future) throws Exception {
+		            packet.clear();
+		        }
+		    });
 		} else {
 			ctx.sendDownstream(e);
 		}
 	}
-
 }
