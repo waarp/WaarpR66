@@ -36,248 +36,255 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
- * NetworkChannelReference object to keep Network channel open while some local channels are attached to it.
+ * NetworkChannelReference object to keep Network channel open while some local channels are
+ * attached to it.
  * 
  * @author Frederic Bregier
  * 
  */
 public class NetworkChannelReference {
-	/**
-	 * Internal Logger
-	 */
-	protected static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(NetworkChannelReference.class);
-	
-	/**
-	 * Does this Network Channel is in shutdown
-	 */
-	protected volatile boolean isShuttingDown = false;
-	/**
-	 * Associated LocalChannelReference
-	 */
-	private ConcurrentLinkedQueue<LocalChannelReference> localChannelReferences =
-			new ConcurrentLinkedQueue<LocalChannelReference>();
-	/**
-	 * Network Channel
-	 */
-	protected final Channel channel;
-	/**
-	 * Remote network address (when valid)
-	 */
-	protected final SocketAddress networkAddress;
-	/**
-	 * Remote IP address
-	 */
-	private final String hostAddress;
-	/**
-	 * Remote Host Id
-	 */
-	private String hostId;
-	/**
-	 * ClientNetworkChannels object that contains this NetworkChannelReference
-	 */
-	protected ClientNetworkChannels clientNetworkChannels;
-	/**
-	 * Associated lock
-	 */
-	protected final ReentrantLock lock;
-	/**
-	 * Last Time in ms this channel was used by a LocalChannel
-	 */
-	private long lastTimeUsed = System.currentTimeMillis();
+    /**
+     * Internal Logger
+     */
+    protected static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(NetworkChannelReference.class);
 
-	public NetworkChannelReference(Channel networkChannel, ReentrantLock lock) {
-		this.channel = networkChannel;
-		this.networkAddress = channel.getRemoteAddress();
-		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
-		this.lock = lock;
-	}
-	
-	public NetworkChannelReference(SocketAddress address, ReentrantLock lock) {
-		this.channel = null;
-		this.networkAddress = address;
-		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
-		this.lock = lock;
-	}
+    /**
+     * Does this Network Channel is in shutdown
+     */
+    protected volatile boolean isShuttingDown = false;
+    /**
+     * Associated LocalChannelReference
+     */
+    private ConcurrentLinkedQueue<LocalChannelReference> localChannelReferences =
+            new ConcurrentLinkedQueue<LocalChannelReference>();
+    /**
+     * Network Channel
+     */
+    protected final Channel channel;
+    /**
+     * Remote network address (when valid)
+     */
+    protected final SocketAddress networkAddress;
+    /**
+     * Remote IP address
+     */
+    private final String hostAddress;
+    /**
+     * Remote Host Id
+     */
+    private String hostId;
+    /**
+     * ClientNetworkChannels object that contains this NetworkChannelReference
+     */
+    protected ClientNetworkChannels clientNetworkChannels;
+    /**
+     * Associated lock
+     */
+    protected final ReentrantLock lock;
+    /**
+     * Last Time in ms this channel was used by a LocalChannel
+     */
+    private long lastTimeUsed = System.currentTimeMillis();
 
-	public void add(LocalChannelReference localChannel)
-			throws OpenR66ProtocolRemoteShutdownException {
-		// lock is of no use since caller is itself in locked situation for the very same lock
-		if (isShuttingDown) {
-			throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannelReference is closed");
-		}
-		use();
-		localChannelReferences.add(localChannel);
-	}
-	
-	/**
-	 * To set the last time used
-	 */
-	public void use() {
-		if (! isShuttingDown) {
-			lastTimeUsed = System.currentTimeMillis();
-		}
-	}
-	/**
-	 * To set the last time used when correct
-	 * @return True if last time used is set
-	 */
-	public boolean useIfUsed() {
-		if (! isShuttingDown && ! localChannelReferences.isEmpty()) {
-			lastTimeUsed = System.currentTimeMillis();
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Remove one LocalChanelReference, closing it if necessary.
-	 * @param localChannel
-	 */
-	public void remove(LocalChannelReference localChannel) {
-		lock.lock();
-		try {
-			if (localChannel.getLocalChannel().isConnected()) {
-				Channels.close(localChannel.getLocalChannel());
-			}
-			localChannelReferences.remove(localChannel);
-			//Do not since it prevents shutdown: lastTimeUsed = System.currentTimeMillis();
-		} finally {
-			lock.unlock();
-		}
-	}
+    public NetworkChannelReference(Channel networkChannel, ReentrantLock lock) {
+        this.channel = networkChannel;
+        this.networkAddress = channel.getRemoteAddress();
+        this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
+        this.lock = lock;
+    }
 
-	/**
-	 * Shutdown All Local Channels associated with this NCR
-	 */
-	public void shutdownAllLocalChannels() {
-		isShuttingDown = true;
-		LocalChannelReference [] localChannelReferenceArray = localChannelReferences.toArray(new LocalChannelReference[0]);
-		ArrayList<LocalChannelReference> toCloseLater = new ArrayList<LocalChannelReference>();
-		for (LocalChannelReference localChannelReference : localChannelReferenceArray) {
-			if (!localChannelReference.getFutureRequest().isDone()) {
-				if (localChannelReference.getFutureValidRequest().isDone() &&
-						localChannelReference.getFutureValidRequest().isFailed()) {
-					toCloseLater.add(localChannelReference);
-					continue;
-				} else {
-					R66Result finalValue = new R66Result(
-							localChannelReference.getSession(), true,
-							ErrorCode.Shutdown, null);
-					if (localChannelReference.getSession() != null) {
-						try {
-							localChannelReference.getSession().tryFinalizeRequest(finalValue);
-						} catch (OpenR66RunnerErrorException e) {
-						} catch (OpenR66ProtocolSystemException e) {
-						}
-					}
-				}
-			}
-			Channels.close(localChannelReference.getLocalChannel());
-		}
-		try {
-			Thread.sleep(Configuration.RETRYINMS*20);
-		} catch (InterruptedException e) {
-		}
-		for (LocalChannelReference localChannelReference : toCloseLater) {
-			Channels.close(localChannelReference.getLocalChannel());
-		}
-		toCloseLater.clear();
-	}
-	
-	public int nbLocalChannels() {
-		return localChannelReferences.size();
-	}
-	
-	@Override
-	public String toString() {
-		return "NC: " + hostId+":"+ (channel != null ? channel.isConnected() : false) + " " +
-				networkAddress + " Count: " + localChannelReferences.size();
-	}
+    public NetworkChannelReference(SocketAddress address, ReentrantLock lock) {
+        this.channel = null;
+        this.networkAddress = address;
+        this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
+        this.lock = lock;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof NetworkChannelReference) {
-			NetworkChannelReference obj2 = (NetworkChannelReference) obj;
-			if (obj2.channel == null || this.channel == null) {
-				return false;
-			}
-			return (obj2.channel.getId().compareTo(this.channel.getId()) == 0);
-		}
-		return false;
-	}
+    public void add(LocalChannelReference localChannel)
+            throws OpenR66ProtocolRemoteShutdownException {
+        // lock is of no use since caller is itself in locked situation for the very same lock
+        if (isShuttingDown) {
+            throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannelReference is closed");
+        }
+        use();
+        localChannelReferences.add(localChannel);
+    }
 
-	@Override
-	public int hashCode() {
-		if (this.channel == null) {
-			return Integer.MIN_VALUE;
-		}
-		return this.channel.getId();
-	}
+    /**
+     * To set the last time used
+     */
+    public void use() {
+        if (!isShuttingDown) {
+            lastTimeUsed = System.currentTimeMillis();
+        }
+    }
 
-	/**
-	 * 
-	 * @return the hashcode for the global remote networkaddress
-	 */
-	public int getSocketHashCode() {
-		return this.networkAddress.hashCode();
-	}
-	/**
-	 * Used for BlackList
-	 * @return the hashcode for the address
-	 */
-	public int getAddressHashCode() {
-		return this.hostAddress.hashCode();
-	}
-	/**
-	 * Check if the last time used is ok with a delay applied to the current time (timeout)
-	 * @param delay
-	 * @return <= 0 if OK, else > 0 (should send a KeepAlive or wait that time in ms)
-	 */
-	public long checkLastTime(long delay) {
-		return (lastTimeUsed + delay - System.currentTimeMillis());
-	}
+    /**
+     * To set the last time used when correct
+     * 
+     * @return True if last time used is set
+     */
+    public boolean useIfUsed() {
+        if (!isShuttingDown && !localChannelReferences.isEmpty()) {
+            lastTimeUsed = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
 
-	/**
-	 * @return the isShuttingDown
-	 */
-	public boolean isShuttingDown() {
-		return isShuttingDown;
-	}
+    /**
+     * Remove one LocalChanelReference, closing it if necessary.
+     * 
+     * @param localChannel
+     */
+    public void remove(LocalChannelReference localChannel) {
+        lock.lock();
+        try {
+            if (localChannel.getLocalChannel().isConnected()) {
+                Channels.close(localChannel.getLocalChannel());
+            }
+            localChannelReferences.remove(localChannel);
+            //Do not since it prevents shutdown: lastTimeUsed = System.currentTimeMillis();
+        } finally {
+            lock.unlock();
+        }
+    }
 
-	/**
-	 * @return the channel
-	 */
-	public Channel getChannel() {
-		return channel;
-	}
+    /**
+     * Shutdown All Local Channels associated with this NCR
+     */
+    public void shutdownAllLocalChannels() {
+        isShuttingDown = true;
+        LocalChannelReference[] localChannelReferenceArray = localChannelReferences
+                .toArray(new LocalChannelReference[0]);
+        ArrayList<LocalChannelReference> toCloseLater = new ArrayList<LocalChannelReference>();
+        for (LocalChannelReference localChannelReference : localChannelReferenceArray) {
+            if (!localChannelReference.getFutureRequest().isDone()) {
+                if (localChannelReference.getFutureValidRequest().isDone() &&
+                        localChannelReference.getFutureValidRequest().isFailed()) {
+                    toCloseLater.add(localChannelReference);
+                    continue;
+                } else {
+                    R66Result finalValue = new R66Result(
+                            localChannelReference.getSession(), true,
+                            ErrorCode.Shutdown, null);
+                    if (localChannelReference.getSession() != null) {
+                        try {
+                            localChannelReference.getSession().tryFinalizeRequest(finalValue);
+                        } catch (OpenR66RunnerErrorException e) {} catch (OpenR66ProtocolSystemException e) {}
+                    }
+                }
+            }
+            Channels.close(localChannelReference.getLocalChannel());
+        }
+        try {
+            Thread.sleep(Configuration.RETRYINMS * 20);
+        } catch (InterruptedException e) {}
+        for (LocalChannelReference localChannelReference : toCloseLater) {
+            Channels.close(localChannelReference.getLocalChannel());
+        }
+        toCloseLater.clear();
+    }
 
-	/**
-	 * @return the hostId
-	 */
-	public String getHostId() {
-		return hostId;
-	}
-	
-	/**
-	 * @param hostId the hostId to set
-	 */
-	public void setHostId(String hostId) {
-		this.hostId = hostId;
-	}
+    public int nbLocalChannels() {
+        return localChannelReferences.size();
+    }
 
-	/**
-	 * @return the lock
-	 */
-	public ReentrantLock getLock() {
-		return lock;
-	}
+    @Override
+    public String toString() {
+        return "NC: " + hostId + ":" + (channel != null ? channel.isConnected() : false) + " " +
+                networkAddress + " Count: " + localChannelReferences.size();
+    }
 
-	/**
-	 * @return the lastTimeUsed
-	 */
-	public long getLastTimeUsed() {
-		return lastTimeUsed;
-	}
-	
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof NetworkChannelReference) {
+            NetworkChannelReference obj2 = (NetworkChannelReference) obj;
+            if (obj2.channel == null || this.channel == null) {
+                return false;
+            }
+            return (obj2.channel.getId().compareTo(this.channel.getId()) == 0);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.channel == null) {
+            return Integer.MIN_VALUE;
+        }
+        return this.channel.getId();
+    }
+
+    /**
+     * 
+     * @return the hashcode for the global remote networkaddress
+     */
+    public int getSocketHashCode() {
+        return this.networkAddress.hashCode();
+    }
+
+    /**
+     * Used for BlackList
+     * 
+     * @return the hashcode for the address
+     */
+    public int getAddressHashCode() {
+        return this.hostAddress.hashCode();
+    }
+
+    /**
+     * Check if the last time used is ok with a delay applied to the current time (timeout)
+     * 
+     * @param delay
+     * @return <= 0 if OK, else > 0 (should send a KeepAlive or wait that time in ms)
+     */
+    public long checkLastTime(long delay) {
+        return (lastTimeUsed + delay - System.currentTimeMillis());
+    }
+
+    /**
+     * @return the isShuttingDown
+     */
+    public boolean isShuttingDown() {
+        return isShuttingDown;
+    }
+
+    /**
+     * @return the channel
+     */
+    public Channel getChannel() {
+        return channel;
+    }
+
+    /**
+     * @return the hostId
+     */
+    public String getHostId() {
+        return hostId;
+    }
+
+    /**
+     * @param hostId
+     *            the hostId to set
+     */
+    public void setHostId(String hostId) {
+        this.hostId = hostId;
+    }
+
+    /**
+     * @return the lock
+     */
+    public ReentrantLock getLock() {
+        return lock;
+    }
+
+    /**
+     * @return the lastTimeUsed
+     */
+    public long getLastTimeUsed() {
+        return lastTimeUsed;
+    }
+
 }

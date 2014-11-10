@@ -31,124 +31,124 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
-	public R66ConstraintLimitHandler() {
-		super();
-	}
+    public R66ConstraintLimitHandler() {
+        super();
+    }
 
-	/**
-	 * @param useJdKCpuLimit
-	 *            True to use JDK Cpu native or False for JavaSysMon
-	 * @param lowcpuLimit
-	 *            for proactive cpu limitation (throttling bandwidth) (0<= x < 1 & highcpulimit)
-	 * @param highcpuLimit
-	 *            for proactive cpu limitation (throttling bandwidth) (0<= x <= 1) 0 meaning no
-	 *            throttle activated
-	 * @param percentageDecrease
-	 *            for proactive cpu limitation, throttling bandwidth reduction (0 < x < 1) as 0.25
-	 *            for 25% of reduction
-	 * @param handler
-	 *            the GlobalTrafficShapingHandler associated (null to have no proactive cpu
-	 *            limitation)
-	 * @param delay
-	 *            the delay between 2 tests for proactive cpu limitation
-	 * @param limitLowBandwidth
-	 *            the minimal bandwidth (read or write) to apply when decreasing bandwidth (low
-	 *            limit = 4096)
-	 */
-	public R66ConstraintLimitHandler(boolean useJdKCpuLimit,
-			double lowcpuLimit, double highcpuLimit, double percentageDecrease,
-			GlobalTrafficShapingHandler handler, long delay,
-			long limitLowBandwidth) {
-		super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
-				Configuration.configuration.TIMEOUTCON : 30000,
-				useJdKCpuLimit,
-				lowcpuLimit, highcpuLimit,
-				percentageDecrease, handler, delay, limitLowBandwidth);
-	}
+    /**
+     * @param useJdKCpuLimit
+     *            True to use JDK Cpu native or False for JavaSysMon
+     * @param lowcpuLimit
+     *            for proactive cpu limitation (throttling bandwidth) (0<= x < 1 & highcpulimit)
+     * @param highcpuLimit
+     *            for proactive cpu limitation (throttling bandwidth) (0<= x <= 1) 0 meaning no
+     *            throttle activated
+     * @param percentageDecrease
+     *            for proactive cpu limitation, throttling bandwidth reduction (0 < x < 1) as 0.25
+     *            for 25% of reduction
+     * @param handler
+     *            the GlobalTrafficShapingHandler associated (null to have no proactive cpu
+     *            limitation)
+     * @param delay
+     *            the delay between 2 tests for proactive cpu limitation
+     * @param limitLowBandwidth
+     *            the minimal bandwidth (read or write) to apply when decreasing bandwidth (low
+     *            limit = 4096)
+     */
+    public R66ConstraintLimitHandler(boolean useJdKCpuLimit,
+            double lowcpuLimit, double highcpuLimit, double percentageDecrease,
+            GlobalTrafficShapingHandler handler, long delay,
+            long limitLowBandwidth) {
+        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+                Configuration.configuration.TIMEOUTCON : 30000,
+                useJdKCpuLimit,
+                lowcpuLimit, highcpuLimit,
+                percentageDecrease, handler, delay, limitLowBandwidth);
+    }
 
-	/**
-	 * @param useCpuLimit
-	 *            True to enable cpuLimit on connection check
-	 * @param useJdKCpuLimit
-	 *            True to use JDK Cpu native or False for JavaSysMon
-	 * @param cpulimit
-	 *            high cpu limit (0<= x < 1) to refuse new connections
-	 * @param channellimit
-	 *            number of connection limit (0<= x)
-	 */
-	public R66ConstraintLimitHandler(boolean useCpuLimit,
-			boolean useJdKCpuLimit, double cpulimit, int channellimit) {
-		super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
-				Configuration.configuration.TIMEOUTCON : 30000,
-				useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
-	}
+    /**
+     * @param useCpuLimit
+     *            True to enable cpuLimit on connection check
+     * @param useJdKCpuLimit
+     *            True to use JDK Cpu native or False for JavaSysMon
+     * @param cpulimit
+     *            high cpu limit (0<= x < 1) to refuse new connections
+     * @param channellimit
+     *            number of connection limit (0<= x)
+     */
+    public R66ConstraintLimitHandler(boolean useCpuLimit,
+            boolean useJdKCpuLimit, double cpulimit, int channellimit) {
+        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+                Configuration.configuration.TIMEOUTCON : 30000,
+                useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
+    }
 
-	/**
-	 * @param useCpuLimit
-	 *            True to enable cpuLimit on connection check
-	 * @param useJdKCpuLimit
-	 *            True to use JDK Cpu native or False for JavaSysMon
-	 * @param cpulimit
-	 *            high cpu limit (0<= x < 1) to refuse new connections
-	 * @param channellimit
-	 *            number of connection limit (0<= x)
-	 * @param lowcpuLimit
-	 *            for proactive cpu limitation (throttling bandwidth) (0<= x < 1 & highcpulimit)
-	 * @param highcpuLimit
-	 *            for proactive cpu limitation (throttling bandwidth) (0<= x <= 1) 0 meaning no
-	 *            throttle activated
-	 * @param percentageDecrease
-	 *            for proactive cpu limitation, throttling bandwidth reduction (0 < x < 1) as 0.25
-	 *            for 25% of reduction
-	 * @param handler
-	 *            the GlobalTrafficShapingHandler associated (null to have no proactive cpu
-	 *            limitation)
-	 * @param delay
-	 *            the delay between 2 tests for proactive cpu limitation
-	 * @param limitLowBandwidth
-	 *            the minimal bandwidth (read or write) to apply when decreasing bandwidth (low
-	 *            limit = 4096)
-	 */
-	public R66ConstraintLimitHandler(
-			boolean useCpuLimit, boolean useJdKCpuLimit, double cpulimit,
-			int channellimit, double lowcpuLimit, double highcpuLimit,
-			double percentageDecrease, GlobalTrafficShapingHandler handler,
-			long delay, long limitLowBandwidth) {
-		super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
-				Configuration.configuration.TIMEOUTCON : 30000,
-				useCpuLimit, useJdKCpuLimit,
-				cpulimit, channellimit, lowcpuLimit, highcpuLimit,
-				percentageDecrease, handler, delay, limitLowBandwidth);
-	}
+    /**
+     * @param useCpuLimit
+     *            True to enable cpuLimit on connection check
+     * @param useJdKCpuLimit
+     *            True to use JDK Cpu native or False for JavaSysMon
+     * @param cpulimit
+     *            high cpu limit (0<= x < 1) to refuse new connections
+     * @param channellimit
+     *            number of connection limit (0<= x)
+     * @param lowcpuLimit
+     *            for proactive cpu limitation (throttling bandwidth) (0<= x < 1 & highcpulimit)
+     * @param highcpuLimit
+     *            for proactive cpu limitation (throttling bandwidth) (0<= x <= 1) 0 meaning no
+     *            throttle activated
+     * @param percentageDecrease
+     *            for proactive cpu limitation, throttling bandwidth reduction (0 < x < 1) as 0.25
+     *            for 25% of reduction
+     * @param handler
+     *            the GlobalTrafficShapingHandler associated (null to have no proactive cpu
+     *            limitation)
+     * @param delay
+     *            the delay between 2 tests for proactive cpu limitation
+     * @param limitLowBandwidth
+     *            the minimal bandwidth (read or write) to apply when decreasing bandwidth (low
+     *            limit = 4096)
+     */
+    public R66ConstraintLimitHandler(
+            boolean useCpuLimit, boolean useJdKCpuLimit, double cpulimit,
+            int channellimit, double lowcpuLimit, double highcpuLimit,
+            double percentageDecrease, GlobalTrafficShapingHandler handler,
+            long delay, long limitLowBandwidth) {
+        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+                Configuration.configuration.TIMEOUTCON : 30000,
+                useCpuLimit, useJdKCpuLimit,
+                cpulimit, channellimit, lowcpuLimit, highcpuLimit,
+                percentageDecrease, handler, delay, limitLowBandwidth);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getNumberLocalChannel()
-	 */
-	@Override
-	protected int getNumberLocalChannel() {
-		if (Configuration.configuration.getLocalTransaction() != null) {
-			return Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
-		}
-		return 0;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getNumberLocalChannel()
+     */
+    @Override
+    protected int getNumberLocalChannel() {
+        if (Configuration.configuration.getLocalTransaction() != null) {
+            return Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
+        }
+        return 0;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getReadLimit()
-	 */
-	@Override
-	protected long getReadLimit() {
-		return Configuration.configuration.serverGlobalReadLimit;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getReadLimit()
+     */
+    @Override
+    protected long getReadLimit() {
+        return Configuration.configuration.serverGlobalReadLimit;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getWriteLimit()
-	 */
-	@Override
-	protected long getWriteLimit() {
-		return Configuration.configuration.serverGlobalWriteLimit;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getWriteLimit()
+     */
+    @Override
+    protected long getWriteLimit() {
+        return Configuration.configuration.serverGlobalWriteLimit;
+    }
 
 }

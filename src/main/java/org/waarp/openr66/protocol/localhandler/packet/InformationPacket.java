@@ -31,116 +31,116 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  */
 public class InformationPacket extends AbstractLocalPacket {
 
-	public static enum ASKENUM {
-		ASKEXIST, ASKMLSDETAIL, ASKLIST, ASKMLSLIST;
-	}
+    public static enum ASKENUM {
+        ASKEXIST, ASKMLSDETAIL, ASKLIST, ASKMLSLIST;
+    }
 
-	private final String rulename;
+    private final String rulename;
 
-	private final byte requestedInfo;
+    private final byte requestedInfo;
 
-	private final String filename;
+    private final String filename;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new EndTransferPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static InformationPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
-			throws OpenR66ProtocolPacketException {
-		if (headerLength - 1 <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		if (middleLength != 1) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bend = new byte[endLength];
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		byte request = buf.readByte();
-		if (endLength > 0) {
-			buf.readBytes(bend);
-		}
-		final String sheader = new String(bheader);
-		final String send = new String(bend);
-		return new InformationPacket(sheader, request, send);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new EndTransferPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static InformationPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        if (middleLength != 1) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bend = new byte[endLength];
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        byte request = buf.readByte();
+        if (endLength > 0) {
+            buf.readBytes(bend);
+        }
+        final String sheader = new String(bheader);
+        final String send = new String(bend);
+        return new InformationPacket(sheader, request, send);
+    }
 
-	/**
-	 * @param rulename
-	 * @param request
-	 * @param filename
-	 */
-	public InformationPacket(String rulename, byte request, String filename) {
-		this.rulename = rulename;
-		this.requestedInfo = request;
-		this.filename = filename;
-	}
+    /**
+     * @param rulename
+     * @param request
+     * @param filename
+     */
+    public InformationPacket(String rulename, byte request, String filename) {
+        this.rulename = rulename;
+        this.requestedInfo = request;
+        this.filename = filename;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) {
-		if (filename != null) {
-			end = ChannelBuffers.wrappedBuffer(filename.getBytes());
-		}
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) {
+        if (filename != null) {
+            end = ChannelBuffers.wrappedBuffer(filename.getBytes());
+        }
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (rulename == null) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		header = ChannelBuffers.wrappedBuffer(rulename.getBytes());
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (rulename == null) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        header = ChannelBuffers.wrappedBuffer(rulename.getBytes());
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) {
-		byte[] newbytes = {
-				requestedInfo };
-		middle = ChannelBuffers.wrappedBuffer(newbytes);
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) {
+        byte[] newbytes = {
+                requestedInfo };
+        middle = ChannelBuffers.wrappedBuffer(newbytes);
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.INFORMATIONPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.INFORMATIONPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "InformationPacket: " + requestedInfo + " " + rulename + " " + filename;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "InformationPacket: " + requestedInfo + " " + rulename + " " + filename;
+    }
 
-	/**
-	 * @return the requestId
-	 */
-	public byte getRequest() {
-		return requestedInfo;
-	}
+    /**
+     * @return the requestId
+     */
+    public byte getRequest() {
+        return requestedInfo;
+    }
 
-	/**
-	 * @return the rulename
-	 */
-	public String getRulename() {
-		return rulename;
-	}
+    /**
+     * @return the rulename
+     */
+    public String getRulename() {
+        return rulename;
+    }
 
-	/**
-	 * @return the filename
-	 */
-	public String getFilename() {
-		if (filename != null) {
-			return filename;
-		} else {
-			return "";
-		}
-	}
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        if (filename != null) {
+            return filename;
+        } else {
+            return "";
+        }
+    }
 }

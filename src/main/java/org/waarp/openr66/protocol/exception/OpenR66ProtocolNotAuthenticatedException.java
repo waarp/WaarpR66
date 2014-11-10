@@ -24,38 +24,38 @@ package org.waarp.openr66.protocol.exception;
  */
 public class OpenR66ProtocolNotAuthenticatedException extends OpenR66ProtocolBusinessException {
 
-	/**
+    /**
      *
      */
-	private static final long serialVersionUID = 5671796883262590190L;
+    private static final long serialVersionUID = 5671796883262590190L;
 
-	/**
+    /**
 	 *
 	 */
-	public OpenR66ProtocolNotAuthenticatedException() {
-		super();
-	}
+    public OpenR66ProtocolNotAuthenticatedException() {
+        super();
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public OpenR66ProtocolNotAuthenticatedException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public OpenR66ProtocolNotAuthenticatedException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolNotAuthenticatedException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolNotAuthenticatedException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolNotAuthenticatedException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolNotAuthenticatedException(Throwable arg0) {
+        super(arg0);
+    }
 
 }

@@ -25,38 +25,38 @@ package org.waarp.openr66.protocol.exception;
  */
 public class OpenR66DatabaseGlobalException extends OpenR66Exception {
 
-	/**
+    /**
      * 
      */
-	private static final long serialVersionUID = -9185582146820950696L;
+    private static final long serialVersionUID = -9185582146820950696L;
 
-	/**
+    /**
         *
         */
-	public OpenR66DatabaseGlobalException() {
-		super();
-	}
+    public OpenR66DatabaseGlobalException() {
+        super();
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public OpenR66DatabaseGlobalException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public OpenR66DatabaseGlobalException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66DatabaseGlobalException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66DatabaseGlobalException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66DatabaseGlobalException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66DatabaseGlobalException(Throwable arg0) {
+        super(arg0);
+    }
 
 }

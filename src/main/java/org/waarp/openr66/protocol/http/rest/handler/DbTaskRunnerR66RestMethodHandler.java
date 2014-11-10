@@ -50,243 +50,248 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * DbTaskRunner Rest handler
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler<DbTaskRunner> {
-	public static final String BASEURI = "transfers";
+    public static final String BASEURI = "transfers";
 
-	public static enum FILTER_ARGS {
-		LIMIT("number"),
-		ORDERBYID("boolean"),
-		STARTID("transfer id"),
-		STOPID("transfer id"),
-		IDRULE("rule name"),
-		PARTNER("partner (requester or requested) name"),
-		PENDING("boolean"),
-		INTRANSFER("boolean"),
-		INERROR("boolean"),
-		DONE("boolean"),
-		ALLSTATUS("boolean"),
-		STARTTRANS("Date in ISO 8601 format or ms"),
-		STOPTRANS("Date in ISO 8601 format or ms");
-		
-		public String type;
-		FILTER_ARGS(String type) {
-			this.type = type;
-		}
-	}
-	/**
-	 * @param config
-	 * @param method
-	 */
-	public DbTaskRunnerR66RestMethodHandler(RestConfiguration config, METHOD ...method) {
-		super(BASEURI, config, method);
-	}
+    public static enum FILTER_ARGS {
+        LIMIT("number"),
+        ORDERBYID("boolean"),
+        STARTID("transfer id"),
+        STOPID("transfer id"),
+        IDRULE("rule name"),
+        PARTNER("partner (requester or requested) name"),
+        PENDING("boolean"),
+        INTRANSFER("boolean"),
+        INERROR("boolean"),
+        DONE("boolean"),
+        ALLSTATUS("boolean"),
+        STARTTRANS("Date in ISO 8601 format or ms"),
+        STOPTRANS("Date in ISO 8601 format or ms");
 
-	protected DbTaskRunner getItem(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body) throws HttpIncorrectRequestException,
-			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		try {
-			JsonNode node = RestArgument.getId(arg);
-			long id;
-			if (node.isMissingNode()) {
-				// shall not be but continue however
-				id = arg.path(DbTaskRunner.Columns.SPECIALID.name()).asLong();
-			} else {
-				id = node.asLong();
-			}
-			return new DbTaskRunner(handler.getDbSession(), id, 
-					arg.path(DbTaskRunner.Columns.REQUESTER.name()).asText(), 
-					arg.path(DbTaskRunner.Columns.REQUESTED.name()).asText(),
-					arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText());
-		} catch (WaarpDatabaseException e) {
-			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
-		}
-	}
+        public String type;
 
-	@Override
-	protected DbTaskRunner createItem(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body) throws HttpIncorrectRequestException,
-			HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		try {
-			return new DbTaskRunner(handler.getDbSession(), arg);
-		} catch (WaarpDatabaseException e) {
-			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
-		}
-	}
+        FILTER_ARGS(String type) {
+            this.type = type;
+        }
+    }
 
-	@Override
-	protected DbPreparedStatement getPreparedStatement(HttpRestHandler handler,
-			RestArgument arguments, RestArgument result, Object body)
-			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		int limit = arg.path(FILTER_ARGS.LIMIT.name()).asInt(0);
-		boolean orderBySpecialId = arg.path(FILTER_ARGS.ORDERBYID.name()).asBoolean(false);
-		JsonNode node = arg.path(FILTER_ARGS.STARTID.name());
-		String startid = null;
-		if (! node.isMissingNode()) {
-			startid = node.asText();
-		}
-		if (startid == null || startid.isEmpty()) {
-			startid = null;
-		}
-		node = arg.path(FILTER_ARGS.STOPID.name());
-		String stopid = null;
-		if (! node.isMissingNode()) {
-			stopid = node.asText();
-		}
-		if (stopid == null || stopid.isEmpty()) {
-			stopid = null;
-		}
-		String rule = arg.path(FILTER_ARGS.IDRULE.name()).asText();
-		if (rule == null || rule.isEmpty()) {
-			rule = null;
-		}
-		String req = arg.path(FILTER_ARGS.PARTNER.name()).asText();
-		if (req == null || req.isEmpty()) {
-			req = null;
-		}
-		String owner = arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText();
-		if (owner == null || owner.isEmpty()) {
-			owner = null;
-		}
-		boolean pending = arg.path(FILTER_ARGS.PENDING.name()).asBoolean(false);
-		boolean transfer = arg.path(FILTER_ARGS.INTRANSFER.name()).asBoolean(false);
-		boolean error = arg.path(FILTER_ARGS.INERROR.name()).asBoolean(false);
-		boolean done = arg.path(FILTER_ARGS.DONE.name()).asBoolean(false);
-		boolean all = arg.path(FILTER_ARGS.ALLSTATUS.name()).asBoolean(false);
-		Timestamp start = null;
-		node = arg.path(FILTER_ARGS.STARTTRANS.name());
-		if (! node.isMissingNode()) {
-			long val = node.asLong();
-			if (val == 0) {
-				DateTime received = DateTime.parse(node.asText());
-				val = received.getMillis();
-			}
-			start = new Timestamp(val);
-		}
-		Timestamp stop = null;
-		node = arg.path(FILTER_ARGS.STOPTRANS.name());
-		if (! node.isMissingNode()) {
-			long val = node.asLong();
-			if (val == 0) {
-				DateTime received = DateTime.parse(node.asText());
-				val = received.getMillis();
-			}
-			stop = new Timestamp(val);
-		}
-		try {
-			return DbTaskRunner.getFilterPrepareStatement(handler.getDbSession(), 
-					limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done, all, owner);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			throw new HttpIncorrectRequestException("Issue while reading from database", e);
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while reading from database", e);
-		}
-	}
+    /**
+     * @param config
+     * @param method
+     */
+    public DbTaskRunnerR66RestMethodHandler(RestConfiguration config, METHOD... method) {
+        super(BASEURI, config, method);
+    }
 
-	@Override
-	protected DbTaskRunner getItemPreparedStatement(DbPreparedStatement statement)
-			throws HttpIncorrectRequestException, HttpNotFoundRequestException {
-		try {
-			return DbTaskRunner.getFromStatementNoDbRule(statement);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			throw new HttpIncorrectRequestException("Issue while selecting from database", e);
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpNotFoundRequestException("Issue while selecting from database", e);
-		}
-	}
+    protected DbTaskRunner getItem(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException, HttpNotFoundRequestException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        try {
+            JsonNode node = RestArgument.getId(arg);
+            long id;
+            if (node.isMissingNode()) {
+                // shall not be but continue however
+                id = arg.path(DbTaskRunner.Columns.SPECIALID.name()).asLong();
+            } else {
+                id = node.asLong();
+            }
+            return new DbTaskRunner(handler.getDbSession(), id,
+                    arg.path(DbTaskRunner.Columns.REQUESTER.name()).asText(),
+                    arg.path(DbTaskRunner.Columns.REQUESTED.name()).asText(),
+                    arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText());
+        } catch (WaarpDatabaseException e) {
+            throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
+        }
+    }
 
-	@Override
-	protected ArrayNode getDetailedAllow() {
-		ArrayNode node = JsonHandler.createArrayNode();
-		
-		ObjectNode node1 = JsonHandler.createObjectNode();
-		node1.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
-		DbValue []values = DbTaskRunner.getAllType();
-		for (DbValue dbValue : values) {
-			node1.put(dbValue.column, dbValue.getType());
-		}
-		
-		ObjectNode node2;
-		ObjectNode node3 = JsonHandler.createObjectNode();
-		if (this.methods.contains(METHOD.GET)) {
-			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
-			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-					node3, node1);
-			node.add(node2);
-	
-			node3 = JsonHandler.createObjectNode();
-			for (FILTER_ARGS arg : FILTER_ARGS.values()) {
-				node3.put(arg.name(), arg.type);
-			}
-			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-					node3, JsonHandler.createArrayNode().add(node1));
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.PUT)) {
-			node3 = JsonHandler.createObjectNode();
-			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
-			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-			for (DbValue dbValue : values) {
-				if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
-					continue;
-				}
-				node3.put(dbValue.column, dbValue.getType());
-			}
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.DELETE)) {
-			node3 = JsonHandler.createObjectNode();
-			node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-			node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
-			node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
-			node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-			node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.POST)) {
-			node3 = JsonHandler.createObjectNode();
-			for (DbValue dbValue : values) {
-				node3.put(dbValue.column, dbValue.getType());
-			}
-			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
-		node.add(node2);
+    @Override
+    protected DbTaskRunner createItem(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        try {
+            return new DbTaskRunner(handler.getDbSession(), arg);
+        } catch (WaarpDatabaseException e) {
+            throw new HttpIncorrectRequestException("Issue while inserting into database", e);
+        }
+    }
 
-		return node;
-	}
-	@Override
-	public String getPrimaryPropertyName() {
-		return Columns.SPECIALID.name();
-	}
+    @Override
+    protected DbPreparedStatement getPreparedStatement(HttpRestHandler handler,
+            RestArgument arguments, RestArgument result, Object body)
+            throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        int limit = arg.path(FILTER_ARGS.LIMIT.name()).asInt(0);
+        boolean orderBySpecialId = arg.path(FILTER_ARGS.ORDERBYID.name()).asBoolean(false);
+        JsonNode node = arg.path(FILTER_ARGS.STARTID.name());
+        String startid = null;
+        if (!node.isMissingNode()) {
+            startid = node.asText();
+        }
+        if (startid == null || startid.isEmpty()) {
+            startid = null;
+        }
+        node = arg.path(FILTER_ARGS.STOPID.name());
+        String stopid = null;
+        if (!node.isMissingNode()) {
+            stopid = node.asText();
+        }
+        if (stopid == null || stopid.isEmpty()) {
+            stopid = null;
+        }
+        String rule = arg.path(FILTER_ARGS.IDRULE.name()).asText();
+        if (rule == null || rule.isEmpty()) {
+            rule = null;
+        }
+        String req = arg.path(FILTER_ARGS.PARTNER.name()).asText();
+        if (req == null || req.isEmpty()) {
+            req = null;
+        }
+        String owner = arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText();
+        if (owner == null || owner.isEmpty()) {
+            owner = null;
+        }
+        boolean pending = arg.path(FILTER_ARGS.PENDING.name()).asBoolean(false);
+        boolean transfer = arg.path(FILTER_ARGS.INTRANSFER.name()).asBoolean(false);
+        boolean error = arg.path(FILTER_ARGS.INERROR.name()).asBoolean(false);
+        boolean done = arg.path(FILTER_ARGS.DONE.name()).asBoolean(false);
+        boolean all = arg.path(FILTER_ARGS.ALLSTATUS.name()).asBoolean(false);
+        Timestamp start = null;
+        node = arg.path(FILTER_ARGS.STARTTRANS.name());
+        if (!node.isMissingNode()) {
+            long val = node.asLong();
+            if (val == 0) {
+                DateTime received = DateTime.parse(node.asText());
+                val = received.getMillis();
+            }
+            start = new Timestamp(val);
+        }
+        Timestamp stop = null;
+        node = arg.path(FILTER_ARGS.STOPTRANS.name());
+        if (!node.isMissingNode()) {
+            long val = node.asLong();
+            if (val == 0) {
+                DateTime received = DateTime.parse(node.asText());
+                val = received.getMillis();
+            }
+            stop = new Timestamp(val);
+        }
+        try {
+            return DbTaskRunner.getFilterPrepareStatement(handler.getDbSession(),
+                    limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done,
+                    all, owner);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            throw new HttpIncorrectRequestException("Issue while reading from database", e);
+        } catch (WaarpDatabaseSqlException e) {
+            throw new HttpIncorrectRequestException("Issue while reading from database", e);
+        }
+    }
 
-	@Override
-	protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, METHOD method) throws HttpForbiddenRequestException {
-		HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
-		R66Session session = r66handler.serverHandler.getSession();
-		if (! session.getAuth().isValidRole(ROLE.SYSTEM)) {
-			throw new HttpForbiddenRequestException("Partner must have System role");
-		}
-	}
+    @Override
+    protected DbTaskRunner getItemPreparedStatement(DbPreparedStatement statement)
+            throws HttpIncorrectRequestException, HttpNotFoundRequestException {
+        try {
+            return DbTaskRunner.getFromStatementNoDbRule(statement);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            throw new HttpIncorrectRequestException("Issue while selecting from database", e);
+        } catch (WaarpDatabaseSqlException e) {
+            throw new HttpNotFoundRequestException("Issue while selecting from database", e);
+        }
+    }
+
+    @Override
+    protected ArrayNode getDetailedAllow() {
+        ArrayNode node = JsonHandler.createArrayNode();
+
+        ObjectNode node1 = JsonHandler.createObjectNode();
+        node1.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+        DbValue[] values = DbTaskRunner.getAllType();
+        for (DbValue dbValue : values) {
+            node1.put(dbValue.column, dbValue.getType());
+        }
+
+        ObjectNode node2;
+        ObjectNode node3 = JsonHandler.createObjectNode();
+        if (this.methods.contains(METHOD.GET)) {
+            node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as " + this.path + "/id");
+            node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
+            node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+            node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path + "/id", COMMAND_TYPE.GET.name(),
+                    node3, node1);
+            node.add(node2);
+
+            node3 = JsonHandler.createObjectNode();
+            for (FILTER_ARGS arg : FILTER_ARGS.values()) {
+                node3.put(arg.name(), arg.type);
+            }
+            node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(),
+                    node3, JsonHandler.createArrayNode().add(node1));
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.PUT)) {
+            node3 = JsonHandler.createObjectNode();
+            node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as " + this.path + "/id");
+            node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
+            node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+            node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+            for (DbValue dbValue : values) {
+                if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
+                    continue;
+                }
+                node3.put(dbValue.column, dbValue.getType());
+            }
+            node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.DELETE)) {
+            node3 = JsonHandler.createObjectNode();
+            node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as " + this.path + "/id");
+            node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
+            node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+            node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
+            node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path + "/id", COMMAND_TYPE.DELETE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.POST)) {
+            node3 = JsonHandler.createObjectNode();
+            for (DbValue dbValue : values) {
+                node3.put(dbValue.column, dbValue.getType());
+            }
+            node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+        node.add(node2);
+
+        return node;
+    }
+
+    @Override
+    public String getPrimaryPropertyName() {
+        return Columns.SPECIALID.name();
+    }
+
+    @Override
+    protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, METHOD method) throws HttpForbiddenRequestException {
+        HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
+        R66Session session = r66handler.serverHandler.getSession();
+        if (!session.getAuth().isValidRole(ROLE.SYSTEM)) {
+            throw new HttpForbiddenRequestException("Partner must have System role");
+        }
+    }
 
 }

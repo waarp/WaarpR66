@@ -28,77 +28,79 @@ import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 
 /**
- * This task add 1 byte to empty file if the current file is empty (0 length).<br><br>
+ * This task add 1 byte to empty file if the current file is empty (0 length).<br>
+ * <br>
  * 
  * The task will be in error only if the file is of length 0 but cannot be unzeroed.<br>
- * The content of PATH, if not empty, will be the content when unzeroed. If empty, the 'blank' character will be used.<br>
+ * The content of PATH, if not empty, will be the content when unzeroed. If empty, the 'blank'
+ * character will be used.<br>
  * 
  * delay >= 1 will make a log using info level for 1, warn level for 2.
+ * 
  * @author Frederic Bregier
  * 
  */
 public class UnzeroedFileTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(UnzeroedFileTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(UnzeroedFileTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public UnzeroedFileTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.UNZEROED, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public UnzeroedFileTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.UNZEROED, delay, argRule, argTransfer, session);
+    }
 
-	@Override
-	public void run() {
-		File currentFile = session.getFile().getTrueFile();
-		String toWrite = argRule.isEmpty() ? " " : argRule;
-		String curpath = R66Dir.normalizePath(currentFile.getAbsolutePath());
-		if (currentFile.exists() && currentFile.length() == 0) {
-			FileOutputStream out = null;
-			try {
-				out = new FileOutputStream(currentFile);
-				out.write(toWrite.getBytes());
-				if (delay > 0) {
-					if (delay > 1) {
-						logger.warn("Unzeroed File: " + curpath + " from " +
-							session.toString());
-					} else {
-						logger.info("Unzeroed File: " + curpath + " from " +
-								session.toString());
-					}
-				}
-				futureCompletion.setSuccess();
-			} catch (IOException e) {
-				logger.error("Cannot unzeroed File: " + curpath + " from " +
-						session.toString());
-				futureCompletion.setFailure(new OpenR66RunnerException("File not Unzeroed"));
-			} finally {
-				if (out != null) {
-					try {
-						out.close();
-					} catch (IOException e) {
-					}
-				}
-			}
-			return;
-		}
-		if (delay > 0) {
-			if (delay > 1) {
-				logger.warn("Unzeroed File not applicable to " + curpath + " from " +
-					session.toString());
-			} else {
-				logger.info("Unzeroed File not applicable to " + curpath + " from " +
-						session.toString());
-			}
-		}
-		futureCompletion.setSuccess();
-	}
+    @Override
+    public void run() {
+        File currentFile = session.getFile().getTrueFile();
+        String toWrite = argRule.isEmpty() ? " " : argRule;
+        String curpath = R66Dir.normalizePath(currentFile.getAbsolutePath());
+        if (currentFile.exists() && currentFile.length() == 0) {
+            FileOutputStream out = null;
+            try {
+                out = new FileOutputStream(currentFile);
+                out.write(toWrite.getBytes());
+                if (delay > 0) {
+                    if (delay > 1) {
+                        logger.warn("Unzeroed File: " + curpath + " from " +
+                                session.toString());
+                    } else {
+                        logger.info("Unzeroed File: " + curpath + " from " +
+                                session.toString());
+                    }
+                }
+                futureCompletion.setSuccess();
+            } catch (IOException e) {
+                logger.error("Cannot unzeroed File: " + curpath + " from " +
+                        session.toString());
+                futureCompletion.setFailure(new OpenR66RunnerException("File not Unzeroed"));
+            } finally {
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {}
+                }
+            }
+            return;
+        }
+        if (delay > 0) {
+            if (delay > 1) {
+                logger.warn("Unzeroed File not applicable to " + curpath + " from " +
+                        session.toString());
+            } else {
+                logger.info("Unzeroed File not applicable to " + curpath + " from " +
+                        session.toString());
+            }
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

@@ -41,139 +41,141 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class TestBusinessRequest extends AbstractBusinessRequest {
-	/**
-	 * Internal Logger
-	 */
-	private static WaarpInternalLogger logger;
+    /**
+     * Internal Logger
+     */
+    private static WaarpInternalLogger logger;
 
-	public TestBusinessRequest(NetworkTransaction networkTransaction,
-			R66Future future, String remoteHost, BusinessRequestPacket packet) {
-		super(TestBusinessRequest.class, future, remoteHost, networkTransaction, packet);
-	}
+    public TestBusinessRequest(NetworkTransaction networkTransaction,
+            R66Future future, String remoteHost, BusinessRequestPacket packet) {
+        super(TestBusinessRequest.class, future, remoteHost, networkTransaction, packet);
+    }
 
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-				null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(TestBusinessRequest.class);
-		}
-		if (args.length < 1) {
-			logger
-					.error("Needs at least the configuration file as first argument");
-			return;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger
-					.error("Needs a correct configuration file as first argument");
-			return;
-		}
-		Configuration.configuration.pipelineInit();
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+                null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(TestBusinessRequest.class);
+        }
+        if (args.length < 1) {
+            logger
+                    .error("Needs at least the configuration file as first argument");
+            return;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger
+                    .error("Needs a correct configuration file as first argument");
+            return;
+        }
+        Configuration.configuration.pipelineInit();
 
-		final NetworkTransaction networkTransaction = new NetworkTransaction();
-		DbHostAuth host = Configuration.configuration.HOST_AUTH;
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		int nb = 100;
-		if (args.length > 1) {
-			nb = Integer.parseInt(args[1]);
-		}
+        final NetworkTransaction networkTransaction = new NetworkTransaction();
+        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        int nb = 100;
+        if (args.length > 1) {
+            nb = Integer.parseInt(args[1]);
+        }
 
-		R66Future[] arrayFuture = new R66Future[nb];
-		logger.info("Start Test of Transaction");
-		long time1 = System.currentTimeMillis();
-		for (int i = 0; i < nb; i++) {
-			arrayFuture[i] = new R66Future(true);
-			BusinessRequestPacket packet = new BusinessRequestPacket(
-					TestExecJavaTask.class.getName() + " business 0 other arguments", 0);
-			TestBusinessRequest transaction = new TestBusinessRequest(
-					networkTransaction, arrayFuture[i], host.getHostid(),
-					packet);
-			executorService.execute(transaction);
-		}
-		int success = 0;
-		int error = 0;
-		for (int i = 0; i < nb; i++) {
-			arrayFuture[i].awaitUninterruptibly();
-			if (arrayFuture[i].isSuccess()) {
-				success++;
-			} else {
-				error++;
-			}
-		}
-		long time2 = System.currentTimeMillis();
-		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
-				success * 100 * 1000 / (time2 - time1));
-		R66Future future = new R66Future(true);
-		classname = BusinessRequest.DEFAULT_CLASS;
-		BusinessRequestPacket packet =
-				new BusinessRequestPacket(classname + " LOG warn some information 1", 0);
-		BusinessRequest transaction = new BusinessRequest(
-				networkTransaction, future, host.getHostid(), packet);
-		transaction.run();
-		future.awaitUninterruptibly();
-		if (future.isSuccess()) {
-			success ++;
-		} else {
-			error ++;
-		}
-		long time3 = System.currentTimeMillis();
-		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
-				1000 / (time3 - time2));
+        R66Future[] arrayFuture = new R66Future[nb];
+        logger.info("Start Test of Transaction");
+        long time1 = System.currentTimeMillis();
+        for (int i = 0; i < nb; i++) {
+            arrayFuture[i] = new R66Future(true);
+            BusinessRequestPacket packet = new BusinessRequestPacket(
+                    TestExecJavaTask.class.getName() + " business 0 other arguments", 0);
+            TestBusinessRequest transaction = new TestBusinessRequest(
+                    networkTransaction, arrayFuture[i], host.getHostid(),
+                    packet);
+            executorService.execute(transaction);
+        }
+        int success = 0;
+        int error = 0;
+        for (int i = 0; i < nb; i++) {
+            arrayFuture[i].awaitUninterruptibly();
+            if (arrayFuture[i].isSuccess()) {
+                success++;
+            } else {
+                error++;
+            }
+        }
+        long time2 = System.currentTimeMillis();
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+                success * 100 * 1000 / (time2 - time1));
+        R66Future future = new R66Future(true);
+        classname = BusinessRequest.DEFAULT_CLASS;
+        BusinessRequestPacket packet =
+                new BusinessRequestPacket(classname + " LOG warn some information 1", 0);
+        BusinessRequest transaction = new BusinessRequest(
+                networkTransaction, future, host.getHostid(), packet);
+        transaction.run();
+        future.awaitUninterruptibly();
+        if (future.isSuccess()) {
+            success++;
+        } else {
+            error++;
+        }
+        long time3 = System.currentTimeMillis();
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+                1000 / (time3 - time2));
 
-		future = new R66Future(true);
-		classname = BusinessRequest.DEFAULT_CLASS;
-		packet =
-				new BusinessRequestPacket(classname + " EXECJAVA "+TestExecJavaTask.class.getName()+" business 0 other arguments 0", 0);
-		transaction = new BusinessRequest(
-				networkTransaction, future, host.getHostid(), packet);
-		transaction.run();
-		future.awaitUninterruptibly();
-		if (future.isSuccess()) {
-			success ++;
-		} else {
-			error ++;
-		}
-		long time4 = System.currentTimeMillis();
-		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
-				1000 / (time4 - time3));
+        future = new R66Future(true);
+        classname = BusinessRequest.DEFAULT_CLASS;
+        packet =
+                new BusinessRequestPacket(classname + " EXECJAVA " + TestExecJavaTask.class.getName()
+                        + " business 0 other arguments 0", 0);
+        transaction = new BusinessRequest(
+                networkTransaction, future, host.getHostid(), packet);
+        transaction.run();
+        future.awaitUninterruptibly();
+        if (future.isSuccess()) {
+            success++;
+        } else {
+            error++;
+        }
+        long time4 = System.currentTimeMillis();
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+                1000 / (time4 - time3));
 
-		logger.info("Start Test of Increasing Transaction");
-		time1 = System.currentTimeMillis();
-		String argsAdd = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-		String value = " business 0 ";
-		int lastnb = nb;
-		for (int i = 0; i < nb; i++) {
-			arrayFuture[i] = new R66Future(true);
-			try {
-				value += argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd;
-			} catch (OutOfMemoryError e) {
-				logger.warn("Send size: "+value.length());
-				lastnb = i;
-				break;
-			}
-			packet = new BusinessRequestPacket(
-					TestExecJavaTask.class.getName() + value, 0);
-			TestBusinessRequest transaction2 = new TestBusinessRequest(
-					networkTransaction, arrayFuture[i], host.getHostid(),
-					packet);
-			executorService.execute(transaction2);
-		}
-		success = 0;
-		error = 0;
-		for (int i = 0; i < lastnb; i++) {
-			arrayFuture[i].awaitUninterruptibly();
-			if (arrayFuture[i].isSuccess()) {
-				success++;
-			} else {
-				error++;
-			}
-		}
-		time2 = System.currentTimeMillis();
-		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
-				success * 100 * 1000 / (time2 - time1));
+        logger.info("Start Test of Increasing Transaction");
+        time1 = System.currentTimeMillis();
+        String argsAdd = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+        String value = " business 0 ";
+        int lastnb = nb;
+        for (int i = 0; i < nb; i++) {
+            arrayFuture[i] = new R66Future(true);
+            try {
+                value += argsAdd + argsAdd + argsAdd + argsAdd + argsAdd + argsAdd + argsAdd + argsAdd + argsAdd
+                        + argsAdd;
+            } catch (OutOfMemoryError e) {
+                logger.warn("Send size: " + value.length());
+                lastnb = i;
+                break;
+            }
+            packet = new BusinessRequestPacket(
+                    TestExecJavaTask.class.getName() + value, 0);
+            TestBusinessRequest transaction2 = new TestBusinessRequest(
+                    networkTransaction, arrayFuture[i], host.getHostid(),
+                    packet);
+            executorService.execute(transaction2);
+        }
+        success = 0;
+        error = 0;
+        for (int i = 0; i < lastnb; i++) {
+            arrayFuture[i].awaitUninterruptibly();
+            if (arrayFuture[i].isSuccess()) {
+                success++;
+            } else {
+                error++;
+            }
+        }
+        time2 = System.currentTimeMillis();
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+                success * 100 * 1000 / (time2 - time1));
 
-		executorService.shutdown();
-		networkTransaction.closeAll();
-	}
+        executorService.shutdown();
+        networkTransaction.closeAll();
+    }
 
 }

@@ -31,14 +31,14 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
  */
 public class LocalServerPipelineFactory implements ChannelPipelineFactory {
 
-	public ChannelPipeline getPipeline() throws Exception {
-		final ChannelPipeline pipeline = Channels.pipeline();
-		pipeline.addLast("codec", new LocalPacketCodec());
-		ExecutionHandler handler = new ExecutionHandler(
-				Configuration.configuration.getLocalPipelineExecutor());
-		pipeline.addLast("pipelineExecutor", handler);
-		pipeline.addLast("handler", new LocalServerHandler());
-		return pipeline;
-	}
+    public ChannelPipeline getPipeline() throws Exception {
+        final ChannelPipeline pipeline = Channels.pipeline();
+        pipeline.addLast("codec", new LocalPacketCodec());
+        ExecutionHandler handler = new ExecutionHandler(
+                Configuration.configuration.getLocalPipelineExecutor());
+        pipeline.addLast("pipelineExecutor", handler);
+        pipeline.addLast("handler", new LocalServerHandler());
+        return pipeline;
+    }
 
 }

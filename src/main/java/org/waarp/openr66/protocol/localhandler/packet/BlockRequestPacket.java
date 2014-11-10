@@ -30,82 +30,82 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class BlockRequestPacket extends AbstractLocalPacket {
-	private final boolean block;
-	private final byte[] key;
+    private final boolean block;
+    private final byte[] key;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ValidPacket from buffer
-	 * @throws OpenR66ProtocolPacketException 
-	 */
-	public static BlockRequestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
-		if (headerLength - 2 <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		byte isblock = buf.readByte();
-		final byte[] bpassword = new byte[headerLength - 2];
-		if (headerLength - 2 > 0) {
-			buf.readBytes(bpassword);
-		}
-		boolean block = (isblock == 1);
-		return new BlockRequestPacket(block, bpassword);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ValidPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static BlockRequestPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+        if (headerLength - 2 <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        byte isblock = buf.readByte();
+        final byte[] bpassword = new byte[headerLength - 2];
+        if (headerLength - 2 > 0) {
+            buf.readBytes(bpassword);
+        }
+        boolean block = (isblock == 1);
+        return new BlockRequestPacket(block, bpassword);
+    }
 
-	/**
-	 * @param block
-	 * @param spassword
-	 */
-	public BlockRequestPacket(boolean block, byte[] spassword) {
-		this.block = block;
-		key = spassword;
-	}
+    /**
+     * @param block
+     * @param spassword
+     */
+    public BlockRequestPacket(boolean block, byte[] spassword) {
+        this.block = block;
+        key = spassword;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(1+key.length);
-		header.writeByte(block ? 1 : 0);
-		header.writeBytes(key);
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = ChannelBuffers.buffer(1 + key.length);
+        header.writeByte(block ? 1 : 0);
+        header.writeBytes(key);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.EMPTY_BUFFER;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "BlockRequestPacket: " + block;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "BlockRequestPacket: " + block;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.BLOCKREQUESTPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.BLOCKREQUESTPACKET;
+    }
 
-	/**
-	 * @return True if the request is to block new requests, else false
-	 */
-	public boolean getBlock() {
-		return block;
-	}
+    /**
+     * @return True if the request is to block new requests, else false
+     */
+    public boolean getBlock() {
+        return block;
+    }
 
-	/**
-	 * @return the key
-	 */
-	public byte[] getKey() {
-		return key;
-	}
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        return key;
+    }
 }

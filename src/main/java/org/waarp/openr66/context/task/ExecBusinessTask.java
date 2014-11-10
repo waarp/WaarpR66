@@ -33,67 +33,66 @@ import org.waarp.openr66.protocol.utils.R66Future;
  */
 public class ExecBusinessTask extends AbstractExecJavaTask {
 
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(ExecBusinessTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(ExecBusinessTask.class);
 
-	@Override
-	public void run() {
-		if (callFromBusiness) {
-			// Business Request to validate?
-			String validate = "Validated";
-			if (isToValidate) {
-				logger.debug("DEBUG: "+fullarg);
-				String [] args = fullarg.split(" ");
-				String operation = args[0];
-				int newdelay = 0;
-				String argRule = "";
-				try {
-					newdelay = Integer.parseInt(args[args.length-1]);
-					argRule = fullarg.substring(fullarg.indexOf(' ')+1, fullarg.lastIndexOf(' '));
-				} catch (NumberFormatException e) {
-					newdelay = 0;
-					argRule = fullarg.substring(fullarg.indexOf(' ')+1);
-				}
-				try {
-					AbstractTask task = TaskType.getTaskFromIdForBusiness(operation, argRule, newdelay, this.session);
-					if (task != null) {
-						task.run();
-						try {
-							task.getFutureCompletion().await();
-						} catch (InterruptedException e) {
-						}
-						R66Future future = task.getFutureCompletion();
-						if ((!future.isDone()) || future.isFailed()) {
-							invalid();
-							return;
-						}
-						if (future.getResult() != null && future.getResult().other != null) {
-							validate = future.getResult().other.toString();
-						}
-					} else {
-						logger.error("ExecBusiness in error, Task invalid: "+operation);
-						invalid();
-						return;
-					}
-				} catch (OpenR66RunnerErrorException e1) {
-					logger.error("ExecBusiness in error: "+e1.toString());
-					invalid();
-					return;
-				}
-				BusinessRequestPacket packet =
-						new BusinessRequestPacket(this.getClass().getName() +" execution ok", 0);
-				validate(packet);
-				return;
-			}
-			finalValidate(validate);
-			return;
-		} else {
-			// Rule EXECJAVA based should be used instead
-			this.status = 2;
-			fullarg = "EXECJAVA should be used instead";
-		}
-	}
+    @Override
+    public void run() {
+        if (callFromBusiness) {
+            // Business Request to validate?
+            String validate = "Validated";
+            if (isToValidate) {
+                logger.debug("DEBUG: " + fullarg);
+                String[] args = fullarg.split(" ");
+                String operation = args[0];
+                int newdelay = 0;
+                String argRule = "";
+                try {
+                    newdelay = Integer.parseInt(args[args.length - 1]);
+                    argRule = fullarg.substring(fullarg.indexOf(' ') + 1, fullarg.lastIndexOf(' '));
+                } catch (NumberFormatException e) {
+                    newdelay = 0;
+                    argRule = fullarg.substring(fullarg.indexOf(' ') + 1);
+                }
+                try {
+                    AbstractTask task = TaskType.getTaskFromIdForBusiness(operation, argRule, newdelay, this.session);
+                    if (task != null) {
+                        task.run();
+                        try {
+                            task.getFutureCompletion().await();
+                        } catch (InterruptedException e) {}
+                        R66Future future = task.getFutureCompletion();
+                        if ((!future.isDone()) || future.isFailed()) {
+                            invalid();
+                            return;
+                        }
+                        if (future.getResult() != null && future.getResult().other != null) {
+                            validate = future.getResult().other.toString();
+                        }
+                    } else {
+                        logger.error("ExecBusiness in error, Task invalid: " + operation);
+                        invalid();
+                        return;
+                    }
+                } catch (OpenR66RunnerErrorException e1) {
+                    logger.error("ExecBusiness in error: " + e1.toString());
+                    invalid();
+                    return;
+                }
+                BusinessRequestPacket packet =
+                        new BusinessRequestPacket(this.getClass().getName() + " execution ok", 0);
+                validate(packet);
+                return;
+            }
+            finalValidate(validate);
+            return;
+        } else {
+            // Rule EXECJAVA based should be used instead
+            this.status = 2;
+            fullarg = "EXECJAVA should be used instead";
+        }
+    }
 }

@@ -31,86 +31,86 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  */
 public class ConnectionErrorPacket extends AbstractLocalPacket {
 
-	private final String sheader;
+    private final String sheader;
 
-	private final String smiddle;
+    private final String smiddle;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ErrorPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static ConnectionErrorPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
-			throws OpenR66ProtocolPacketException {
-		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bmiddle = new byte[middleLength];
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		if (middleLength > 0) {
-			buf.readBytes(bmiddle);
-		}
-		return new ConnectionErrorPacket(new String(bheader),
-				new String(bmiddle));
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ErrorPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static ConnectionErrorPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bmiddle = new byte[middleLength];
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        if (middleLength > 0) {
+            buf.readBytes(bmiddle);
+        }
+        return new ConnectionErrorPacket(new String(bheader),
+                new String(bmiddle));
+    }
 
-	/**
-	 * @param header
-	 * @param middle
-	 */
-	public ConnectionErrorPacket(String header, String middle) {
-		sheader = header;
-		smiddle = middle;
-	}
+    /**
+     * @param header
+     * @param middle
+     */
+    public ConnectionErrorPacket(String header, String middle) {
+        sheader = header;
+        smiddle = middle;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (sheader != null) {
-			header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
-		}
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (sheader != null) {
+            header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+        }
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (smiddle != null) {
-			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
-		}
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (smiddle != null) {
+            middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "ConnectionErrorPacket: " + sheader + ":" + smiddle;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "ConnectionErrorPacket: " + sheader + ":" + smiddle;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.CONNECTERRORPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.CONNECTERRORPACKET;
+    }
 
-	/**
-	 * @return the sheader
-	 */
-	public String getSheader() {
-		return sheader;
-	}
+    /**
+     * @return the sheader
+     */
+    public String getSheader() {
+        return sheader;
+    }
 
-	/**
-	 * @return the smiddle
-	 */
-	public String getSmiddle() {
-		return smiddle;
-	}
+    /**
+     * @return the smiddle
+     */
+    public String getSmiddle() {
+        return smiddle;
+    }
 }

@@ -34,43 +34,46 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  */
 public class ChannelCloseTimer implements TimerTask {
 
-	private Channel channel;
-	private ChannelFuture future = null;
+    private Channel channel;
+    private ChannelFuture future = null;
 
-	public ChannelCloseTimer(Channel channel) {
-		this.channel = channel;
-	}
-	public ChannelCloseTimer(Channel channel, ChannelFuture future) {
-		this.channel = channel;
-		this.future = future;
-	}
+    public ChannelCloseTimer(Channel channel) {
+        this.channel = channel;
+    }
 
-	public void run(Timeout timeout) throws Exception {
-		if (this.future != null) {
-			this.future.awaitUninterruptibly();
-		}
-		WaarpSslUtility.closingSslChannel(channel);
-	}
+    public ChannelCloseTimer(Channel channel, ChannelFuture future) {
+        this.channel = channel;
+        this.future = future;
+    }
 
-	/**
-	 * Close in the future this channel
-	 * 
-	 * @param channel
-	 */
-	public static void closeFutureChannel(Channel channel) {
-		Configuration.configuration.getTimerClose().newTimeout(
-				new ChannelCloseTimer(channel),
-				Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
-	}
-	/**
-	 * Close in the future this channel
-	 * 
-	 * @param channel
-	 * @param future future to wait in addition to other constraints
-	 */
-	public static void closeFutureChannel(Channel channel, ChannelFuture future) {
-		Configuration.configuration.getTimerClose().newTimeout(
-				new ChannelCloseTimer(channel, future),
-				Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
-	}
+    public void run(Timeout timeout) throws Exception {
+        if (this.future != null) {
+            this.future.awaitUninterruptibly();
+        }
+        WaarpSslUtility.closingSslChannel(channel);
+    }
+
+    /**
+     * Close in the future this channel
+     * 
+     * @param channel
+     */
+    public static void closeFutureChannel(Channel channel) {
+        Configuration.configuration.getTimerClose().newTimeout(
+                new ChannelCloseTimer(channel),
+                Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Close in the future this channel
+     * 
+     * @param channel
+     * @param future
+     *            future to wait in addition to other constraints
+     */
+    public static void closeFutureChannel(Channel channel, ChannelFuture future) {
+        Configuration.configuration.getTimerClose().newTimeout(
+                new ChannelCloseTimer(channel, future),
+                Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+    }
 }

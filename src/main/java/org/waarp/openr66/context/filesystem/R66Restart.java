@@ -30,38 +30,38 @@ import org.waarp.openr66.context.R66Session;
  */
 public class R66Restart extends FilesystemBasedRestartImpl {
 
-	/**
-	 * @param session
-	 */
-	public R66Restart(R66Session session) {
-		super(session);
-	}
+    /**
+     * @param session
+     */
+    public R66Restart(R66Session session) {
+        super(session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.Restart#restartMarker(java.lang.String)
-	 */
-	@Override
-	public boolean restartMarker(String marker) throws CommandAbstractException {
-		long newposition = 0;
-		try {
-			newposition = Long.parseLong(marker);
-		} catch (NumberFormatException e) {
-			throw new Reply502Exception(
-					"Marker must be length in byte as a position");
-		}
-		return restartMarker(newposition);
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.Restart#restartMarker(java.lang.String)
+     */
+    @Override
+    public boolean restartMarker(String marker) throws CommandAbstractException {
+        long newposition = 0;
+        try {
+            newposition = Long.parseLong(marker);
+        } catch (NumberFormatException e) {
+            throw new Reply502Exception(
+                    "Marker must be length in byte as a position");
+        }
+        return restartMarker(newposition);
+    }
 
-	/**
-	 * Same as restartMarker with String
-	 * 
-	 * @param newposition
-	 * @return True if OK
-	 */
-	public boolean restartMarker(long newposition) {
-		position = newposition;
-		setSet(true);
-		return true;
-	}
+    /**
+     * Same as restartMarker with String
+     * 
+     * @param newposition
+     * @return True if OK
+     */
+    public boolean restartMarker(long newposition) {
+        position = newposition;
+        setSet(true);
+        return true;
+    }
 }

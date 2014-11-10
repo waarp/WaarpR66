@@ -40,77 +40,78 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * 
  */
 public class ServerExportConfiguration {
-	/**
-	 * Internal Logger
-	 */
-	private static WaarpInternalLogger logger;
+    /**
+     * Internal Logger
+     */
+    private static WaarpInternalLogger logger;
 
-	/**
-	 * 
-	 * @param args
-	 *            as configuration file and the directory where to export
-	 */
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(ServerExportConfiguration.class);
-		}
-		if (args.length < 2) {
-			System.err
-					.println("Need configuration file and the directory where to export");
-			System.exit(1);
-		}
-		try {
-			if (!FileBasedConfiguration
-					.setConfigurationServerMinimalFromXml(Configuration.configuration, args[0])) {
-				logger
-						.error("Needs a correct configuration file as first argument");
-				if (DbConstant.admin != null) {
-					DbConstant.admin.close();
-				}
-				ChannelUtils.stopLogger();
-				System.exit(1);
-				return;
-			}
-			String directory = args[1];
-			String hostname = Configuration.configuration.HOST_ID;
-			logger.info("Start of Export");
-			File dir = new File(directory);
-			if (!dir.isDirectory()) {
-				dir.mkdirs();
-			}
-			String [] filenames = ServerActions.staticConfigExport(DbConstant.admin.session, dir.getAbsolutePath(), true, true, true, true, true);
-			for (String string : filenames) {
-				if (string != null) {
-					logger.info("Export: "+string);
-				}
-			}
-			String filename = dir.getAbsolutePath() + File.separator + hostname
-					+ "_Runners.run.xml";
-			try {
-				DbTaskRunner.writeXMLWriter(filename);
-			} catch (WaarpDatabaseNoConnectionException e1) {
-				logger.error("Error", e1);
-				DbConstant.admin.close();
-				ChannelUtils.stopLogger();
-				System.exit(2);
-			} catch (WaarpDatabaseSqlException e1) {
-				logger.error("Error", e1);
-				DbConstant.admin.close();
-				ChannelUtils.stopLogger();
-				System.exit(2);
-			} catch (OpenR66ProtocolBusinessException e1) {
-				logger.error("Error", e1);
-				DbConstant.admin.close();
-				ChannelUtils.stopLogger();
-				System.exit(2);
-			}
-			logger.info("End of Export");
-		} finally {
-			if (DbConstant.admin != null) {
-				DbConstant.admin.close();
-			}
-		}
-	}
+    /**
+     * 
+     * @param args
+     *            as configuration file and the directory where to export
+     */
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(ServerExportConfiguration.class);
+        }
+        if (args.length < 2) {
+            System.err
+                    .println("Need configuration file and the directory where to export");
+            System.exit(1);
+        }
+        try {
+            if (!FileBasedConfiguration
+                    .setConfigurationServerMinimalFromXml(Configuration.configuration, args[0])) {
+                logger
+                        .error("Needs a correct configuration file as first argument");
+                if (DbConstant.admin != null) {
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            String directory = args[1];
+            String hostname = Configuration.configuration.HOST_ID;
+            logger.info("Start of Export");
+            File dir = new File(directory);
+            if (!dir.isDirectory()) {
+                dir.mkdirs();
+            }
+            String[] filenames = ServerActions.staticConfigExport(DbConstant.admin.session, dir.getAbsolutePath(),
+                    true, true, true, true, true);
+            for (String string : filenames) {
+                if (string != null) {
+                    logger.info("Export: " + string);
+                }
+            }
+            String filename = dir.getAbsolutePath() + File.separator + hostname
+                    + "_Runners.run.xml";
+            try {
+                DbTaskRunner.writeXMLWriter(filename);
+            } catch (WaarpDatabaseNoConnectionException e1) {
+                logger.error("Error", e1);
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(2);
+            } catch (WaarpDatabaseSqlException e1) {
+                logger.error("Error", e1);
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(2);
+            } catch (OpenR66ProtocolBusinessException e1) {
+                logger.error("Error", e1);
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(2);
+            }
+            logger.info("End of Export");
+        } finally {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
+            }
+        }
+    }
 
 }

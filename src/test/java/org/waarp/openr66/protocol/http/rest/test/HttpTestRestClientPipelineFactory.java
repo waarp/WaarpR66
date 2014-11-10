@@ -44,23 +44,23 @@ public class HttpTestRestClientPipelineFactory implements ChannelPipelineFactory
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initPipelineFactory(false,
+            SslHandler handler = waarpSslContextFactory.initPipelineFactory(false,
                     false, false);
-        	handler.setIssueHandshake(true);
-        	pipeline.addLast("ssl", handler);
+            handler.setIssueHandshake(true);
+            pipeline.addLast("ssl", handler);
         }
 
         pipeline.addLast("codec", new HttpClientCodec());
 
-        OrderedMemoryAwareThreadPoolExecutor executor = 
+        OrderedMemoryAwareThreadPoolExecutor executor =
                 Configuration.configuration.getHttpPipelineExecutor();
         if (executor == null) {
-        	Configuration.configuration.httpPipelineInit();
-        	executor = 
+            Configuration.configuration.httpPipelineInit();
+            executor =
                     Configuration.configuration.getHttpPipelineExecutor();
         }
         if (executor != null) {
-        	pipeline.addLast("pipelineExecutor", new ExecutionHandler(executor));
+            pipeline.addLast("pipelineExecutor", new ExecutionHandler(executor));
         }
         // Remove the following line if you don't want automatic content
         // decompression.

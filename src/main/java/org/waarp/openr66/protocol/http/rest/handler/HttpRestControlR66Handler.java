@@ -20,7 +20,6 @@
  */
 package org.waarp.openr66.protocol.http.rest.handler;
 
-
 import java.util.Date;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -58,193 +57,199 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Transfer Http REST interface: http://host/control?... + 
- * InformationJsonPacket (should be on Transfer only) RestartTransferJsonPacket StopOrCancelJsonPacket TransferRequestJsonPacket 
- * as GET PUT PUT POST
+ * Transfer Http REST interface: http://host/control?... + InformationJsonPacket (should be on
+ * Transfer only) RestartTransferJsonPacket StopOrCancelJsonPacket TransferRequestJsonPacket as GET
+ * PUT PUT POST
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
-	
-	public static final String BASEURI = "control";
-	/**
+
+    public static final String BASEURI = "control";
+    /**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestControlR66Handler.class);
-   
-	public HttpRestControlR66Handler(RestConfiguration config, METHOD ... methods) {
-		super(BASEURI, config, METHOD.OPTIONS);
-		setIntersectionMethods(methods, METHOD.GET, METHOD.PUT, METHOD.POST);
-	}
-	
-	@Override
-	public void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body)
-			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
-		logger.debug("debug: {} ### {}",arguments,result);
-		if (body != null) {
-			logger.debug("Obj: {}", body);
-		}
-		handler.setWillClose(false);
-		ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
-		R66Session session = serverHandler.getSession();
-		// now action according to body
-		JsonPacket json = (JsonPacket) body;
-		if (json == null) {
-			result.setDetail("not enough information");
-			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
-			return;
-		}
-		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Control.name());
-		METHOD method = arguments.getMethod();
-		try {
-			if (json instanceof InformationJsonPacket && method == METHOD.GET) {//
-				InformationJsonPacket node = (InformationJsonPacket) json;
-				if (node.isIdRequest()) {
-					result.setCommand(ACTIONS_TYPE.GetTransferInformation.name());
-					ValidPacket validPacket = null;
-					if (node.isIdRequest()) {
-						validPacket = serverHandler.informationRequest(node.getId(), node.isTo(), node.getRulename(), true);
-					} else {
-						validPacket = serverHandler.informationFile(node.getRequest(), node.getRulename(), node.getFilename(), true);
-					}
-					if (validPacket != null) {
-						ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
-						handler.setStatus(HttpResponseStatus.OK);
-						result.setResult(HttpResponseStatus.OK);
-						result.getResults().add(resp);
-					} else {
-						result.setDetail("Error during information request");
-						setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
-					}
-				} else {
-					result.setCommand(ACTIONS_TYPE.GetInformation.name());
-					result.setDetail("Error: FileInformation is not applicable with URI "+BASEURI);
-					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
-				}
-			} else if (json instanceof RestartTransferJsonPacket && method == METHOD.PUT) {//
-				result.setCommand(ACTIONS_TYPE.RestartTransfer.name());
-				RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
-				R66Result r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(), node.getRestarttime());
-				if (serverHandler.isCodeValid(r66result.code)) {
-					result.setDetail("Restart Transfer done");
-					setOk(handler, result, node, HttpResponseStatus.OK);
-				} else {
-					result.setDetail("Restart Transfer in error");
-					setError(handler, result, node, HttpResponseStatus.NOT_ACCEPTABLE);
-				}
-			} else if (json instanceof StopOrCancelJsonPacket && method == METHOD.PUT) {//
-				result.setCommand(ACTIONS_TYPE.StopOrCancelTransfer.name());
-				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
-				R66Result resulttest;
-				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
-					ErrorCode code = ErrorCode.CommandNotFound;
-					resulttest = new R66Result(session, true,
-							code, session.getRunner());
-					result.setDetail("Not enough argument passed to identify a transfer");
-					setError(handler, result, node, HttpResponseStatus.NOT_FOUND);
-				} else {
-					String reqd = node.getRequested();
-					String reqr = node.getRequester();
-					long id = node.getSpecialid();
-					resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-					result.setDetail(resulttest.code.mesg);
-					setOk(handler, result, node, HttpResponseStatus.OK);
-				}
-			} else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {
-				result.setCommand(ACTIONS_TYPE.CreateTransfer.name());
-				TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
-				R66Result r66result = serverHandler.transferRequest(node);
-				if (serverHandler.isCodeValid(r66result.code)) {
-					result.setDetail("New Transfer registered");
-					setOk(handler, result, node, HttpResponseStatus.OK);
-				} else {
-					result.setDetail("New Transfer cannot be registered");
-					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
-				}
-			} else {
-				logger.info("Validation is ignored: " + json);
-				result.setDetail("Unknown command");
-				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
-			}
-		} catch (OpenR66ProtocolNotAuthenticatedException e) {
-			throw new HttpInvalidAuthenticationException(e);
-		} catch (OpenR66ProtocolPacketException e) {
-			throw new HttpIncorrectRequestException(e);
-		} catch (OpenR66ProtocolNoDataException e) {
-			throw new HttpIncorrectRequestException(e);
-		}
-	}
-	
-	protected ArrayNode getDetailedAllow() {
-		ArrayNode node = JsonHandler.createArrayNode();
-		
-		if (this.methods.contains(METHOD.GET)) {
-			InformationJsonPacket node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
-			node3.setComment("Information on Transfer request (GET)");
-			ArrayNode node1 = JsonHandler.createArrayNode();
-			ObjectNode node1b = JsonHandler.createObjectNode();
-			node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
-			DbValue []values = DbTaskRunner.getAllType();
-			for (DbValue dbValue : values) {
-				node1b.put(dbValue.column, dbValue.getType());
-			}
-			node1.add(node1b);
-			ObjectNode node2;
-			try {
-				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode(), node1);
-				node.add(node2);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-		}
-		if (this.methods.contains(METHOD.PUT)) {
-			RestartTransferJsonPacket node4 = new RestartTransferJsonPacket();
-			node4.setRequestUserPacket();
-			node4.setComment("Restart Transfer request (PUT)");
-			node4.setRequested("Requested host");
-			node4.setRequester("Requester host");
-			node4.setRestarttime(new Date());
-			ArrayNode node1 = JsonHandler.createArrayNode();
-			try {
-				node1.add(node4.createObjectNode());
-				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.RestartTransfer.name(), node4.createObjectNode(), node1);
-				node.add(node2);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-			StopOrCancelJsonPacket node5 = new StopOrCancelJsonPacket();
-			node5.setRequestUserPacket();
-			node5.setComment("Stop Or Cancel request (PUT)");
-			node5.setRequested("Requested host");
-			node5.setRequester("Requester host");
-			node1 = JsonHandler.createArrayNode();
-			try {
-				node1.add(node5.createObjectNode());
-				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.StopOrCancelTransfer.name(), node5.createObjectNode(), node1);
-				node.add(node2);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-		}
-		if (this.methods.contains(METHOD.POST)) {
-			TransferRequestJsonPacket node6 = new TransferRequestJsonPacket();
-			node6.setRequestUserPacket();
-			node6.setComment("Transfer Request (POST)");
-			node6.setFilename("Filename");
-			node6.setFileInformation("File information");
-			node6.setRequested("Requested host");
-			node6.setRulename("Rulename");
-			node6.setStart(new Date());
-			ArrayNode node1 = JsonHandler.createArrayNode();
-			try {
-				node1.add(node6.createObjectNode());
-				ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, ACTIONS_TYPE.CreateTransfer.name(), node6.createObjectNode(), node1);
-				node.add(node2);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-		}		
-		
-		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
-		node.add(node2);
 
-		return node;
-	}
+    public HttpRestControlR66Handler(RestConfiguration config, METHOD... methods) {
+        super(BASEURI, config, METHOD.OPTIONS);
+        setIntersectionMethods(methods, METHOD.GET, METHOD.PUT, METHOD.POST);
+    }
+
+    @Override
+    public void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body)
+            throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
+        logger.debug("debug: {} ### {}", arguments, result);
+        if (body != null) {
+            logger.debug("Obj: {}", body);
+        }
+        handler.setWillClose(false);
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        R66Session session = serverHandler.getSession();
+        // now action according to body
+        JsonPacket json = (JsonPacket) body;
+        if (json == null) {
+            result.setDetail("not enough information");
+            setError(handler, result, HttpResponseStatus.BAD_REQUEST);
+            return;
+        }
+        result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Control.name());
+        METHOD method = arguments.getMethod();
+        try {
+            if (json instanceof InformationJsonPacket && method == METHOD.GET) {//
+                InformationJsonPacket node = (InformationJsonPacket) json;
+                if (node.isIdRequest()) {
+                    result.setCommand(ACTIONS_TYPE.GetTransferInformation.name());
+                    ValidPacket validPacket = null;
+                    if (node.isIdRequest()) {
+                        validPacket = serverHandler.informationRequest(node.getId(), node.isTo(), node.getRulename(),
+                                true);
+                    } else {
+                        validPacket = serverHandler.informationFile(node.getRequest(), node.getRulename(),
+                                node.getFilename(), true);
+                    }
+                    if (validPacket != null) {
+                        ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
+                        handler.setStatus(HttpResponseStatus.OK);
+                        result.setResult(HttpResponseStatus.OK);
+                        result.getResults().add(resp);
+                    } else {
+                        result.setDetail("Error during information request");
+                        setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
+                    }
+                } else {
+                    result.setCommand(ACTIONS_TYPE.GetInformation.name());
+                    result.setDetail("Error: FileInformation is not applicable with URI " + BASEURI);
+                    setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
+                }
+            } else if (json instanceof RestartTransferJsonPacket && method == METHOD.PUT) {//
+                result.setCommand(ACTIONS_TYPE.RestartTransfer.name());
+                RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
+                R66Result r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(),
+                        node.getSpecialid(), node.getRestarttime());
+                if (serverHandler.isCodeValid(r66result.code)) {
+                    result.setDetail("Restart Transfer done");
+                    setOk(handler, result, node, HttpResponseStatus.OK);
+                } else {
+                    result.setDetail("Restart Transfer in error");
+                    setError(handler, result, node, HttpResponseStatus.NOT_ACCEPTABLE);
+                }
+            } else if (json instanceof StopOrCancelJsonPacket && method == METHOD.PUT) {//
+                result.setCommand(ACTIONS_TYPE.StopOrCancelTransfer.name());
+                StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
+                R66Result resulttest;
+                if (node.getRequested() == null || node.getRequester() == null
+                        || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
+                    ErrorCode code = ErrorCode.CommandNotFound;
+                    resulttest = new R66Result(session, true,
+                            code, session.getRunner());
+                    result.setDetail("Not enough argument passed to identify a transfer");
+                    setError(handler, result, node, HttpResponseStatus.NOT_FOUND);
+                } else {
+                    String reqd = node.getRequested();
+                    String reqr = node.getRequester();
+                    long id = node.getSpecialid();
+                    resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
+                    result.setDetail(resulttest.code.mesg);
+                    setOk(handler, result, node, HttpResponseStatus.OK);
+                }
+            } else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {
+                result.setCommand(ACTIONS_TYPE.CreateTransfer.name());
+                TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
+                R66Result r66result = serverHandler.transferRequest(node);
+                if (serverHandler.isCodeValid(r66result.code)) {
+                    result.setDetail("New Transfer registered");
+                    setOk(handler, result, node, HttpResponseStatus.OK);
+                } else {
+                    result.setDetail("New Transfer cannot be registered");
+                    setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
+                }
+            } else {
+                logger.info("Validation is ignored: " + json);
+                result.setDetail("Unknown command");
+                setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
+            }
+        } catch (OpenR66ProtocolNotAuthenticatedException e) {
+            throw new HttpInvalidAuthenticationException(e);
+        } catch (OpenR66ProtocolPacketException e) {
+            throw new HttpIncorrectRequestException(e);
+        } catch (OpenR66ProtocolNoDataException e) {
+            throw new HttpIncorrectRequestException(e);
+        }
+    }
+
+    protected ArrayNode getDetailedAllow() {
+        ArrayNode node = JsonHandler.createArrayNode();
+
+        if (this.methods.contains(METHOD.GET)) {
+            InformationJsonPacket node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
+            node3.setComment("Information on Transfer request (GET)");
+            ArrayNode node1 = JsonHandler.createArrayNode();
+            ObjectNode node1b = JsonHandler.createObjectNode();
+            node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+            DbValue[] values = DbTaskRunner.getAllType();
+            for (DbValue dbValue : values) {
+                node1b.put(dbValue.column, dbValue.getType());
+            }
+            node1.add(node1b);
+            ObjectNode node2;
+            try {
+                node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path,
+                        ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode(), node1);
+                node.add(node2);
+            } catch (OpenR66ProtocolPacketException e1) {}
+        }
+        if (this.methods.contains(METHOD.PUT)) {
+            RestartTransferJsonPacket node4 = new RestartTransferJsonPacket();
+            node4.setRequestUserPacket();
+            node4.setComment("Restart Transfer request (PUT)");
+            node4.setRequested("Requested host");
+            node4.setRequester("Requester host");
+            node4.setRestarttime(new Date());
+            ArrayNode node1 = JsonHandler.createArrayNode();
+            try {
+                node1.add(node4.createObjectNode());
+                ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path,
+                        ACTIONS_TYPE.RestartTransfer.name(), node4.createObjectNode(), node1);
+                node.add(node2);
+            } catch (OpenR66ProtocolPacketException e1) {}
+            StopOrCancelJsonPacket node5 = new StopOrCancelJsonPacket();
+            node5.setRequestUserPacket();
+            node5.setComment("Stop Or Cancel request (PUT)");
+            node5.setRequested("Requested host");
+            node5.setRequester("Requester host");
+            node1 = JsonHandler.createArrayNode();
+            try {
+                node1.add(node5.createObjectNode());
+                ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path,
+                        ACTIONS_TYPE.StopOrCancelTransfer.name(), node5.createObjectNode(), node1);
+                node.add(node2);
+            } catch (OpenR66ProtocolPacketException e1) {}
+        }
+        if (this.methods.contains(METHOD.POST)) {
+            TransferRequestJsonPacket node6 = new TransferRequestJsonPacket();
+            node6.setRequestUserPacket();
+            node6.setComment("Transfer Request (POST)");
+            node6.setFilename("Filename");
+            node6.setFileInformation("File information");
+            node6.setRequested("Requested host");
+            node6.setRulename("Rulename");
+            node6.setStart(new Date());
+            ArrayNode node1 = JsonHandler.createArrayNode();
+            try {
+                node1.add(node6.createObjectNode());
+                ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path,
+                        ACTIONS_TYPE.CreateTransfer.name(), node6.createObjectNode(), node1);
+                node.add(node2);
+            } catch (OpenR66ProtocolPacketException e1) {}
+        }
+
+        ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null,
+                null);
+        node.add(node2);
+
+        return node;
+    }
 }

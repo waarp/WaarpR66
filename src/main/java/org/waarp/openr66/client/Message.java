@@ -49,194 +49,196 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class Message implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	private static WaarpInternalLogger logger;
-	
-	protected static String _INFO_ARGS =
-			Messages.getString("Message.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
+    /**
+     * Internal Logger
+     */
+    private static WaarpInternalLogger logger;
 
-	final private NetworkTransaction networkTransaction;
+    protected static String _INFO_ARGS =
+            Messages.getString("Message.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
-	final private R66Future future;
+    final private NetworkTransaction networkTransaction;
 
-	private final String requested;
+    final private R66Future future;
 
-	private final DbHostAuth hostAuth;
+    private final String requested;
 
-	final private TestPacket testPacket;
+    private final DbHostAuth hostAuth;
 
-	static String srequested = null;
-	static String smessage = "MESSAGE";
+    final private TestPacket testPacket;
 
-	/**
-	 * Parse the parameter and set current values
-	 * 
-	 * @param args
-	 * @return True if all parameters were found and correct
-	 */
-	protected static boolean getParams(String[] args) {
-		 _INFO_ARGS = Messages.getString("Message.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
-		if (args.length < 5) {
-			logger
-					.error(_INFO_ARGS);
-			return false;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger
-					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-			return false;
-		}
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-to")) {
-				i++;
-				srequested = args[i];
-			} else if (args[i].equalsIgnoreCase("-msg")) {
-				i++;
-				smessage = args[i];
-			}
-		}
-		OutputFormat.getParams(args);
-		if (srequested == null) {
-			logger.error(Messages.getString("Message.HostIdMustBeSet")+_INFO_ARGS); //$NON-NLS-1$
-			return false;
-		}
-		return true;
-	}
+    static String srequested = null;
+    static String smessage = "MESSAGE";
 
-	public Message(NetworkTransaction networkTransaction,
-			R66Future future, String requested, TestPacket packet) {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
-		}
-		this.networkTransaction = networkTransaction;
-		this.future = future;
-		this.requested = requested;
-		testPacket = packet;
-		this.hostAuth = null;
-	}
+    /**
+     * Parse the parameter and set current values
+     * 
+     * @param args
+     * @return True if all parameters were found and correct
+     */
+    protected static boolean getParams(String[] args) {
+        _INFO_ARGS = Messages.getString("Message.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
+        if (args.length < 5) {
+            logger
+                    .error(_INFO_ARGS);
+            return false;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger
+                    .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+            return false;
+        }
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-to")) {
+                i++;
+                srequested = args[i];
+            } else if (args[i].equalsIgnoreCase("-msg")) {
+                i++;
+                smessage = args[i];
+            }
+        }
+        OutputFormat.getParams(args);
+        if (srequested == null) {
+            logger.error(Messages.getString("Message.HostIdMustBeSet") + _INFO_ARGS); //$NON-NLS-1$
+            return false;
+        }
+        return true;
+    }
 
-	public Message(NetworkTransaction networkTransaction,
-			R66Future future, DbHostAuth hostAuth, TestPacket packet) {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
-		}
-		this.networkTransaction = networkTransaction;
-		this.future = future;
-		this.requested = null;
-		testPacket = packet;
-		this.hostAuth = hostAuth;
-	}
+    public Message(NetworkTransaction networkTransaction,
+            R66Future future, String requested, TestPacket packet) {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+        }
+        this.networkTransaction = networkTransaction;
+        this.future = future;
+        this.requested = requested;
+        testPacket = packet;
+        this.hostAuth = null;
+    }
 
-	public void run() {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(
-					Message.class);
-		}
-		// Connection
-		DbHostAuth host = null;
-		if (hostAuth == null) {
-			host = R66Auth.getServerAuth(DbConstant.admin.session,
-					requested);
-		} else {
-			host = hostAuth;
-		}
-		if (host == null) {
-			logger.debug(Messages.getString("Message.HostNotFound") + requested); //$NON-NLS-1$
-			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
-			this.future.setResult(result);
-			this.future.cancel();
-			return;
-		}
-		if (host.isClient()) {
-			logger.error(Messages.getString("Message.HostIsClient") + requested); //$NON-NLS-1$
-			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
-			this.future.setResult(result);
-			this.future.cancel();
-			return;
-		}
-		SocketAddress socketAddress = host.getSocketAddress();
-		boolean isSSL = host.isSsl();
-		LocalChannelReference localChannelReference = null;
-		localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			logger.debug(Messages.getString("AdminR66OperationsGui.188") + requested); //$NON-NLS-1$
-			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
-			this.future.setResult(result);
-			this.future.cancel();
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			future.setResult(null);
-			future.setFailure(e);
-			Channels.close(localChannelReference.getLocalChannel());
-			return;
-		}
-	}
+    public Message(NetworkTransaction networkTransaction,
+            R66Future future, DbHostAuth hostAuth, TestPacket packet) {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+        }
+        this.networkTransaction = networkTransaction;
+        this.future = future;
+        this.requested = null;
+        testPacket = packet;
+        this.hostAuth = hostAuth;
+    }
 
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(Message.class);
-		}
-		if (args.length < 5) {
-			logger
-					.error(_INFO_ARGS);
-			System.exit(1);
-		}
-		if (!getParams(args)) {
-			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(1);
-		}
-		NetworkTransaction networkTransaction = null;
-		int value = 3;
-		try {
-			Configuration.configuration.pipelineInit();
-			networkTransaction = new NetworkTransaction();
-			R66Future result = new R66Future(true);
-			TestPacket packet = new TestPacket("MSG", smessage, 100);
-			Message transaction = new Message(
-					networkTransaction, result, srequested,
-					packet);
-			transaction.run();
-			result.awaitUninterruptibly();
-			if (result.isSuccess()) {
-				value = 0;
-				R66Result r66result = result.getResult();
-				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn(Messages.getString("Message.11")+Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
-				if (! OutputFormat.isQuiet()) {
-					System.out.println(Messages.getString("Message.11")+Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
-				}
-			} else {
-				value = 2;
-				logger.error(Messages.getString("Message.11")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-						result.getResult().toString());
-				if (! OutputFormat.isQuiet()) {
-					System.out.println(Messages.getString("Message.11")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-							result.getResult().toString());
-				}
-			}
-		} finally {
-			if (networkTransaction != null) {
-				networkTransaction.closeAll();
-			}
-			if (DbConstant.admin != null) {
-				DbConstant.admin.close();
-			}
-			System.exit(value);
-		}
-	}
+    public void run() {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(
+                    Message.class);
+        }
+        // Connection
+        DbHostAuth host = null;
+        if (hostAuth == null) {
+            host = R66Auth.getServerAuth(DbConstant.admin.session,
+                    requested);
+        } else {
+            host = hostAuth;
+        }
+        if (host == null) {
+            logger.debug(Messages.getString("Message.HostNotFound") + requested); //$NON-NLS-1$
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
+        if (host.isClient()) {
+            logger.error(Messages.getString("Message.HostIsClient") + requested); //$NON-NLS-1$
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
+        SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
+        LocalChannelReference localChannelReference = null;
+        localChannelReference = networkTransaction
+                .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.debug(Messages.getString("AdminR66OperationsGui.188") + requested); //$NON-NLS-1$
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            future.setResult(null);
+            future.setFailure(e);
+            Channels.close(localChannelReference.getLocalChannel());
+            return;
+        }
+    }
+
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(Message.class);
+        }
+        if (args.length < 5) {
+            logger
+                    .error(_INFO_ARGS);
+            System.exit(1);
+        }
+        if (!getParams(args)) {
+            logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(1);
+        }
+        NetworkTransaction networkTransaction = null;
+        int value = 3;
+        try {
+            Configuration.configuration.pipelineInit();
+            networkTransaction = new NetworkTransaction();
+            R66Future result = new R66Future(true);
+            TestPacket packet = new TestPacket("MSG", smessage, 100);
+            Message transaction = new Message(
+                    networkTransaction, result, srequested,
+                    packet);
+            transaction.run();
+            result.awaitUninterruptibly();
+            if (result.isSuccess()) {
+                value = 0;
+                R66Result r66result = result.getResult();
+                ValidPacket info = (ValidPacket) r66result.other;
+                logger.warn(Messages.getString("Message.11") + Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
+                if (!OutputFormat.isQuiet()) {
+                    System.out
+                            .println(Messages.getString("Message.11") + Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
+                }
+            } else {
+                value = 2;
+                logger.error(Messages.getString("Message.11") + Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
+                        result.getResult().toString());
+                if (!OutputFormat.isQuiet()) {
+                    System.out
+                            .println(Messages.getString("Message.11") + Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
+                                    result.getResult().toString());
+                }
+            }
+        } finally {
+            if (networkTransaction != null) {
+                networkTransaction.closeAll();
+            }
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
+            }
+            System.exit(value);
+        }
+    }
 
 }

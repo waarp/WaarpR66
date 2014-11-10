@@ -59,7 +59,6 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-
 /**
  * Class to request information or request cancellation or restart
  * 
@@ -67,803 +66,807 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class RequestTransfer implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	static volatile WaarpInternalLogger logger;
+    /**
+     * Internal Logger
+     */
+    static volatile WaarpInternalLogger logger;
 
-	protected static String _INFO_ARGS = 
-			Messages.getString("RequestTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
-	
-	protected final NetworkTransaction networkTransaction;
-	final R66Future future;
-	final long specialId;
-	String requested = null;
-	String requester = null;
-	boolean cancel = false;
-	boolean stop = false;
-	boolean restart = false;
-	String restarttime = null;
-	boolean normalInfoAsWarn = true;
+    protected static String _INFO_ARGS =
+            Messages.getString("RequestTransfer.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
-	static long sspecialId;
-	static String srequested = null;
-	static String srequester = null;
-	static String rhost = null;
-	static boolean scancel = false;
-	static boolean sstop = false;
-	static boolean srestart = false;
-	static String srestarttime = null;
-	static protected boolean snormalInfoAsWarn = true;
-	
-	/**
-	 * Parse the parameter and set current values
-	 * 
-	 * @param args
-	 * @return True if all parameters were found and correct
-	 */
-	protected static boolean getParams(String[] args) {
-		_INFO_ARGS = Messages.getString("RequestTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
-		if (args.length < 5) {
-			logger
-					.error(_INFO_ARGS);
-			return false;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger
-					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-			return false;
-		}
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-id")) {
-				i++;
-				try {
-					sspecialId = Long.parseLong(args[i]);
-				} catch (NumberFormatException e) {
-					logger.error(Messages.getString("RequestTransfer.1")+args[i],e); //$NON-NLS-1$
-					return false;
-				}
-			} else if (args[i].equalsIgnoreCase("-to")) {
-				i++;
-				rhost = srequested = args[i];
-				try {
-					srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
-							srequested);
-				} catch (WaarpDatabaseException e) {
-					logger.error(Messages.getString("RequestTransfer.5") + srequested, e); //$NON-NLS-1$
-					return false;
-				}
-			} else if (args[i].equalsIgnoreCase("-from")) {
-				i++;
-				rhost = srequester = args[i];
-				try {
-					srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
-							srequester);
-				} catch (WaarpDatabaseException e) {
-					logger.error(Messages.getString("RequestTransfer.5") + srequester, e); //$NON-NLS-1$
-					return false;
-				}
-			} else if (args[i].equalsIgnoreCase("-cancel")) {
-				scancel = true;
-			} else if (args[i].equalsIgnoreCase("-stop")) {
-				sstop = true;
-			} else if (args[i].equalsIgnoreCase("-restart")) {
-				srestart = true;
-			} else if (args[i].equalsIgnoreCase("-start")) {
-				i++;
-				srestarttime = args[i];
-			} else if (args[i].equalsIgnoreCase("-logWarn")) {
-				snormalInfoAsWarn = true;
-			} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
-				snormalInfoAsWarn = false;
-			} else if (args[i].equalsIgnoreCase("-delay")) {
-				i++;
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-				if (args[i].charAt(0) == '+') {
-					Date date = new Date(System.currentTimeMillis() +
-							Long.parseLong(args[i].substring(1)));
-					srestarttime = dateFormat.format(date);
-				} else {
-					Date date = new Date(Long.parseLong(args[i]));
-					srestarttime = dateFormat.format(date);
-				}
-			}
-			OutputFormat.getParams(args);
-		}
-		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
-			logger.error(Messages.getString("RequestTransfer.15")+_INFO_ARGS); //$NON-NLS-1$
-			return false;
-		}
-		if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
-			logger.error(Messages.getString("RequestTransfer.16")+_INFO_ARGS); //$NON-NLS-1$
-			return false;
-		}
+    protected final NetworkTransaction networkTransaction;
+    final R66Future future;
+    final long specialId;
+    String requested = null;
+    String requester = null;
+    boolean cancel = false;
+    boolean stop = false;
+    boolean restart = false;
+    String restarttime = null;
+    boolean normalInfoAsWarn = true;
 
-		return true;
-	}
+    static long sspecialId;
+    static String srequested = null;
+    static String srequester = null;
+    static String rhost = null;
+    static boolean scancel = false;
+    static boolean sstop = false;
+    static boolean srestart = false;
+    static String srestarttime = null;
+    static protected boolean snormalInfoAsWarn = true;
 
-	/**
-	 * @param future
-	 * @param specialId
-	 * @param requested
-	 * @param requester
-	 * @param cancel
-	 * @param stop
-	 * @param restart
-	 * @param networkTransaction
-	 */
-	public RequestTransfer(R66Future future, long specialId, String requested, String requester,
-			boolean cancel, boolean stop, boolean restart,
-			NetworkTransaction networkTransaction) {
-		this(future, specialId, requested, requester, cancel, stop, restart, null, networkTransaction);
-	}
+    /**
+     * Parse the parameter and set current values
+     * 
+     * @param args
+     * @return True if all parameters were found and correct
+     */
+    protected static boolean getParams(String[] args) {
+        _INFO_ARGS = Messages.getString("RequestTransfer.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
+        if (args.length < 5) {
+            logger
+                    .error(_INFO_ARGS);
+            return false;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger
+                    .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+            return false;
+        }
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-id")) {
+                i++;
+                try {
+                    sspecialId = Long.parseLong(args[i]);
+                } catch (NumberFormatException e) {
+                    logger.error(Messages.getString("RequestTransfer.1") + args[i], e); //$NON-NLS-1$
+                    return false;
+                }
+            } else if (args[i].equalsIgnoreCase("-to")) {
+                i++;
+                rhost = srequested = args[i];
+                try {
+                    srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+                            srequested);
+                } catch (WaarpDatabaseException e) {
+                    logger.error(Messages.getString("RequestTransfer.5") + srequested, e); //$NON-NLS-1$
+                    return false;
+                }
+            } else if (args[i].equalsIgnoreCase("-from")) {
+                i++;
+                rhost = srequester = args[i];
+                try {
+                    srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
+                            srequester);
+                } catch (WaarpDatabaseException e) {
+                    logger.error(Messages.getString("RequestTransfer.5") + srequester, e); //$NON-NLS-1$
+                    return false;
+                }
+            } else if (args[i].equalsIgnoreCase("-cancel")) {
+                scancel = true;
+            } else if (args[i].equalsIgnoreCase("-stop")) {
+                sstop = true;
+            } else if (args[i].equalsIgnoreCase("-restart")) {
+                srestart = true;
+            } else if (args[i].equalsIgnoreCase("-start")) {
+                i++;
+                srestarttime = args[i];
+            } else if (args[i].equalsIgnoreCase("-logWarn")) {
+                snormalInfoAsWarn = true;
+            } else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+                snormalInfoAsWarn = false;
+            } else if (args[i].equalsIgnoreCase("-delay")) {
+                i++;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                if (args[i].charAt(0) == '+') {
+                    Date date = new Date(System.currentTimeMillis() +
+                            Long.parseLong(args[i].substring(1)));
+                    srestarttime = dateFormat.format(date);
+                } else {
+                    Date date = new Date(Long.parseLong(args[i]));
+                    srestarttime = dateFormat.format(date);
+                }
+            }
+            OutputFormat.getParams(args);
+        }
+        if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
+            logger.error(Messages.getString("RequestTransfer.15") + _INFO_ARGS); //$NON-NLS-1$
+            return false;
+        }
+        if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
+            logger.error(Messages.getString("RequestTransfer.16") + _INFO_ARGS); //$NON-NLS-1$
+            return false;
+        }
 
-	/**
-	 * @param future
-	 * @param specialId
-	 * @param requested
-	 * @param requester
-	 * @param cancel
-	 * @param stop
-	 * @param restart
-	 * @param restarttime in yyyyMMddHHmmss format
-	 * @param networkTransaction
-	 */
-	public RequestTransfer(R66Future future, long specialId, String requested, String requester,
-			boolean cancel, boolean stop, boolean restart, String restarttime,
-			NetworkTransaction networkTransaction) {
-		this.future = future;
-		this.specialId = specialId;
-		this.requested = requested;
-		this.requester = requester;
-		this.cancel = cancel;
-		this.stop = stop;
-		this.restart = restart;
-		this.restarttime = restarttime;
-		this.networkTransaction = networkTransaction;
-	}
-	
-	public void run() {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
-		}
-		DbTaskRunner runner = null;
-		try {
-			runner = new DbTaskRunner(DbConstant.admin.session, null, null,
-					specialId, requester, requested);
-			logger.info("Found previous Runner: "+runner.toString());
-		} catch (WaarpDatabaseException e) {
-			// Maybe we can ask to the remote
-			R66Future futureInfo = new R66Future(true);
-			RequestInformation requestInformation = new RequestInformation(futureInfo, requested, null, null, (byte) -1, specialId, true, networkTransaction);
-			requestInformation.normalInfoAsWarn = normalInfoAsWarn;
-			requestInformation.run();
-			futureInfo.awaitUninterruptibly();
-			if (futureInfo.isSuccess()) {
-				R66Result r66result = futureInfo.getResult();
-				ValidPacket info = (ValidPacket) r66result.other;
-				String xml = info.getSheader();
-				try {
-					runner = DbTaskRunner.fromStringXml(xml, true);
-					runner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-					// useful ?
-					CommanderNoDb.todoList.add(runner);
+        return true;
+    }
 
-					logger.info("Get Runner from remote: "+runner.toString());
-					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || ! runner.isSender()) {
-						logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-								ErrorCode.Internal, null));
-						future.setFailure(e);
-						return;
-					}
-					if (runner.isAllDone()) {
-						logger.error(Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
-						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-								ErrorCode.Internal, null));
-						future.setFailure(e);
-						return;
-					}
-				} catch (OpenR66ProtocolBusinessException e1) {
-					logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
-							ErrorCode.Internal, null));
-					future.setFailure(e);
-					return;
-				}
-			} else {
-				logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-						ErrorCode.Internal, null));
-				future.setFailure(e);
-				return;
-			}
-		}
-		if (cancel || stop || restart) {
-			if (cancel) {
-				// Cancel the task and delete any file if in retrieve
-				if (runner.isAllDone()) {
-					// nothing to do since already finished
-					setDone(runner);
-					logger.info("Transfer already finished: " + runner.toString());
-					future.setResult(new R66Result(null, true, ErrorCode.TransferOk, runner));
-					future.getResult().runner = runner;
-					future.setSuccess();
-					return;
-				} else {
-					// Send a request of cancel
-					ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.CANCELPACKET);
-					switch (code) {
-						case CompleteOk:
-							logger.info("Transfer cancel requested and done: {}",
-									runner);
-							break;
-						case TransferOk:
-							logger.info("Transfer cancel requested but already finished: {}",
-									runner);
-							break;
-						default:
-							logger.info("Transfer cancel requested but internal error: {}",
-									runner);
-							break;
-					}
-				}
-			} else if (stop) {
-				// Just stop the task
-				// Send a request
-				ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.STOPPACKET);
-				switch (code) {
-					case CompleteOk:
-						logger.info("Transfer stop requested and done: {}", runner);
-						break;
-					case TransferOk:
-						logger.info("Transfer stop requested but already finished: {}",
-								runner);
-						break;
-					default:
-						logger.info("Transfer stop requested but internal error: {}",
-								runner);
-						break;
-				}
-			} else if (restart) {
-				// Restart if already stopped and not finished
-				ErrorCode code = sendValid(runner, LocalPacketFactory.VALIDPACKET);
-				switch (code) {
-					case QueryStillRunning:
-						logger.info(
-								"Transfer restart requested but already active and running: {}",
-								runner);
-						break;
-					case Running:
-						logger.info("Transfer restart requested but already running: {}",
-								runner);
-						break;
-					case PreProcessingOk:
-						logger.info("Transfer restart requested and restarted: {}",
-								runner);
-						break;
-					case CompleteOk:
-						logger.info("Transfer restart requested but already finished: {}",
-								runner);
-						break;
-					case RemoteError:
-						logger.info("Transfer restart requested but remote error: {}",
-								runner);
-						break;
-					case PassThroughMode:
-						logger.info("Transfer not restarted since it is in PassThrough mode: {}",
-								runner);
-						break;
-					default:
-						logger.info("Transfer restart requested but internal error: {}",
-								runner);
-						break;
-				}
-			}
-		} else {
-			// Only request
-			logger.info("Transfer information:     " + runner.toShortString());
-			future.setResult(new R66Result(null, true, runner.getErrorInfo(), runner));
-			future.setSuccess();
-		}
-	}
+    /**
+     * @param future
+     * @param specialId
+     * @param requested
+     * @param requester
+     * @param cancel
+     * @param stop
+     * @param restart
+     * @param networkTransaction
+     */
+    public RequestTransfer(R66Future future, long specialId, String requested, String requester,
+            boolean cancel, boolean stop, boolean restart,
+            NetworkTransaction networkTransaction) {
+        this(future, specialId, requested, requester, cancel, stop, restart, null, networkTransaction);
+    }
 
-	/**
-	 * Set the runner to DONE
-	 * 
-	 * @param runner
-	 */
-	private void setDone(DbTaskRunner runner) {
-		if (runner.getUpdatedInfo() != UpdatedInfo.DONE) {
-			runner.changeUpdatedInfo(UpdatedInfo.DONE);
-			runner.forceSaveStatus();
-		}
-	}
+    /**
+     * @param future
+     * @param specialId
+     * @param requested
+     * @param requester
+     * @param cancel
+     * @param stop
+     * @param restart
+     * @param restarttime
+     *            in yyyyMMddHHmmss format
+     * @param networkTransaction
+     */
+    public RequestTransfer(R66Future future, long specialId, String requested, String requester,
+            boolean cancel, boolean stop, boolean restart, String restarttime,
+            NetworkTransaction networkTransaction) {
+        this.future = future;
+        this.specialId = specialId;
+        this.requested = requested;
+        this.requester = requester;
+        this.cancel = cancel;
+        this.stop = stop;
+        this.restart = restart;
+        this.restarttime = restarttime;
+        this.networkTransaction = networkTransaction;
+    }
 
-	private ErrorCode sendValid(DbTaskRunner runner, byte code) {
-		DbHostAuth host;
-		host = R66Auth.getServerAuth(DbConstant.admin.session,
-				this.requester);
-		if (host == null) {
-			logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
-			OpenR66Exception e =
-					new OpenR66RunnerErrorException("Requester host cannot be found");
-			future.setResult(new R66Result(
-					e,
-					null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return ErrorCode.Internal;
-		}
-		// check if requester is "client" so no connect from him but direct action
-		logger.debug("Requester Host isClient: "+host.isClient());
-		if (host.isClient()) {
-			if (code == LocalPacketFactory.VALIDPACKET) {
-				logger.info(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
-						runner.toShortString());
-				R66Future transfer = new R66Future(true);
-				DirectTransfer transaction = new DirectTransfer(transfer,
-						runner.getRequested(), runner.getOriginalFilename(), 
-						runner.getRuleId(), runner.getFileInformation(), false, 
-						runner.getBlocksize(), runner.getSpecialId(), networkTransaction);
-				transaction.normalInfoAsWarn = normalInfoAsWarn;
-				transaction.run();
-				transfer.awaitUninterruptibly();
-				logger.info("Request done with " + (transfer.isSuccess() ? "success" : "error"));
-				if (transfer.isSuccess()) {
-					future.setResult(new R66Result(null, true, ErrorCode.PreProcessingOk, runner));
-					future.getResult().runner = runner;
-					future.setSuccess();
-					return ErrorCode.PreProcessingOk;
-				} else {
-					R66Result result = transfer.getResult();
-					ErrorCode error = ErrorCode.Internal;
-					if (result != null) {
-						error = result.code;
-					}
-					OpenR66Exception e =
-							new OpenR66RunnerErrorException("Transfer in direct mode failed: "+error.mesg);
-					future.setFailure(e);
-					return error;
-				}
-			} else {
-				// get remote host instead
-				host = R66Auth.getServerAuth(DbConstant.admin.session,
-						this.requested);
-				if (host == null) {
-					logger.error(Messages.getString("Message.HostNotFound") + this.requested); //$NON-NLS-1$
-					OpenR66Exception e =
-							new OpenR66RunnerErrorException("Requested host cannot be found");
-					future.setResult(new R66Result(
-							e,
-							null, true,
-							ErrorCode.TransferError, null));
-					future.setFailure(e);
-					return ErrorCode.ConnectionImpossible;
-				}
-			}
-		}
+    public void run() {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
+        }
+        DbTaskRunner runner = null;
+        try {
+            runner = new DbTaskRunner(DbConstant.admin.session, null, null,
+                    specialId, requester, requested);
+            logger.info("Found previous Runner: " + runner.toString());
+        } catch (WaarpDatabaseException e) {
+            // Maybe we can ask to the remote
+            R66Future futureInfo = new R66Future(true);
+            RequestInformation requestInformation = new RequestInformation(futureInfo, requested, null, null,
+                    (byte) -1, specialId, true, networkTransaction);
+            requestInformation.normalInfoAsWarn = normalInfoAsWarn;
+            requestInformation.run();
+            futureInfo.awaitUninterruptibly();
+            if (futureInfo.isSuccess()) {
+                R66Result r66result = futureInfo.getResult();
+                ValidPacket info = (ValidPacket) r66result.other;
+                String xml = info.getSheader();
+                try {
+                    runner = DbTaskRunner.fromStringXml(xml, true);
+                    runner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                    // useful ?
+                    CommanderNoDb.todoList.add(runner);
 
-		logger.info("Try RequestTransfer to "+host.toString());
-		SocketAddress socketAddress;
-		try {
-			socketAddress = host.getSocketAddress();
-		} catch (IllegalArgumentException e) {
-			logger.debug("Cannot connect to " + host.toString());
-			host = null;
-			future.setResult(new R66Result(null, true,
-					ErrorCode.ConnectionImpossible, null));
-			future.cancel();
-			return ErrorCode.ConnectionImpossible;
-		}
-		boolean isSSL = host.isSsl();
+                    logger.info("Get Runner from remote: " + runner.toString());
+                    if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || !runner.isSender()) {
+                        logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
+                        future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                                ErrorCode.Internal, null));
+                        future.setFailure(e);
+                        return;
+                    }
+                    if (runner.isAllDone()) {
+                        logger.error(Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
+                        future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                                ErrorCode.Internal, null));
+                        future.setFailure(e);
+                        return;
+                    }
+                } catch (OpenR66ProtocolBusinessException e1) {
+                    logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
+                    future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
+                            ErrorCode.Internal, null));
+                    future.setFailure(e);
+                    return;
+                }
+            } else {
+                logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        ErrorCode.Internal, null));
+                future.setFailure(e);
+                return;
+            }
+        }
+        if (cancel || stop || restart) {
+            if (cancel) {
+                // Cancel the task and delete any file if in retrieve
+                if (runner.isAllDone()) {
+                    // nothing to do since already finished
+                    setDone(runner);
+                    logger.info("Transfer already finished: " + runner.toString());
+                    future.setResult(new R66Result(null, true, ErrorCode.TransferOk, runner));
+                    future.getResult().runner = runner;
+                    future.setSuccess();
+                    return;
+                } else {
+                    // Send a request of cancel
+                    ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.CANCELPACKET);
+                    switch (code) {
+                        case CompleteOk:
+                            logger.info("Transfer cancel requested and done: {}",
+                                    runner);
+                            break;
+                        case TransferOk:
+                            logger.info("Transfer cancel requested but already finished: {}",
+                                    runner);
+                            break;
+                        default:
+                            logger.info("Transfer cancel requested but internal error: {}",
+                                    runner);
+                            break;
+                    }
+                }
+            } else if (stop) {
+                // Just stop the task
+                // Send a request
+                ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.STOPPACKET);
+                switch (code) {
+                    case CompleteOk:
+                        logger.info("Transfer stop requested and done: {}", runner);
+                        break;
+                    case TransferOk:
+                        logger.info("Transfer stop requested but already finished: {}",
+                                runner);
+                        break;
+                    default:
+                        logger.info("Transfer stop requested but internal error: {}",
+                                runner);
+                        break;
+                }
+            } else if (restart) {
+                // Restart if already stopped and not finished
+                ErrorCode code = sendValid(runner, LocalPacketFactory.VALIDPACKET);
+                switch (code) {
+                    case QueryStillRunning:
+                        logger.info(
+                                "Transfer restart requested but already active and running: {}",
+                                runner);
+                        break;
+                    case Running:
+                        logger.info("Transfer restart requested but already running: {}",
+                                runner);
+                        break;
+                    case PreProcessingOk:
+                        logger.info("Transfer restart requested and restarted: {}",
+                                runner);
+                        break;
+                    case CompleteOk:
+                        logger.info("Transfer restart requested but already finished: {}",
+                                runner);
+                        break;
+                    case RemoteError:
+                        logger.info("Transfer restart requested but remote error: {}",
+                                runner);
+                        break;
+                    case PassThroughMode:
+                        logger.info("Transfer not restarted since it is in PassThrough mode: {}",
+                                runner);
+                        break;
+                    default:
+                        logger.info("Transfer restart requested but internal error: {}",
+                                runner);
+                        break;
+                }
+            }
+        } else {
+            // Only request
+            logger.info("Transfer information:     " + runner.toShortString());
+            future.setResult(new R66Result(null, true, runner.getErrorInfo(), runner));
+            future.setSuccess();
+        }
+    }
 
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			logger.debug("Cannot connect to " + host.toString());
-			host = null;
-			future.setResult(new R66Result(null, true,
-					ErrorCode.ConnectionImpossible, null));
-			future.cancel();
-			return ErrorCode.ConnectionImpossible;
-		}
-		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
-		logger.debug("UseJson: "+useJson);
-		AbstractLocalPacket packet = null;
-		if (useJson) {
-			RestartTransferJsonPacket node = new RestartTransferJsonPacket();
-			node.setComment("Request on Transfer");
-			node.setRequested(requested);
-			node.setRequester(requester);
-			node.setSpecialid(specialId);
-			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
-				// restart time set
-				logger.debug("Restart with time: "+restarttime);
-				// time to reschedule in yyyyMMddHHmmss format
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-				try {
-					Date date = dateFormat.parse(restarttime);
-					node.setRestarttime(date);
-				} catch (ParseException e) {
-				}
-				packet = new JsonCommandPacket(node, code);
-			} else {
-				packet = new JsonCommandPacket(node, code);
-			}
-		} else {
-			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
-				// restart time set
-				logger.debug("Restart with time: "+restarttime);
-				packet = new ValidPacket("Request on Transfer",
-						this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
-						code);
-			} else {
-				packet = new ValidPacket("Request on Transfer",
-					this.requested + " " + this.requester + " " + this.specialId,
-					code);
-			}
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			packet = null;
-			logger.debug("Bad Protocol", e);
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return ErrorCode.Internal;
-		}
-		packet = null;
-		host = null;
-		future.awaitUninterruptibly();
+    /**
+     * Set the runner to DONE
+     * 
+     * @param runner
+     */
+    private void setDone(DbTaskRunner runner) {
+        if (runner.getUpdatedInfo() != UpdatedInfo.DONE) {
+            runner.changeUpdatedInfo(UpdatedInfo.DONE);
+            runner.forceSaveStatus();
+        }
+    }
 
-		Channels.close(localChannelReference.getLocalChannel());
-		localChannelReference = null;
+    private ErrorCode sendValid(DbTaskRunner runner, byte code) {
+        DbHostAuth host;
+        host = R66Auth.getServerAuth(DbConstant.admin.session,
+                this.requester);
+        if (host == null) {
+            logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
+            OpenR66Exception e =
+                    new OpenR66RunnerErrorException("Requester host cannot be found");
+            future.setResult(new R66Result(
+                    e,
+                    null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return ErrorCode.Internal;
+        }
+        // check if requester is "client" so no connect from him but direct action
+        logger.debug("Requester Host isClient: " + host.isClient());
+        if (host.isClient()) {
+            if (code == LocalPacketFactory.VALIDPACKET) {
+                logger.info(Messages.getString("RequestTransfer.42") + //$NON-NLS-1$
+                        runner.toShortString());
+                R66Future transfer = new R66Future(true);
+                DirectTransfer transaction = new DirectTransfer(transfer,
+                        runner.getRequested(), runner.getOriginalFilename(),
+                        runner.getRuleId(), runner.getFileInformation(), false,
+                        runner.getBlocksize(), runner.getSpecialId(), networkTransaction);
+                transaction.normalInfoAsWarn = normalInfoAsWarn;
+                transaction.run();
+                transfer.awaitUninterruptibly();
+                logger.info("Request done with " + (transfer.isSuccess() ? "success" : "error"));
+                if (transfer.isSuccess()) {
+                    future.setResult(new R66Result(null, true, ErrorCode.PreProcessingOk, runner));
+                    future.getResult().runner = runner;
+                    future.setSuccess();
+                    return ErrorCode.PreProcessingOk;
+                } else {
+                    R66Result result = transfer.getResult();
+                    ErrorCode error = ErrorCode.Internal;
+                    if (result != null) {
+                        error = result.code;
+                    }
+                    OpenR66Exception e =
+                            new OpenR66RunnerErrorException("Transfer in direct mode failed: " + error.mesg);
+                    future.setFailure(e);
+                    return error;
+                }
+            } else {
+                // get remote host instead
+                host = R66Auth.getServerAuth(DbConstant.admin.session,
+                        this.requested);
+                if (host == null) {
+                    logger.error(Messages.getString("Message.HostNotFound") + this.requested); //$NON-NLS-1$
+                    OpenR66Exception e =
+                            new OpenR66RunnerErrorException("Requested host cannot be found");
+                    future.setResult(new R66Result(
+                            e,
+                            null, true,
+                            ErrorCode.TransferError, null));
+                    future.setFailure(e);
+                    return ErrorCode.ConnectionImpossible;
+                }
+            }
+        }
 
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-		R66Result result = future.getResult();
-		if (result != null) {
-			return result.code;
-		}
-		return ErrorCode.Internal;
-	}
+        logger.info("Try RequestTransfer to " + host.toString());
+        SocketAddress socketAddress;
+        try {
+            socketAddress = host.getSocketAddress();
+        } catch (IllegalArgumentException e) {
+            logger.debug("Cannot connect to " + host.toString());
+            host = null;
+            future.setResult(new R66Result(null, true,
+                    ErrorCode.ConnectionImpossible, null));
+            future.cancel();
+            return ErrorCode.ConnectionImpossible;
+        }
+        boolean isSSL = host.isSsl();
 
-	private ErrorCode sendStopOrCancel(DbTaskRunner runner, byte code) {
-		DbHostAuth host;
-		host = R66Auth.getServerAuth(DbConstant.admin.session,
-				this.requester);
-		if (host == null) {
-			logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
-			OpenR66Exception e =
-					new OpenR66RunnerErrorException("Requester host cannot be found");
-			future.setResult(new R66Result(
-					e,
-					null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return ErrorCode.Internal;
-		}
+        LocalChannelReference localChannelReference = networkTransaction
+                .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.debug("Cannot connect to " + host.toString());
+            host = null;
+            future.setResult(new R66Result(null, true,
+                    ErrorCode.ConnectionImpossible, null));
+            future.cancel();
+            return ErrorCode.ConnectionImpossible;
+        }
+        boolean useJson = PartnerConfiguration.useJson(host.getHostid());
+        logger.debug("UseJson: " + useJson);
+        AbstractLocalPacket packet = null;
+        if (useJson) {
+            RestartTransferJsonPacket node = new RestartTransferJsonPacket();
+            node.setComment("Request on Transfer");
+            node.setRequested(requested);
+            node.setRequester(requester);
+            node.setSpecialid(specialId);
+            if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+                // restart time set
+                logger.debug("Restart with time: " + restarttime);
+                // time to reschedule in yyyyMMddHHmmss format
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                try {
+                    Date date = dateFormat.parse(restarttime);
+                    node.setRestarttime(date);
+                } catch (ParseException e) {}
+                packet = new JsonCommandPacket(node, code);
+            } else {
+                packet = new JsonCommandPacket(node, code);
+            }
+        } else {
+            if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+                // restart time set
+                logger.debug("Restart with time: " + restarttime);
+                packet = new ValidPacket("Request on Transfer",
+                        this.requested + " " + this.requester + " " + this.specialId + " " + restarttime,
+                        code);
+            } else {
+                packet = new ValidPacket("Request on Transfer",
+                        this.requested + " " + this.requester + " " + this.specialId,
+                        code);
+            }
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            packet = null;
+            logger.debug("Bad Protocol", e);
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return ErrorCode.Internal;
+        }
+        packet = null;
+        host = null;
+        future.awaitUninterruptibly();
 
-		logger.info("Try RequestTransfer to "+host.toString());
-		SocketAddress socketAddress;
-		try {
-			socketAddress = host.getSocketAddress();
-		} catch (IllegalArgumentException e) {
-			logger.debug("Cannot connect to " + host.toString());
-			host = null;
-			future.setResult(new R66Result(null, true,
-					ErrorCode.ConnectionImpossible, null));
-			future.cancel();
-			return ErrorCode.ConnectionImpossible;
-		}
-		boolean isSSL = host.isSsl();
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
 
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			logger.debug("Cannot connect to " + host.toString());
-			host = null;
-			future.setResult(new R66Result(null, true,
-					ErrorCode.ConnectionImpossible, null));
-			future.cancel();
-			return ErrorCode.ConnectionImpossible;
-		}
-		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
-		logger.debug("UseJson: "+useJson);
-		AbstractLocalPacket packet = null;
-		if (useJson) {
-			StopOrCancelJsonPacket node = new StopOrCancelJsonPacket();
-			node.setComment("Request on Transfer");
-			node.setRequested(requested);
-			node.setRequester(requester);
-			node.setSpecialid(specialId);
-			packet = new JsonCommandPacket(node, code);
-		} else {
-			packet = new ValidPacket("Request on Transfer",
-					this.requested + " " + this.requester + " " + this.specialId,
-					code);
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			packet = null;
-			logger.debug("Bad Protocol", e);
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return ErrorCode.Internal;
-		}
-		packet = null;
-		host = null;
-		future.awaitUninterruptibly();
+        logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+        R66Result result = future.getResult();
+        if (result != null) {
+            return result.code;
+        }
+        return ErrorCode.Internal;
+    }
 
-		Channels.close(localChannelReference.getLocalChannel());
-		localChannelReference = null;
+    private ErrorCode sendStopOrCancel(DbTaskRunner runner, byte code) {
+        DbHostAuth host;
+        host = R66Auth.getServerAuth(DbConstant.admin.session,
+                this.requester);
+        if (host == null) {
+            logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
+            OpenR66Exception e =
+                    new OpenR66RunnerErrorException("Requester host cannot be found");
+            future.setResult(new R66Result(
+                    e,
+                    null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return ErrorCode.Internal;
+        }
 
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-		R66Result result = future.getResult();
-		if (result != null) {
-			return result.code;
-		}
-		return ErrorCode.Internal;
-	}
+        logger.info("Try RequestTransfer to " + host.toString());
+        SocketAddress socketAddress;
+        try {
+            socketAddress = host.getSocketAddress();
+        } catch (IllegalArgumentException e) {
+            logger.debug("Cannot connect to " + host.toString());
+            host = null;
+            future.setResult(new R66Result(null, true,
+                    ErrorCode.ConnectionImpossible, null));
+            future.cancel();
+            return ErrorCode.ConnectionImpossible;
+        }
+        boolean isSSL = host.isSsl();
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
-		}
-		if (!getParams(args)) {
-			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! OutputFormat.isQuiet()) {
-				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			}
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(1);
-		}
-		int value = 99;
-		try {
-			Configuration.configuration.pipelineInit();
-			NetworkTransaction networkTransaction = new NetworkTransaction();
-			R66Future result = new R66Future(true);
-			RequestTransfer requestTransfer =
-					new RequestTransfer(result, sspecialId, srequested, srequester,
-							scancel, sstop, srestart, srestarttime,
-							networkTransaction);
-			requestTransfer.normalInfoAsWarn = snormalInfoAsWarn;
-			requestTransfer.run();
-			result.awaitUninterruptibly();
-			R66Result finalValue = result.getResult();
-			OutputFormat outputFormat = new OutputFormat(RequestTransfer.class.getSimpleName(), args);
-			if (scancel || sstop || srestart) {
-				if (scancel) {
-					if (result.isSuccess()) {
-						value = 0;
-						outputFormat.setValue(FIELDS.status.name(), value);
-						outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
-						outputFormat.setValue(FIELDS.remote.name(), rhost);
-						outputFormat.setValueString(result.runner.getJson());
-						if (requestTransfer.normalInfoAsWarn) {
-							logger.warn(outputFormat.loggerOut());
-						} else {
-							logger.info(outputFormat.loggerOut());
-						}
-						if (! OutputFormat.isQuiet()) {
-							outputFormat.sysout();
-						}
-					} else {
-						switch (finalValue.code) {
-							case CompleteOk:
-								value = 0;
-								outputFormat.setValue(FIELDS.status.name(), value);
-								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
-								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(result.runner.getJson());
-								logger.warn(outputFormat.loggerOut());
-								if (! OutputFormat.isQuiet()) {
-									outputFormat.sysout();
-								}
-								break;
-							case TransferOk:
-								value = 3;
-								outputFormat.setValue(FIELDS.status.name(), value);
-								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
-								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(result.runner.getJson());
-								logger.warn(outputFormat.loggerOut());
-								if (! OutputFormat.isQuiet()) {
-									outputFormat.sysout();
-								}
-								break;
-							default:
-								value = 4;
-								outputFormat.setValue(FIELDS.status.name(), value);
-								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.72")); //$NON-NLS-1$
-								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(result.runner.getJson());
-								if (result.getCause() != null) {
-									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-								}
-								logger.error(outputFormat.loggerOut());
-								if (! OutputFormat.isQuiet()) {
-									outputFormat.sysout();
-								}
-								break;
-						}
-					}
-				} else if (sstop) {
-					switch (finalValue.code) {
-						case CompleteOk:
-							value = 0;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							if (requestTransfer.normalInfoAsWarn) {
-								logger.warn(outputFormat.loggerOut());
-							} else {
-								logger.info(outputFormat.loggerOut());
-							}
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case TransferOk:
-							value = 0;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						default:
-							value = 3;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.75")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							if (result.getCause() != null) {
-								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-							}
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-					}
-				} else if (srestart) {
-					switch (finalValue.code) {
-						case QueryStillRunning:
-							value = 0;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case Running:
-							value = 0;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case PreProcessingOk:
-							value = 0;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							if (requestTransfer.normalInfoAsWarn) {
-								logger.warn(outputFormat.loggerOut());
-							} else {
-								logger.info(outputFormat.loggerOut());
-							}
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case CompleteOk:
-							value = 4;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case RemoteError:
-							value = 5;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						case PassThroughMode:
-							value = 6;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-						default:
-							value = 3;
-							outputFormat.setValue(FIELDS.status.name(), value);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.82")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(result.runner.getJson());
-							if (result.getCause() != null) {
-								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-							}
-							logger.warn(outputFormat.loggerOut());
-							if (! OutputFormat.isQuiet()) {
-								outputFormat.sysout();
-							}
-							break;
-					}
-				}
-			} else {
-				value = 0;
-				// Only request
-				outputFormat.setValue(FIELDS.status.name(), value);
-				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.83")); //$NON-NLS-1$
-				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				outputFormat.setValueString(result.runner.getJson());
-				if (requestTransfer.normalInfoAsWarn) {
-					logger.warn(outputFormat.loggerOut());
-				} else {
-					logger.info(outputFormat.loggerOut());
-				}
-				if (! OutputFormat.isQuiet()) {
-					outputFormat.sysout();
-				}
-			}
-		} finally {
-			if (DbConstant.admin != null) {
-				DbConstant.admin.close();
-			}
-			System.exit(value);
-		}
-	}
+        LocalChannelReference localChannelReference = networkTransaction
+                .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.debug("Cannot connect to " + host.toString());
+            host = null;
+            future.setResult(new R66Result(null, true,
+                    ErrorCode.ConnectionImpossible, null));
+            future.cancel();
+            return ErrorCode.ConnectionImpossible;
+        }
+        boolean useJson = PartnerConfiguration.useJson(host.getHostid());
+        logger.debug("UseJson: " + useJson);
+        AbstractLocalPacket packet = null;
+        if (useJson) {
+            StopOrCancelJsonPacket node = new StopOrCancelJsonPacket();
+            node.setComment("Request on Transfer");
+            node.setRequested(requested);
+            node.setRequester(requester);
+            node.setSpecialid(specialId);
+            packet = new JsonCommandPacket(node, code);
+        } else {
+            packet = new ValidPacket("Request on Transfer",
+                    this.requested + " " + this.requester + " " + this.specialId,
+                    code);
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            packet = null;
+            logger.debug("Bad Protocol", e);
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return ErrorCode.Internal;
+        }
+        packet = null;
+        host = null;
+        future.awaitUninterruptibly();
+
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
+
+        logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+        R66Result result = future.getResult();
+        if (result != null) {
+            return result.code;
+        }
+        return ErrorCode.Internal;
+    }
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
+        }
+        if (!getParams(args)) {
+            logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            if (!OutputFormat.isQuiet()) {
+                System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            }
+            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(1);
+        }
+        int value = 99;
+        try {
+            Configuration.configuration.pipelineInit();
+            NetworkTransaction networkTransaction = new NetworkTransaction();
+            R66Future result = new R66Future(true);
+            RequestTransfer requestTransfer =
+                    new RequestTransfer(result, sspecialId, srequested, srequester,
+                            scancel, sstop, srestart, srestarttime,
+                            networkTransaction);
+            requestTransfer.normalInfoAsWarn = snormalInfoAsWarn;
+            requestTransfer.run();
+            result.awaitUninterruptibly();
+            R66Result finalValue = result.getResult();
+            OutputFormat outputFormat = new OutputFormat(RequestTransfer.class.getSimpleName(), args);
+            if (scancel || sstop || srestart) {
+                if (scancel) {
+                    if (result.isSuccess()) {
+                        value = 0;
+                        outputFormat.setValue(FIELDS.status.name(), value);
+                        outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
+                        outputFormat.setValue(FIELDS.remote.name(), rhost);
+                        outputFormat.setValueString(result.runner.getJson());
+                        if (requestTransfer.normalInfoAsWarn) {
+                            logger.warn(outputFormat.loggerOut());
+                        } else {
+                            logger.info(outputFormat.loggerOut());
+                        }
+                        if (!OutputFormat.isQuiet()) {
+                            outputFormat.sysout();
+                        }
+                    } else {
+                        switch (finalValue.code) {
+                            case CompleteOk:
+                                value = 0;
+                                outputFormat.setValue(FIELDS.status.name(), value);
+                                outputFormat
+                                        .setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
+                                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                                outputFormat.setValueString(result.runner.getJson());
+                                logger.warn(outputFormat.loggerOut());
+                                if (!OutputFormat.isQuiet()) {
+                                    outputFormat.sysout();
+                                }
+                                break;
+                            case TransferOk:
+                                value = 3;
+                                outputFormat.setValue(FIELDS.status.name(), value);
+                                outputFormat
+                                        .setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
+                                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                                outputFormat.setValueString(result.runner.getJson());
+                                logger.warn(outputFormat.loggerOut());
+                                if (!OutputFormat.isQuiet()) {
+                                    outputFormat.sysout();
+                                }
+                                break;
+                            default:
+                                value = 4;
+                                outputFormat.setValue(FIELDS.status.name(), value);
+                                outputFormat
+                                        .setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.72")); //$NON-NLS-1$
+                                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                                outputFormat.setValueString(result.runner.getJson());
+                                if (result.getCause() != null) {
+                                    outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+                                }
+                                logger.error(outputFormat.loggerOut());
+                                if (!OutputFormat.isQuiet()) {
+                                    outputFormat.sysout();
+                                }
+                                break;
+                        }
+                    }
+                } else if (sstop) {
+                    switch (finalValue.code) {
+                        case CompleteOk:
+                            value = 0;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            if (requestTransfer.normalInfoAsWarn) {
+                                logger.warn(outputFormat.loggerOut());
+                            } else {
+                                logger.info(outputFormat.loggerOut());
+                            }
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case TransferOk:
+                            value = 0;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        default:
+                            value = 3;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.75")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            if (result.getCause() != null) {
+                                outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+                            }
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                    }
+                } else if (srestart) {
+                    switch (finalValue.code) {
+                        case QueryStillRunning:
+                            value = 0;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case Running:
+                            value = 0;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case PreProcessingOk:
+                            value = 0;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            if (requestTransfer.normalInfoAsWarn) {
+                                logger.warn(outputFormat.loggerOut());
+                            } else {
+                                logger.info(outputFormat.loggerOut());
+                            }
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case CompleteOk:
+                            value = 4;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case RemoteError:
+                            value = 5;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        case PassThroughMode:
+                            value = 6;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                        default:
+                            value = 3;
+                            outputFormat.setValue(FIELDS.status.name(), value);
+                            outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.82")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), rhost);
+                            outputFormat.setValueString(result.runner.getJson());
+                            if (result.getCause() != null) {
+                                outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+                            }
+                            logger.warn(outputFormat.loggerOut());
+                            if (!OutputFormat.isQuiet()) {
+                                outputFormat.sysout();
+                            }
+                            break;
+                    }
+                }
+            } else {
+                value = 0;
+                // Only request
+                outputFormat.setValue(FIELDS.status.name(), value);
+                outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.83")); //$NON-NLS-1$
+                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                outputFormat.setValueString(result.runner.getJson());
+                if (requestTransfer.normalInfoAsWarn) {
+                    logger.warn(outputFormat.loggerOut());
+                } else {
+                    logger.info(outputFormat.loggerOut());
+                }
+                if (!OutputFormat.isQuiet()) {
+                    outputFormat.sysout();
+                }
+            }
+        } finally {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
+            }
+            System.exit(value);
+        }
+    }
 
 }

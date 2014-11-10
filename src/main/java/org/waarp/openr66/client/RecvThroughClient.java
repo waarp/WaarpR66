@@ -67,95 +67,94 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class RecvThroughClient extends AbstractTransfer {
-	protected final NetworkTransaction networkTransaction;
-	protected LocalChannelReference localChannelReference;
-	protected final RecvThroughHandler handler;
+    protected final NetworkTransaction networkTransaction;
+    protected LocalChannelReference localChannelReference;
+    protected final RecvThroughHandler handler;
 
-	/**
-	 * @param future
-	 * @param remoteHost
-	 * @param filename
-	 * @param rulename
-	 * @param fileinfo
-	 * @param isMD5
-	 * @param blocksize
-	 * @param id
-	 * @param networkTransaction
-	 */
-	public RecvThroughClient(R66Future future, RecvThroughHandler handler, String remoteHost,
-			String filename, String rulename, String fileinfo, boolean isMD5,
-			int blocksize, long id, NetworkTransaction networkTransaction) {
-		// timestart since immediate
-		super(RecvThroughClient.class,
-				future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
-		this.networkTransaction = networkTransaction;
-		this.handler = handler;
-	}
+    /**
+     * @param future
+     * @param remoteHost
+     * @param filename
+     * @param rulename
+     * @param fileinfo
+     * @param isMD5
+     * @param blocksize
+     * @param id
+     * @param networkTransaction
+     */
+    public RecvThroughClient(R66Future future, RecvThroughHandler handler, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5,
+            int blocksize, long id, NetworkTransaction networkTransaction) {
+        // timestart since immediate
+        super(RecvThroughClient.class,
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
+        this.networkTransaction = networkTransaction;
+        this.handler = handler;
+    }
 
-	/**
-	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
-	 * is the responsibility of the caller to finish all network resources.
-	 */
-	public void run() {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
-		}
-		DbTaskRunner taskRunner = this.initRequest();
-		if (taskRunner == null) {
-			// already an error from there
-			return;
-		}
-		try {
-			ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-			runner.setRecvThroughHandler(handler);
-			OpenR66ProtocolNotYetConnectionException exc = null;
-			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				try {
-					runner.runTransfer();
-					exc = null;
-					break;
-				} catch (OpenR66RunnerErrorException e) {
-					logger.error("Cannot Transfer", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.Internal, taskRunner));
-					future.setFailure(e);
-					return;
-				} catch (OpenR66ProtocolNoConnectionException e) {
-					logger.error("Cannot Connect", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.ConnectionImpossible, taskRunner));
-					future.setFailure(e);
-					return;
-				} catch (OpenR66ProtocolPacketException e) {
-					logger.error("Bad Protocol", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.TransferError, taskRunner));
-					future.setFailure(e);
-					return;
-				} catch (OpenR66ProtocolNotYetConnectionException e) {
-					logger.debug("Not Yet Connected", e);
-					exc = e;
-					continue;
-				}
-			}
-			if (exc != null) {
-				taskRunner.setLocalChannelReference(new LocalChannelReference());
-				logger.error("Cannot Connect", exc);
-				future.setResult(new R66Result(exc, null, true,
-						ErrorCode.ConnectionImpossible, taskRunner));
-				future.setFailure(exc);
-				return;
-			}
-		} finally {
-			if (taskRunner != null) {
-				if (future.isFailed() || nolog || taskRunner.shallIgnoreSave()) {
-					try {
-						taskRunner.delete();
-					} catch (WaarpDatabaseException e) {
-					}
-				}
-			}
-		}
-	}
+    /**
+     * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
+     * is the responsibility of the caller to finish all network resources.
+     */
+    public void run() {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
+        }
+        DbTaskRunner taskRunner = this.initRequest();
+        if (taskRunner == null) {
+            // already an error from there
+            return;
+        }
+        try {
+            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
+            runner.setRecvThroughHandler(handler);
+            OpenR66ProtocolNotYetConnectionException exc = null;
+            for (int i = 0; i < Configuration.RETRYNB; i++) {
+                try {
+                    runner.runTransfer();
+                    exc = null;
+                    break;
+                } catch (OpenR66RunnerErrorException e) {
+                    logger.error("Cannot Transfer", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.Internal, taskRunner));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolNoConnectionException e) {
+                    logger.error("Cannot Connect", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.ConnectionImpossible, taskRunner));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolPacketException e) {
+                    logger.error("Bad Protocol", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.TransferError, taskRunner));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolNotYetConnectionException e) {
+                    logger.debug("Not Yet Connected", e);
+                    exc = e;
+                    continue;
+                }
+            }
+            if (exc != null) {
+                taskRunner.setLocalChannelReference(new LocalChannelReference());
+                logger.error("Cannot Connect", exc);
+                future.setResult(new R66Result(exc, null, true,
+                        ErrorCode.ConnectionImpossible, taskRunner));
+                future.setFailure(exc);
+                return;
+            }
+        } finally {
+            if (taskRunner != null) {
+                if (future.isFailed() || nolog || taskRunner.shallIgnoreSave()) {
+                    try {
+                        taskRunner.delete();
+                    } catch (WaarpDatabaseException e) {}
+                }
+            }
+        }
+    }
 
 }

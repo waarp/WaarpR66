@@ -24,20 +24,20 @@ import org.waarp.common.utility.WaarpShutdownHook;
 
 /**
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class R66ShutdownHook extends WaarpShutdownHook {
 
-	/**
-	 * @param configuration
-	 */
-	public R66ShutdownHook(ShutdownConfiguration configuration) {
-		super(configuration);
-	}
+    /**
+     * @param configuration
+     */
+    public R66ShutdownHook(ShutdownConfiguration configuration) {
+        super(configuration);
+    }
 
-	@Override
-	protected void exit() {
-		ChannelUtils.exit();
-	}
+    @Override
+    protected void exit() {
+        ChannelUtils.exit();
+    }
 
 }

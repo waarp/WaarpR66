@@ -25,22 +25,22 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  */
 public interface R66BusinessInterface {
 
-	public void checkAtStartup(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAtStartup(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void checkAfterPreCommand(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAfterPreCommand(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void checkAfterTransfer(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAfterTransfer(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void checkAfterPost(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAfterPost(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void checkAtError(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAtError(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void checkAtChangeFilename(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAtChangeFilename(R66Session session) throws OpenR66RunnerErrorException;
 
-	public void releaseResources();
+    public void releaseResources();
 
-	public String getInfo();
+    public String getInfo();
 
-	public void setInfo(String info);
+    public void setInfo(String info);
 
 }

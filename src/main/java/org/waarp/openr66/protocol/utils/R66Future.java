@@ -29,45 +29,45 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  */
 public class R66Future extends WaarpFuture {
 
-	private R66Result result = null;
-	/**
-	 * Used in some specific occasion, such as client submission in API mode
-	 */
-	public DbTaskRunner runner = null;
-	public long filesize = 0;
+    private R66Result result = null;
+    /**
+     * Used in some specific occasion, such as client submission in API mode
+     */
+    public DbTaskRunner runner = null;
+    public long filesize = 0;
 
-	/**
+    /**
      *
      */
-	public R66Future() {
-	}
+    public R66Future() {
+    }
 
-	/**
-	 * @param cancellable
-	 */
-	public R66Future(boolean cancellable) {
-		super(cancellable);
-	}
+    /**
+     * @param cancellable
+     */
+    public R66Future(boolean cancellable) {
+        super(cancellable);
+    }
 
-	/**
-	 * @return the result
-	 */
-	public R66Result getResult() {
-		return result;
-	}
+    /**
+     * @return the result
+     */
+    public R66Result getResult() {
+        return result;
+    }
 
-	/**
-	 * @param result
-	 *            the result to set
-	 */
-	public void setResult(R66Result result) {
-		this.result = result;
-	}
+    /**
+     * @param result
+     *            the result to set
+     */
+    public void setResult(R66Result result) {
+        this.result = result;
+    }
 
-	@Override
-	public String toString() {
-		return "Future: " + isDone() + " " + isSuccess() + " " +
-				(getCause() != null ? getCause().getMessage() : "no cause") +
-				" " + (result != null ? result.toString() : "no result");
-	}
+    @Override
+    public String toString() {
+        return "Future: " + isDone() + " " + isSuccess() + " " +
+                (getCause() != null ? getCause().getMessage() : "no cause") +
+                " " + (result != null ? result.toString() : "no result");
+    }
 }

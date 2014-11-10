@@ -29,7 +29,8 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
- * Command to Restart the R66 server (for instance after upgrade of jar sent by administrative operations, unzipped in the library directory)
+ * Command to Restart the R66 server (for instance after upgrade of jar sent by administrative
+ * operations, unzipped in the library directory)
  * 
  * 
  * @author Frederic Bregier
@@ -37,50 +38,52 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  */
 public class RestartServerTask extends AbstractTask {
 
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(RestartServerTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(RestartServerTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public RestartServerTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.RESTART, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public RestartServerTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.RESTART, delay, argRule, argTransfer, session);
+    }
 
-	@Override
-	public void run() {
-		// check if allowed to do restart
-		// SYSTEM authorization
-		boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
-		if (! isAdmin) {
-			// not allowed
-			logger.error("Shutdown order asked through task but unallowed: " +
-					session.getAuth().getUser());
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Shutdown order asked through task but unallowed: " +
-					session.getAuth().getUser()));
-			return;
-		}
-		if (! Configuration.configuration.isServer) {
-			logger.error("Shutdown order asked through task but this is a client, not a server");
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Shutdown order asked through task but this is a client, not a server"));
-			return;
-		}
-		// now start the process
-		logger.warn("Shutdown order received and going from: " +
-				session.getAuth().getUser());
-		R66ShutdownHook.setRestart(true);
-		futureCompletion.setSuccess();
-		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-		thread.setDaemon(true);
-		// give time for the task to finish correctly
-		Configuration.configuration.launchInFixedDelay(thread, Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
-	}
+    @Override
+    public void run() {
+        // check if allowed to do restart
+        // SYSTEM authorization
+        boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
+        if (!isAdmin) {
+            // not allowed
+            logger.error("Shutdown order asked through task but unallowed: " +
+                    session.getAuth().getUser());
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Shutdown order asked through task but unallowed: " +
+                            session.getAuth().getUser()));
+            return;
+        }
+        if (!Configuration.configuration.isServer) {
+            logger.error("Shutdown order asked through task but this is a client, not a server");
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Shutdown order asked through task but this is a client, not a server"));
+            return;
+        }
+        // now start the process
+        logger.warn("Shutdown order received and going from: " +
+                session.getAuth().getUser());
+        R66ShutdownHook.setRestart(true);
+        futureCompletion.setSuccess();
+        Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
+        thread.setDaemon(true);
+        // give time for the task to finish correctly
+        Configuration.configuration.launchInFixedDelay(thread, Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+    }
 
 }

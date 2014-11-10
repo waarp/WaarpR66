@@ -29,37 +29,37 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
  * 
  */
 public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(ChannelTrafficHandler.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(ChannelTrafficHandler.class);
 
-	/**
-	 * @param objectSizeEstimator
-	 * @param timer
-	 * @param writeLimit
-	 * @param readLimit
-	 * @param checkInterval
-	 */
-	public ChannelTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
-			Timer timer, long writeLimit, long readLimit,
-			long checkInterval) {
-		super(objectSizeEstimator, timer, writeLimit, readLimit,
-				checkInterval);
-	}
+    /**
+     * @param objectSizeEstimator
+     * @param timer
+     * @param writeLimit
+     * @param readLimit
+     * @param checkInterval
+     */
+    public ChannelTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
+            Timer timer, long writeLimit, long readLimit,
+            long checkInterval) {
+        super(objectSizeEstimator, timer, writeLimit, readLimit,
+                checkInterval);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty
-	 * .handler.traffic.TrafficCounter)
-	 */
-	@SuppressWarnings("unused")
-	@Override
-	protected void doAccounting(TrafficCounter counter) {
-		if (false)
-			logger.debug(this.toString() + "    {}", counter);
-	}
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty
+     * .handler.traffic.TrafficCounter)
+     */
+    @SuppressWarnings("unused")
+    @Override
+    protected void doAccounting(TrafficCounter counter) {
+        if (false)
+            logger.debug(this.toString() + "    {}", counter);
+    }
 
 }

@@ -22,8 +22,8 @@ package org.waarp.openr66.commander;
  * 
  */
 public interface CommanderInterface extends Runnable {
-	/**
-	 * Finalize internal data
-	 */
-	public void finalize();
+    /**
+     * Finalize internal data
+     */
+    public void finalize();
 }

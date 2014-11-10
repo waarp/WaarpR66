@@ -32,135 +32,135 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * @author frederic bregier
  */
 public class DataPacket extends AbstractLocalPacket {
-	private final int packetRank;
+    private final int packetRank;
 
-	private final int lengthPacket;
+    private final int lengthPacket;
 
-	private ChannelBuffer data;
+    private ChannelBuffer data;
 
-	private ChannelBuffer key;
+    private ChannelBuffer key;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new DataPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static DataPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
-			throws OpenR66ProtocolPacketException {
-		if (headerLength - 1 <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		if (middleLength <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		int packetRank = buf.readInt();
-		ChannelBuffer data = buf.readSlice(middleLength);
-		ChannelBuffer key;
-		if (endLength > 0) {
-			key = buf.readSlice(endLength);
-		} else {
-			key = ChannelBuffers.EMPTY_BUFFER;
-		}
-		return new DataPacket(packetRank, data, key);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new DataPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static DataPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        if (middleLength <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        int packetRank = buf.readInt();
+        ChannelBuffer data = buf.readSlice(middleLength);
+        ChannelBuffer key;
+        if (endLength > 0) {
+            key = buf.readSlice(endLength);
+        } else {
+            key = ChannelBuffers.EMPTY_BUFFER;
+        }
+        return new DataPacket(packetRank, data, key);
+    }
 
-	/**
-	 * @param packetRank
-	 * @param data
-	 * @param key
-	 */
-	public DataPacket(int packetRank, ChannelBuffer data, ChannelBuffer key) {
-		this.packetRank = packetRank;
-		this.data = data;
-		this.key = key == null ? ChannelBuffers.EMPTY_BUFFER : key;
-		lengthPacket = data.readableBytes();
-	}
+    /**
+     * @param packetRank
+     * @param data
+     * @param key
+     */
+    public DataPacket(int packetRank, ChannelBuffer data, ChannelBuffer key) {
+        this.packetRank = packetRank;
+        this.data = data;
+        this.key = key == null ? ChannelBuffers.EMPTY_BUFFER : key;
+        lengthPacket = data.readableBytes();
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = key;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = key;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(4);
-		header.writeInt(packetRank);
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = ChannelBuffers.buffer(4);
+        header.writeInt(packetRank);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = data;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = data;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.DATAPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.DATAPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "DataPacket: " + packetRank + ":" + lengthPacket;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "DataPacket: " + packetRank + ":" + lengthPacket;
+    }
 
-	/**
-	 * @return the packetRank
-	 */
-	public int getPacketRank() {
-		return packetRank;
-	}
+    /**
+     * @return the packetRank
+     */
+    public int getPacketRank() {
+        return packetRank;
+    }
 
-	/**
-	 * @return the lengthPacket
-	 */
-	public int getLengthPacket() {
-		return lengthPacket;
-	}
+    /**
+     * @return the lengthPacket
+     */
+    public int getLengthPacket() {
+        return lengthPacket;
+    }
 
-	/**
-	 * @return the data
-	 */
-	public ChannelBuffer getData() {
-		return data;
-	}
+    /**
+     * @return the data
+     */
+    public ChannelBuffer getData() {
+        return data;
+    }
 
-	/**
-	 * @return the key
-	 */
-	public ChannelBuffer getKey() {
-		return key;
-	}
+    /**
+     * @return the key
+     */
+    public ChannelBuffer getKey() {
+        return key;
+    }
 
-	/**
-	 * 
-	 * @return True if the Hashed key is valid (or no key is set)
-	 */
-	public boolean isKeyValid(DigestAlgo algo) {
-		if (key == null || key == ChannelBuffers.EMPTY_BUFFER) {
-			return true;
-		}
-		ChannelBuffer newbufkey = FileUtils.getHash(data, algo);
-		boolean check = ChannelBuffers.equals(key, newbufkey);
+    /**
+     * 
+     * @return True if the Hashed key is valid (or no key is set)
+     */
+    public boolean isKeyValid(DigestAlgo algo) {
+        if (key == null || key == ChannelBuffers.EMPTY_BUFFER) {
+            return true;
+        }
+        ChannelBuffer newbufkey = FileUtils.getHash(data, algo);
+        boolean check = ChannelBuffers.equals(key, newbufkey);
         newbufkey.clear();
-		return check;
-	}
+        return check;
+    }
 
-	public void clear() {
-	    super.clear();
-	    if (data != null) {
-	        data.clear();
-	        data = null;
-	    }
-	    if (key != null) {
-	        key.clear();
-	        key = null;
-	    }
-	}
+    public void clear() {
+        super.clear();
+        if (data != null) {
+            data.clear();
+            data = null;
+        }
+        if (key != null) {
+            key.clear();
+            key = null;
+        }
+    }
 }

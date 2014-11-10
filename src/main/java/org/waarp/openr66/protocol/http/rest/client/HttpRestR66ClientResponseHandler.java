@@ -48,81 +48,84 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Rest client response handler.
  * 
- * Note: by default, no connection are closed except in case of error or if in HTTP 1.0 or explicitly to be closed.
+ * Note: by default, no connection are closed except in case of error or if in HTTP 1.0 or
+ * explicitly to be closed.
+ * 
  * @author Frederic Bregier
  */
 public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpstreamHandler {
-	/**
+    /**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestR66ClientResponseHandler.class);
-    
+
     private volatile boolean readingChunks;
     private ChannelBuffer cumulativeBody = null;
     protected JsonNode jsonObject = null;
-    
+
     protected void addContent(HttpResponse response) throws HttpIncorrectRequestException {
-    	ChannelBuffer content = response.getContent();
+        ChannelBuffer content = response.getContent();
         if (content != null && content.readable()) {
             if (cumulativeBody != null) {
-				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
-			} else {
-				cumulativeBody = content;
-			}
+                cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+            } else {
+                cumulativeBody = content;
+            }
             // get the Json equivalent of the Body
-    		try {
-    			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
-    			jsonObject = JsonHandler.getFromString(json);
-    		} catch (UnsupportedCharsetException e2) {
-    			logger.warn("Error", e2);
-    			throw new HttpIncorrectRequestException(e2);
-    		}
-			cumulativeBody = null;
+            try {
+                String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
+                jsonObject = JsonHandler.getFromString(json);
+            } catch (UnsupportedCharsetException e2) {
+                logger.warn("Error", e2);
+                throw new HttpIncorrectRequestException(e2);
+            }
+            cumulativeBody = null;
         }
     }
-    
+
     /**
      * Setting the RestArgument to the RestFuture and validating RestFuture.
+     * 
      * @param channel
      * @throws HttpInvalidAuthenticationException
      */
     protected void actionFromResponse(Channel channel) throws HttpInvalidAuthenticationException {
-    	boolean includeValidation = false;
-    	RestArgument ra = new RestArgument((ObjectNode) jsonObject);
-    	if (jsonObject == null) {
-    		logger.debug("Recv: EMPTY");
-    	}
-    	((RestFuture) channel.getAttachment()).setRestArgument(ra);
-    	switch (ra.getMethod()) {
-			case CONNECT:
-				break;
-			case DELETE:
-				includeValidation = delete(channel, ra);
-				break;
-			case GET:
-				includeValidation = get(channel, ra);
-				break;
-			case HEAD:
-				break;
-			case OPTIONS:
-				includeValidation = options(channel, ra);
-				break;
-			case PATCH:
-				break;
-			case POST:
-				includeValidation = post(channel, ra);
-				break;
-			case PUT:
-				includeValidation = put(channel, ra);
-				break;
-			case TRACE:
-				break;
-			default:
-				break;
-    		
-    	}
-        if (! includeValidation) {
+        boolean includeValidation = false;
+        RestArgument ra = new RestArgument((ObjectNode) jsonObject);
+        if (jsonObject == null) {
+            logger.debug("Recv: EMPTY");
+        }
+        ((RestFuture) channel.getAttachment()).setRestArgument(ra);
+        switch (ra.getMethod()) {
+            case CONNECT:
+                break;
+            case DELETE:
+                includeValidation = delete(channel, ra);
+                break;
+            case GET:
+                includeValidation = get(channel, ra);
+                break;
+            case HEAD:
+                break;
+            case OPTIONS:
+                includeValidation = options(channel, ra);
+                break;
+            case PATCH:
+                break;
+            case POST:
+                includeValidation = post(channel, ra);
+                break;
+            case PUT:
+                includeValidation = put(channel, ra);
+                break;
+            case TRACE:
+                break;
+            default:
+                break;
+
+        }
+        if (!includeValidation) {
             // finalize the future
             ((RestFuture) channel.getAttachment()).setSuccess();
         }
@@ -130,157 +133,177 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
 
     /**
      * Method calls when a action REST command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @param act
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
-    protected abstract boolean action(Channel channel, RestArgument ra, ACTIONS_TYPE act) throws HttpInvalidAuthenticationException;
+    protected abstract boolean action(Channel channel, RestArgument ra, ACTIONS_TYPE act)
+            throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST Get command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
     protected abstract boolean afterDbGet(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST Post command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
     protected abstract boolean afterDbPost(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST Put command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
     protected abstract boolean afterDbPut(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST Delete command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
-    protected abstract boolean afterDbDelete(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+    protected abstract boolean afterDbDelete(Channel channel, RestArgument ra)
+            throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST GetMultiple command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
-    protected abstract boolean afterDbGetMultiple(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+    protected abstract boolean afterDbGetMultiple(Channel channel, RestArgument ra)
+            throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST Options command is raised as answer
+     * 
      * @param channel
      * @param ra
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
-    protected abstract boolean afterDbOptions(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
+    protected abstract boolean afterDbOptions(Channel channel, RestArgument ra)
+            throws HttpInvalidAuthenticationException;
+
     /**
      * Method calls when a REST command is in error
+     * 
      * @param channel
-     * @param ra (might be null)
+     * @param ra
+     *            (might be null)
      * @return if validation is done (or suppose to be)
-     * @throws HttpInvalidAuthenticationException 
+     * @throws HttpInvalidAuthenticationException
      */
     protected abstract boolean afterError(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException;
-    
+
     protected boolean get(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug(ra.prettyPrint());
-    	}
-    	if (ra.getCommand() == COMMAND_TYPE.GET) {
-			return afterDbGet(channel, ra);
-    	} else if (ra.getCommand() == COMMAND_TYPE.MULTIGET) {
-			return afterDbGetMultiple(channel, ra);
-    	} else {
-    		String cmd = ra.getCommandField();
-    		try {
-    			ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
-    			return action(channel, ra, act);
-    		} catch (Exception e) {
-    			return false;
-    		}
-    	}
+        if (logger.isDebugEnabled()) {
+            logger.debug(ra.prettyPrint());
+        }
+        if (ra.getCommand() == COMMAND_TYPE.GET) {
+            return afterDbGet(channel, ra);
+        } else if (ra.getCommand() == COMMAND_TYPE.MULTIGET) {
+            return afterDbGetMultiple(channel, ra);
+        } else {
+            String cmd = ra.getCommandField();
+            try {
+                ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+                return action(channel, ra, act);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
-    
+
     protected boolean put(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug(ra.prettyPrint());
-    	}
-    	if (ra.getCommand() == COMMAND_TYPE.UPDATE) {
-			return afterDbPut(channel, ra);
-		} else {
-			String cmd = ra.getCommandField();
-			try {
-				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
-				return action(channel, ra, act);
-			} catch (Exception e) {
-				return false;
-			}
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug(ra.prettyPrint());
+        }
+        if (ra.getCommand() == COMMAND_TYPE.UPDATE) {
+            return afterDbPut(channel, ra);
+        } else {
+            String cmd = ra.getCommandField();
+            try {
+                ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+                return action(channel, ra, act);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     protected boolean post(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug(ra.prettyPrint());
-    	}
-    	if (ra.getCommand() == COMMAND_TYPE.CREATE) {
-			return afterDbPost(channel, ra);
-		} else {
-			String cmd = ra.getCommandField();
-			try {
-				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
-				return action(channel, ra, act);
-			} catch (Exception e) {
-				return false;
-			}
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug(ra.prettyPrint());
+        }
+        if (ra.getCommand() == COMMAND_TYPE.CREATE) {
+            return afterDbPost(channel, ra);
+        } else {
+            String cmd = ra.getCommandField();
+            try {
+                ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+                return action(channel, ra, act);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
-    
+
     protected boolean delete(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug(ra.prettyPrint());
-    	}
-    	if (ra.getCommand() == COMMAND_TYPE.DELETE) {
-    		return afterDbDelete(channel, ra);
-		} else {
-			String cmd = ra.getCommandField();
-			try {
-				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
-				return action(channel, ra, act);
-			} catch (Exception e) {
-				return false;
-			}
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug(ra.prettyPrint());
+        }
+        if (ra.getCommand() == COMMAND_TYPE.DELETE) {
+            return afterDbDelete(channel, ra);
+        } else {
+            String cmd = ra.getCommandField();
+            try {
+                ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+                return action(channel, ra, act);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
-    
+
     protected boolean options(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug(ra.prettyPrint());
-    	}
-    	if (ra.getCommand() == COMMAND_TYPE.OPTIONS) {
-    		return afterDbOptions(channel, ra);
-		} else {
-			String cmd = ra.getCommandField();
-			try {
-				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
-				return action(channel, ra, act);
-			} catch (Exception e) {
-				return false;
-			}
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug(ra.prettyPrint());
+        }
+        if (ra.getCommand() == COMMAND_TYPE.OPTIONS) {
+            return afterDbOptions(channel, ra);
+        } else {
+            String cmd = ra.getCommandField();
+            try {
+                ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+                return action(channel, ra, act);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
-    
+
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
@@ -288,7 +311,8 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
         if (!readingChunks && (obj instanceof HttpResponse)) {
             HttpResponse response = (HttpResponse) e.getMessage();
             HttpResponseStatus status = response.getStatus();
-            logger.debug(HttpHeaders.Names.REFERER+": "+response.headers().get(HttpHeaders.Names.REFERER) + " STATUS: " + status);
+            logger.debug(HttpHeaders.Names.REFERER + ": " + response.headers().get(HttpHeaders.Names.REFERER)
+                    + " STATUS: " + status);
             if (response.getStatus().getCode() == 200 && response.isChunked()) {
                 readingChunks = true;
             } else if (response.getStatus().getCode() != 200) {
@@ -297,16 +321,18 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
                 if (jsonObject != null) {
                     ra = new RestArgument((ObjectNode) jsonObject);
                     ((RestFuture) e.getChannel().getAttachment()).setRestArgument(ra);
-                    logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase()+"\n"+ra.prettyPrint());
-            	} else {
-                    logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase());
-            	}
-                if (! afterError(e.getChannel(), ra)) {
-                	((RestFuture) e.getChannel().getAttachment()).cancel();
+                    logger.error("Error: " + response.getStatus().getCode() + " "
+                            + response.getStatus().getReasonPhrase() + "\n" + ra.prettyPrint());
+                } else {
+                    logger.error("Error: " + response.getStatus().getCode() + " "
+                            + response.getStatus().getReasonPhrase());
                 }
-            	if (e.getChannel().isConnected()) {
+                if (!afterError(e.getChannel(), ra)) {
+                    ((RestFuture) e.getChannel().getAttachment()).cancel();
+                }
+                if (e.getChannel().isConnected()) {
                     logger.debug("Will close");
-                	WaarpSslUtility.closingSslChannel(e.getChannel());
+                    WaarpSslUtility.closingSslChannel(e.getChannel());
                 }
             } else {
                 addContent(response);
@@ -320,33 +346,33 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
                 ChannelBuffer content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
-        			} else {
-        				cumulativeBody = content;
-        			}
+                        cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+                    } else {
+                        cumulativeBody = content;
+                    }
                 }
                 // get the Json equivalent of the Body
                 if (cumulativeBody == null) {
-                	jsonObject = JsonHandler.createObjectNode();
+                    jsonObject = JsonHandler.createObjectNode();
                 } else {
-	        		try {
-	        			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
-	        			jsonObject = JsonHandler.getFromString(json);
-	        		} catch (Throwable e2) {
-	        			logger.warn("Error", e2);
-	        			throw new HttpIncorrectRequestException(e2);
-	        		}
-	    			cumulativeBody = null;
-                }                
+                    try {
+                        String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
+                        jsonObject = JsonHandler.getFromString(json);
+                    } catch (Throwable e2) {
+                        logger.warn("Error", e2);
+                        throw new HttpIncorrectRequestException(e2);
+                    }
+                    cumulativeBody = null;
+                }
                 actionFromResponse(e.getChannel());
             } else {
-            	ChannelBuffer content = chunk.getContent();
+                ChannelBuffer content = chunk.getContent();
                 if (content != null && content.readable()) {
                     if (cumulativeBody != null) {
-        				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
-        			} else {
-        				cumulativeBody = content;
-        			}
+                        cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+                    } else {
+                        cumulativeBody = content;
+                    }
                 }
             }
         }
@@ -356,20 +382,20 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         if (e.getCause() instanceof ClosedChannelException) {
-        	logger.debug("Close before ending");
-        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+            logger.debug("Close before ending");
+            ((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
             return;
         } else if (e.getCause() instanceof ConnectException) {
             if (ctx.getChannel().isConnected()) {
-            	logger.debug("Will close");
-            	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
-            	WaarpSslUtility.closingSslChannel(e.getChannel());
+                logger.debug("Will close");
+                ((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+                WaarpSslUtility.closingSslChannel(e.getChannel());
             }
             return;
         }
         logger.warn("Error", e.getCause());
         if (e.getChannel() != null && e.getChannel().getAttachment() != null) {
-        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
+            ((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
         }
         logger.debug("Will close");
         WaarpSslUtility.closingSslChannel(e.getChannel());
