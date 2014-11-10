@@ -33,29 +33,29 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpSslInitializer extends ChannelInitializer<SocketChannel> {
-	public boolean useHttpCompression = false;
-	public boolean enableRenegotiation = false;
+    public boolean useHttpCompression = false;
+    public boolean enableRenegotiation = false;
 
-	public HttpSslInitializer(boolean useHttpCompression,
-			boolean enableRenegotiation) {
-		this.useHttpCompression = useHttpCompression;
-		this.enableRenegotiation = enableRenegotiation;
-	}
+    public HttpSslInitializer(boolean useHttpCompression,
+            boolean enableRenegotiation) {
+        this.useHttpCompression = useHttpCompression;
+        this.enableRenegotiation = enableRenegotiation;
+    }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-		final ChannelPipeline pipeline = ch.pipeline();
-		// Add SSL handler first to encrypt and decrypt everything.
+        final ChannelPipeline pipeline = ch.pipeline();
+        // Add SSL handler first to encrypt and decrypt everything.
         SslHandler sslhandler = Configuration.waarpSslContextFactory.initInitializer(true, false);
         pipeline.addLast("ssl", sslhandler);
 
-		pipeline.addLast("decoder", new HttpServerCodec());
-		pipeline.addLast("aggregator", new HttpObjectAggregator(1048576));
-		pipeline.addLast("streamer", new ChunkedWriteHandler());
-		if (useHttpCompression) {
-			pipeline.addLast("deflater", new HttpContentCompressor());
-		}
-		pipeline.addLast(Configuration.configuration.getSubTaskGroup(), "handler", new HttpSslHandler());
-	}
+        pipeline.addLast("decoder", new HttpServerCodec());
+        pipeline.addLast("aggregator", new HttpObjectAggregator(1048576));
+        pipeline.addLast("streamer", new ChunkedWriteHandler());
+        if (useHttpCompression) {
+            pipeline.addLast("deflater", new HttpContentCompressor());
+        }
+        pipeline.addLast("handler", new HttpSslHandler());
+    }
 
 }

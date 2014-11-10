@@ -39,102 +39,105 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Engine used to start and stop the SpooledDirectory service
+ * 
  * @author Frederic Bregier
  *
  */
 public class SpooledEngine extends EngineAbstract {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(SpooledEngine.class);
-	
-	public static final WaarpFuture closeFuture = new WaarpFuture(true);
-	
-	@Override
-	public void run() {
-		String config = SystemPropertyUtil.get(R66SystemProperties.OPENR66_CONFIGFILE);
-		if (config == null) {
-			logger.error("Cannot find "+R66SystemProperties.OPENR66_CONFIGFILE+" parameter for SpooledEngine");
-			closeFuture.cancel();
-			shutdown();
-			return;
-		}
-		Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
-		try {
-			Properties prop = new Properties();
-			FileInputStream in = new FileInputStream(config);
-			try {
-				prop.load(in);
-				ArrayList<String> array = new ArrayList<String>();
-				for (Object okey : prop.keySet()) {
-					String key = (String) okey;
-					String val = prop.getProperty(key);
-					if (key.equals("xmlfile")) {
-						if (val != null && ! val.trim().isEmpty()) {
-							array.add(0, val);
-						} else {
-							throw new Exception("Initialization in error: missing xmlfile");
-						}
-					} else {
-						array.add("-"+key);
-						if (val != null && ! val.trim().isEmpty()) {
-							array.add(val);
-						}
-					}
-				}
-				if (! SpooledDirectoryTransfer.initialize((String[]) array.toArray(new String[]{}), false)) {
-					throw new Exception("Initialization in error");
-				}
-			} finally {
-				in.close();
-			}
-		} catch (Throwable e) {
-			logger.error("Cannot start SpooledDirectory", e);
-			closeFuture.cancel();
-			shutdown();
-			return;
-		}
-		logger.warn("SpooledDirectory Service started with "+config);
-	}
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(SpooledEngine.class);
 
-	@Override
-	public void shutdown() {
-		R66ShutdownHook.shutdownWillStart();
-		logger.info("Shutdown");
-		for (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
-			spooled.stop();
-		}
-		Configuration.configuration.TIMEOUTCON /= 10;
-		try {
-			while (! SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
-				Thread.sleep(Configuration.configuration.TIMEOUTCON);
-			}
-		} catch (InterruptedException e) {
-		}
-		for (SpooledDirectoryTransfer spooledDirectoryTransfer : SpooledDirectoryTransfer.list) {
-			logger.warn(Messages.getString("SpooledDirectoryTransfer.58")+spooledDirectoryTransfer.name+": "+spooledDirectoryTransfer.sent
-					+" success, "+spooledDirectoryTransfer.error
-					+Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
-		}
-		SpooledDirectoryTransfer.list.clear();
-		logger.info("Shutdown network");
-		SpooledDirectoryTransfer.networkTransactionStatic.closeAll();
-		logger.info("All");
-		ChannelUtils.startShutdown();
-		closeFuture.setSuccess();
-		logger.info("SpooledDirectory Service stopped");
-	}
+    public static final WaarpFuture closeFuture = new WaarpFuture(true);
 
-	@Override
-	public boolean isShutdown() {
-		return closeFuture.isDone();
-	}
+    @Override
+    public void run() {
+        String config = SystemPropertyUtil.get(R66SystemProperties.OPENR66_CONFIGFILE);
+        if (config == null) {
+            logger.error("Cannot find " + R66SystemProperties.OPENR66_CONFIGFILE + " parameter for SpooledEngine");
+            closeFuture.cancel();
+            shutdown();
+            return;
+        }
+        Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
+        try {
+            Properties prop = new Properties();
+            FileInputStream in = new FileInputStream(config);
+            try {
+                prop.load(in);
+                ArrayList<String> array = new ArrayList<String>();
+                for (Object okey : prop.keySet()) {
+                    String key = (String) okey;
+                    String val = prop.getProperty(key);
+                    if (key.equals("xmlfile")) {
+                        if (val != null && !val.trim().isEmpty()) {
+                            array.add(0, val);
+                        } else {
+                            throw new Exception("Initialization in error: missing xmlfile");
+                        }
+                    } else {
+                        array.add("-" + key);
+                        if (val != null && !val.trim().isEmpty()) {
+                            array.add(val);
+                        }
+                    }
+                }
+                if (!SpooledDirectoryTransfer.initialize((String[]) array.toArray(new String[] {}), false)) {
+                    throw new Exception("Initialization in error");
+                }
+            } finally {
+                in.close();
+            }
+        } catch (Throwable e) {
+            logger.error("Cannot start SpooledDirectory", e);
+            closeFuture.cancel();
+            shutdown();
+            return;
+        }
+        logger.warn("SpooledDirectory Service started with " + config);
+    }
 
-	@Override
-	public boolean waitShutdown() throws InterruptedException {
-		closeFuture.await();
-		logger.info("Shutdown on going: "+closeFuture.isSuccess());
-		return closeFuture.isSuccess();
-	}
+    @Override
+    public void shutdown() {
+        R66ShutdownHook.shutdownWillStart();
+        logger.info("Shutdown");
+        for (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
+            spooled.stop();
+        }
+        Configuration.configuration.TIMEOUTCON /= 10;
+        try {
+            while (!SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.TIMEOUTCON,
+                    TimeUnit.MILLISECONDS)) {
+                Thread.sleep(Configuration.configuration.TIMEOUTCON);
+            }
+        } catch (InterruptedException e) {
+        }
+        for (SpooledDirectoryTransfer spooledDirectoryTransfer : SpooledDirectoryTransfer.list) {
+            logger.warn(Messages.getString("SpooledDirectoryTransfer.58") + spooledDirectoryTransfer.name + ": "
+                    + spooledDirectoryTransfer.sent
+                    + " success, " + spooledDirectoryTransfer.error
+                    + Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
+        }
+        SpooledDirectoryTransfer.list.clear();
+        logger.info("Shutdown network");
+        SpooledDirectoryTransfer.networkTransactionStatic.closeAll();
+        logger.info("All");
+        ChannelUtils.startShutdown();
+        closeFuture.setSuccess();
+        logger.info("SpooledDirectory Service stopped");
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return closeFuture.isDone();
+    }
+
+    @Override
+    public boolean waitShutdown() throws InterruptedException {
+        closeFuture.await();
+        logger.info("Shutdown on going: " + closeFuture.isSuccess());
+        return closeFuture.isSuccess();
+    }
 }

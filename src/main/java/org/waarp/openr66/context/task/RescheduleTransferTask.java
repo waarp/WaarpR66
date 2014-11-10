@@ -30,7 +30,6 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.data.DbTaskRunner;
 
-
 /**
  * Reschedule Transfer task to a time delayed by the specified number of milliseconds, if the error
  * code is one of the specified codes and the optional intervals of date are compatible with the new
@@ -58,18 +57,17 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * while X=n or Xn means setting exact value<br>
  * If one time specification is not set, it is based on the current date.<br>
  * <br>
- * "-count limit" will be the limit of retry. The current value limit is taken from the "transferInfo" internal code 
+ * "-count limit" will be the limit of retry. The current value limit is taken from the "transferInfo" internal code
  * (not any more the "information of transfer")and not from the rule
- * as "{"CPTLIMIT": limit}" as JSON code. Each time this function is called, the 
+ * as "{"CPTLIMIT": limit}" as JSON code. Each time this function is called, the
  * limit value will be replaced as newlimit = limit - 1 in the "transferInfo" as "{"CPTLIMIT": limit}" as JSON code.<br>
  * To ensure correctness, the value must be in the "transferInfo" internal code since this value will be
- * changed statically in the "transferInfo". If taken from the rule, it will be wrong since 
+ * changed statically in the "transferInfo". If taken from the rule, it will be wrong since
  * the value will never decrease. However, a value must be setup in the rule in order to reset the value
- * when the count reach 0.
- * <br>So in the rule, "-count resetlimit" must be present, where resetlimit will be
+ * when the count reach 0. <br>
+ * So in the rule, "-count resetlimit" must be present, where resetlimit will be
  * the new value set when the limit reach 0, and in the "transferInfo" internal code,
- * "{"CPTLIMIT": limit}" as JSON code must be present. If one is missing, the condition is not applied.
- * <br>
+ * "{"CPTLIMIT": limit}" as JSON code must be present. If one is missing, the condition is not applied. <br>
  * <br>
  * If "-notbetween" is specified, the planned date must not be in the area.<br>
  * If "-between" is specified, the planned date must be found in any such specified areas (could be
@@ -95,421 +93,420 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * 
  */
 public class RescheduleTransferTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(RescheduleTransferTask.class);
-	
-	/**
-	 * Delimiter for -count option in Reschedule to be placed in the transfer info of transfer as
-	 * {"CPTLIMIT": limit} where limit is an integer.
-	 */
-	public static final String CPTLIMIT = "CPTLIMIT";
-	public static final String CPTTOTAL = "CPTTOTAL";
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(RescheduleTransferTask.class);
 
+    /**
+     * Delimiter for -count option in Reschedule to be placed in the transfer info of transfer as
+     * {"CPTLIMIT": limit} where limit is an integer.
+     */
+    public static final String CPTLIMIT = "CPTLIMIT";
+    public static final String CPTTOTAL = "CPTTOTAL";
 
-	protected long newdate = 0;
+    protected long newdate = 0;
 
-	protected Calendar newDate = null;
-	
-	protected boolean countUsed = false;
-	
-	protected int limitCount = -1;
+    protected Calendar newDate = null;
 
-	protected int totalCount = 0;
-	
-	protected int resetCount = -1;
-	
-	protected DbTaskRunner runner = null;
-	
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public RescheduleTransferTask(String argRule, int delay,
-			String argTransfer, R66Session session) {
-		super(TaskType.RESCHEDULE, delay, argRule, argTransfer, session);
-	}
+    protected boolean countUsed = false;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("Reschedule with " + argRule + ":" + argTransfer +
-				" and {}", session);
-		runner = session.getRunner();
-		if (runner == null) {
-			futureCompletion.setFailure(new OpenR66RunnerErrorException(
-					"No valid runner in Reschedule"));
-			return;
-		}
-		if (runner.isRescheduledTransfer()) {
-			// Already rescheduled so ignore
-			R66Result result = new R66Result(session, false, ErrorCode.Warning,
-					runner);
-			futureCompletion.setResult(result);
-			logger.warn("Transfer already Rescheduled: " + runner.toShortString());
-			futureCompletion.setSuccess();
-			return;
-		}
-		if (runner.isSelfRequested()) {
-			// Self Requested Request so reschedule is ignored
-			R66Result result = new R66Result(session, false, ErrorCode.LoopSelfRequestedHost,
-					runner);
-			futureCompletion.setResult(result);
-			futureCompletion.setFailure(new OpenR66RunnerErrorException(
-					"No valid runner in Reschedule since Self Requested"));
-			return;
-		}
-		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" "));
-		String[] args = finalname.split(" ");
-		if (args.length < 4) {
-			R66Result result = new R66Result(session, false, ErrorCode.Warning,
-					runner);
-			futureCompletion.setResult(result);
-			logger.warn("Not enough argument in Reschedule: " + runner.toShortString());
-			futureCompletion.setSuccess();
-			return;
-		}
-		if (!validateArgs(args)) {
-			R66Result result = new R66Result(session, false, ErrorCode.Warning,
-					runner);
-			futureCompletion.setResult(result);
-			logger.warn("Reschedule unallowed due to argument: " + runner.toShortString());
-			futureCompletion.setSuccess();
-			return;
-		}
-		if (countUsed) {
-			limitCount --;
-			if (limitCount >= 0) {
-				// restart is allowed so resetting to new limitCount 
-				resetCount = limitCount;
-			}
-			resetInformation(resetCount);
-			if (limitCount < 0) {
-				// Must not reschedule since limit is reached
-				try {
-					runner.saveStatus();
-				} catch (OpenR66RunnerErrorException e) {
-				}
-				R66Result result = new R66Result(session, false, ErrorCode.Warning,
-						runner);
-				futureCompletion.setResult(result);
-				logger.warn("Reschedule unallowed due to limit reached: " + runner.toShortString());
-				futureCompletion.setSuccess();
-				return;
-			}
-		}
-		Timestamp start = new Timestamp(newdate);
-		try {
-			runner.setStart(start);
-			if (runner.restart(true)) {
-				runner.saveStatus();
-			}
-		} catch (OpenR66RunnerErrorException e) {
-			logger.error(
-					"Prepare transfer in     FAILURE      " +
-							runner.toShortString() + "     <AT>" +
-							(new Date(newdate)).toString() + "</AT>", e);
-			futureCompletion.setFailure(new OpenR66RunnerErrorException(
-					"Reschedule failed: " + e.getMessage(), e));
-			return;
-		}
-		runner.setRescheduledTransfer();
-		R66Result result = new R66Result(session, false, ErrorCode.Warning,
-				runner);
-		futureCompletion.setResult(result);
-		logger.warn("Reschedule transfer in     SUCCESS     " +
-				runner.toShortString() + "     <AT>" +
-				(new Date(newdate)).toString() + "</AT>");
-		futureCompletion.setSuccess();
-	}
-	
-	protected void resetInformation(int value) {
-		Map<String, Object> root = runner.getTransferMap();
-		root.put(CPTLIMIT, value);
-		try {
-			totalCount = (Integer) root.get(CPTTOTAL);
-			totalCount++;
-			root.put(CPTTOTAL, totalCount);
-		} catch (Exception e) {
-			totalCount = 1;
-			root.put(CPTTOTAL, totalCount);
-		}
-		runner.setTransferMap(root);
-	}
+    protected int limitCount = -1;
 
-	protected boolean validateArgs(String[] args) {
-		boolean validCode = false;
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-delay")) {
-				i++;
-				try {
-					newdate = Long.parseLong(args[i]);
-				} catch (NumberFormatException e) {
-					logger.warn("Bad Long format: args[i]");
-					return false;
-				}
-			} else if (args[i].equalsIgnoreCase("-case")) {
-				i++;
-				if (!validCode) {
-					String[] codes = args[i].split(",");
-					for (int j = 0; j < codes.length; j++) {
-						ErrorCode code = ErrorCode.getFromCode(codes[j]);
-						if (session.getLocalChannelReference().getCurrentCode() == code) {
-							logger.debug("Code valid: " + code);
-							validCode = true;
-						}
-					}
-				}
-			} else if (args[i].equalsIgnoreCase("-count")) {
-				i++;
-				try {
-					resetCount = Integer.parseInt(args[i]);
-				} catch (NumberFormatException e) {
-					logger.warn("ResetLimit is not an integer: "+args[i]);
-					countUsed = false;
-					return false;
-				}
-				Map<String, Object> root = runner.getTransferMap();
-				Integer limit = null;
-				try {
-					limit = (Integer) root.get(CPTLIMIT);
-				} catch (Exception e) {
-					logger.warn("Bad Long format: CPTLIMIT", e);
-					return false;
-				}
-				if (limit != null) {
-					limitCount = limit;
-				} else {
-					limitCount = resetCount;
-					root.put(CPTLIMIT, limitCount);
-				}
-				countUsed = true;
-			}
-		}
-		// now we have new delay plus code
-		if (!validCode) {
-			logger.warn("No valid Code found");
-			return false;
-		}
-		if (newdate <= 0) {
-			logger.warn("Delay is negative: " + newdate);
-			return false;
-		}
-		newdate += System.currentTimeMillis();
-		newDate = Calendar.getInstance();
-		newDate.setTimeInMillis(newdate);
-		boolean betweenTest = false;
-		boolean betweenResult = false;
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-notbetween")) {
-				i++;
-				String[] elmts = args[i].split(";");
-				boolean startModified = false;
-				String[] values = elmts[0].split(":");
-				Calendar start = getCalendar(values);
-				if (start != null) {
-					startModified = true;
-				} else {
-					start = Calendar.getInstance();
-				}
-				boolean stopModified = false;
-				values = elmts[1].split(":");
-				Calendar stop = getCalendar(values);
-				if (stop != null) {
-					stopModified = true;
-				} else {
-					stop = Calendar.getInstance();
-				}
-				logger.debug("Dates before check: Not between " + start.getTime() + " and "
-						+ stop.getTime());
-				// Check that start < stop
-				if (start.compareTo(stop) > 0) {
-					// no so add 24H to stop
-					stop.add(Calendar.DAY_OF_MONTH, 1);
-				}
-				// Check that start and stop > newDate (only start is checked since start <= stop)
-				if (start.compareTo(newDate) < 0) {
-					start.add(Calendar.DAY_OF_MONTH, 1);
-					stop.add(Calendar.DAY_OF_MONTH, 1);
-				}
-				logger.debug("Dates after check: Not between " + start.getTime() + " and "
-						+ stop.getTime());
-				if (!startModified) {
-					if (newDate.compareTo(stop) < 0) {
-						logger.debug("newDate: " + newDate.getTime() + " Should not be between "
-								+ start.getTime() + " and " + stop.getTime());
-						return false;
-					}
-				} else if (start.compareTo(newDate) < 0) {
-					if ((!stopModified) || (newDate.compareTo(stop) < 0)) {
-						logger.debug("newDate: " + newDate.getTime() + " Should not be between "
-								+ start.getTime() + " and " + stop.getTime());
-						return false;
-					}
-				}
-			} else if (args[i].equalsIgnoreCase("-between")) {
-				i++;
-				betweenTest = true;
-				String[] elmts = args[i].split(";");
-				boolean startModified = false;
-				String[] values = elmts[0].split(":");
-				Calendar start = getCalendar(values);
-				if (start != null) {
-					startModified = true;
-				} else {
-					start = Calendar.getInstance();
-				}
-				boolean stopModified = false;
-				values = elmts[1].split(":");
-				Calendar stop = getCalendar(values);
-				if (stop != null) {
-					stopModified = true;
-				} else {
-					stop = Calendar.getInstance();
-				}
-				logger.debug("Dates before check: Between " + start.getTime() + " and "
-						+ stop.getTime());
-				// Check that start < stop
-				if (start.compareTo(stop) > 0) {
-					// no so add 24H to stop
-					stop.add(Calendar.DAY_OF_MONTH, 1);
-				}
-				// Check that start and stop > newDate (only start is checked since start <= stop)
-				if (start.compareTo(newDate) < 0) {
-					start.add(Calendar.DAY_OF_MONTH, 1);
-					stop.add(Calendar.DAY_OF_MONTH, 1);
-				}
-				logger.debug("Dates before check: Between " + start.getTime() + " and "
-						+ stop.getTime());
-				if (!startModified) {
-					if (newDate.compareTo(stop) < 0) {
-						logger.debug("newDate: " + newDate.getTime() + " is between "
-								+ start.getTime() + " and " + stop.getTime());
-						betweenResult = true;
-					}
-				} else if (start.compareTo(newDate) < 0) {
-					if ((!stopModified) || (newDate.compareTo(stop) < 0)) {
-						logger.debug("newDate: " + newDate.getTime() + " is between "
-								+ start.getTime() + " and " + stop.getTime());
-						betweenResult = true;
-					}
-				}
-			}
-		}
-		if (betweenTest) {
-			logger.debug("Since between is specified, do we found newDate: " + newDate.getTime()
-					+ " Result: " + betweenResult);
-			return betweenResult;
-		}
-		logger.debug("newDate: " + newDate.getTime() + " rescheduled");
-		return true;
-	}
+    protected int totalCount = 0;
 
-	/**
-	 * 
-	 * @param values
-	 *            as X+n or X-n or X=n or Xn where X=Y/M/D/H/m/s, n=number and +/- meaning
-	 *            adding/subtracting from current date and = meaning specific set value
-	 * @return the Calendar if any specification, or null if no calendar specified
-	 */
-	private Calendar getCalendar(String[] values) {
-		Calendar newcal = Calendar.getInstance();
-		boolean isModified = false;
-		for (int j = 0; j < values.length; j++) {
-			if (values[j].length() > 1) {
-				int addvalue = 0; // will be different of 0
-				int value = -1; // will be >= 0
-				switch (values[j].charAt(0)) {
-					case '+':
-						try {
-							addvalue = Integer.parseInt(values[j].substring(2));
-						} catch (NumberFormatException e) {
-							continue;
-						}
-						break;
-					case '-':
-						try {
-							addvalue = Integer.parseInt(values[j].substring(1));
-						} catch (NumberFormatException e) {
-							continue;
-						}
-						break;
-					case '=':
-						try {
-							value = Integer.parseInt(values[j].substring(2));
-						} catch (NumberFormatException e) {
-							continue;
-						}
-						break;
-					default: // no sign
-						try {
-							value = Integer.parseInt(values[j].substring(1));
-						} catch (NumberFormatException e) {
-							continue;
-						}
-				}
-				switch (values[j].charAt(0)) {
-					case 'Y':
-						if (value >= 0) {
-							newcal.set(Calendar.YEAR, value);
-						} else {
-							newcal.add(Calendar.YEAR, addvalue);
-						}
-						isModified = true;
-						break;
-					case 'M':
-						if (value >= 0) {
-							newcal.set(Calendar.MONTH, value);
-						} else {
-							newcal.add(Calendar.MONTH, addvalue);
-						}
-						isModified = true;
-						break;
-					case 'D':
-						if (value >= 0) {
-							newcal.set(Calendar.DAY_OF_MONTH, value);
-						} else {
-							newcal.add(Calendar.DAY_OF_MONTH, addvalue);
-						}
-						isModified = true;
-						break;
-					case 'H':
-						if (value >= 0) {
-							newcal.set(Calendar.HOUR_OF_DAY, value);
-						} else {
-							newcal.add(Calendar.HOUR_OF_DAY, addvalue);
-						}
-						isModified = true;
-						break;
-					case 'm':
-						if (value >= 0) {
-							newcal.set(Calendar.MINUTE, value);
-						} else {
-							newcal.add(Calendar.MINUTE, addvalue);
-						}
-						isModified = true;
-						break;
-					case 'S':
-						if (value >= 0) {
-							newcal.set(Calendar.SECOND, value);
-						} else {
-							newcal.add(Calendar.SECOND, addvalue);
-						}
-						isModified = true;
-						break;
-				}
-			}
-		}
-		if (isModified)
-			return newcal;
-		return null;
-	}
+    protected int resetCount = -1;
+
+    protected DbTaskRunner runner = null;
+
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public RescheduleTransferTask(String argRule, int delay,
+            String argTransfer, R66Session session) {
+        super(TaskType.RESCHEDULE, delay, argRule, argTransfer, session);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("Reschedule with " + argRule + ":" + argTransfer +
+                " and {}", session);
+        runner = session.getRunner();
+        if (runner == null) {
+            futureCompletion.setFailure(new OpenR66RunnerErrorException(
+                    "No valid runner in Reschedule"));
+            return;
+        }
+        if (runner.isRescheduledTransfer()) {
+            // Already rescheduled so ignore
+            R66Result result = new R66Result(session, false, ErrorCode.Warning,
+                    runner);
+            futureCompletion.setResult(result);
+            logger.warn("Transfer already Rescheduled: " + runner.toShortString());
+            futureCompletion.setSuccess();
+            return;
+        }
+        if (runner.isSelfRequested()) {
+            // Self Requested Request so reschedule is ignored
+            R66Result result = new R66Result(session, false, ErrorCode.LoopSelfRequestedHost,
+                    runner);
+            futureCompletion.setResult(result);
+            futureCompletion.setFailure(new OpenR66RunnerErrorException(
+                    "No valid runner in Reschedule since Self Requested"));
+            return;
+        }
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        String[] args = finalname.split(" ");
+        if (args.length < 4) {
+            R66Result result = new R66Result(session, false, ErrorCode.Warning,
+                    runner);
+            futureCompletion.setResult(result);
+            logger.warn("Not enough argument in Reschedule: " + runner.toShortString());
+            futureCompletion.setSuccess();
+            return;
+        }
+        if (!validateArgs(args)) {
+            R66Result result = new R66Result(session, false, ErrorCode.Warning,
+                    runner);
+            futureCompletion.setResult(result);
+            logger.warn("Reschedule unallowed due to argument: " + runner.toShortString());
+            futureCompletion.setSuccess();
+            return;
+        }
+        if (countUsed) {
+            limitCount--;
+            if (limitCount >= 0) {
+                // restart is allowed so resetting to new limitCount 
+                resetCount = limitCount;
+            }
+            resetInformation(resetCount);
+            if (limitCount < 0) {
+                // Must not reschedule since limit is reached
+                try {
+                    runner.saveStatus();
+                } catch (OpenR66RunnerErrorException e) {
+                }
+                R66Result result = new R66Result(session, false, ErrorCode.Warning,
+                        runner);
+                futureCompletion.setResult(result);
+                logger.warn("Reschedule unallowed due to limit reached: " + runner.toShortString());
+                futureCompletion.setSuccess();
+                return;
+            }
+        }
+        Timestamp start = new Timestamp(newdate);
+        try {
+            runner.setStart(start);
+            if (runner.restart(true)) {
+                runner.saveStatus();
+            }
+        } catch (OpenR66RunnerErrorException e) {
+            logger.error(
+                    "Prepare transfer in     FAILURE      " +
+                            runner.toShortString() + "     <AT>" +
+                            (new Date(newdate)).toString() + "</AT>", e);
+            futureCompletion.setFailure(new OpenR66RunnerErrorException(
+                    "Reschedule failed: " + e.getMessage(), e));
+            return;
+        }
+        runner.setRescheduledTransfer();
+        R66Result result = new R66Result(session, false, ErrorCode.Warning,
+                runner);
+        futureCompletion.setResult(result);
+        logger.warn("Reschedule transfer in     SUCCESS     " +
+                runner.toShortString() + "     <AT>" +
+                (new Date(newdate)).toString() + "</AT>");
+        futureCompletion.setSuccess();
+    }
+
+    protected void resetInformation(int value) {
+        Map<String, Object> root = runner.getTransferMap();
+        root.put(CPTLIMIT, value);
+        try {
+            totalCount = (Integer) root.get(CPTTOTAL);
+            totalCount++;
+            root.put(CPTTOTAL, totalCount);
+        } catch (Exception e) {
+            totalCount = 1;
+            root.put(CPTTOTAL, totalCount);
+        }
+        runner.setTransferMap(root);
+    }
+
+    protected boolean validateArgs(String[] args) {
+        boolean validCode = false;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-delay")) {
+                i++;
+                try {
+                    newdate = Long.parseLong(args[i]);
+                } catch (NumberFormatException e) {
+                    logger.warn("Bad Long format: args[i]");
+                    return false;
+                }
+            } else if (args[i].equalsIgnoreCase("-case")) {
+                i++;
+                if (!validCode) {
+                    String[] codes = args[i].split(",");
+                    for (int j = 0; j < codes.length; j++) {
+                        ErrorCode code = ErrorCode.getFromCode(codes[j]);
+                        if (session.getLocalChannelReference().getCurrentCode() == code) {
+                            logger.debug("Code valid: " + code);
+                            validCode = true;
+                        }
+                    }
+                }
+            } else if (args[i].equalsIgnoreCase("-count")) {
+                i++;
+                try {
+                    resetCount = Integer.parseInt(args[i]);
+                } catch (NumberFormatException e) {
+                    logger.warn("ResetLimit is not an integer: " + args[i]);
+                    countUsed = false;
+                    return false;
+                }
+                Map<String, Object> root = runner.getTransferMap();
+                Integer limit = null;
+                try {
+                    limit = (Integer) root.get(CPTLIMIT);
+                } catch (Exception e) {
+                    logger.warn("Bad Long format: CPTLIMIT", e);
+                    return false;
+                }
+                if (limit != null) {
+                    limitCount = limit;
+                } else {
+                    limitCount = resetCount;
+                    root.put(CPTLIMIT, limitCount);
+                }
+                countUsed = true;
+            }
+        }
+        // now we have new delay plus code
+        if (!validCode) {
+            logger.warn("No valid Code found");
+            return false;
+        }
+        if (newdate <= 0) {
+            logger.warn("Delay is negative: " + newdate);
+            return false;
+        }
+        newdate += System.currentTimeMillis();
+        newDate = Calendar.getInstance();
+        newDate.setTimeInMillis(newdate);
+        boolean betweenTest = false;
+        boolean betweenResult = false;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-notbetween")) {
+                i++;
+                String[] elmts = args[i].split(";");
+                boolean startModified = false;
+                String[] values = elmts[0].split(":");
+                Calendar start = getCalendar(values);
+                if (start != null) {
+                    startModified = true;
+                } else {
+                    start = Calendar.getInstance();
+                }
+                boolean stopModified = false;
+                values = elmts[1].split(":");
+                Calendar stop = getCalendar(values);
+                if (stop != null) {
+                    stopModified = true;
+                } else {
+                    stop = Calendar.getInstance();
+                }
+                logger.debug("Dates before check: Not between " + start.getTime() + " and "
+                        + stop.getTime());
+                // Check that start < stop
+                if (start.compareTo(stop) > 0) {
+                    // no so add 24H to stop
+                    stop.add(Calendar.DAY_OF_MONTH, 1);
+                }
+                // Check that start and stop > newDate (only start is checked since start <= stop)
+                if (start.compareTo(newDate) < 0) {
+                    start.add(Calendar.DAY_OF_MONTH, 1);
+                    stop.add(Calendar.DAY_OF_MONTH, 1);
+                }
+                logger.debug("Dates after check: Not between " + start.getTime() + " and "
+                        + stop.getTime());
+                if (!startModified) {
+                    if (newDate.compareTo(stop) < 0) {
+                        logger.debug("newDate: " + newDate.getTime() + " Should not be between "
+                                + start.getTime() + " and " + stop.getTime());
+                        return false;
+                    }
+                } else if (start.compareTo(newDate) < 0) {
+                    if ((!stopModified) || (newDate.compareTo(stop) < 0)) {
+                        logger.debug("newDate: " + newDate.getTime() + " Should not be between "
+                                + start.getTime() + " and " + stop.getTime());
+                        return false;
+                    }
+                }
+            } else if (args[i].equalsIgnoreCase("-between")) {
+                i++;
+                betweenTest = true;
+                String[] elmts = args[i].split(";");
+                boolean startModified = false;
+                String[] values = elmts[0].split(":");
+                Calendar start = getCalendar(values);
+                if (start != null) {
+                    startModified = true;
+                } else {
+                    start = Calendar.getInstance();
+                }
+                boolean stopModified = false;
+                values = elmts[1].split(":");
+                Calendar stop = getCalendar(values);
+                if (stop != null) {
+                    stopModified = true;
+                } else {
+                    stop = Calendar.getInstance();
+                }
+                logger.debug("Dates before check: Between " + start.getTime() + " and "
+                        + stop.getTime());
+                // Check that start < stop
+                if (start.compareTo(stop) > 0) {
+                    // no so add 24H to stop
+                    stop.add(Calendar.DAY_OF_MONTH, 1);
+                }
+                // Check that start and stop > newDate (only start is checked since start <= stop)
+                if (start.compareTo(newDate) < 0) {
+                    start.add(Calendar.DAY_OF_MONTH, 1);
+                    stop.add(Calendar.DAY_OF_MONTH, 1);
+                }
+                logger.debug("Dates before check: Between " + start.getTime() + " and "
+                        + stop.getTime());
+                if (!startModified) {
+                    if (newDate.compareTo(stop) < 0) {
+                        logger.debug("newDate: " + newDate.getTime() + " is between "
+                                + start.getTime() + " and " + stop.getTime());
+                        betweenResult = true;
+                    }
+                } else if (start.compareTo(newDate) < 0) {
+                    if ((!stopModified) || (newDate.compareTo(stop) < 0)) {
+                        logger.debug("newDate: " + newDate.getTime() + " is between "
+                                + start.getTime() + " and " + stop.getTime());
+                        betweenResult = true;
+                    }
+                }
+            }
+        }
+        if (betweenTest) {
+            logger.debug("Since between is specified, do we found newDate: " + newDate.getTime()
+                    + " Result: " + betweenResult);
+            return betweenResult;
+        }
+        logger.debug("newDate: " + newDate.getTime() + " rescheduled");
+        return true;
+    }
+
+    /**
+     * 
+     * @param values
+     *            as X+n or X-n or X=n or Xn where X=Y/M/D/H/m/s, n=number and +/- meaning
+     *            adding/subtracting from current date and = meaning specific set value
+     * @return the Calendar if any specification, or null if no calendar specified
+     */
+    private Calendar getCalendar(String[] values) {
+        Calendar newcal = Calendar.getInstance();
+        boolean isModified = false;
+        for (int j = 0; j < values.length; j++) {
+            if (values[j].length() > 1) {
+                int addvalue = 0; // will be different of 0
+                int value = -1; // will be >= 0
+                switch (values[j].charAt(0)) {
+                    case '+':
+                        try {
+                            addvalue = Integer.parseInt(values[j].substring(2));
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                        break;
+                    case '-':
+                        try {
+                            addvalue = Integer.parseInt(values[j].substring(1));
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                        break;
+                    case '=':
+                        try {
+                            value = Integer.parseInt(values[j].substring(2));
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                        break;
+                    default: // no sign
+                        try {
+                            value = Integer.parseInt(values[j].substring(1));
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                }
+                switch (values[j].charAt(0)) {
+                    case 'Y':
+                        if (value >= 0) {
+                            newcal.set(Calendar.YEAR, value);
+                        } else {
+                            newcal.add(Calendar.YEAR, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                    case 'M':
+                        if (value >= 0) {
+                            newcal.set(Calendar.MONTH, value);
+                        } else {
+                            newcal.add(Calendar.MONTH, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                    case 'D':
+                        if (value >= 0) {
+                            newcal.set(Calendar.DAY_OF_MONTH, value);
+                        } else {
+                            newcal.add(Calendar.DAY_OF_MONTH, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                    case 'H':
+                        if (value >= 0) {
+                            newcal.set(Calendar.HOUR_OF_DAY, value);
+                        } else {
+                            newcal.add(Calendar.HOUR_OF_DAY, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                    case 'm':
+                        if (value >= 0) {
+                            newcal.set(Calendar.MINUTE, value);
+                        } else {
+                            newcal.add(Calendar.MINUTE, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                    case 'S':
+                        if (value >= 0) {
+                            newcal.set(Calendar.SECOND, value);
+                        } else {
+                            newcal.add(Calendar.SECOND, addvalue);
+                        }
+                        isModified = true;
+                        break;
+                }
+            }
+        }
+        if (isModified)
+            return newcal;
+        return null;
+    }
 }

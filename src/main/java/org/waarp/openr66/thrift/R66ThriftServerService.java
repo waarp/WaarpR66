@@ -36,79 +36,80 @@ import org.waarp.thrift.r66.R66Service;
 
 /**
  * Main Thrift server service
+ * 
  * @author Frederic Bregier
  * 
  */
 public class R66ThriftServerService implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(R66ThriftServerService.class);
-	
-	protected int port = 4266;
-	protected TServerTransport serverTransport = null;
-	protected TServer server = null;
-	protected WaarpFuture serviceReady;
-	
-	public R66ThriftServerService(WaarpFuture serviceReady, int port) {
-		this.serviceReady = serviceReady;
-		this.port = port;
-	}
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(R66ThriftServerService.class);
 
-	public boolean awaitInitialization() {
-		if (serviceReady != null) {
-			try {
-				serviceReady.await();
-			} catch (InterruptedException e) {
-			}
-			return serviceReady.isSuccess();
-		}
-		return true;
-	}
+    protected int port = 4266;
+    protected TServerTransport serverTransport = null;
+    protected TServer server = null;
+    protected WaarpFuture serviceReady;
 
-	public void run() {
-		try {
-			logger.warn("Will start Thrift service on port: " + port);
-			byte [] local = {127,0,0,1};
-			InetAddress addr;
-			try {
-				addr = InetAddress.getByAddress(local);
-			} catch (UnknownHostException e) {
-				try {
-					addr = InetAddress.getLocalHost();
-				} catch (UnknownHostException e1) {
-					logger.error("Cannot start the Thrift service", e1);
-					serviceReady.setFailure(e);
-					releaseResources();
-					return;
-				}
-			}
-			InetSocketAddress address = new InetSocketAddress(addr, port);
-			serverTransport = new TServerSocket(address);
-			R66Service.Processor<R66EmbeddedServiceImpl> processor = 
-					new R66Service.Processor<R66EmbeddedServiceImpl>(
-					new R66EmbeddedServiceImpl());
-			server = new TThreadPoolServer(
-					new TThreadPoolServer.Args(serverTransport).processor(processor));
-			serviceReady.setSuccess();
-			server.serve();
-		} catch (TTransportException e) {
-			logger.error("An error occurs during initialization of Thrift support", e);
-			serviceReady.setFailure(e);
-			releaseResources();
-		}
-	}
+    public R66ThriftServerService(WaarpFuture serviceReady, int port) {
+        this.serviceReady = serviceReady;
+        this.port = port;
+    }
 
-	public void releaseResources() {
-		if (server != null) {
-			logger.debug("Stop Thrift Server");
-			server.stop();
-		}
-		if (serverTransport != null) {
-			logger.debug("Stop Thrift Transport");
-			serverTransport.close();
-		}
-		logger.debug("Thrift stopped");
-	}
+    public boolean awaitInitialization() {
+        if (serviceReady != null) {
+            try {
+                serviceReady.await();
+            } catch (InterruptedException e) {
+            }
+            return serviceReady.isSuccess();
+        }
+        return true;
+    }
+
+    public void run() {
+        try {
+            logger.warn("Will start Thrift service on port: " + port);
+            byte[] local = { 127, 0, 0, 1 };
+            InetAddress addr;
+            try {
+                addr = InetAddress.getByAddress(local);
+            } catch (UnknownHostException e) {
+                try {
+                    addr = InetAddress.getLocalHost();
+                } catch (UnknownHostException e1) {
+                    logger.error("Cannot start the Thrift service", e1);
+                    serviceReady.setFailure(e);
+                    releaseResources();
+                    return;
+                }
+            }
+            InetSocketAddress address = new InetSocketAddress(addr, port);
+            serverTransport = new TServerSocket(address);
+            R66Service.Processor<R66EmbeddedServiceImpl> processor =
+                    new R66Service.Processor<R66EmbeddedServiceImpl>(
+                            new R66EmbeddedServiceImpl());
+            server = new TThreadPoolServer(
+                    new TThreadPoolServer.Args(serverTransport).processor(processor));
+            serviceReady.setSuccess();
+            server.serve();
+        } catch (TTransportException e) {
+            logger.error("An error occurs during initialization of Thrift support", e);
+            serviceReady.setFailure(e);
+            releaseResources();
+        }
+    }
+
+    public void releaseResources() {
+        if (server != null) {
+            logger.debug("Stop Thrift Server");
+            server.stop();
+        }
+        if (serverTransport != null) {
+            logger.debug("Stop Thrift Transport");
+            serverTransport.close();
+        }
+        logger.debug("Thrift stopped");
+    }
 }

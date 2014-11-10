@@ -25,63 +25,62 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * 
  */
 public class LogJavaTask implements GatewayRunnable {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(LogJavaTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(LogJavaTask.class);
 
-	boolean waitForValidation;
-	boolean useLocalExec;
-	int delay;
-	String[] args;
+    boolean waitForValidation;
+    boolean useLocalExec;
+    int delay;
+    String[] args;
 
-	/**
+    /**
 	 * 
 	 */
-	public LogJavaTask() {
-	}
+    public LogJavaTask() {
+    }
 
-	@Override
-	public void run() {
-		StringBuilder builder = new StringBuilder();
-		for (String arg : args) {
-			builder.append(arg);
-			builder.append(' ');
-		}
-		switch (delay) {
-			case 0:
-				logger.warn(builder.toString());
-				break;
-			case 1:
-				logger.debug(builder.toString());
-				break;
-			case 2:
-				logger.info(builder.toString());
-				break;
-			case 3:
-				logger.warn(builder.toString());
-				break;
-			case 4:
-				logger.error(builder.toString());
-				break;
-			default:
-				logger.warn(builder.toString());
-				break;
-		}
-	}
+    @Override
+    public void run() {
+        StringBuilder builder = new StringBuilder();
+        for (String arg : args) {
+            builder.append(arg).append(' ');
+        }
+        switch (delay) {
+            case 0:
+                logger.warn(builder.toString());
+                break;
+            case 1:
+                logger.debug(builder.toString());
+                break;
+            case 2:
+                logger.info(builder.toString());
+                break;
+            case 3:
+                logger.warn(builder.toString());
+                break;
+            case 4:
+                logger.error(builder.toString());
+                break;
+            default:
+                logger.warn(builder.toString());
+                break;
+        }
+    }
 
-	@Override
-	public void setArgs(boolean waitForValidation, boolean useLocalExec, int delay, String[] args) {
-		this.waitForValidation = waitForValidation;
-		this.useLocalExec = useLocalExec;
-		this.delay = delay;
-		this.args = args;
-	}
+    @Override
+    public void setArgs(boolean waitForValidation, boolean useLocalExec, int delay, String[] args) {
+        this.waitForValidation = waitForValidation;
+        this.useLocalExec = useLocalExec;
+        this.delay = delay;
+        this.args = args;
+    }
 
-	@Override
-	public int getFinalStatus() {
-		return 0;
-	}
+    @Override
+    public int getFinalStatus() {
+        return 0;
+    }
 
 }

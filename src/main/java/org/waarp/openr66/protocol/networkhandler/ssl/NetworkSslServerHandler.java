@@ -17,7 +17,6 @@
  */
 package org.waarp.openr66.protocol.networkhandler.ssl;
 
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -43,53 +42,54 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(NetworkSslServerHandler.class);
 
     /**
-	 * @param isServer
-	 */
-	public NetworkSslServerHandler(boolean isServer) {
-		super(isServer);
-	}
+     * @param isServer
+     */
+    public NetworkSslServerHandler(boolean isServer) {
+        super(isServer);
+    }
 
-	/**
-	 * 
-	 * @param channel
-	 * @return True if the SSL handshake is over and OK, else False
-	 */
-	public static boolean isSslConnectedChannel(Channel channel) {
-		return WaarpSslUtility.waitForHandshake(channel);
-	}
+    /**
+     * 
+     * @param channel
+     * @return True if the SSL handshake is over and OK, else False
+     */
+    public static boolean isSslConnectedChannel(Channel channel) {
+        return WaarpSslUtility.waitForHandshake(channel);
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		Channel networkChannel = ctx.channel();
-		logger.debug("Add channel to ssl");
-		WaarpSslUtility.addSslOpenedChannel(networkChannel);
-		isSSL = true;
-		// Check first if allowed
-		if (NetworkTransaction.isBlacklisted(networkChannel)) {
-			logger.warn("Connection refused since Partner is in BlackListed from "+networkChannel.remoteAddress().toString());
-			isBlackListed = true;
-			Configuration.configuration.r66Mib.notifyError(
-					"Black Listed connection temptative", "During Handshake");
-			// close immediately the connection
-			WaarpSslUtility.closingSslChannel(networkChannel);
-			return;
-		}
-		// Get the SslHandler in the current pipeline.
-		// We added it in NetworkSslServerInitializer.
-		final ChannelHandler handler = ctx.pipeline().first();
-		if (handler instanceof SslHandler) {
-			final SslHandler sslHandler = (SslHandler) handler;
-			sslHandler.handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
+        Channel networkChannel = ctx.channel();
+        logger.debug("Add channel to ssl");
+        WaarpSslUtility.addSslOpenedChannel(networkChannel);
+        isSSL = true;
+        // Check first if allowed
+        if (NetworkTransaction.isBlacklisted(networkChannel)) {
+            logger.warn("Connection refused since Partner is in BlackListed from "
+                    + networkChannel.remoteAddress().toString());
+            isBlackListed = true;
+            Configuration.configuration.r66Mib.notifyError(
+                    "Black Listed connection temptative", "During Handshake");
+            // close immediately the connection
+            WaarpSslUtility.closingSslChannel(networkChannel);
+            return;
+        }
+        // Get the SslHandler in the current pipeline.
+        // We added it in NetworkSslServerInitializer.
+        final ChannelHandler handler = ctx.pipeline().first();
+        if (handler instanceof SslHandler) {
+            final SslHandler sslHandler = (SslHandler) handler;
+            sslHandler.handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
                 public void operationComplete(Future<? super Channel> future) throws Exception {
-                    if (! future.isSuccess()) {
+                    if (!future.isSuccess()) {
                         Configuration.configuration.r66Mib.notifyError(
-                            "SSL Connection Error", "During Handshake");
+                                "SSL Connection Error", "During Handshake");
                     }
                 }
             });
-		} else {
-			logger.error("SSL Not found");
-		}
+        } else {
+            logger.error("SSL Not found");
+        }
         super.channelActive(ctx);
-	}
+    }
 }

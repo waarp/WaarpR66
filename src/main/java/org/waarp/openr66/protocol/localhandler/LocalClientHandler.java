@@ -44,15 +44,15 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * @author frederic bregier
  */
 public class LocalClientHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LocalClientHandler.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LocalClientHandler.class);
 
-	/**
-	 * Local Channel Reference
-	 */
-	private volatile LocalChannelReference localChannelReference = null;
+    /**
+     * Local Channel Reference
+     */
+    private volatile LocalChannelReference localChannelReference = null;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -61,97 +61,98 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<AbstractLoca
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		logger.debug("Local Client Channel Closed: {}", ctx.channel().id());
-	}
+        logger.debug("Local Client Channel Closed: {}", ctx.channel().id());
+    }
 
-	/**
-	 * Initiate the LocalChannelReference
-	 * 
-	 * @param channel
-	 * @throws InterruptedException
-	 * @throws OpenR66ProtocolNetworkException
-	 */
-	private void initLocalClientHandler(Channel channel)
-			throws InterruptedException, OpenR66ProtocolNetworkException {
-		int i = 0;
-		if (localChannelReference == null) {
-			for (i = 0; i < Configuration.RETRYNB; i++) {
-				localChannelReference = Configuration.configuration
-						.getLocalTransaction().getFromId(channel.id().hashCode());
-				if (localChannelReference != null) {
-					return;
-				}
-				Thread.sleep(Configuration.RETRYINMS);
-				Thread.yield();
-			}
-			logger.warn("Cannot find local connection");
-		}
-	}
+    /**
+     * Initiate the LocalChannelReference
+     * 
+     * @param channel
+     * @throws InterruptedException
+     * @throws OpenR66ProtocolNetworkException
+     */
+    private void initLocalClientHandler(Channel channel)
+            throws InterruptedException, OpenR66ProtocolNetworkException {
+        int i = 0;
+        if (localChannelReference == null) {
+            for (i = 0; i < Configuration.RETRYNB; i++) {
+                localChannelReference = Configuration.configuration
+                        .getLocalTransaction().getFromId(channel.id().hashCode());
+                if (localChannelReference != null) {
+                    return;
+                }
+                Thread.sleep(Configuration.RETRYINMS);
+                Thread.yield();
+            }
+            logger.warn("Cannot find local connection");
+        }
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, AbstractLocalPacket msg) throws Exception {
-		if (localChannelReference == null) {
-			initLocalClientHandler(ctx.channel());
-		}
-		// only Startup Packet should arrived here !
-		final AbstractLocalPacket packet = msg;
-		if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
-			logger.error("Local Client Channel Recv wrong packet: " +
-					ctx.channel().id() + " : " + packet.toString());
-			throw new OpenR66ProtocolSystemException("Should not be here: Wrong packet received {" + packet.toString() + "}");
-		}
-		logger.debug("LocalClientHandler initialized: " +
-				(localChannelReference != null));
-	}
+        if (localChannelReference == null) {
+            initLocalClientHandler(ctx.channel());
+        }
+        // only Startup Packet should arrived here !
+        final AbstractLocalPacket packet = msg;
+        if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
+            logger.error("Local Client Channel Recv wrong packet: " +
+                    ctx.channel().id() + " : " + packet.toString());
+            throw new OpenR66ProtocolSystemException("Should not be here: Wrong packet received {" + packet.toString()
+                    + "}");
+        }
+        logger.debug("LocalClientHandler initialized: " +
+                (localChannelReference != null));
+    }
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-			throws Exception {
-		// informs network of the problem
-	    Channel channel = ctx.channel();
-		logger.debug(
-				"Local Client Channel Exception: {}", channel.id(), cause);
-		if (localChannelReference == null) {
-			initLocalClientHandler(channel);
-		}
-		if (localChannelReference != null) {
-			OpenR66Exception exception = OpenR66ExceptionTrappedFactory
-					.getExceptionFromTrappedException(channel, cause);
-			localChannelReference.sessionNewState(ERROR);
-			if (exception != null) {
-				if (exception instanceof OpenR66ProtocolShutdownException) {
-					ChannelUtils.startShutdown();
-					/*
-					 * Dont close, thread will do
-					logger.debug("Will close channel");
-					Channels.close(e.channel());
-					 */
-					return;
-				} else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
-					logger.error("Will close channel", exception);
-					channel.close();
-					return;
-				} else if (exception instanceof OpenR66ProtocolNoConnectionException) {
-					logger.error("Will close channel", exception);
-					channel.close();
-					return;
-				}
-				final ErrorPacket errorPacket = new ErrorPacket(exception
-						.getMessage(),
-						ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, true);
-				if (!localChannelReference.getFutureRequest().isDone()) {
-					localChannelReference.invalidateRequest(new R66Result(
-							exception, localChannelReference.getSession(), true,
-							ErrorCode.Internal, null));
-				}
-			} else {
-				// Nothing to do
-				return;
-			}
-		}
-		logger.debug("Will close channel");
-		ChannelCloseTimer.closeFutureChannel(channel);
-	}
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        // informs network of the problem
+        Channel channel = ctx.channel();
+        logger.debug(
+                "Local Client Channel Exception: {}", channel.id(), cause);
+        if (localChannelReference == null) {
+            initLocalClientHandler(channel);
+        }
+        if (localChannelReference != null) {
+            OpenR66Exception exception = OpenR66ExceptionTrappedFactory
+                    .getExceptionFromTrappedException(channel, cause);
+            localChannelReference.sessionNewState(ERROR);
+            if (exception != null) {
+                if (exception instanceof OpenR66ProtocolShutdownException) {
+                    ChannelUtils.startShutdown();
+                    /*
+                     * Dont close, thread will do
+                    logger.debug("Will close channel");
+                    Channels.close(e.channel());
+                     */
+                    return;
+                } else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                    logger.error("Will close channel", exception);
+                    channel.close();
+                    return;
+                } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
+                    logger.error("Will close channel", exception);
+                    channel.close();
+                    return;
+                }
+                final ErrorPacket errorPacket = new ErrorPacket(exception
+                        .getMessage(),
+                        ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, true);
+                if (!localChannelReference.getFutureRequest().isDone()) {
+                    localChannelReference.invalidateRequest(new R66Result(
+                            exception, localChannelReference.getSession(), true,
+                            ErrorCode.Internal, null));
+                }
+            } else {
+                // Nothing to do
+                return;
+            }
+        }
+        logger.debug("Will close channel");
+        ChannelCloseTimer.closeFutureChannel(channel);
+    }
 
 }

@@ -33,110 +33,110 @@ import org.waarp.thrift.r66.RequestMode;
 
 /**
  * Example of Java class to interact with the Thrift R66 service
+ * 
  * @author "Frederic Bregier"
  * 
  */
-public class TestThriftClientExample  {
-	private static final int PORT = 4266;
-	private static final int tries = 10000;
+public class TestThriftClientExample {
+    private static final int PORT = 4266;
+    private static final int tries = 10000;
 
-	public static void main(String[] args) {
-		TTransport transport = null;
-		try {
-			transport = new TSocket("localhost", PORT);
-			TProtocol protocol = new TBinaryProtocol(transport);
-			R66Service.Client client = new R66Service.Client(protocol);
-			transport.open();
-			R66Request request = new R66Request(RequestMode.INFOFILE);
-			request.setDestuid("hostas");
-			request.setFromuid("tests");
-			request.setRule("rule3");
-			request.setAction(Action.List);
+    public static void main(String[] args) {
+        TTransport transport = null;
+        try {
+            transport = new TSocket("localhost", PORT);
+            TProtocol protocol = new TBinaryProtocol(transport);
+            R66Service.Client client = new R66Service.Client(protocol);
+            transport.open();
+            R66Request request = new R66Request(RequestMode.INFOFILE);
+            request.setDestuid("hostas");
+            request.setFromuid("tests");
+            request.setRule("rule3");
+            request.setAction(Action.List);
 
-			System.out.println("REQUEST1: " + request.toString());
-			List<String> list = client.infoListQuery(request);
-			System.out.println("RESULT1: " + list.size());
-			for (String slist :list) {
-				System.out.println(slist);
-			}
+            System.out.println("REQUEST1: " + request.toString());
+            List<String> list = client.infoListQuery(request);
+            System.out.println("RESULT1: " + list.size());
+            for (String slist : list) {
+                System.out.println(slist);
+            }
 
-			long start = System.currentTimeMillis();
-			for (int i = 0; i < tries; i++) {
-				list = client.infoListQuery(request);
-			}
-			long end = System.currentTimeMillis();
-			System.out
-					.println("Delay: " + (end - start) + " : " + ((tries * 1000) / (end - start)));
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < tries; i++) {
+                list = client.infoListQuery(request);
+            }
+            long end = System.currentTimeMillis();
+            System.out
+                    .println("Delay: " + (end - start) + " : " + ((tries * 1000) / (end - start)));
 
+            long startEx = System.currentTimeMillis();
+            boolean dontknow = false;
+            for (int i = 0; i < tries; i++) {
+                dontknow = client.isStillRunning("tests", "hostas", 1346080633424L);
+            }
+            long endEx = System.currentTimeMillis();
+            System.out.println("StillRunning: " + dontknow);
+            System.out
+                    .println("Delay: " + (endEx - startEx) + " : " + ((tries * 1000) / (endEx - startEx)));
 
-			long startEx = System.currentTimeMillis();
-			boolean dontknow = false;
-			for (int i = 0; i < tries; i++) {
-				dontknow = client.isStillRunning("tests", "hostas", 1346080633424L);
-			}
-			long endEx = System.currentTimeMillis();
-			System.out.println("StillRunning: "+dontknow);
-			System.out
-					.println("Delay: " + (endEx - startEx) + " : " + ((tries * 1000) / (endEx - startEx)));
+            request.setMode(RequestMode.INFOREQUEST);
+            request.setTid(1346080633424L);
+            request.setAction(Action.Detail);
+            R66Result result = client.infoTransferQuery(request);
+            System.out.println("RESULT2: " + result.toString());
+            long startQu = System.currentTimeMillis();
+            for (int i = 0; i < tries; i++) {
+                result = client.infoTransferQuery(request);
+            }
+            long endQu = System.currentTimeMillis();
+            System.out
+                    .println("Delay: " + (endQu - startQu) + " : " + ((tries * 1000) / (endQu - startQu)));
 
-			request.setMode(RequestMode.INFOREQUEST);
-			request.setTid(1346080633424L);
-			request.setAction(Action.Detail);
-			R66Result result = client.infoTransferQuery(request);
-			System.out.println("RESULT2: " + result.toString());
-			long startQu = System.currentTimeMillis();
-			for (int i = 0; i < tries; i++) {
-				result = client.infoTransferQuery(request);
-			}
-			long endQu = System.currentTimeMillis();
-			System.out
-					.println("Delay: " + (endQu - startQu) + " : " + ((tries * 1000) / (endQu - startQu)));
+            System.out.println("Exist: "
+                    +
+                    client.isStillRunning(request.getFromuid(), request.getDestuid(),
+                            request.getTid()));
 
-			System.out.println("Exist: "
-					+
-					client.isStillRunning(request.getFromuid(), request.getDestuid(),
-							request.getTid()));
+            request.setMode(RequestMode.INFOFILE);
+            request.setAction(Action.Mlsx);
+            list = client.infoListQuery(request);
+            System.out.println("RESULT3: " + list.size());
+            for (String slist : list) {
+                System.out.println(slist);
+            }
 
-			request.setMode(RequestMode.INFOFILE);
-			request.setAction(Action.Mlsx);
-			list = client.infoListQuery(request);
-			System.out.println("RESULT3: " + list.size());
-			for (String slist :list) {
-				System.out.println(slist);
-			}
+            request = new R66Request(RequestMode.ASYNCTRANSFER);
+            request.setDestuid("hostbs");
+            request.setRule("rule3");
+            request.setFile("Documents2.rar");
+            request.setInfo("Submitted from Thrift");
+            result = client.transferRequestQuery(request);
+            System.out.println("RESULT4: " + result);
 
-			request = new R66Request(RequestMode.ASYNCTRANSFER);
-			request.setDestuid("hostbs");
-			request.setRule("rule3");
-			request.setFile("Documents2.rar");
-			request.setInfo("Submitted from Thrift");
-			result = client.transferRequestQuery(request);
-			System.out.println("RESULT4: " + result);
+            request = new R66Request(RequestMode.SYNCTRANSFER);
+            request.setDestuid("hostbs");
+            request.setRule("rule3");
+            request.setFile("Documents2.rar");
+            request.setInfo("Submitted from Thrift");
+            result = client.transferRequestQuery(request);
+            System.out.println("RESULT5: " + result);
 
-			request = new R66Request(RequestMode.SYNCTRANSFER);
-			request.setDestuid("hostbs");
-			request.setRule("rule3");
-			request.setFile("Documents2.rar");
-			request.setInfo("Submitted from Thrift");
-			result = client.transferRequestQuery(request);
-			System.out.println("RESULT5: " + result);
+            // Wrong request
+            request = new R66Request(RequestMode.INFOFILE);
 
-			// Wrong request
-			request = new R66Request(RequestMode.INFOFILE);
+            System.out.println("WRONG REQUEST: " + request.toString());
+            list = client.infoListQuery(request);
+            System.out.println("RESULT of Wrong Request: " + list.size());
+            for (String slist : list) {
+                System.out.println(slist);
+            }
 
-			System.out.println("WRONG REQUEST: " + request.toString());
-			list = client.infoListQuery(request);
-			System.out.println("RESULT of Wrong Request: " + list.size());
-			for (String slist :list) {
-				System.out.println(slist);
-			}
-			
-		} catch (TTransportException e) {
-			e.printStackTrace();
-		} catch (TException e) {
-			e.printStackTrace();
-		}
-		transport.close();
-	}
+        } catch (TTransportException e) {
+            e.printStackTrace();
+        } catch (TException e) {
+            e.printStackTrace();
+        }
+        transport.close();
+    }
 
 }

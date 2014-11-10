@@ -27,14 +27,14 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
  */
 public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
 
-	/**
-	 * @param writeLimit
-	 * @param readLimit
-	 * @param checkInterval
-	 */
-	public ChannelTrafficHandler(long writeLimit, long readLimit, long checkInterval) {
-		super(writeLimit, readLimit, checkInterval);
-	}
+    /**
+     * @param writeLimit
+     * @param readLimit
+     * @param checkInterval
+     */
+    public ChannelTrafficHandler(long writeLimit, long readLimit, long checkInterval) {
+        super(writeLimit, readLimit, checkInterval);
+    }
 
     @Override
     protected long calculateSize(Object msg) {

@@ -32,145 +32,145 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class EndRequestPacket extends AbstractLocalPacket {
-	private static final byte ASKVALIDATE = 0;
+    private static final byte ASKVALIDATE = 0;
 
-	private static final byte ANSWERVALIDATE = 1;
+    private static final byte ANSWERVALIDATE = 1;
 
-	private final int code;
+    private final int code;
 
-	private byte way;
+    private byte way;
 
-	private String optional;
+    private String optional;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new EndTransferPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static EndRequestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		if (headerLength - 1 != 4) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		if (middleLength != 1) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		final int bheader = buf.readInt();
-		byte valid = buf.readByte();
-		String optional;
-		if (endLength > 0) {
-			optional = buf.toString(buf.readerIndex(), endLength, Charset.defaultCharset());
-			buf.skipBytes(endLength);
-			return new EndRequestPacket(bheader, valid, optional);
-		}
-		return new EndRequestPacket(bheader, valid);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new EndTransferPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static EndRequestPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 != 4) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        if (middleLength != 1) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        final int bheader = buf.readInt();
+        byte valid = buf.readByte();
+        String optional;
+        if (endLength > 0) {
+            optional = buf.toString(buf.readerIndex(), endLength, Charset.defaultCharset());
+            buf.skipBytes(endLength);
+            return new EndRequestPacket(bheader, valid, optional);
+        }
+        return new EndRequestPacket(bheader, valid);
+    }
 
-	/**
-	 * @param code
-	 * @param valid
-	 * @param optional
-	 */
-	private EndRequestPacket(int code, byte valid, String optional) {
-		this.code = code;
-		way = valid;
-		this.optional = optional;
-	}
+    /**
+     * @param code
+     * @param valid
+     * @param optional
+     */
+    private EndRequestPacket(int code, byte valid, String optional) {
+        this.code = code;
+        way = valid;
+        this.optional = optional;
+    }
 
-	/**
-	 * @param code
-	 * @param valid
-	 */
-	private EndRequestPacket(int code, byte valid) {
-		this.code = code;
-		way = valid;
-	}
+    /**
+     * @param code
+     * @param valid
+     */
+    private EndRequestPacket(int code, byte valid) {
+        this.code = code;
+        way = valid;
+    }
 
-	/**
-	 * @param code
-	 */
-	public EndRequestPacket(int code) {
-		this.code = code;
-		way = ASKVALIDATE;
-	}
+    /**
+     * @param code
+     */
+    public EndRequestPacket(int code) {
+        this.code = code;
+        way = ASKVALIDATE;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) {
-		if (optional == null) {
-			end = Unpooled.EMPTY_BUFFER;
-		} else {
-			end = Unpooled.copiedBuffer(optional, Charset.defaultCharset());
-		}
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) {
+        if (optional == null) {
+            end = Unpooled.EMPTY_BUFFER;
+        } else {
+            end = Unpooled.copiedBuffer(optional, Charset.defaultCharset());
+        }
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) {
-		header = Unpooled.buffer(4);
-		header.writeInt(code);
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) {
+        header = Unpooled.buffer(4);
+        header.writeInt(code);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) {
-		byte[] newbytes = {
-				way };
-		middle = Unpooled.wrappedBuffer(newbytes);
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) {
+        byte[] newbytes = {
+                way };
+        middle = Unpooled.wrappedBuffer(newbytes);
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.ENDREQUESTPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.ENDREQUESTPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "EndRequestPacket: " + code + " " + way + (optional != null ? " " + optional : "");
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "EndRequestPacket: " + code + " " + way + (optional != null ? " " + optional : "");
+    }
 
-	/**
-	 * @return the code
-	 */
-	public int getCode() {
-		return code;
-	}
+    /**
+     * @return the code
+     */
+    public int getCode() {
+        return code;
+    }
 
-	/**
-	 * @return True if this packet is to be validated
-	 */
-	public boolean isToValidate() {
-		return way == ASKVALIDATE;
-	}
+    /**
+     * @return True if this packet is to be validated
+     */
+    public boolean isToValidate() {
+        return way == ASKVALIDATE;
+    }
 
-	/**
-	 * Validate the connection
-	 */
-	public void validate() {
-		way = ANSWERVALIDATE;
-		header = null;
-		middle = null;
-		end = null;
-	}
+    /**
+     * Validate the connection
+     */
+    public void validate() {
+        way = ANSWERVALIDATE;
+        header = null;
+        middle = null;
+        end = null;
+    }
 
-	/**
-	 * @return the optional
-	 */
-	public String getOptional() {
-		return optional;
-	}
+    /**
+     * @return the optional
+     */
+    public String getOptional() {
+        return optional;
+    }
 
-	/**
-	 * @param optional
-	 *            the optional to set
-	 */
-	public void setOptional(String optional) {
-		this.optional = optional;
-	}
+    /**
+     * @param optional
+     *            the optional to set
+     */
+    public void setOptional(String optional) {
+        this.optional = optional;
+    }
 
 }

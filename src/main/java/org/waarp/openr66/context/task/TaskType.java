@@ -31,207 +31,208 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  * 
  */
 public enum TaskType {
-	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
-	RENAME, RESTART, UNZEROED, CHMOD, CHKFILE;
+    LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
+    VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
+    RENAME, RESTART, UNZEROED, CHMOD, CHKFILE;
 
-	public int type;
+    public int type;
 
-	public String name;
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(TaskType.class);
+    public String name;
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(TaskType.class);
 
-	private TaskType() {
-		type = ordinal();
-		name = name();
-	}
+    private TaskType() {
+        type = ordinal();
+        name = name();
+    }
 
-	/**
-	 * 
-	 * @param type
-	 * @param argRule
-	 * @param delay
-	 * @param session
-	 * @return the corresponding AbstractTask
-	 * @throws OpenR66RunnerErrorException
-	 */
-	public static AbstractTask getTaskFromId(TaskType type, String argRule,
-			int delay, R66Session session)
-			throws OpenR66RunnerErrorException {
-		switch (type) {
-			case LOG:
-				return new LogTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case MOVE:
-				return new MoveTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case MOVERENAME:
-				return new MoveRenameTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case COPY:
-				return new CopyTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case COPYRENAME:
-				return new CopyRenameTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case EXEC:
-				return new ExecTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case EXECMOVE:
-				return new ExecMoveTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case LINKRENAME:
-				return new LinkRenameTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case TRANSFER:
-				return new TransferTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case VALIDFILEPATH:
-				return new ValidFilePathTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case DELETE:
-				return new DeleteTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case TAR:
-				return new TarTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case ZIP:
-				return new ZipTask(argRule, delay, session.getRunner()
-						.getFileInformation(), session);
-			case EXECOUTPUT:
-				return new ExecOutputTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case RESCHEDULE:
-				return new RescheduleTransferTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case EXECJAVA:
-				return new ExecJavaTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case TRANSCODE:
-				return new TranscodeTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case SNMP:
-				return new SnmpTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case FTP:
-				return new FtpTransferTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case RENAME:
-				return new RenameTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case RESTART:
-				return new RestartServerTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case UNZEROED:
-				return new UnzeroedFileTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case CHMOD:
-				return new ChModTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			case CHKFILE:
-				return new FileCheckTask(argRule, delay, session.getRunner().
-						getFileInformation(), session);
-			default:
-				logger.error("name unknown: " + type.name);
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-		}
-	}
+    /**
+     * 
+     * @param type
+     * @param argRule
+     * @param delay
+     * @param session
+     * @return the corresponding AbstractTask
+     * @throws OpenR66RunnerErrorException
+     */
+    public static AbstractTask getTaskFromId(TaskType type, String argRule,
+            int delay, R66Session session)
+            throws OpenR66RunnerErrorException {
+        switch (type) {
+            case LOG:
+                return new LogTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case MOVE:
+                return new MoveTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case MOVERENAME:
+                return new MoveRenameTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case COPY:
+                return new CopyTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case COPYRENAME:
+                return new CopyRenameTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case EXEC:
+                return new ExecTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case EXECMOVE:
+                return new ExecMoveTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case LINKRENAME:
+                return new LinkRenameTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case TRANSFER:
+                return new TransferTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case VALIDFILEPATH:
+                return new ValidFilePathTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case DELETE:
+                return new DeleteTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case TAR:
+                return new TarTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case ZIP:
+                return new ZipTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case EXECOUTPUT:
+                return new ExecOutputTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case RESCHEDULE:
+                return new RescheduleTransferTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case EXECJAVA:
+                return new ExecJavaTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case TRANSCODE:
+                return new TranscodeTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case SNMP:
+                return new SnmpTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case FTP:
+                return new FtpTransferTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case RENAME:
+                return new RenameTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case RESTART:
+                return new RestartServerTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case UNZEROED:
+                return new UnzeroedFileTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case CHMOD:
+                return new ChModTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            case CHKFILE:
+                return new FileCheckTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
+            default:
+                logger.error("name unknown: " + type.name);
+                throw new OpenR66RunnerErrorException("Unvalid Task: " +
+                        type.name);
+        }
+    }
 
-	/**
-	 * 
-	 * @param name
-	 * @param argRule
-	 * @param delay
-	 * @param session
-	 * @return the corresponding AbstractTask
-	 * @throws OpenR66RunnerErrorException
-	 */
-	public static AbstractTask getTaskFromId(String name, String argRule,
-			int delay, R66Session session) throws OpenR66RunnerErrorException {
-		TaskType type;
-		try {
-			type = valueOf(name);
-		} catch (NullPointerException e) {
-			logger.error("name empty " + name);
-			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
-		} catch (IllegalArgumentException e) {
-			logger.error("name unknown: " + name);
-			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
-		}
-		return getTaskFromId(type, argRule, delay, session);
-	}
-	
-	/**
-	 * For usage in ExecBusinessTask
-	 * @param name
-	 * @param argRule
-	 * @param delay
-	 * @param session
-	 * @return the corresponding AbstractTask
-	 * @throws OpenR66RunnerErrorException
-	 */
-	public static AbstractTask getTaskFromIdForBusiness(String name, String argRule,
-			int delay, R66Session session)
-			throws OpenR66RunnerErrorException {
-		TaskType type;
-		try {
-			type = valueOf(name);
-		} catch (NullPointerException e) {
-			logger.error("name empty " + name);
-			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
-		} catch (IllegalArgumentException e) {
-			logger.error("name unknown: " + name);
-			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
-		}
-		switch (type) {
-			case LOG:
-				int newdelay = delay;
-				if (newdelay == 0) {
-					newdelay = 1;
-				}
-				return new LogTask(argRule, newdelay, "", session);
-			case EXEC:
-				return new ExecTask(argRule, delay, "", session);
-			case TRANSFER:
-				return new TransferTask(argRule, delay, "", session);
-			case TAR:
-				return new TarTask(argRule, delay, "", session);
-			case ZIP:
-				return new ZipTask(argRule, delay, "", session);
-			case EXECOUTPUT:
-				return new ExecOutputTask(argRule, delay, "", session);
-			case EXECJAVA:
-				return new ExecJavaTask(argRule, delay, "", session);
-			case SNMP:
-				return new SnmpTask(argRule, delay, "", session);
-			case FTP:
-				return new FtpTransferTask(argRule, delay, "", session);
-			case RESTART:
-				return new RestartServerTask(argRule, delay, "", session);
-			case MOVE:
-			case MOVERENAME:
-			case COPY:
-			case COPYRENAME:
-			case EXECMOVE:
-			case LINKRENAME:
-			case VALIDFILEPATH:
-			case DELETE:
-			case RESCHEDULE:
-			case TRANSCODE:
-			case RENAME:
-			case UNZEROED:
-			case CHMOD:
-			case CHKFILE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-			default:
-				logger.error("name unknown: " + type.name);
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-		}
-	}
+    /**
+     * 
+     * @param name
+     * @param argRule
+     * @param delay
+     * @param session
+     * @return the corresponding AbstractTask
+     * @throws OpenR66RunnerErrorException
+     */
+    public static AbstractTask getTaskFromId(String name, String argRule,
+            int delay, R66Session session) throws OpenR66RunnerErrorException {
+        TaskType type;
+        try {
+            type = valueOf(name);
+        } catch (NullPointerException e) {
+            logger.error("name empty " + name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+        } catch (IllegalArgumentException e) {
+            logger.error("name unknown: " + name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+        }
+        return getTaskFromId(type, argRule, delay, session);
+    }
+
+    /**
+     * For usage in ExecBusinessTask
+     * 
+     * @param name
+     * @param argRule
+     * @param delay
+     * @param session
+     * @return the corresponding AbstractTask
+     * @throws OpenR66RunnerErrorException
+     */
+    public static AbstractTask getTaskFromIdForBusiness(String name, String argRule,
+            int delay, R66Session session)
+            throws OpenR66RunnerErrorException {
+        TaskType type;
+        try {
+            type = valueOf(name);
+        } catch (NullPointerException e) {
+            logger.error("name empty " + name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+        } catch (IllegalArgumentException e) {
+            logger.error("name unknown: " + name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+        }
+        switch (type) {
+            case LOG:
+                int newdelay = delay;
+                if (newdelay == 0) {
+                    newdelay = 1;
+                }
+                return new LogTask(argRule, newdelay, "", session);
+            case EXEC:
+                return new ExecTask(argRule, delay, "", session);
+            case TRANSFER:
+                return new TransferTask(argRule, delay, "", session);
+            case TAR:
+                return new TarTask(argRule, delay, "", session);
+            case ZIP:
+                return new ZipTask(argRule, delay, "", session);
+            case EXECOUTPUT:
+                return new ExecOutputTask(argRule, delay, "", session);
+            case EXECJAVA:
+                return new ExecJavaTask(argRule, delay, "", session);
+            case SNMP:
+                return new SnmpTask(argRule, delay, "", session);
+            case FTP:
+                return new FtpTransferTask(argRule, delay, "", session);
+            case RESTART:
+                return new RestartServerTask(argRule, delay, "", session);
+            case MOVE:
+            case MOVERENAME:
+            case COPY:
+            case COPYRENAME:
+            case EXECMOVE:
+            case LINKRENAME:
+            case VALIDFILEPATH:
+            case DELETE:
+            case RESCHEDULE:
+            case TRANSCODE:
+            case RENAME:
+            case UNZEROED:
+            case CHMOD:
+            case CHKFILE:
+                throw new OpenR66RunnerErrorException("Unvalid Task: " +
+                        type.name);
+            default:
+                logger.error("name unknown: " + type.name);
+                throw new OpenR66RunnerErrorException("Unvalid Task: " +
+                        type.name);
+        }
+    }
 }

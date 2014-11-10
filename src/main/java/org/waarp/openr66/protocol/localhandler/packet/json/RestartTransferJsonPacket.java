@@ -25,67 +25,80 @@ import java.util.Date;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Restarting a request query JSON packet
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class RestartTransferJsonPacket extends JsonPacket {
 
-	protected String requester;
-	protected String requested;
-	protected long specialid = DbConstant.ILLEGALVALUE;
-	public Date restarttime;
-	/**
-	 * @return the requester
-	 */
-	public String getRequester() {
-		return requester;
-	}
-	/**
-	 * @param requester the requester to set
-	 */
-	public void setRequester(String requester) {
-		this.requester = requester;
-	}
-	/**
-	 * @return the requested
-	 */
-	public String getRequested() {
-		return requested;
-	}
-	/**
-	 * @param requested the requested to set
-	 */
-	public void setRequested(String requested) {
-		this.requested = requested;
-	}
-	/**
-	 * @return the specialid
-	 */
-	public long getSpecialid() {
-		return specialid;
-	}
-	/**
-	 * @param specialid the specialid to set
-	 */
-	public void setSpecialid(long specialid) {
-		this.specialid = specialid;
-	}
-	/**
-	 * @return the restarttime
-	 */
-	public Date getRestarttime() {
-		return restarttime;
-	}
-	/**
-	 * @param restarttime the restarttime to set
-	 */
-	public void setRestarttime(Date restarttime) {
-		this.restarttime = restarttime;
-	}
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.VALIDPACKET);
-	}
+    protected String requester;
+    protected String requested;
+    protected long specialid = DbConstant.ILLEGALVALUE;
+    public Date restarttime;
+
+    /**
+     * @return the requester
+     */
+    public String getRequester() {
+        return requester;
+    }
+
+    /**
+     * @param requester
+     *            the requester to set
+     */
+    public void setRequester(String requester) {
+        this.requester = requester;
+    }
+
+    /**
+     * @return the requested
+     */
+    public String getRequested() {
+        return requested;
+    }
+
+    /**
+     * @param requested
+     *            the requested to set
+     */
+    public void setRequested(String requested) {
+        this.requested = requested;
+    }
+
+    /**
+     * @return the specialid
+     */
+    public long getSpecialid() {
+        return specialid;
+    }
+
+    /**
+     * @param specialid
+     *            the specialid to set
+     */
+    public void setSpecialid(long specialid) {
+        this.specialid = specialid;
+    }
+
+    /**
+     * @return the restarttime
+     */
+    public Date getRestarttime() {
+        return restarttime;
+    }
+
+    /**
+     * @param restarttime
+     *            the restarttime to set
+     */
+    public void setRestarttime(Date restarttime) {
+        this.restarttime = restarttime;
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.VALIDPACKET);
+    }
 }

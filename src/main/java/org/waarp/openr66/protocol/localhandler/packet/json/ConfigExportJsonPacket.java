@@ -22,98 +22,105 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Exporting Configuration JSON packet
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class ConfigExportJsonPacket extends JsonPacket {
 
-	protected boolean host, rule, business, alias, roles;
-	/**
-	 * @return the host
-	 */
-	public boolean isHost() {
-		return host;
-	}
+    protected boolean host, rule, business, alias, roles;
 
-	/**
-	 * @param host the host to set
-	 */
-	public void setHost(boolean host) {
-		this.host = host;
-	}
+    /**
+     * @return the host
+     */
+    public boolean isHost() {
+        return host;
+    }
 
-	/**
-	 * @return the rule
-	 */
-	public boolean isRule() {
-		return rule;
-	}
+    /**
+     * @param host
+     *            the host to set
+     */
+    public void setHost(boolean host) {
+        this.host = host;
+    }
 
-	/**
-	 * @param rule the rule to set
-	 */
-	public void setRule(boolean rule) {
-		this.rule = rule;
-	}
+    /**
+     * @return the rule
+     */
+    public boolean isRule() {
+        return rule;
+    }
 
-	/**
-	 * @return the business
-	 */
-	public boolean isBusiness() {
-		return business;
-	}
+    /**
+     * @param rule
+     *            the rule to set
+     */
+    public void setRule(boolean rule) {
+        this.rule = rule;
+    }
 
-	/**
-	 * @param business the business to set
-	 */
-	public void setBusiness(boolean business) {
-		this.business = business;
-	}
+    /**
+     * @return the business
+     */
+    public boolean isBusiness() {
+        return business;
+    }
 
-	/**
-	 * @return the alias
-	 */
-	public boolean isAlias() {
-		return alias;
-	}
+    /**
+     * @param business
+     *            the business to set
+     */
+    public void setBusiness(boolean business) {
+        this.business = business;
+    }
 
-	/**
-	 * @param alias the alias to set
-	 */
-	public void setAlias(boolean alias) {
-		this.alias = alias;
-	}
+    /**
+     * @return the alias
+     */
+    public boolean isAlias() {
+        return alias;
+    }
 
-	/**
-	 * @return the roles
-	 */
-	public boolean isRoles() {
-		return roles;
-	}
+    /**
+     * @param alias
+     *            the alias to set
+     */
+    public void setAlias(boolean alias) {
+        this.alias = alias;
+    }
 
-	/**
-	 * @param roles the roles to set
-	 */
-	public void setRoles(boolean roles) {
-		this.roles = roles;
-	}
-	
-	@Override
-	public void fromJson(JsonPacket other) {
-		super.fromJson(other);
-		if (other instanceof ConfigExportJsonPacket) {
-			ConfigExportJsonPacket other2 = (ConfigExportJsonPacket) other;
-			this.host = other2.host;
-			this.rule = other2.rule;
-			this.business = other2.business;
-			this.alias = other2.alias;
-			this.roles = other2.roles;
-		}
-	}
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.CONFEXPORTPACKET);
-	}
+    /**
+     * @return the roles
+     */
+    public boolean isRoles() {
+        return roles;
+    }
+
+    /**
+     * @param roles
+     *            the roles to set
+     */
+    public void setRoles(boolean roles) {
+        this.roles = roles;
+    }
+
+    @Override
+    public void fromJson(JsonPacket other) {
+        super.fromJson(other);
+        if (other instanceof ConfigExportJsonPacket) {
+            ConfigExportJsonPacket other2 = (ConfigExportJsonPacket) other;
+            this.host = other2.host;
+            this.rule = other2.rule;
+            this.business = other2.business;
+            this.alias = other2.alias;
+            this.roles = other2.roles;
+        }
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.CONFEXPORTPACKET);
+    }
 }

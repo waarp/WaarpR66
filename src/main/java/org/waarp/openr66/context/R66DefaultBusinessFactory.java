@@ -27,18 +27,18 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * 
  */
 public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(R66DefaultBusinessFactory.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(R66DefaultBusinessFactory.class);
 
-	public R66BusinessInterface getBusinessInterface(R66Session session) {
-		logger.debug("No Business");
-		return null;
-	}
+    public R66BusinessInterface getBusinessInterface(R66Session session) {
+        logger.debug("No Business");
+        return null;
+    }
 
-	public void releaseResources() {
-	}
+    public void releaseResources() {
+    }
 
 }

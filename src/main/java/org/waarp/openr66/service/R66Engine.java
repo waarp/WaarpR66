@@ -32,58 +32,59 @@ import org.waarp.openr66.server.R66Server;
 
 /**
  * Engine used to start and stop the real R66 service
+ * 
  * @author Frederic Bregier
  *
  */
 public class R66Engine extends EngineAbstract {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(R66Engine.class);
-	
-	public static WaarpFuture closeFuture = new WaarpFuture(true);
-	
-	@Override
-	public void run() {
-		String config = SystemPropertyUtil.get(R66SystemProperties.OPENR66_CONFIGFILE);
-		if (config == null) {
-			logger.error("Cannot find "+R66SystemProperties.OPENR66_CONFIGFILE+" parameter");
-			closeFuture.cancel();
-			shutdown();
-			return;
-		}
-		Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
-		try {
-			if (! R66Server.initialize(config)) {
-				throw new Exception("Initialization in error");
-			}
-		} catch (Throwable e) {
-			logger.error("Cannot start R66", e);
-			closeFuture.cancel();
-			shutdown();
-			return;
-		}
-		logger.warn("Service started with "+config);
-	}
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(R66Engine.class);
 
-	@Override
-	public void shutdown() {
-		logger.warn("Shutdown");
-		ChannelUtils.startShutdown();
-		closeFuture.setSuccess();
-		logger.info("Service stopped");
-	}
+    public static WaarpFuture closeFuture = new WaarpFuture(true);
 
-	@Override
-	public boolean isShutdown() {
-		return closeFuture.isDone();
-	}
+    @Override
+    public void run() {
+        String config = SystemPropertyUtil.get(R66SystemProperties.OPENR66_CONFIGFILE);
+        if (config == null) {
+            logger.error("Cannot find " + R66SystemProperties.OPENR66_CONFIGFILE + " parameter");
+            closeFuture.cancel();
+            shutdown();
+            return;
+        }
+        Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
+        try {
+            if (!R66Server.initialize(config)) {
+                throw new Exception("Initialization in error");
+            }
+        } catch (Throwable e) {
+            logger.error("Cannot start R66", e);
+            closeFuture.cancel();
+            shutdown();
+            return;
+        }
+        logger.warn("Service started with " + config);
+    }
 
-	@Override
-	public boolean waitShutdown() throws InterruptedException {
-		closeFuture.await();
-		logger.info("Shutdown on going: "+closeFuture.isSuccess());
-		return closeFuture.isSuccess();
-	}
+    @Override
+    public void shutdown() {
+        logger.warn("Shutdown");
+        ChannelUtils.startShutdown();
+        closeFuture.setSuccess();
+        logger.info("Service stopped");
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return closeFuture.isDone();
+    }
+
+    @Override
+    public boolean waitShutdown() throws InterruptedException {
+        closeFuture.await();
+        logger.info("Shutdown on going: " + closeFuture.isSuccess());
+        return closeFuture.isSuccess();
+    }
 }

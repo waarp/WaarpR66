@@ -32,123 +32,135 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * @author frederic bregier
  */
 public class DataPacket extends AbstractLocalPacket {
-	private final int packetRank;
+    private final int packetRank;
 
-	private final int lengthPacket;
+    private final int lengthPacket;
 
-	private final ByteBuf data;
+    private ByteBuf data;
 
-	private final ByteBuf key;
+    private ByteBuf key;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new DataPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static DataPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		if (headerLength - 1 <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		if (middleLength <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		int packetRank = buf.readInt();
-		ByteBuf data = buf.readBytes(middleLength);
-		int readerIndex = buf.readerIndex();
-		ByteBuf key;
-		if (endLength > 0) {
-			key = buf.slice(readerIndex, endLength);
-			buf.skipBytes(endLength);
-		} else {
-			key = Unpooled.EMPTY_BUFFER;
-		}
-		return new DataPacket(packetRank, data, key);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new DataPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static DataPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        if (middleLength <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        int packetRank = buf.readInt();
+        ByteBuf data = buf.readSlice(middleLength);
+        ByteBuf key;
+        if (endLength > 0) {
+            key = buf.readSlice(endLength);
+        } else {
+            key = Unpooled.EMPTY_BUFFER;
+        }
+        return new DataPacket(packetRank, data, key);
+    }
 
-	/**
-	 * @param packetRank
-	 * @param data
-	 * @param key
-	 */
-	public DataPacket(int packetRank, ByteBuf data, ByteBuf key) {
-		this.packetRank = packetRank;
-		this.data = data;
-		this.key = key == null ? Unpooled.EMPTY_BUFFER : key;
-		lengthPacket = data.readableBytes();
-	}
+    /**
+     * @param packetRank
+     * @param data
+     * @param key
+     */
+    public DataPacket(int packetRank, ByteBuf data, ByteBuf key) {
+        this.packetRank = packetRank;
+        this.data = data;
+        this.key = key == null ? Unpooled.EMPTY_BUFFER : key;
+        lengthPacket = data.readableBytes();
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = key;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = key;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = Unpooled.buffer(4);
-		header.writeInt(packetRank);
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = Unpooled.buffer(4);
+        header.writeInt(packetRank);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = data;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = data;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.DATAPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.DATAPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "DataPacket: " + packetRank + ":" + lengthPacket;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "DataPacket: " + packetRank + ":" + lengthPacket;
+    }
 
-	/**
-	 * @return the packetRank
-	 */
-	public int getPacketRank() {
-		return packetRank;
-	}
+    /**
+     * @return the packetRank
+     */
+    public int getPacketRank() {
+        return packetRank;
+    }
 
-	/**
-	 * @return the lengthPacket
-	 */
-	public int getLengthPacket() {
-		return lengthPacket;
-	}
+    /**
+     * @return the lengthPacket
+     */
+    public int getLengthPacket() {
+        return lengthPacket;
+    }
 
-	/**
-	 * @return the data
-	 */
-	public ByteBuf getData() {
-		return data;
-	}
+    /**
+     * @return the data
+     */
+    public ByteBuf getData() {
+        return data;
+    }
 
-	/**
-	 * @return the key
-	 */
-	public ByteBuf getKey() {
-		return key;
-	}
+    /**
+     * @return the key
+     */
+    public ByteBuf getKey() {
+        return key;
+    }
 
-	/**
-	 * 
-	 * @return True if the Hashed key is valid (or no key is set)
-	 */
-	public boolean isKeyValid(DigestAlgo algo) {
-		if (key == null || key == Unpooled.EMPTY_BUFFER) {
-			return true;
-		}
-		ByteBuf newbufkey = FileUtils.getHash(data, algo);
-		return key.equals(newbufkey);
-	}
+    /**
+     * 
+     * @return True if the Hashed key is valid (or no key is set)
+     */
+    public boolean isKeyValid(DigestAlgo algo) {
+        if (key == null || key == Unpooled.EMPTY_BUFFER) {
+            return true;
+        }
+        ByteBuf newbufkey = FileUtils.getHash(data, algo);
+        boolean check = key.equals(newbufkey);
+        newbufkey.release();
+        return check;
+    }
+
+    public void clear() {
+        super.clear();
+        if (data != null) {
+            data.release();
+            data = null;
+        }
+        if (key != null) {
+            key.release();
+            key = null;
+        }
+    }
 }

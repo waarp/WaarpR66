@@ -82,207 +82,207 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class TestSendThroughForward extends SendThroughClient {
-	public TestRecvThroughForwardHandler handler;
-	public DbSession dbSession;
-	public volatile boolean foundEOF = false;
-	protected DbTaskRunner sourceRunner;
+    public TestRecvThroughForwardHandler handler;
+    public DbSession dbSession;
+    public volatile boolean foundEOF = false;
+    protected DbTaskRunner sourceRunner;
 
-	public static class TestRecvThroughForwardHandler extends RecvThroughHandler {
+    public static class TestRecvThroughForwardHandler extends RecvThroughHandler {
 
-		protected TestSendThroughForward client;
+        protected TestSendThroughForward client;
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
-		 * .ByteBuf)
-		 */
-		@Override
-		public void writeByteBuf(ByteBuf buffer)
-				throws OpenR66ProtocolBusinessException {
-			DataBlock block = new DataBlock();
-			if (buffer.readableBytes() <= 0) {
-				// last block
-				block.setEOF(true);
-			} else {
-				block.setBlock(buffer);
-			}
-			try {
-				client.writeWhenPossible(block).await(Configuration.configuration.TIMEOUTCON);
-			} catch (OpenR66RunnerErrorException e) {
-				client.transferInError(e);
-			} catch (OpenR66ProtocolPacketException e) {
-				client.transferInError(e);
-			} catch (OpenR66ProtocolSystemException e) {
-				client.transferInError(e);
-			} catch (InterruptedException e) {
-				client.transferInError(new OpenR66ProtocolSystemException(e));
-			}
-			if (block.isEOF()) {
-				client.finalizeRequest();
-				client.foundEOF = true;
-			}
-		}
+        /*
+         * (non-Javadoc)
+         * @see
+         * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
+         * .ByteBuf)
+         */
+        @Override
+        public void writeByteBuf(ByteBuf buffer)
+                throws OpenR66ProtocolBusinessException {
+            DataBlock block = new DataBlock();
+            if (buffer.readableBytes() <= 0) {
+                // last block
+                block.setEOF(true);
+            } else {
+                block.setBlock(buffer);
+            }
+            try {
+                client.writeWhenPossible(block).await(Configuration.configuration.TIMEOUTCON);
+            } catch (OpenR66RunnerErrorException e) {
+                client.transferInError(e);
+            } catch (OpenR66ProtocolPacketException e) {
+                client.transferInError(e);
+            } catch (OpenR66ProtocolSystemException e) {
+                client.transferInError(e);
+            } catch (InterruptedException e) {
+                client.transferInError(new OpenR66ProtocolSystemException(e));
+            }
+            if (block.isEOF()) {
+                client.finalizeRequest();
+                client.foundEOF = true;
+            }
+        }
 
-	}
+    }
 
-	/**
-	 * @param future
-	 * @param remoteHost
-	 * @param filename
-	 * @param rulename
-	 * @param fileinfo
-	 * @param isMD5
-	 * @param blocksize
-	 * @param networkTransaction
-	 * @param idt
-	 *            Id Transfer if any temptative already exists
-	 * @param dbSession
-	 * @param runner
-	 *            (recv runner)
-	 */
-	public TestSendThroughForward(R66Future future, String remoteHost,
-			String filename, String rulename, String fileinfo, boolean isMD5,
-			int blocksize, NetworkTransaction networkTransaction, long idt,
-			DbSession dbSession, DbTaskRunner runner) {
-		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
-				idt, networkTransaction);
-		handler = new TestRecvThroughForwardHandler();
-		handler.client = this;
-		this.dbSession = dbSession;
-		this.sourceRunner = runner;
-	}
+    /**
+     * @param future
+     * @param remoteHost
+     * @param filename
+     * @param rulename
+     * @param fileinfo
+     * @param isMD5
+     * @param blocksize
+     * @param networkTransaction
+     * @param idt
+     *            Id Transfer if any temptative already exists
+     * @param dbSession
+     * @param runner
+     *            (recv runner)
+     */
+    public TestSendThroughForward(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5,
+            int blocksize, NetworkTransaction networkTransaction, long idt,
+            DbSession dbSession, DbTaskRunner runner) {
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
+                idt, networkTransaction);
+        handler = new TestRecvThroughForwardHandler();
+        handler.client = this;
+        this.dbSession = dbSession;
+        this.sourceRunner = runner;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.client.SendThroughClient#initiateRequest()
-	 */
-	@Override
-	public boolean initiateRequest() {
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(TestSendThroughForward.class);
-		}
-		DbRule rule;
-		try {
-			rule = new DbRule(DbConstant.admin.session, rulename);
-		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot get Rule: " + rulename, e);
-			future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-					ErrorCode.Internal, null));
-			future.setFailure(e);
-			return false;
-		}
-		int mode = rule.mode;
-		if (isMD5) {
-			mode = RequestPacket.getModeMD5(mode);
-		}
-		String sep = PartnerConfiguration.getSeparator(remoteHost);
-		RequestPacket request = new RequestPacket(rulename,
-				mode, filename, blocksize, sourceRunner.getRank(),
-				id, fileinfo, -1, sep);
-		// Not isRecv since it is the requester, so send => isSender is true
-		boolean isSender = true;
-		try {
-			try {
-				// no delay
-				taskRunner =
-						new DbTaskRunner(DbConstant.admin.session, rule, isSender, request,
-								remoteHost, null);
-			} catch (WaarpDatabaseException e) {
-				logger.error("Cannot get task", e);
-				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-						ErrorCode.Internal, null));
-				future.setFailure(e);
-				return false;
-			}
-			ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-			runner.setRecvThroughHandler(handler);
-			runner.setSendThroughMode();
-			OpenR66ProtocolNotYetConnectionException exc = null;
-			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				try {
-					localChannelReference = runner.initRequest();
-					exc = null;
-					break;
-				} catch (OpenR66RunnerErrorException e) {
-					logger.error("Cannot Transfer", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.Internal, taskRunner));
-					future.setFailure(e);
-					return false;
-				} catch (OpenR66ProtocolNoConnectionException e) {
-					logger.error("Cannot Connect", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.ConnectionImpossible, taskRunner));
-					future.setFailure(e);
-					return false;
-				} catch (OpenR66ProtocolPacketException e) {
-					logger.error("Bad Protocol", e);
-					future.setResult(new R66Result(e, null, true,
-							ErrorCode.TransferError, taskRunner));
-					future.setFailure(e);
-					return false;
-				} catch (OpenR66ProtocolNotYetConnectionException e) {
-					logger.debug("Not Yet Connected", e);
-					exc = e;
-					continue;
-				}
-			}
-			if (exc != null) {
-				taskRunner.setLocalChannelReference(new LocalChannelReference());
-				logger.error("Cannot Connect", exc);
-				future.setResult(new R66Result(exc, null, true,
-						ErrorCode.ConnectionImpossible, taskRunner));
-				future.setFailure(exc);
-				return false;
-			}
-			try {
-				localChannelReference.waitReadyForSendThrough();
-			} catch (OpenR66Exception e) {
-				logger.error("Cannot Transfer", e);
-				future.setResult(new R66Result(e, null, true,
-						ErrorCode.Internal, taskRunner));
-				future.setFailure(e);
-				return false;
-			}
-			if (taskRunner.getRank() < sourceRunner.getRank()) {
-				sourceRunner.setRankAtStartup(taskRunner.getRank());
-			}
-			// now start the send from external data
-			return true;
-		} finally {
-			if (taskRunner != null) {
-				// not delete but sourceRunner and taskRunner should be stopped
-				// and taskRunner not allowed to be restarted alone
-				if (future.isFailed()) {
-					taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-					taskRunner.forceSaveStatus();
-				}
-			}
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.client.SendThroughClient#initiateRequest()
+     */
+    @Override
+    public boolean initiateRequest() {
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(TestSendThroughForward.class);
+        }
+        DbRule rule;
+        try {
+            rule = new DbRule(DbConstant.admin.session, rulename);
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot get Rule: " + rulename, e);
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                    ErrorCode.Internal, null));
+            future.setFailure(e);
+            return false;
+        }
+        int mode = rule.mode;
+        if (isMD5) {
+            mode = RequestPacket.getModeMD5(mode);
+        }
+        String sep = PartnerConfiguration.getSeparator(remoteHost);
+        RequestPacket request = new RequestPacket(rulename,
+                mode, filename, blocksize, sourceRunner.getRank(),
+                id, fileinfo, -1, sep);
+        // Not isRecv since it is the requester, so send => isSender is true
+        boolean isSender = true;
+        try {
+            try {
+                // no delay
+                taskRunner =
+                        new DbTaskRunner(DbConstant.admin.session, rule, isSender, request,
+                                remoteHost, null);
+            } catch (WaarpDatabaseException e) {
+                logger.error("Cannot get task", e);
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        ErrorCode.Internal, null));
+                future.setFailure(e);
+                return false;
+            }
+            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
+            runner.setRecvThroughHandler(handler);
+            runner.setSendThroughMode();
+            OpenR66ProtocolNotYetConnectionException exc = null;
+            for (int i = 0; i < Configuration.RETRYNB; i++) {
+                try {
+                    localChannelReference = runner.initRequest();
+                    exc = null;
+                    break;
+                } catch (OpenR66RunnerErrorException e) {
+                    logger.error("Cannot Transfer", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.Internal, taskRunner));
+                    future.setFailure(e);
+                    return false;
+                } catch (OpenR66ProtocolNoConnectionException e) {
+                    logger.error("Cannot Connect", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.ConnectionImpossible, taskRunner));
+                    future.setFailure(e);
+                    return false;
+                } catch (OpenR66ProtocolPacketException e) {
+                    logger.error("Bad Protocol", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.TransferError, taskRunner));
+                    future.setFailure(e);
+                    return false;
+                } catch (OpenR66ProtocolNotYetConnectionException e) {
+                    logger.debug("Not Yet Connected", e);
+                    exc = e;
+                    continue;
+                }
+            }
+            if (exc != null) {
+                taskRunner.setLocalChannelReference(new LocalChannelReference());
+                logger.error("Cannot Connect", exc);
+                future.setResult(new R66Result(exc, null, true,
+                        ErrorCode.ConnectionImpossible, taskRunner));
+                future.setFailure(exc);
+                return false;
+            }
+            try {
+                localChannelReference.waitReadyForSendThrough();
+            } catch (OpenR66Exception e) {
+                logger.error("Cannot Transfer", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.Internal, taskRunner));
+                future.setFailure(e);
+                return false;
+            }
+            if (taskRunner.getRank() < sourceRunner.getRank()) {
+                sourceRunner.setRankAtStartup(taskRunner.getRank());
+            }
+            // now start the send from external data
+            return true;
+        } finally {
+            if (taskRunner != null) {
+                // not delete but sourceRunner and taskRunner should be stopped
+                // and taskRunner not allowed to be restarted alone
+                if (future.isFailed()) {
+                    taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    taskRunner.forceSaveStatus();
+                }
+            }
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.client.SendThroughClient#finalizeRequest()
-	 */
-	@Override
-	public void finalizeRequest() {
-		if (foundEOF) {
-			return;
-		}
-		super.finalizeRequest();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.client.SendThroughClient#finalizeRequest()
+     */
+    @Override
+    public void finalizeRequest() {
+        if (foundEOF) {
+            return;
+        }
+        super.finalizeRequest();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.waarp.openr66.client.SendThroughClient#transferInError(org.waarp.openr66.protocol.exception
-	 * .OpenR66Exception)
-	 */
-	@Override
-	public void transferInError(OpenR66Exception e) {
-		super.transferInError(e);
-	}
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.waarp.openr66.client.SendThroughClient#transferInError(org.waarp.openr66.protocol.exception
+     * .OpenR66Exception)
+     */
+    @Override
+    public void transferInError(OpenR66Exception e) {
+        super.transferInError(e);
+    }
 
 }

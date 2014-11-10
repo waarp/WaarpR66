@@ -61,93 +61,99 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * @author frederic bregier
  */
 public class LocalTransaction {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(LocalTransaction.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LocalTransaction.class);
 
-	/**
-	 * HashMap of LocalChannelReference using LocalChannelId
-	 */
-	private final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
+    /**
+     * HashMap of LocalChannelReference using LocalChannelId
+     */
+    private final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
 
-	/**
-	 * HashMap of LocalChannelReference using requested_requester_specialId
-	 */
-	private final ConcurrentHashMap<String, LocalChannelReference> localChannelHashMapIdBased = new ConcurrentHashMap<String, LocalChannelReference>();
+    /**
+     * HashMap of LocalChannelReference using requested_requester_specialId
+     */
+    private final ConcurrentHashMap<String, LocalChannelReference> localChannelHashMapIdBased = new ConcurrentHashMap<String, LocalChannelReference>();
 
-	private final ServerBootstrap serverBootstrap = new ServerBootstrap();
+    private final ServerBootstrap serverBootstrap = new ServerBootstrap();
 
-	private final Channel serverChannel;
+    private final Channel serverChannel;
 
-	private final LocalAddress socketLocalServerAddress = new LocalAddress("0");
+    private final LocalAddress socketLocalServerAddress = new LocalAddress("0");
 
-	private final Bootstrap clientBootstrap = new Bootstrap();
+    private final Bootstrap clientBootstrap = new Bootstrap();
 
-	private final ChannelGroup localChannelGroup = new DefaultChannelGroup("LocalChannels", Configuration.configuration.getSubTaskGroup().next());
+    private final ChannelGroup localChannelGroup = new DefaultChannelGroup("LocalChannels", Configuration.configuration
+            .getSubTaskGroup().next());
 
-	/**
-	 * Constructor
-	 */
-	public LocalTransaction() {
-	    serverBootstrap.channel(LocalServerChannel.class);
-	    serverBootstrap.group(Configuration.configuration.getSubTaskGroup());
-	    serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
-	    serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
-	    serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
-		serverBootstrap.childHandler(new LocalServerInitializer());
-		try {
+    /**
+     * Constructor
+     */
+    public LocalTransaction() {
+        serverBootstrap.channel(LocalServerChannel.class);
+        serverBootstrap.group(Configuration.configuration.getSubTaskGroup());
+        serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
+        serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
+        serverBootstrap.childHandler(new LocalServerInitializer());
+        try {
             serverChannel = serverBootstrap.bind(socketLocalServerAddress).sync().channel();
         } catch (InterruptedException e) {
             throw new IllegalArgumentException(e.getMessage(), e);
         }
         localChannelGroup.add(serverChannel);
 
-		clientBootstrap.channel(LocalChannel.class);
-		clientBootstrap.group(Configuration.configuration.getSubTaskGroup());
-		clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
+        clientBootstrap.channel(LocalChannel.class);
+        // Same Group than Network final handler 
+        clientBootstrap.group(Configuration.configuration.getHandlerGroup());
+        clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
         clientBootstrap.handler(new LocalClientInitializer());
-	}
+    }
 
-	public String hashStatus() {
-		return "LocalTransaction: [localChannelHashMap: "+localChannelHashMap.size()+" localChannelHashMapIdBased: "+localChannelHashMapIdBased.size()+"] ";
-	}
-	/**
-	 * Get the corresponding LocalChannelReference and set the remoteId if different
-	 * 
-	 * @param remoteId
-	 * @param localId
-	 * @return the LocalChannelReference
-	 * @throws OpenR66ProtocolSystemException
-	 */
-	public LocalChannelReference getClient(Integer remoteId, Integer localId)
-			throws OpenR66ProtocolSystemException {
-		LocalChannelReference localChannelReference = getFromId(localId);
-		if (localChannelReference != null) {
-			if (localChannelReference.getRemoteId().compareTo(remoteId) != 0) {
-				localChannelReference.setRemoteId(remoteId);
-			}
-			return localChannelReference;
-		}
-		throw new OpenR66ProtocolSystemException(
-				"Cannot find LocalChannelReference");
-	}
+    public String hashStatus() {
+        return "LocalTransaction: [localChannelHashMap: " + localChannelHashMap.size()
+                + " localChannelHashMapIdBased: " + localChannelHashMapIdBased.size() + "] ";
+    }
 
-	/**
-	 * Create a new Client
-	 * 
-	 * @param networkChannelReference
-	 * @param remoteId might be set to ChannelUtils.NOCHANNEL (real creation)
-	 * @param futureRequest might be null (from NetworkChannel Startup)
-	 * @return the LocalChannelReference
-	 * @throws OpenR66ProtocolSystemException
-	 * @throws OpenR66ProtocolRemoteShutdownException 
-	 * @throws OpenR66ProtocolNoConnectionException 
-	 */
-	public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
-			Integer remoteId, R66Future futureRequest)
-			throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
+    /**
+     * Get the corresponding LocalChannelReference and set the remoteId if different
+     * 
+     * @param remoteId
+     * @param localId
+     * @return the LocalChannelReference
+     * @throws OpenR66ProtocolSystemException
+     */
+    public LocalChannelReference getClient(Integer remoteId, Integer localId)
+            throws OpenR66ProtocolSystemException {
+        LocalChannelReference localChannelReference = getFromId(localId);
+        if (localChannelReference != null) {
+            if (localChannelReference.getRemoteId().compareTo(remoteId) != 0) {
+                localChannelReference.setRemoteId(remoteId);
+            }
+            return localChannelReference;
+        }
+        throw new OpenR66ProtocolSystemException(
+                "Cannot find LocalChannelReference");
+    }
+
+    /**
+     * Create a new Client
+     * 
+     * @param networkChannelReference
+     * @param remoteId
+     *            might be set to ChannelUtils.NOCHANNEL (real creation)
+     * @param futureRequest
+     *            might be null (from NetworkChannel Startup)
+     * @return the LocalChannelReference
+     * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolRemoteShutdownException
+     * @throws OpenR66ProtocolNoConnectionException
+     */
+    public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
+            Integer remoteId, R66Future futureRequest)
+            throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException,
+            OpenR66ProtocolNoConnectionException {
         ChannelFuture channelFuture = null;
         logger.debug("Status LocalChannelServer: {} {}", serverChannel
                 .getClass().getName(), serverChannel.config()
@@ -183,7 +189,7 @@ public class LocalTransaction {
                 localChannelHashMap.put(channel.id().hashCode(), localChannelReference);
                 logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
                         localChannelReference);
-                logger.info("Add one localChannel to a Network Channel: "+channel.id());
+                logger.info("Add one localChannel to a Network Channel: " + channel.id());
                 // Now send first a Startup message
                 StartupPacket startup = new StartupPacket(
                         localChannelReference.getLocalId());
@@ -213,163 +219,163 @@ public class LocalTransaction {
                 "Cannot connect to local handler: " + socketLocalServerAddress +
                         " " + serverChannel.isOpen() + " " + serverChannel,
                 channelFuture.cause());
-	}
+    }
 
-	/**
-	 * 
-	 * @param id
-	 * @return the LocalChannelReference
-	 */
-	public LocalChannelReference getFromId(Integer id) {
-		int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
-		for (int i = 0; i < maxtry; i++) {
-			LocalChannelReference lcr = localChannelHashMap.get(id);
-			if (lcr == null) {
-				try {
-					Thread.sleep(Configuration.RETRYINMS);
-					Thread.yield();
-				} catch (InterruptedException e) {
-				}
-			} else {
-				return lcr;
-			}
-		}
-		return localChannelHashMap.get(id);
-	}
-	
-	/**
-	 * Remove one local channel
-	 * 
-	 * @param localChannelReference
-	 */
-	protected void remove(LocalChannelReference localChannelReference) {
-		logger.debug("DEBUG remove: "+localChannelReference.getLocalId());
-		localChannelHashMap.remove(localChannelReference.getLocalId());
-		if (localChannelReference.getRequestId() != null) {
-			localChannelHashMapIdBased.remove(localChannelReference.getRequestId());
-		}
-	}
+    /**
+     * 
+     * @param id
+     * @return the LocalChannelReference
+     */
+    public LocalChannelReference getFromId(Integer id) {
+        int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
+        for (int i = 0; i < maxtry; i++) {
+            LocalChannelReference lcr = localChannelHashMap.get(id);
+            if (lcr == null) {
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                    Thread.yield();
+                } catch (InterruptedException e) {
+                }
+            } else {
+                return lcr;
+            }
+        }
+        return localChannelHashMap.get(id);
+    }
 
-	/**
-	 * 
-	 * @param runner
-	 * @param lcr
-	 */
-	public void setFromId(DbTaskRunner runner, LocalChannelReference lcr) {
-		String key = runner.getKey();
-		lcr.setRequestId(key);
-		localChannelHashMapIdBased.put(key, lcr);
-	}
+    /**
+     * Remove one local channel
+     * 
+     * @param localChannelReference
+     */
+    protected void remove(LocalChannelReference localChannelReference) {
+        logger.debug("DEBUG remove: " + localChannelReference.getLocalId());
+        localChannelHashMap.remove(localChannelReference.getLocalId());
+        if (localChannelReference.getRequestId() != null) {
+            localChannelHashMapIdBased.remove(localChannelReference.getRequestId());
+        }
+    }
 
-	/**
-	 * 
-	 * @param key
-	 *            as "requested requester specialId"
-	 * @return the LocalChannelReference
-	 */
-	public LocalChannelReference getFromRequest(String key) {
-		return localChannelHashMapIdBased.get(key);
-	}
+    /**
+     * 
+     * @param runner
+     * @param lcr
+     */
+    public void setFromId(DbTaskRunner runner, LocalChannelReference lcr) {
+        String key = runner.getKey();
+        lcr.setRequestId(key);
+        localChannelHashMapIdBased.put(key, lcr);
+    }
 
-	/**
-	 * 
-	 * @return the number of active local channels
-	 */
-	public int getNumberLocalChannel() {
-		return localChannelHashMap.size();
-	}
+    /**
+     * 
+     * @param key
+     *            as "requested requester specialId"
+     * @return the LocalChannelReference
+     */
+    public LocalChannelReference getFromRequest(String key) {
+        return localChannelHashMapIdBased.get(key);
+    }
 
-	/**
-	 * Debug function (while shutdown for instance)
-	 */
-	public void debugPrintActiveLocalChannels() {
-		Collection<LocalChannelReference> collection = localChannelHashMap.values();
-		Iterator<LocalChannelReference> iterator = collection.iterator();
-		while (iterator.hasNext()) {
-			LocalChannelReference localChannelReference = iterator.next();
-			logger.debug("Will close local channel: {}", localChannelReference);
-			logger.debug(
-					" Containing: {}",
-					(localChannelReference.getSession() != null ? localChannelReference
-							.getSession() : "no session"));
-		}
-	}
+    /**
+     * 
+     * @return the number of active local channels
+     */
+    public int getNumberLocalChannel() {
+        return localChannelHashMap.size();
+    }
 
-	/**
-	 * Informs all remote client that the server is shutting down
-	 */
-	public void shutdownLocalChannels() {
-		logger.warn("Will inform LocalChannels of Shutdown: " + localChannelHashMap.size());
-		Collection<LocalChannelReference> collection = localChannelHashMap.values();
-		Iterator<LocalChannelReference> iterator = collection.iterator();
-		ValidPacket packet = new ValidPacket("Shutdown forced", null,
-				LocalPacketFactory.SHUTDOWNPACKET);
-		ByteBuf buffer = null;
-		while (iterator.hasNext()) {
-			LocalChannelReference localChannelReference = iterator.next();
-			logger.info("Inform Shutdown {}", localChannelReference);
-			packet.setSmiddle(null);
-			// If a transfer is running, save the current rank and inform remote
-			// host
-			if (localChannelReference.getSession() != null) {
-				R66Session session = localChannelReference.getSession();
-				DbTaskRunner runner = session.getRunner();
-				if (runner != null && runner.isInTransfer()) {
-					if (!runner.isSender()) {
-						int newrank = runner.getRank();
-						packet.setSmiddle(Integer.toString(newrank));
-					}
-					// Save File status
-					try {
-						runner.saveStatus();
-					} catch (OpenR66RunnerErrorException e) {
-					}
-				}
-				if (runner != null && ! runner.isFinished()) {
-					R66Result result = new R66Result(
-							new OpenR66ProtocolShutdownException(), session,
-							true, ErrorCode.Shutdown, runner);
-					result.other = packet;
-					try {
-						buffer = packet.getLocalPacket(localChannelReference);
-					} catch (OpenR66ProtocolPacketException e1) {
-					}
-					localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
-					NetworkPacket message = new NetworkPacket(
-							localChannelReference.getLocalId(),
-							localChannelReference.getRemoteId(),
-							packet.getType(), buffer);
-					try {
-					    localChannelReference.getNetworkChannel().writeAndFlush(message).await();
-					} catch (InterruptedException e1) {
-					}
-					try {
-						session.setFinalizeTransfer(false, result);
-					} catch (OpenR66RunnerErrorException e) {
-					} catch (OpenR66ProtocolSystemException e) {
-					}
-				}
-				localChannelReference.getLocalChannel().close();
-				continue;
-			}
-			try {
-				buffer = packet.getLocalPacket(localChannelReference);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-			NetworkPacket message = new NetworkPacket(
-					localChannelReference.getLocalId(),
-					localChannelReference.getRemoteId(), packet.getType(),
-					buffer);
-			localChannelReference.getNetworkChannel().writeAndFlush(message);
-		}
-	}
+    /**
+     * Debug function (while shutdown for instance)
+     */
+    public void debugPrintActiveLocalChannels() {
+        Collection<LocalChannelReference> collection = localChannelHashMap.values();
+        Iterator<LocalChannelReference> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            LocalChannelReference localChannelReference = iterator.next();
+            logger.debug("Will close local channel: {}", localChannelReference);
+            logger.debug(
+                    " Containing: {}",
+                    (localChannelReference.getSession() != null ? localChannelReference
+                            .getSession() : "no session"));
+        }
+    }
 
-	/**
-	 * Close All Local Channels
-	 */
-	public void closeAll() {
-		logger.debug("close All Local Channels");
-		localChannelGroup.close().awaitUninterruptibly();
-	}
+    /**
+     * Informs all remote client that the server is shutting down
+     */
+    public void shutdownLocalChannels() {
+        logger.warn("Will inform LocalChannels of Shutdown: " + localChannelHashMap.size());
+        Collection<LocalChannelReference> collection = localChannelHashMap.values();
+        Iterator<LocalChannelReference> iterator = collection.iterator();
+        ValidPacket packet = new ValidPacket("Shutdown forced", null,
+                LocalPacketFactory.SHUTDOWNPACKET);
+        ByteBuf buffer = null;
+        while (iterator.hasNext()) {
+            LocalChannelReference localChannelReference = iterator.next();
+            logger.info("Inform Shutdown {}", localChannelReference);
+            packet.setSmiddle(null);
+            // If a transfer is running, save the current rank and inform remote
+            // host
+            if (localChannelReference.getSession() != null) {
+                R66Session session = localChannelReference.getSession();
+                DbTaskRunner runner = session.getRunner();
+                if (runner != null && runner.isInTransfer()) {
+                    if (!runner.isSender()) {
+                        int newrank = runner.getRank();
+                        packet.setSmiddle(Integer.toString(newrank));
+                    }
+                    // Save File status
+                    try {
+                        runner.saveStatus();
+                    } catch (OpenR66RunnerErrorException e) {
+                    }
+                }
+                if (runner != null && !runner.isFinished()) {
+                    R66Result result = new R66Result(
+                            new OpenR66ProtocolShutdownException(), session,
+                            true, ErrorCode.Shutdown, runner);
+                    result.other = packet;
+                    try {
+                        buffer = packet.getLocalPacket(localChannelReference);
+                    } catch (OpenR66ProtocolPacketException e1) {
+                    }
+                    localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
+                    NetworkPacket message = new NetworkPacket(
+                            localChannelReference.getLocalId(),
+                            localChannelReference.getRemoteId(),
+                            packet.getType(), buffer);
+                    try {
+                        localChannelReference.getNetworkChannel().writeAndFlush(message).await();
+                    } catch (InterruptedException e1) {
+                    }
+                    try {
+                        session.setFinalizeTransfer(false, result);
+                    } catch (OpenR66RunnerErrorException e) {
+                    } catch (OpenR66ProtocolSystemException e) {
+                    }
+                }
+                localChannelReference.getLocalChannel().close();
+                continue;
+            }
+            try {
+                buffer = packet.getLocalPacket(localChannelReference);
+            } catch (OpenR66ProtocolPacketException e1) {
+            }
+            NetworkPacket message = new NetworkPacket(
+                    localChannelReference.getLocalId(),
+                    localChannelReference.getRemoteId(), packet.getType(),
+                    buffer);
+            localChannelReference.getNetworkChannel().writeAndFlush(message);
+        }
+    }
+
+    /**
+     * Close All Local Channels
+     */
+    public void closeAll() {
+        logger.debug("close All Local Channels");
+        localChannelGroup.close().awaitUninterruptibly();
+    }
 
 }

@@ -30,88 +30,88 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class KeepAlivePacket extends AbstractLocalPacket {
-	private static final byte ASKVALIDATE = 0;
+    private static final byte ASKVALIDATE = 0;
 
-	private static final byte ANSWERVALIDATE = 1;
+    private static final byte ANSWERVALIDATE = 1;
 
-	private byte way;
+    private byte way;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new EndTransferPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static KeepAlivePacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		if (middleLength != 1) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		byte valid = buf.readByte();
-		return new KeepAlivePacket(valid);
-	}
-
-	/**
-	 * @param valid
-	 */
-	private KeepAlivePacket(byte valid) {
-		way = valid;
-	}
-
-	/**
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new EndTransferPacket from buffer
+     * @throws OpenR66ProtocolPacketException
      */
-	public KeepAlivePacket() {
-		way = ASKVALIDATE;
-	}
+    public static KeepAlivePacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        if (middleLength != 1) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        byte valid = buf.readByte();
+        return new KeepAlivePacket(valid);
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) {
-		end = Unpooled.EMPTY_BUFFER;
-	}
+    /**
+     * @param valid
+     */
+    private KeepAlivePacket(byte valid) {
+        way = valid;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) {
-		header = Unpooled.EMPTY_BUFFER;
-	}
+    /**
+     */
+    public KeepAlivePacket() {
+        way = ASKVALIDATE;
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) {
-		byte[] newbytes = {
-				way };
-		middle = Unpooled.wrappedBuffer(newbytes);
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) {
+        end = Unpooled.EMPTY_BUFFER;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.KEEPALIVEPACKET;
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) {
+        header = Unpooled.EMPTY_BUFFER;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "KeepAlivePacket: " + way;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) {
+        byte[] newbytes = {
+                way };
+        middle = Unpooled.wrappedBuffer(newbytes);
+    }
 
-	/**
-	 * @return True if this packet is to be validated
-	 */
-	public boolean isToValidate() {
-		return way == ASKVALIDATE;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.KEEPALIVEPACKET;
+    }
 
-	/**
-	 * Validate the connection
-	 */
-	public void validate() {
-		way = ANSWERVALIDATE;
-		header = null;
-		middle = null;
-		end = null;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "KeepAlivePacket: " + way;
+    }
+
+    /**
+     * @return True if this packet is to be validated
+     */
+    public boolean isToValidate() {
+        return way == ASKVALIDATE;
+    }
+
+    /**
+     * Validate the connection
+     */
+    public void validate() {
+        way = ANSWERVALIDATE;
+        header = null;
+        middle = null;
+        end = null;
+    }
 }

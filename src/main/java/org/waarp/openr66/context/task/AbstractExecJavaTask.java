@@ -37,139 +37,137 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * 
  */
 public abstract class AbstractExecJavaTask implements R66Runnable {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(AbstractExecJavaTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(AbstractExecJavaTask.class);
 
-	protected int delay;
-	protected int status = -1;
-	protected R66Session session;
-	protected boolean waitForValidation;
-	protected boolean useLocalExec;
+    protected int delay;
+    protected int status = -1;
+    protected R66Session session;
+    protected boolean waitForValidation;
+    protected boolean useLocalExec;
 
-	protected String classname;
-	protected String fullarg;
-	protected boolean isToValidate;
-	protected boolean callFromBusiness;
+    protected String classname;
+    protected String fullarg;
+    protected boolean isToValidate;
+    protected boolean callFromBusiness;
 
-	protected String finalInformation;
-	
-	/**
-	 * Server side method to validate the request
-	 * 
-	 * @param packet
-	 */
-	public void validate(BusinessRequestPacket packet) {
-		this.status = 0;
-		packet.validate();
-		if (callFromBusiness) {
-			LocalChannelReference localChannelReference = session.getLocalChannelReference();
-			if (localChannelReference != null) {
-				R66Result result = new R66Result(session, true,
-						ErrorCode.CompleteOk, null);
-				localChannelReference.validateRequest(result);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							packet, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-			} else {
-				finalInformation = packet.toString();
-			}
-		}
-	}
+    protected String finalInformation;
 
-	/**
-	 * To be called by the requester when finished
-	 * 
-	 * @param object
-	 *            special object to get back
-	 */
-	public void finalValidate(Object object) {
-		this.status = 0;
-		if (callFromBusiness) {
-			LocalChannelReference localChannelReference = session.getLocalChannelReference();
-			if (localChannelReference != null) {
-				R66Result result = new R66Result(session, true,
-						ErrorCode.CompleteOk, null);
-				result.other = object;
-				localChannelReference.validateRequest(result);
-				ChannelUtils.close(localChannelReference.getLocalChannel());
-			} else {
-				finalInformation = JsonHandler.writeAsString(object);
-			}
-		}
-	}
+    /**
+     * Server side method to validate the request
+     * 
+     * @param packet
+     */
+    public void validate(BusinessRequestPacket packet) {
+        this.status = 0;
+        packet.validate();
+        if (callFromBusiness) {
+            LocalChannelReference localChannelReference = session.getLocalChannelReference();
+            if (localChannelReference != null) {
+                R66Result result = new R66Result(session, true,
+                        ErrorCode.CompleteOk, null);
+                localChannelReference.validateRequest(result);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            packet, true);
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+            } else {
+                finalInformation = packet.toString();
+            }
+        }
+    }
 
-	/**
-	 * To be used if abnormal usage is made of one Java Method
-	 */
-	public void invalid() {
-		this.status = 2;
-		if (!callFromBusiness) {
-			return;
-		}
-		R66Result result = new R66Result(null, session, true,
-				ErrorCode.Unimplemented, session.getRunner());
-		LocalChannelReference localChannelReference = session.getLocalChannelReference();
-		if (localChannelReference != null) {
-			localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
-			ErrorPacket error = new ErrorPacket("Command Incompatible",
-					ErrorCode.ExternalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
-			try {
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-			localChannelReference.invalidateRequest(result);
-			ChannelUtils.close(localChannelReference.getLocalChannel());
-		}
-	}
+    /**
+     * To be called by the requester when finished
+     * 
+     * @param object
+     *            special object to get back
+     */
+    public void finalValidate(Object object) {
+        this.status = 0;
+        if (callFromBusiness) {
+            LocalChannelReference localChannelReference = session.getLocalChannelReference();
+            if (localChannelReference != null) {
+                R66Result result = new R66Result(session, true,
+                        ErrorCode.CompleteOk, null);
+                result.other = object;
+                localChannelReference.validateRequest(result);
+                ChannelUtils.close(localChannelReference.getLocalChannel());
+            } else {
+                finalInformation = JsonHandler.writeAsString(object);
+            }
+        }
+    }
 
-	public void run() {
-		if (callFromBusiness) {
-			// Business Request to validate?
-			if (isToValidate) {
-				BusinessRequestPacket packet =
-						new BusinessRequestPacket(this.classname + " " + this.fullarg, 0);
-				validate(packet);
-			}
-		}
-		StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ":");
-		builder.append("args(");
-		builder.append(fullarg);
-		builder.append(")");
-		logger.warn(builder.toString());
-		this.status = 0;
-	}
+    /**
+     * To be used if abnormal usage is made of one Java Method
+     */
+    public void invalid() {
+        this.status = 2;
+        if (!callFromBusiness) {
+            return;
+        }
+        R66Result result = new R66Result(null, session, true,
+                ErrorCode.Unimplemented, session.getRunner());
+        LocalChannelReference localChannelReference = session.getLocalChannelReference();
+        if (localChannelReference != null) {
+            localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
+            ErrorPacket error = new ErrorPacket("Command Incompatible",
+                    ErrorCode.ExternalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            try {
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+            } catch (OpenR66ProtocolPacketException e1) {
+            }
+            localChannelReference.invalidateRequest(result);
+            ChannelUtils.close(localChannelReference.getLocalChannel());
+        }
+    }
 
-	public void setArgs(R66Session session, boolean waitForValidation,
-			boolean useLocalExec, int delay, String classname, String arg, boolean callFromBusiness, boolean isToValidate) {
-		this.session = session;
-		this.waitForValidation = waitForValidation;
-		this.useLocalExec = useLocalExec;
-		this.delay = delay;
-		this.classname = classname;
-		this.callFromBusiness = callFromBusiness;
-		this.fullarg = arg;
-		this.isToValidate = isToValidate;
-	}
+    public void run() {
+        if (callFromBusiness) {
+            // Business Request to validate?
+            if (isToValidate) {
+                BusinessRequestPacket packet =
+                        new BusinessRequestPacket(this.classname + " " + this.fullarg, 0);
+                validate(packet);
+            }
+        }
+        StringBuilder builder = new StringBuilder(this.getClass().getSimpleName()).append(":")
+                .append("args(").append(fullarg).append(")");
+        logger.warn(builder.toString());
+        this.status = 0;
+    }
 
-	public int getFinalStatus() {
-		return status;
-	}
+    public void setArgs(R66Session session, boolean waitForValidation,
+            boolean useLocalExec, int delay, String classname, String arg, boolean callFromBusiness,
+            boolean isToValidate) {
+        this.session = session;
+        this.waitForValidation = waitForValidation;
+        this.useLocalExec = useLocalExec;
+        this.delay = delay;
+        this.classname = classname;
+        this.callFromBusiness = callFromBusiness;
+        this.fullarg = arg;
+        this.isToValidate = isToValidate;
+    }
 
-	@Override
-	public String toString() {
-		if (status == -1 || finalInformation == null) {
-			StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ": [");
-			builder.append(fullarg);
-			builder.append(']');
-			return builder.toString();
-		} else {
-			return finalInformation;
-		}
-	}
+    public int getFinalStatus() {
+        return status;
+    }
+
+    @Override
+    public String toString() {
+        if (status == -1 || finalInformation == null) {
+            StringBuilder builder = new StringBuilder(this.getClass().getSimpleName()).append(": [")
+                    .append(fullarg).append(']');
+            return builder.toString();
+        } else {
+            return finalInformation;
+        }
+    }
 
 }

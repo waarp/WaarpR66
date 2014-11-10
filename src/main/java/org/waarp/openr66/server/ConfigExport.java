@@ -44,7 +44,6 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-
 /**
  * Config Export from a local client without database connection
  * 
@@ -52,252 +51,252 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class ConfigExport implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	static volatile WaarpLogger logger;
+    /**
+     * Internal Logger
+     */
+    static volatile WaarpLogger logger;
 
-	protected static String _INFO_ARGS = "Need at least the configuration file as first argument then at least one from\n"
-			+
-			"    -hosts\n" +
-			"    -rules\n"+
-			"    -business (if compatible)\n"+
-			"    -alias (if compatible)\n"+
-			"    -role (if compatible)\n"+
-			"    -host host (optional)";
-	
-	protected final R66Future future;
-	protected final boolean host;
-	protected final boolean rule;
-	protected final boolean business;
-	protected final boolean alias;
-	protected final boolean role;
-	protected final NetworkTransaction networkTransaction;
-	protected DbHostAuth dbhost;
+    protected static String _INFO_ARGS = "Need at least the configuration file as first argument then at least one from\n"
+            +
+            "    -hosts\n" +
+            "    -rules\n" +
+            "    -business (if compatible)\n" +
+            "    -alias (if compatible)\n" +
+            "    -role (if compatible)\n" +
+            "    -host host (optional)";
 
-	public ConfigExport(R66Future future, boolean host, boolean rule,
-			NetworkTransaction networkTransaction) {
-		this.future = future;
-		this.host = host;
-		this.rule = rule;
-		this.business = false;
-		this.alias = false;
-		this.role = false;
-		this.networkTransaction = networkTransaction;
-		this.dbhost = Configuration.configuration.HOST_SSLAUTH;
-	}
+    protected final R66Future future;
+    protected final boolean host;
+    protected final boolean rule;
+    protected final boolean business;
+    protected final boolean alias;
+    protected final boolean role;
+    protected final NetworkTransaction networkTransaction;
+    protected DbHostAuth dbhost;
 
-	public ConfigExport(R66Future future, boolean host, boolean rule,
-			boolean business, boolean alias, boolean role,
-			NetworkTransaction networkTransaction) {
-		this.future = future;
-		this.host = host;
-		this.rule = rule;
-		this.business = business;
-		this.alias = alias;
-		this.role = role;
-		this.networkTransaction = networkTransaction;
-		this.dbhost = Configuration.configuration.HOST_SSLAUTH;
-	}
-	
-	public void setHost(DbHostAuth host) {
-		this.dbhost = host;
-	}
+    public ConfigExport(R66Future future, boolean host, boolean rule,
+            NetworkTransaction networkTransaction) {
+        this.future = future;
+        this.host = host;
+        this.rule = rule;
+        this.business = false;
+        this.alias = false;
+        this.role = false;
+        this.networkTransaction = networkTransaction;
+        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+    }
 
-	/**
-	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
-	 * is the responsibility of the caller to finish all network resources.
-	 */
-	public void run() {
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(ConfigExport.class);
-		}
-		if (! (host || rule || business || alias || role)) {
-			logger.error("No action required");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoDataException("No action required"),
-					null, true, ErrorCode.IncorrectCommand, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		SocketAddress socketAddress;
-		try {
-			socketAddress = dbhost.getSocketAddress();
-		} catch (IllegalArgumentException e) {
-			logger.error("Cannot Connect to "+dbhost.getHostid());
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+dbhost.getHostid()),
-					null, true, ErrorCode.ConnectionImpossible, null));
-			dbhost = null;
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		boolean isSSL = dbhost.isSsl();
+    public ConfigExport(R66Future future, boolean host, boolean rule,
+            boolean business, boolean alias, boolean role,
+            NetworkTransaction networkTransaction) {
+        this.future = future;
+        this.host = host;
+        this.rule = rule;
+        this.business = business;
+        this.alias = alias;
+        this.role = role;
+        this.networkTransaction = networkTransaction;
+        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+    }
 
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			logger.error("Cannot Connect to "+dbhost.getHostid());
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+dbhost.getHostid()),
-					null, true, ErrorCode.ConnectionImpossible, null));
-			dbhost = null;
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		AbstractLocalPacket valid = null;
-		boolean useJson = PartnerConfiguration.useJson(dbhost.getHostid());
-		logger.debug("UseJson: "+useJson);
-		if (useJson) {
-			ConfigExportJsonPacket node = new ConfigExportJsonPacket();
-			node.setHost(host);
-			node.setRule(rule);
-			node.setBusiness(business);
-			node.setAlias(alias);
-			node.setRoles(role);
-			valid = new JsonCommandPacket(node, LocalPacketFactory.CONFEXPORTPACKET);
-		} else {
-			valid = new ValidPacket(Boolean.toString(host), Boolean.toString(rule),
-				LocalPacketFactory.CONFEXPORTPACKET);
-		}
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			localChannelReference.getLocalChannel().close();
-			localChannelReference = null;
-			dbhost = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		dbhost = null;
-		future.awaitUninterruptibly();
-		String sresult = "no information";
-		if (future.isSuccess() && future.getResult() != null && future.getResult().other != null) {
-			sresult = (useJson ? ((JsonCommandPacket) future.getResult().other).getRequest() : 
-				((ValidPacket) future.getResult().other).toString());
-		}
-		logger.info("Config Export done with " + (future.isSuccess() ? "success" : "error") + " ("+sresult+")");
-		localChannelReference.getLocalChannel().close();
-		localChannelReference = null;
-	}
+    public void setHost(DbHostAuth host) {
+        this.dbhost = host;
+    }
 
-	protected static boolean shost = false;
-	protected static boolean srule = false;
-	protected static boolean sbusiness = false;
-	protected static boolean salias = false;
-	protected static boolean srole = false;
-	protected static String stohost = null;
-	
-	protected static boolean getParams(String[] args) {
-		if (args.length < 2) {
-			logger.error(_INFO_ARGS);
-			return false;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error(_INFO_ARGS);
-			return false;
-		}
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-hosts")) {
-				shost = true;
-			} else if (args[i].equalsIgnoreCase("-rules")) {
-				srule = true;
-			} else if (args[i].equalsIgnoreCase("-business")) {
-				sbusiness = true;
-			} else if (args[i].equalsIgnoreCase("-alias")) {
-				salias = true;
-			} else if (args[i].equalsIgnoreCase("-roles")) {
-				srole = true;
-			} else if (args[i].equalsIgnoreCase("-host")) {
-				i++;
-				stohost = args[i];
-			}
-		}
-		if ((!shost) && (!srule)) {
-			logger.error("Need at least one of -hosts - rules");
-			return false;
-		}
-		return true;
-	}
+    /**
+     * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
+     * is the responsibility of the caller to finish all network resources.
+     */
+    public void run() {
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(ConfigExport.class);
+        }
+        if (!(host || rule || business || alias || role)) {
+            logger.error("No action required");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoDataException("No action required"),
+                    null, true, ErrorCode.IncorrectCommand, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        SocketAddress socketAddress;
+        try {
+            socketAddress = dbhost.getSocketAddress();
+        } catch (IllegalArgumentException e) {
+            logger.error("Cannot Connect to " + dbhost.getHostid());
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
+                    null, true, ErrorCode.ConnectionImpossible, null));
+            dbhost = null;
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        boolean isSSL = dbhost.isSsl();
 
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(ConfigExport.class);
-		}
-		if (!getParams(args)) {
-			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			System.exit(1);
-		}
-		long time1 = System.currentTimeMillis();
-		R66Future future = new R66Future(true);
+        LocalChannelReference localChannelReference = networkTransaction
+                .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.error("Cannot Connect to " + dbhost.getHostid());
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
+                    null, true, ErrorCode.ConnectionImpossible, null));
+            dbhost = null;
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        AbstractLocalPacket valid = null;
+        boolean useJson = PartnerConfiguration.useJson(dbhost.getHostid());
+        logger.debug("UseJson: " + useJson);
+        if (useJson) {
+            ConfigExportJsonPacket node = new ConfigExportJsonPacket();
+            node.setHost(host);
+            node.setRule(rule);
+            node.setBusiness(business);
+            node.setAlias(alias);
+            node.setRoles(role);
+            valid = new JsonCommandPacket(node, LocalPacketFactory.CONFEXPORTPACKET);
+        } else {
+            valid = new ValidPacket(Boolean.toString(host), Boolean.toString(rule),
+                    LocalPacketFactory.CONFEXPORTPACKET);
+        }
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            localChannelReference.getLocalChannel().close();
+            localChannelReference = null;
+            dbhost = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        dbhost = null;
+        future.awaitUninterruptibly();
+        String sresult = "no information";
+        if (future.isSuccess() && future.getResult() != null && future.getResult().other != null) {
+            sresult = (useJson ? ((JsonCommandPacket) future.getResult().other).getRequest() :
+                    ((ValidPacket) future.getResult().other).toString());
+        }
+        logger.info("Config Export done with " + (future.isSuccess() ? "success" : "error") + " (" + sresult + ")");
+        localChannelReference.getLocalChannel().close();
+        localChannelReference = null;
+    }
 
-		Configuration.configuration.pipelineInit();
-		NetworkTransaction networkTransaction = new NetworkTransaction();
-		try {
-			ConfigExport transaction = new ConfigExport(future,
-					shost, srule, sbusiness, salias, srole,
-					networkTransaction);
-			if (stohost != null) {
-				try {
-					transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
-				} catch (WaarpDatabaseException e) {
-					logger.error("COnfigExport in     FAILURE since Host is not found: "+stohost, e);
-					networkTransaction.closeAll();
-					System.exit(10);
-				}
-			} else {
-				stohost = Configuration.configuration.HOST_SSLID;
-			}
-			transaction.run();
-			future.awaitUninterruptibly();
-			long time2 = System.currentTimeMillis();
-			long delay = time2 - time1;
-			R66Result result = future.getResult();
-			if (future.isSuccess()) {
-				boolean useJson = PartnerConfiguration.useJson(stohost);
-				logger.debug("UseJson: "+useJson);
-				String message = null;
-				if (useJson) {
-					message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
-							"no file");
-				} else {
-					message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
-							"no file");
-				}
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("WARNED on files:     " +
-							message
-							+ "     delay: " + delay);
-				} else {
-					logger.warn("SUCCESS on Final files:     " +
-							message
-							+ "     delay: " + delay);
-				}
-			} else {
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("ConfigExport is     WARNED", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				} else {
-					logger.error("ConfigExport in     FAILURE", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				}
-			}
-		} finally {
-			networkTransaction.closeAll();
-		}
-	}
+    protected static boolean shost = false;
+    protected static boolean srule = false;
+    protected static boolean sbusiness = false;
+    protected static boolean salias = false;
+    protected static boolean srole = false;
+    protected static String stohost = null;
+
+    protected static boolean getParams(String[] args) {
+        if (args.length < 2) {
+            logger.error(_INFO_ARGS);
+            return false;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger.error(_INFO_ARGS);
+            return false;
+        }
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-hosts")) {
+                shost = true;
+            } else if (args[i].equalsIgnoreCase("-rules")) {
+                srule = true;
+            } else if (args[i].equalsIgnoreCase("-business")) {
+                sbusiness = true;
+            } else if (args[i].equalsIgnoreCase("-alias")) {
+                salias = true;
+            } else if (args[i].equalsIgnoreCase("-roles")) {
+                srole = true;
+            } else if (args[i].equalsIgnoreCase("-host")) {
+                i++;
+                stohost = args[i];
+            }
+        }
+        if ((!shost) && (!srule)) {
+            logger.error("Need at least one of -hosts - rules");
+            return false;
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(ConfigExport.class);
+        }
+        if (!getParams(args)) {
+            logger.error("Wrong initialization");
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            System.exit(1);
+        }
+        long time1 = System.currentTimeMillis();
+        R66Future future = new R66Future(true);
+
+        Configuration.configuration.pipelineInit();
+        NetworkTransaction networkTransaction = new NetworkTransaction();
+        try {
+            ConfigExport transaction = new ConfigExport(future,
+                    shost, srule, sbusiness, salias, srole,
+                    networkTransaction);
+            if (stohost != null) {
+                try {
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                } catch (WaarpDatabaseException e) {
+                    logger.error("COnfigExport in     FAILURE since Host is not found: " + stohost, e);
+                    networkTransaction.closeAll();
+                    System.exit(10);
+                }
+            } else {
+                stohost = Configuration.configuration.HOST_SSLID;
+            }
+            transaction.run();
+            future.awaitUninterruptibly();
+            long time2 = System.currentTimeMillis();
+            long delay = time2 - time1;
+            R66Result result = future.getResult();
+            if (future.isSuccess()) {
+                boolean useJson = PartnerConfiguration.useJson(stohost);
+                logger.debug("UseJson: " + useJson);
+                String message = null;
+                if (useJson) {
+                    message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+                            "no file");
+                } else {
+                    message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                            "no file");
+                }
+                if (result.code == ErrorCode.Warning) {
+                    logger.warn("WARNED on files:     " +
+                            message
+                            + "     delay: " + delay);
+                } else {
+                    logger.warn("SUCCESS on Final files:     " +
+                            message
+                            + "     delay: " + delay);
+                }
+            } else {
+                if (result.code == ErrorCode.Warning) {
+                    logger.warn("ConfigExport is     WARNED", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                } else {
+                    logger.error("ConfigExport in     FAILURE", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                }
+            }
+        } finally {
+            networkTransaction.closeAll();
+        }
+    }
 
 }

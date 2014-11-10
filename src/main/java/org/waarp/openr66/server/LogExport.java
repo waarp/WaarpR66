@@ -50,234 +50,234 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class LogExport implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	static volatile WaarpLogger logger;
+    /**
+     * Internal Logger
+     */
+    static volatile WaarpLogger logger;
 
-	protected static String _INFO_ARGS = 
-			"Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -purge\n"
-					+
-					"    -clean\n"
-					+
-					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
-					+
-					"    -stop timestamp in same format than start\n" +
-					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
-					"If start is equals or greater than stop, stop is start+24H\n"+
-					"    -host host (optional)";
-	
-	protected final R66Future future;
-	protected final boolean purgeLog;
-	protected final Timestamp start;
-	protected final Timestamp stop;
-	protected final boolean clean;
-	protected final NetworkTransaction networkTransaction;
-	protected DbHostAuth host;
+    protected static String _INFO_ARGS =
+            "Need at least the configuration file as first argument then optionally\n"
+                    +
+                    "    -purge\n"
+                    +
+                    "    -clean\n"
+                    +
+                    "    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
+                    +
+                    "    -stop timestamp in same format than start\n" +
+                    "If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
+                    "If start is equals or greater than stop, stop is start+24H\n" +
+                    "    -host host (optional)";
 
-	public LogExport(R66Future future, boolean purgeLog, boolean clean,
-			Timestamp start, Timestamp stop,
-			NetworkTransaction networkTransaction) {
-		this.future = future;
-		this.purgeLog = purgeLog;
-		this.clean = clean;
-		this.start = start;
-		this.stop = stop;
-		this.networkTransaction = networkTransaction;
-		this.host = Configuration.configuration.HOST_SSLAUTH;
-	}
+    protected final R66Future future;
+    protected final boolean purgeLog;
+    protected final Timestamp start;
+    protected final Timestamp stop;
+    protected final boolean clean;
+    protected final NetworkTransaction networkTransaction;
+    protected DbHostAuth host;
 
-	public void setHost(DbHostAuth host) {
-		this.host = host;
-	}
-	
-	/**
-	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
-	 * is the responsibility of the caller to finish all network resources.
-	 */
-	public void run() {
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(LogExport.class);
-		}
-		String lstart = (start != null) ? start.toString() : null;
-		String lstop = (stop != null) ? stop.toString() : null;
-		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
-		ValidPacket valid = new ValidPacket(lstart, lstop, type);
-		SocketAddress socketAddress;
-		try {
-			socketAddress = host.getSocketAddress();
-		} catch (IllegalArgumentException e) {
-			logger.error("Cannot Connect to "+host.getHostid());
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
-					null, true, ErrorCode.ConnectionImpossible, null));
-			host = null;
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		boolean isSSL = host.isSsl();
+    public LogExport(R66Future future, boolean purgeLog, boolean clean,
+            Timestamp start, Timestamp stop,
+            NetworkTransaction networkTransaction) {
+        this.future = future;
+        this.purgeLog = purgeLog;
+        this.clean = clean;
+        this.start = start;
+        this.stop = stop;
+        this.networkTransaction = networkTransaction;
+        this.host = Configuration.configuration.HOST_SSLAUTH;
+    }
 
-		// first clean if ask
-		if (clean && (host.getHostid().equals(Configuration.configuration.HOST_ID)
-				|| host.getHostid().equals(Configuration.configuration.HOST_SSLID))) {
-			// Update all UpdatedInfo to DONE
-			// where GlobalLastStep = ALLDONETASK and status = CompleteOk
-			try {
-				DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
-			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.warn("Clean cannot be done {}", e.getMessage());
-			}
-		}
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			logger.error("Cannot Connect to "+host.getHostid());
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
-					null, true, ErrorCode.ConnectionImpossible, null));
-			host = null;
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			localChannelReference.getLocalChannel().close();
-			localChannelReference = null;
-			host = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		host = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-		localChannelReference.getLocalChannel().close();
-		localChannelReference = null;
-	}
+    public void setHost(DbHostAuth host) {
+        this.host = host;
+    }
 
-	protected static boolean spurgeLog = false;
-	protected static Timestamp sstart = null;
-	protected static Timestamp sstop = null;
-	protected static boolean sclean = false;
-	protected static String stohost = null;
+    /**
+     * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
+     * is the responsibility of the caller to finish all network resources.
+     */
+    public void run() {
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(LogExport.class);
+        }
+        String lstart = (start != null) ? start.toString() : null;
+        String lstop = (stop != null) ? stop.toString() : null;
+        byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
+        ValidPacket valid = new ValidPacket(lstart, lstop, type);
+        SocketAddress socketAddress;
+        try {
+            socketAddress = host.getSocketAddress();
+        } catch (IllegalArgumentException e) {
+            logger.error("Cannot Connect to " + host.getHostid());
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
+                    null, true, ErrorCode.ConnectionImpossible, null));
+            host = null;
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        boolean isSSL = host.isSsl();
 
-	protected static boolean getParams(String[] args) {
-		if (args.length < 1) {
-			logger.error(_INFO_ARGS);
-			return false;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error(_INFO_ARGS);
-			return false;
-		}
-		String ssstart = null;
-		String ssstop = null;
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-purge")) {
-				spurgeLog = true;
-			} else if (args[i].equalsIgnoreCase("-clean")) {
-				sclean = true;
-			} else if (args[i].equalsIgnoreCase("-start")) {
-				i++;
-				ssstart = args[i];
-			} else if (args[i].equalsIgnoreCase("-stop")) {
-				i++;
-				ssstop = args[i];
-			} else if (args[i].equalsIgnoreCase("-host")) {
-				i++;
-				stohost = args[i];
-			}
-		}
-		if (ssstart != null) {
-			Timestamp tstart = WaarpStringUtils.fixDate(ssstart);
-			if (tstart != null) {
-				sstart = tstart;
-			}
-		}
-		if (ssstop != null) {
-			Timestamp tstop = WaarpStringUtils.fixDate(ssstop, sstart);
-			if (tstop != null) {
-				sstop = tstop;
-			}
-		}
-		if (ssstart == null && ssstop == null) {
-			sstop = WaarpStringUtils.getTodayMidnight();
-		}
-		return true;
-	}
+        // first clean if ask
+        if (clean && (host.getHostid().equals(Configuration.configuration.HOST_ID)
+                || host.getHostid().equals(Configuration.configuration.HOST_SSLID))) {
+            // Update all UpdatedInfo to DONE
+            // where GlobalLastStep = ALLDONETASK and status = CompleteOk
+            try {
+                DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+            } catch (WaarpDatabaseNoConnectionException e) {
+                logger.warn("Clean cannot be done {}", e.getMessage());
+            }
+        }
+        LocalChannelReference localChannelReference = networkTransaction
+                .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.error("Cannot Connect to " + host.getHostid());
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
+                    null, true, ErrorCode.ConnectionImpossible, null));
+            host = null;
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            localChannelReference.getLocalChannel().close();
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+        localChannelReference.getLocalChannel().close();
+        localChannelReference = null;
+    }
 
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(LogExport.class);
-		}
-		if (!getParams(args)) {
-			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			System.exit(1);
-		}
-		long time1 = System.currentTimeMillis();
-		R66Future future = new R66Future(true);
+    protected static boolean spurgeLog = false;
+    protected static Timestamp sstart = null;
+    protected static Timestamp sstop = null;
+    protected static boolean sclean = false;
+    protected static String stohost = null;
 
-		Configuration.configuration.pipelineInit();
-		NetworkTransaction networkTransaction = new NetworkTransaction();
-		try {
-			LogExport transaction = new LogExport(future,
-					spurgeLog, sclean, sstart, sstop,
-					networkTransaction);
-			if (stohost != null) {
-				try {
-					transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
-				} catch (WaarpDatabaseException e) {
-					logger.error("LogExport in     FAILURE since Host is not found: "+stohost, e);
-					networkTransaction.closeAll();
-					System.exit(10);
-				}
-			} else {
-				stohost = Configuration.configuration.HOST_SSLID;
-			}
-			transaction.run();
-			future.awaitUninterruptibly();
-			long time2 = System.currentTimeMillis();
-			long delay = time2 - time1;
-			R66Result result = future.getResult();
-			if (future.isSuccess()) {
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("WARNED on file:     " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
-									"no file")
-							+ "     delay: " + delay);
-				} else {
-					logger.warn("SUCCESS on Final file:     " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
-									"no file")
-							+ "     delay: " + delay);
-				}
-			} else {
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("LogExport is     WARNED", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				} else {
-					logger.error("LogExport in     FAILURE", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				}
-			}
-		} finally {
-			networkTransaction.closeAll();
-		}
-	}
+    protected static boolean getParams(String[] args) {
+        if (args.length < 1) {
+            logger.error(_INFO_ARGS);
+            return false;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger.error(_INFO_ARGS);
+            return false;
+        }
+        String ssstart = null;
+        String ssstop = null;
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-purge")) {
+                spurgeLog = true;
+            } else if (args[i].equalsIgnoreCase("-clean")) {
+                sclean = true;
+            } else if (args[i].equalsIgnoreCase("-start")) {
+                i++;
+                ssstart = args[i];
+            } else if (args[i].equalsIgnoreCase("-stop")) {
+                i++;
+                ssstop = args[i];
+            } else if (args[i].equalsIgnoreCase("-host")) {
+                i++;
+                stohost = args[i];
+            }
+        }
+        if (ssstart != null) {
+            Timestamp tstart = WaarpStringUtils.fixDate(ssstart);
+            if (tstart != null) {
+                sstart = tstart;
+            }
+        }
+        if (ssstop != null) {
+            Timestamp tstop = WaarpStringUtils.fixDate(ssstop, sstart);
+            if (tstop != null) {
+                sstop = tstop;
+            }
+        }
+        if (ssstart == null && ssstop == null) {
+            sstop = WaarpStringUtils.getTodayMidnight();
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(LogExport.class);
+        }
+        if (!getParams(args)) {
+            logger.error("Wrong initialization");
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            System.exit(1);
+        }
+        long time1 = System.currentTimeMillis();
+        R66Future future = new R66Future(true);
+
+        Configuration.configuration.pipelineInit();
+        NetworkTransaction networkTransaction = new NetworkTransaction();
+        try {
+            LogExport transaction = new LogExport(future,
+                    spurgeLog, sclean, sstart, sstop,
+                    networkTransaction);
+            if (stohost != null) {
+                try {
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                } catch (WaarpDatabaseException e) {
+                    logger.error("LogExport in     FAILURE since Host is not found: " + stohost, e);
+                    networkTransaction.closeAll();
+                    System.exit(10);
+                }
+            } else {
+                stohost = Configuration.configuration.HOST_SSLID;
+            }
+            transaction.run();
+            future.awaitUninterruptibly();
+            long time2 = System.currentTimeMillis();
+            long delay = time2 - time1;
+            R66Result result = future.getResult();
+            if (future.isSuccess()) {
+                if (result.code == ErrorCode.Warning) {
+                    logger.warn("WARNED on file:     " +
+                            (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                                    "no file")
+                            + "     delay: " + delay);
+                } else {
+                    logger.warn("SUCCESS on Final file:     " +
+                            (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                                    "no file")
+                            + "     delay: " + delay);
+                }
+            } else {
+                if (result.code == ErrorCode.Warning) {
+                    logger.warn("LogExport is     WARNED", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                } else {
+                    logger.error("LogExport in     FAILURE", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                }
+            }
+        } finally {
+            networkTransaction.closeAll();
+        }
+    }
 
 }

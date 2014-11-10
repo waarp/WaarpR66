@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 
-
 /**
  * This class is used with external process in order to get the last echo from the stdout of the
  * process.
@@ -31,34 +30,34 @@ import java.io.PipedInputStream;
  * 
  */
 class LastLineReader implements Runnable {
-	private final BufferedReader reader;
-	/**
-	 * This will be the result at the end
-	 */
-	public String lastLine = null;
+    private final BufferedReader reader;
+    /**
+     * This will be the result at the end
+     */
+    public String lastLine = null;
 
-	public LastLineReader(PipedInputStream inputStream) {
-		reader = new BufferedReader(new InputStreamReader(inputStream));
-	}
+    public LastLineReader(PipedInputStream inputStream) {
+        reader = new BufferedReader(new InputStreamReader(inputStream));
+    }
 
-	public void run() {
-		String line;
-		try {
-			while ((line = reader.readLine()) != null) {
-				line = line.trim();
-				if (! line.isEmpty()) {
-					lastLine = line;
-				}
-			}
-		} catch (IOException e) {
-			// Could be a "Write end dead", which means the end of the thread
-			// writer is found
-			// before the thread closes the write pipe
-		}
-		try {
-			reader.close();
-		} catch (IOException e) {
-		}
-	}
+    public void run() {
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    lastLine = line;
+                }
+            }
+        } catch (IOException e) {
+            // Could be a "Write end dead", which means the end of the thread
+            // writer is found
+            // before the thread closes the write pipe
+        }
+        try {
+            reader.close();
+        } catch (IOException e) {
+        }
+    }
 
 }

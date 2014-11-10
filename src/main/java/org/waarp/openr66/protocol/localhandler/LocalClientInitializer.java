@@ -32,9 +32,9 @@ public class LocalClientInitializer extends ChannelInitializer<LocalChannel> {
 
     @Override
     protected void initChannel(LocalChannel ch) throws Exception {
-		final ChannelPipeline pipeline = ch.pipeline();
-		pipeline.addLast("codec", new LocalPacketCodec());
-		pipeline.addLast("handler", new LocalClientHandler());
-	}
+        final ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast("codec", new LocalPacketCodec());
+        pipeline.addLast("handler", new LocalClientHandler());
+    }
 
 }

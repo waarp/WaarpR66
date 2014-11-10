@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 
-
 /**
  * This class is used with external process in order to get the All echo from the stdout of the
  * process.
@@ -31,34 +30,34 @@ import java.io.PipedInputStream;
  * 
  */
 class AllLineReader implements Runnable {
-	private final BufferedReader reader;
-	/**
-	 * This will be the result at the end
-	 */
-	public StringBuilder lastLine = new StringBuilder();
+    private final BufferedReader reader;
+    /**
+     * This will be the result at the end
+     */
+    public StringBuilder lastLine = new StringBuilder();
 
-	public AllLineReader(PipedInputStream inputStream) {
-		reader = new BufferedReader(new InputStreamReader(inputStream));
-	}
+    public AllLineReader(PipedInputStream inputStream) {
+        reader = new BufferedReader(new InputStreamReader(inputStream));
+    }
 
-	public void run() {
-		String line;
-		try {
-			while ((line = reader.readLine()) != null) {
-				line = line.trim();
-				if (! line.isEmpty()) {
-					lastLine.append(line).append('\n');
-				}
-			}
-		} catch (IOException e) {
-			// Could be a "Write end dead", which means the end of the thread
-			// writer is found
-			// before the thread closes the write pipe
-		}
-		try {
-			reader.close();
-		} catch (IOException e) {
-		}
-	}
+    public void run() {
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    lastLine.append(line).append('\n');
+                }
+            }
+        } catch (IOException e) {
+            // Could be a "Write end dead", which means the end of the thread
+            // writer is found
+            // before the thread closes the write pipe
+        }
+        try {
+            reader.close();
+        } catch (IOException e) {
+        }
+    }
 
 }

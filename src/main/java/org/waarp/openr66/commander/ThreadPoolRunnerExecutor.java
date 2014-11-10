@@ -34,83 +34,83 @@ import org.waarp.openr66.context.ErrorCode;
  */
 public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
 
-	/**
-	 * RejectedExecutionHandler for this ThreadPoolRunnerExecutor
-	 * 
-	 * @author Frederic Bregier
-	 * 
-	 */
-	private static class RunnerRejectedExecutionHandler implements RejectedExecutionHandler {
+    /**
+     * RejectedExecutionHandler for this ThreadPoolRunnerExecutor
+     * 
+     * @author Frederic Bregier
+     * 
+     */
+    private static class RunnerRejectedExecutionHandler implements RejectedExecutionHandler {
 
-		public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
-			ClientRunner runner = (ClientRunner) arg0;
-			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.INERROR,
-					ErrorCode.Unknown, true);
-		}
+        public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
+            ClientRunner runner = (ClientRunner) arg0;
+            runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.INERROR,
+                    ErrorCode.Unknown, true);
+        }
 
-	}
+    }
 
-	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
-	 * @param keepAliveTime
-	 * @param unit
-	 * @param workQueue
-	 */
-	public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
-			long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
-		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-		this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
-	}
+    /**
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param keepAliveTime
+     * @param unit
+     * @param workQueue
+     */
+    public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
+    }
 
-	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
-	 * @param keepAliveTime
-	 * @param unit
-	 * @param workQueue
-	 * @param threadFactory
-	 */
-	public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
-			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
-		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
-				threadFactory);
-		this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
-	}
+    /**
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param keepAliveTime
+     * @param unit
+     * @param workQueue
+     * @param threadFactory
+     */
+    public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit,
+            BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+                threadFactory);
+        this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
+    }
 
-	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
-	 * @param keepAliveTime
-	 * @param unit
-	 * @param workQueue
-	 * @param handler
-	 */
-	public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
-			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
-		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
-				handler);
-		this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
-	}
+    /**
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param keepAliveTime
+     * @param unit
+     * @param workQueue
+     * @param handler
+     */
+    public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit,
+            BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+                handler);
+        this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
+    }
 
-	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
-	 * @param keepAliveTime
-	 * @param unit
-	 * @param workQueue
-	 * @param threadFactory
-	 * @param handler
-	 */
-	public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
-			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
-			RejectedExecutionHandler handler) {
-		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
-				threadFactory, handler);
-		this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
-	}
+    /**
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param keepAliveTime
+     * @param unit
+     * @param workQueue
+     * @param threadFactory
+     * @param handler
+     */
+    public ThreadPoolRunnerExecutor(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit,
+            BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
+            RejectedExecutionHandler handler) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+                threadFactory, handler);
+        this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
+    }
 
 }

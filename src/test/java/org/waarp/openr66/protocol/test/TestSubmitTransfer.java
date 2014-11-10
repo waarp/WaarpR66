@@ -34,77 +34,77 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class TestSubmitTransfer extends SubmitTransfer {
-	static int nb = 100;
+    static int nb = 100;
 
-	/**
-	 * @param args
-	 * @param rank
-	 * @return True if OK
-	 */
-	protected static boolean getSpecialParams(String[] args, int rank) {
-		for (int i = rank; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-nb")) {
-				i++;
-				nb = Integer.parseInt(args[i]);
-			} else if (args[i].equalsIgnoreCase("-md5")) {
-			} else if (args[i].charAt(0) == '-') {
-				i++;// jump one
-			}
-		}
-		return true;
-	}
+    /**
+     * @param args
+     * @param rank
+     * @return True if OK
+     */
+    protected static boolean getSpecialParams(String[] args, int rank) {
+        for (int i = rank; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-nb")) {
+                i++;
+                nb = Integer.parseInt(args[i]);
+            } else if (args[i].equalsIgnoreCase("-md5")) {
+            } else if (args[i].charAt(0) == '-') {
+                i++;// jump one
+            }
+        }
+        return true;
+    }
 
-	public TestSubmitTransfer(R66Future future, String remoteHost,
-			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
-			Timestamp starttime) {
-		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
-				DbConstant.ILLEGALVALUE, starttime);
-	}
+    public TestSubmitTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
+            Timestamp starttime) {
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
+                DbConstant.ILLEGALVALUE, starttime);
+    }
 
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-				null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
-		}
-		if (!getParams(args, true)) {
-			logger.error("Wrong initialization");
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			System.exit(1);
-		}
-		getSpecialParams(args, 1);
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+                null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
+        }
+        if (!getParams(args, true)) {
+            logger.error("Wrong initialization");
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            System.exit(1);
+        }
+        getSpecialParams(args, 1);
 
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		R66Future[] arrayFuture = new R66Future[nb];
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        R66Future[] arrayFuture = new R66Future[nb];
 
-		logger.warn("Start Test Submit");
-		for (int i = 0; i < nb; i++) {
-			arrayFuture[i] = new R66Future(true);
-			Timestamp newstart = ttimestart;
-			if (newstart != null) {
-				// delay of 10 ms between each
-				newstart = new Timestamp(newstart.getTime() + i * 10);
-			}
-			TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
-					rhost, localFilename, rule, fileInfo, ismd5, block, newstart);
-			transaction.normalInfoAsWarn = snormalInfoAsWarn;
-			// executorService.execute(transaction);
-			transaction.run();
-		}
-		int success = 0;
-		int error = 0;
-		for (int i = 0; i < nb; i++) {
-			arrayFuture[i].awaitUninterruptibly();
-			if (arrayFuture[i].isSuccess()) {
-				success++;
-			} else {
-				error++;
-			}
-		}
-		executorService.shutdown();
-		logger.warn("Prepare transfer Success: " + success + " Error: " + error);
-	}
+        logger.warn("Start Test Submit");
+        for (int i = 0; i < nb; i++) {
+            arrayFuture[i] = new R66Future(true);
+            Timestamp newstart = ttimestart;
+            if (newstart != null) {
+                // delay of 10 ms between each
+                newstart = new Timestamp(newstart.getTime() + i * 10);
+            }
+            TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
+                    rhost, localFilename, rule, fileInfo, ismd5, block, newstart);
+            transaction.normalInfoAsWarn = snormalInfoAsWarn;
+            // executorService.execute(transaction);
+            transaction.run();
+        }
+        int success = 0;
+        int error = 0;
+        for (int i = 0; i < nb; i++) {
+            arrayFuture[i].awaitUninterruptibly();
+            if (arrayFuture[i].isSuccess()) {
+                success++;
+            } else {
+                error++;
+            }
+        }
+        executorService.shutdown();
+        logger.warn("Prepare transfer Success: " + success + " Error: " + error);
+    }
 
 }

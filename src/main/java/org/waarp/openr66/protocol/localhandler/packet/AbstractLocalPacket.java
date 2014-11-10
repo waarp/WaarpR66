@@ -33,87 +33,103 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public abstract class AbstractLocalPacket {
-	protected ByteBuf header;
+    protected ByteBuf header;
 
-	protected ByteBuf middle;
+    protected ByteBuf middle;
 
-	protected ByteBuf end;
+    protected ByteBuf end;
 
-	public AbstractLocalPacket(ByteBuf header, ByteBuf middle,
-			ByteBuf end) {
-		this.header = header;
-		this.middle = middle;
-		this.end = end;
-	}
+    public AbstractLocalPacket(ByteBuf header, ByteBuf middle,
+            ByteBuf end) {
+        this.header = header;
+        this.middle = middle;
+        this.end = end;
+    }
 
-	public AbstractLocalPacket() {
-		header = null;
-		middle = null;
-		end = null;
-	}
+    public AbstractLocalPacket() {
+        header = null;
+        middle = null;
+        end = null;
+    }
 
-	/**
-	 * Prepare the Header buffer
-	 * 
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public abstract void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
+    /**
+     * Prepare the Header buffer
+     * 
+     * @throws OpenR66ProtocolPacketException
+     */
+    public abstract void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
-	/**
-	 * Prepare the Middle buffer
-	 * 
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public abstract void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
+    /**
+     * Prepare the Middle buffer
+     * 
+     * @throws OpenR66ProtocolPacketException
+     */
+    public abstract void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
-	/**
-	 * Prepare the End buffer
-	 * 
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public abstract void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
+    /**
+     * Prepare the End buffer
+     * 
+     * @throws OpenR66ProtocolPacketException
+     */
+    public abstract void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
-	/**
-	 * 
-	 * @return the type of Packet
-	 */
-	public abstract byte getType();
+    /**
+     * 
+     * @return the type of Packet
+     */
+    public abstract byte getType();
 
-	@Override
-	public abstract String toString();
+    @Override
+    public abstract String toString();
 
-	/**
-	 * @param lcr the LocalChannelReference in use
-	 * @return the ByteBuf as LocalPacket
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public ByteBuf getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		final ByteBuf buf = Unpooled.buffer(4 * 3 + 1);// 3 header
-		// lengths+type
-		if (header == null) {
-			createHeader(lcr);
-		}
-		final ByteBuf newHeader = header != null ? header
-				: Unpooled.EMPTY_BUFFER;
-		final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
-		if (middle == null) {
-			createMiddle(lcr);
-		}
-		final ByteBuf newMiddle = middle != null ? middle
-				: Unpooled.EMPTY_BUFFER;
-		final int middleLength = newMiddle.readableBytes();
-		if (end == null) {
-			createEnd(lcr);
-		}
-		final ByteBuf newEnd = end != null ? end
-				: Unpooled.EMPTY_BUFFER;
-		final int endLength = newEnd.readableBytes();
-		buf.writeInt(headerLength);
-		buf.writeInt(middleLength);
-		buf.writeInt(endLength);
-		buf.writeByte(getType());
-		final ByteBuf ByteBuf = Unpooled.wrappedBuffer(
-				buf, newHeader, newMiddle, newEnd);
-		return ByteBuf;
-	}
+    /**
+     * @param lcr
+     *            the LocalChannelReference in use
+     * @return the ByteBuf as LocalPacket
+     * @throws OpenR66ProtocolPacketException
+     */
+    public ByteBuf getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        final ByteBuf buf = Unpooled.buffer(4 * 3 + 1);// 3 header
+        // lengths+type
+        if (header == null) {
+            createHeader(lcr);
+        }
+        final ByteBuf newHeader = header != null ? header
+                : Unpooled.EMPTY_BUFFER;
+        final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
+        if (middle == null) {
+            createMiddle(lcr);
+        }
+        final ByteBuf newMiddle = middle != null ? middle
+                : Unpooled.EMPTY_BUFFER;
+        final int middleLength = newMiddle.readableBytes();
+        if (end == null) {
+            createEnd(lcr);
+        }
+        final ByteBuf newEnd = end != null ? end
+                : Unpooled.EMPTY_BUFFER;
+        final int endLength = newEnd.readableBytes();
+        buf.writeInt(headerLength);
+        buf.writeInt(middleLength);
+        buf.writeInt(endLength);
+        buf.writeByte(getType());
+        final ByteBuf ByteBuf = Unpooled.wrappedBuffer(
+                buf, newHeader, newMiddle, newEnd);
+        return ByteBuf;
+    }
+
+    public void clear() {
+        if (header != null) {
+            header.release();
+            header = null;
+        }
+        if (middle != null) {
+            middle.release();
+            middle = null;
+        }
+        if (end != null) {
+            end.release();
+            end = null;
+        }
+    }
 }

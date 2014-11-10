@@ -42,146 +42,150 @@ import org.waarp.openr66.protocol.utils.R66Future;
  */
 public class SubmitTransfer extends AbstractTransfer {
 
-	public SubmitTransfer(R66Future future, String remoteHost,
-			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
-			long id,
-			Timestamp starttime) {
-		super(SubmitTransfer.class,
-				future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, starttime);
-	}
+    public SubmitTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
+            long id,
+            Timestamp starttime) {
+        super(SubmitTransfer.class,
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, starttime);
+    }
 
-	public void run() {
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
-		}
-		if (! DbConstant.admin.isActive) {
-			logger.debug("Client not connected");
-			R66Result result = new R66Result(new OpenR66DatabaseGlobalException("No database connexion"), null, true,
-					ErrorCode.Internal, null);
-			future.setResult(result);
-			future.setFailure(result.exception);
-			return;
-		}
-		long srcId = id;
-		DbTaskRunner taskRunner = this.initRequest();
-		if (taskRunner == null) {
-			logger.debug("Cannot prepare task");
-			if (future.isFailed() && future.getResult() != null) {
-				return;
-			}
-			R66Result result = new R66Result(new OpenR66DatabaseGlobalException(), null, true,
-					ErrorCode.Internal, taskRunner);
-			future.setResult(result);
-			future.setFailure(result.exception);
-			return;
-		}
-		if (srcId != DbConstant.ILLEGALVALUE) {
-			// Resubmit call, some checks are needed
-			if (! taskRunner.restart(true)) {
-				// cannot be done from there => must be done through IHM
-				logger.debug("Cannot prepare task from there. IHM must be used");
-				R66Result result = new R66Result(
-						new OpenR66DatabaseGlobalException("Cannot prepare task from there. IHM must be used"), 
-						null, true,
-						ErrorCode.Internal, taskRunner);
-				future.setResult(result);
-				future.setFailure(result.exception);
-				return;
-			}
-		} else {
-			taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
-		}
-		if (!taskRunner.forceSaveStatus()) {
-			try {
-				if (! taskRunner.specialSubmit()) {
-					logger.debug("Cannot prepare task");
-					R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null, true,
-							ErrorCode.Internal, taskRunner);
-					future.setResult(result);
-					future.setFailure(result.exception);
-					return;
-				}
-			} catch (WaarpDatabaseException e) {
-				logger.debug("Cannot prepare task");
-				R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null, true,
-						ErrorCode.Internal, taskRunner);
-				future.setResult(result);
-				future.setFailure(result.exception);
-				return;
-			}
-		}
-		R66Result result = new R66Result(null, false, ErrorCode.InitOk, taskRunner);
-		future.setResult(result);
-		future.setSuccess();
-	}
+    public void run() {
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
+        }
+        if (!DbConstant.admin.isActive) {
+            logger.debug("Client not connected");
+            R66Result result = new R66Result(new OpenR66DatabaseGlobalException("No database connexion"), null, true,
+                    ErrorCode.Internal, null);
+            future.setResult(result);
+            future.setFailure(result.exception);
+            return;
+        }
+        long srcId = id;
+        DbTaskRunner taskRunner = this.initRequest();
+        if (taskRunner == null) {
+            logger.debug("Cannot prepare task");
+            if (future.isFailed() && future.getResult() != null) {
+                return;
+            }
+            R66Result result = new R66Result(new OpenR66DatabaseGlobalException(), null, true,
+                    ErrorCode.Internal, taskRunner);
+            future.setResult(result);
+            future.setFailure(result.exception);
+            return;
+        }
+        if (srcId != DbConstant.ILLEGALVALUE) {
+            // Resubmit call, some checks are needed
+            if (!taskRunner.restart(true)) {
+                // cannot be done from there => must be done through IHM
+                logger.debug("Cannot prepare task from there. IHM must be used");
+                R66Result result = new R66Result(
+                        new OpenR66DatabaseGlobalException("Cannot prepare task from there. IHM must be used"),
+                        null, true,
+                        ErrorCode.Internal, taskRunner);
+                future.setResult(result);
+                future.setFailure(result.exception);
+                return;
+            }
+        } else {
+            taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+        }
+        if (!taskRunner.forceSaveStatus()) {
+            try {
+                if (!taskRunner.specialSubmit()) {
+                    logger.debug("Cannot prepare task");
+                    R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null,
+                            true,
+                            ErrorCode.Internal, taskRunner);
+                    future.setResult(result);
+                    future.setFailure(result.exception);
+                    return;
+                }
+            } catch (WaarpDatabaseException e) {
+                logger.debug("Cannot prepare task");
+                R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null, true,
+                        ErrorCode.Internal, taskRunner);
+                future.setResult(result);
+                future.setFailure(result.exception);
+                return;
+            }
+        }
+        R66Result result = new R66Result(null, false, ErrorCode.InitOk, taskRunner);
+        future.setResult(result);
+        future.setSuccess();
+    }
 
-	/**
-	 * 
-	 * @param args
-	 *            configuration file, the remoteHost Id, the file to transfer, the rule, file
-	 *            transfer information as arguments and optionally isMD5=1 for true or 0 for
-	 *            false(default) and the blocksize if different than default
-	 */
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
-		}
-		if (!getParams(args, true)) {
-			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! OutputFormat.isQuiet()) {
-				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			}
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(1);
-		}
-		R66Future future = new R66Future(true);
-		SubmitTransfer transaction = new SubmitTransfer(future,
-				rhost, localFilename, rule, fileInfo, ismd5, block, idt,
-				ttimestart);
-		transaction.normalInfoAsWarn = snormalInfoAsWarn;
-		transaction.run();
-		future.awaitUninterruptibly();
-		DbTaskRunner runner = future.getResult().runner;
-		OutputFormat outputFormat = new OutputFormat(SubmitTransfer.class.getSimpleName(), args);
-		if (future.isSuccess()) {
-			outputFormat.setValue(FIELDS.status.name(), 0);
-			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
-			outputFormat.setValue(FIELDS.remote.name(), rhost);
-			outputFormat.setValueString(runner.getJson());
-			if (transaction.normalInfoAsWarn) {
-				logger.warn(outputFormat.loggerOut());
-			} else {
-				logger.info(outputFormat.loggerOut());
-			}
-			if (! OutputFormat.isQuiet()) {
-				outputFormat.sysout();
-			}
-		} else {
-			outputFormat.setValue(FIELDS.status.name(), 2);
-			if (runner == null) {
-				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
-				outputFormat.setValue(FIELDS.remote.name(), rhost);
-			} else {
-				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
-				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				outputFormat.setValueString(runner.getJson());
-			}
-			logger.error(outputFormat.loggerOut(), future.getCause());
-			if (future.getCause() != null) {
-				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
-			}
-			if (! OutputFormat.isQuiet()) {
-				outputFormat.sysout();
-			}
-			DbConstant.admin.close();
-			ChannelUtils.stopLogger();
-			System.exit(future.getResult().code.ordinal());
-		}
-		DbConstant.admin.close();
-	}
+    /**
+     * 
+     * @param args
+     *            configuration file, the remoteHost Id, the file to transfer, the rule, file
+     *            transfer information as arguments and optionally isMD5=1 for true or 0 for
+     *            false(default) and the blocksize if different than default
+     */
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
+        }
+        if (!getParams(args, true)) {
+            logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            if (!OutputFormat.isQuiet()) {
+                System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            }
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(1);
+        }
+        R66Future future = new R66Future(true);
+        SubmitTransfer transaction = new SubmitTransfer(future,
+                rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+                ttimestart);
+        transaction.normalInfoAsWarn = snormalInfoAsWarn;
+        transaction.run();
+        future.awaitUninterruptibly();
+        DbTaskRunner runner = future.getResult().runner;
+        OutputFormat outputFormat = new OutputFormat(SubmitTransfer.class.getSimpleName(), args);
+        if (future.isSuccess()) {
+            outputFormat.setValue(FIELDS.status.name(), 0);
+            outputFormat.setValue(FIELDS.statusTxt.name(),
+                    Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+            outputFormat.setValue(FIELDS.remote.name(), rhost);
+            outputFormat.setValueString(runner.getJson());
+            if (transaction.normalInfoAsWarn) {
+                logger.warn(outputFormat.loggerOut());
+            } else {
+                logger.info(outputFormat.loggerOut());
+            }
+            if (!OutputFormat.isQuiet()) {
+                outputFormat.sysout();
+            }
+        } else {
+            outputFormat.setValue(FIELDS.status.name(), 2);
+            if (runner == null) {
+                outputFormat.setValue(FIELDS.statusTxt.name(),
+                        Messages.getString("SubmitTransfer.3") + Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+                outputFormat.setValue(FIELDS.remote.name(), rhost);
+            } else {
+                outputFormat.setValue(FIELDS.statusTxt.name(),
+                        Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                outputFormat.setValueString(runner.getJson());
+            }
+            logger.error(outputFormat.loggerOut(), future.getCause());
+            if (future.getCause() != null) {
+                outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+            }
+            if (!OutputFormat.isQuiet()) {
+                outputFormat.sysout();
+            }
+            DbConstant.admin.close();
+            ChannelUtils.stopLogger();
+            System.exit(future.getResult().code.ordinal());
+        }
+        DbConstant.admin.close();
+    }
 
 }

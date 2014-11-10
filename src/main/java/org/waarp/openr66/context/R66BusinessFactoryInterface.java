@@ -22,12 +22,12 @@ package org.waarp.openr66.context;
  * 
  */
 public interface R66BusinessFactoryInterface {
-	/**
-	 * 
-	 * @param session
-	 * @return a Business object (new or same, depending on the implementation), maybe null
-	 */
-	public R66BusinessInterface getBusinessInterface(R66Session session);
+    /**
+     * 
+     * @param session
+     * @return a Business object (new or same, depending on the implementation), maybe null
+     */
+    public R66BusinessInterface getBusinessInterface(R66Session session);
 
-	public void releaseResources();
+    public void releaseResources();
 }

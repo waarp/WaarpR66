@@ -30,78 +30,78 @@ import org.waarp.common.state.Transition;
  * 
  */
 public enum R66FiniteDualStates {
-	OPENEDCHANNEL, CLOSEDCHANNEL, ERROR,
-	STARTUP,
-	AUTHENTR, AUTHENTD,
-	REQUESTR, REQUESTD, VALID,
-	DATAR, DATAS,
-	ENDTRANSFERR, ENDREQUESTR,
-	ENDTRANSFERS, ENDREQUESTS,
-	TEST, INFORMATION, VALIDOTHER,
-	SHUTDOWN, BUSINESSR, BUSINESSD;
-	// not used in LSH
-	// CONNECTERROR,
-	// KEEPALIVEPACKET;
+    OPENEDCHANNEL, CLOSEDCHANNEL, ERROR,
+    STARTUP,
+    AUTHENTR, AUTHENTD,
+    REQUESTR, REQUESTD, VALID,
+    DATAR, DATAS,
+    ENDTRANSFERR, ENDREQUESTR,
+    ENDTRANSFERS, ENDREQUESTS,
+    TEST, INFORMATION, VALIDOTHER,
+    SHUTDOWN, BUSINESSR, BUSINESSD;
+    // not used in LSH
+    // CONNECTERROR,
+    // KEEPALIVEPACKET;
 
-	private static enum R66Transition {
-		tOPENEDCHANNEL(OPENEDCHANNEL, EnumSet.of(STARTUP, CLOSEDCHANNEL, ERROR)),
-		tSTARTUP(STARTUP, EnumSet.of(AUTHENTR, AUTHENTD, CLOSEDCHANNEL, ERROR)),
-		tAUTHENTR(AUTHENTR, EnumSet.of(AUTHENTD, CLOSEDCHANNEL, ERROR)),
-		tAUTHENTD(AUTHENTD, EnumSet.of(REQUESTR, VALIDOTHER, INFORMATION, SHUTDOWN, TEST,
-				BUSINESSR, BUSINESSD, ENDREQUESTS, CLOSEDCHANNEL, ERROR)),
-		tREQUESTR(REQUESTR, EnumSet.of(VALID, REQUESTD, CLOSEDCHANNEL, ERROR)),
-		tREQUESTD(REQUESTD, EnumSet.of(VALID, DATAS, DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
-		tVALID(VALID, EnumSet.of(REQUESTD, DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
-		tDATAS(DATAS, EnumSet.of(DATAS, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
-		tDATAR(DATAR, EnumSet.of(DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
-		tENDTRANSFERS(ENDTRANSFERS, EnumSet.of(ENDTRANSFERR, CLOSEDCHANNEL, ERROR)),
-		tENDTRANSFERR(ENDTRANSFERR, EnumSet.of(ENDREQUESTS, CLOSEDCHANNEL, ERROR)),
-		tENDREQUESTS(ENDREQUESTS, EnumSet.of(ENDREQUESTR, CLOSEDCHANNEL, ERROR)),
-		tENDREQUESTR(ENDREQUESTR, EnumSet.of(CLOSEDCHANNEL, ERROR)),
-		tINFORMATION(INFORMATION, EnumSet.of(VALIDOTHER, CLOSEDCHANNEL, ERROR)),
-		tTEST(TEST, EnumSet.of(TEST, VALIDOTHER)),
-		tVALIDOTHER(VALIDOTHER, EnumSet.of(VALIDOTHER, CLOSEDCHANNEL, ERROR)),
-		tSHUTDOWN(SHUTDOWN, EnumSet.of(CLOSEDCHANNEL, SHUTDOWN, ERROR)),
-		tERROR(ERROR, EnumSet.of(ERROR, SHUTDOWN, CLOSEDCHANNEL)),
-		tCLOSEDCHANNEL(CLOSEDCHANNEL, EnumSet.noneOf(R66FiniteDualStates.class)),
-		tBUSINESSR(BUSINESSR, EnumSet.of(ERROR, BUSINESSD, CLOSEDCHANNEL, VALIDOTHER)),
-		tBUSINESSD(BUSINESSD, EnumSet.of(ERROR, BUSINESSD, BUSINESSR, CLOSEDCHANNEL, VALIDOTHER));
+    private static enum R66Transition {
+        tOPENEDCHANNEL(OPENEDCHANNEL, EnumSet.of(STARTUP, CLOSEDCHANNEL, ERROR)),
+        tSTARTUP(STARTUP, EnumSet.of(AUTHENTR, AUTHENTD, CLOSEDCHANNEL, ERROR)),
+        tAUTHENTR(AUTHENTR, EnumSet.of(AUTHENTD, CLOSEDCHANNEL, ERROR)),
+        tAUTHENTD(AUTHENTD, EnumSet.of(REQUESTR, VALIDOTHER, INFORMATION, SHUTDOWN, TEST,
+                BUSINESSR, BUSINESSD, ENDREQUESTS, CLOSEDCHANNEL, ERROR)),
+        tREQUESTR(REQUESTR, EnumSet.of(VALID, REQUESTD, CLOSEDCHANNEL, ERROR)),
+        tREQUESTD(REQUESTD, EnumSet.of(VALID, DATAS, DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
+        tVALID(VALID, EnumSet.of(REQUESTD, DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
+        tDATAS(DATAS, EnumSet.of(DATAS, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
+        tDATAR(DATAR, EnumSet.of(DATAR, ENDTRANSFERS, CLOSEDCHANNEL, ERROR)),
+        tENDTRANSFERS(ENDTRANSFERS, EnumSet.of(ENDTRANSFERR, CLOSEDCHANNEL, ERROR)),
+        tENDTRANSFERR(ENDTRANSFERR, EnumSet.of(ENDREQUESTS, CLOSEDCHANNEL, ERROR)),
+        tENDREQUESTS(ENDREQUESTS, EnumSet.of(ENDREQUESTR, CLOSEDCHANNEL, ERROR)),
+        tENDREQUESTR(ENDREQUESTR, EnumSet.of(CLOSEDCHANNEL, ERROR)),
+        tINFORMATION(INFORMATION, EnumSet.of(VALIDOTHER, CLOSEDCHANNEL, ERROR)),
+        tTEST(TEST, EnumSet.of(TEST, VALIDOTHER)),
+        tVALIDOTHER(VALIDOTHER, EnumSet.of(VALIDOTHER, CLOSEDCHANNEL, ERROR)),
+        tSHUTDOWN(SHUTDOWN, EnumSet.of(CLOSEDCHANNEL, SHUTDOWN, ERROR)),
+        tERROR(ERROR, EnumSet.of(ERROR, SHUTDOWN, CLOSEDCHANNEL)),
+        tCLOSEDCHANNEL(CLOSEDCHANNEL, EnumSet.noneOf(R66FiniteDualStates.class)),
+        tBUSINESSR(BUSINESSR, EnumSet.of(ERROR, BUSINESSD, CLOSEDCHANNEL, VALIDOTHER)),
+        tBUSINESSD(BUSINESSD, EnumSet.of(ERROR, BUSINESSD, BUSINESSR, CLOSEDCHANNEL, VALIDOTHER));
 
-		public Transition<R66FiniteDualStates> elt;
+        public Transition<R66FiniteDualStates> elt;
 
-		private R66Transition(R66FiniteDualStates state, EnumSet<R66FiniteDualStates> set) {
-			this.elt = new Transition<R66FiniteDualStates>(state, set);
-		}
-	}
+        private R66Transition(R66FiniteDualStates state, EnumSet<R66FiniteDualStates> set) {
+            this.elt = new Transition<R66FiniteDualStates>(state, set);
+        }
+    }
 
-	private static ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>> stateMap =
-			new ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>>();
+    private static ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>> stateMap =
+            new ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>>();
 
-	/**
-	 * This method should be called once at startup to initialize the Finite States association.
-	 */
-	public static void initR66FiniteStates() {
-		for (R66Transition trans : R66Transition.values()) {
-			stateMap.put(trans.elt.state, trans.elt.set);
-		}
-	}
+    /**
+     * This method should be called once at startup to initialize the Finite States association.
+     */
+    public static void initR66FiniteStates() {
+        for (R66Transition trans : R66Transition.values()) {
+            stateMap.put(trans.elt.state, trans.elt.set);
+        }
+    }
 
-	/**
-	 * 
-	 * @return a new Session MachineState for OpenR66
-	 */
-	public static MachineState<R66FiniteDualStates> newSessionMachineState() {
-		MachineState<R66FiniteDualStates> machine =
-				new MachineState<R66FiniteDualStates>(OPENEDCHANNEL, stateMap);
-		return machine;
-	}
+    /**
+     * 
+     * @return a new Session MachineState for OpenR66
+     */
+    public static MachineState<R66FiniteDualStates> newSessionMachineState() {
+        MachineState<R66FiniteDualStates> machine =
+                new MachineState<R66FiniteDualStates>(OPENEDCHANNEL, stateMap);
+        return machine;
+    }
 
-	/**
-	 * 
-	 * @param machine
-	 *            the Session MachineState to release
-	 */
-	public static void endSessionMachineSate(MachineState<R66FiniteDualStates> machine) {
-		machine.release();
-	}
+    /**
+     * 
+     * @param machine
+     *            the Session MachineState to release
+     */
+    public static void endSessionMachineSate(MachineState<R66FiniteDualStates> machine) {
+        machine.release();
+    }
 }

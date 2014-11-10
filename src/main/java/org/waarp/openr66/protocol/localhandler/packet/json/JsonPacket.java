@@ -35,87 +35,90 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * 
  * @author frederic bregier
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class JsonPacket {
-	/**
-	 * @return the ObjectNode corresponding to this object
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public ObjectNode createObjectNode() throws OpenR66ProtocolPacketException {
-		try {
-			String value = JsonHandler.mapper.writeValueAsString(this);
-			return (ObjectNode) JsonHandler.mapper.readTree(value);
-		} catch (JsonProcessingException e) {
-			throw new OpenR66ProtocolPacketException("Json exception", e);
-		} catch (IOException e) {
-			throw new OpenR66ProtocolPacketException("Json exception", e);
-		}
-	}
-	
-	private String comment;
-	private byte requestUserPacket;
+    /**
+     * @return the ObjectNode corresponding to this object
+     * @throws OpenR66ProtocolPacketException
+     */
+    public ObjectNode createObjectNode() throws OpenR66ProtocolPacketException {
+        try {
+            String value = JsonHandler.mapper.writeValueAsString(this);
+            return (ObjectNode) JsonHandler.mapper.readTree(value);
+        } catch (JsonProcessingException e) {
+            throw new OpenR66ProtocolPacketException("Json exception", e);
+        } catch (IOException e) {
+            throw new OpenR66ProtocolPacketException("Json exception", e);
+        }
+    }
 
-	/**
-	 * @return the requestUserPacket
-	 */
-	public byte getRequestUserPacket() {
-		return requestUserPacket;
-	}
+    private String comment;
+    private byte requestUserPacket;
 
+    /**
+     * @return the requestUserPacket
+     */
+    public byte getRequestUserPacket() {
+        return requestUserPacket;
+    }
 
-	/**
-	 * @param requestUserPacket the requestUserPacket to set
-	 */
-	public void setRequestUserPacket(byte requestUserPacket) {
-		this.requestUserPacket = requestUserPacket;
-	}
+    /**
+     * @param requestUserPacket
+     *            the requestUserPacket to set
+     */
+    public void setRequestUserPacket(byte requestUserPacket) {
+        this.requestUserPacket = requestUserPacket;
+    }
 
-	/**
-	 * Default value to set
-	 */
-	public void setRequestUserPacket() {
-		throw new IllegalArgumentException("Not defined");
-	}
-	/**
-	 * @return the comment
-	 */
-	public String getComment() {
-		return comment;
-	}
+    /**
+     * Default value to set
+     */
+    public void setRequestUserPacket() {
+        throw new IllegalArgumentException("Not defined");
+    }
 
+    /**
+     * @return the comment
+     */
+    public String getComment() {
+        return comment;
+    }
 
-	/**
-	 * @param comment the comment to set
-	 */
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    /**
+     * @param comment
+     *            the comment to set
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	@Override
-	public String toString() {
-		return JsonHandler.writeAsString(this);
-	}
+    @Override
+    public String toString() {
+        return JsonHandler.writeAsString(this);
+    }
 
-	/**
-	 * @param value
-	 * @return the new JsonPacket from buffer
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
-	 */
-	public static JsonPacket createFromBuffer(String value) throws JsonParseException, JsonMappingException, IOException {
-		if (value != null && ! value.isEmpty()) {
-			return JsonHandler.mapper.readValue(value, JsonPacket.class);
-		}
-		return null;
-	}
+    /**
+     * @param value
+     * @return the new JsonPacket from buffer
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    public static JsonPacket createFromBuffer(String value) throws JsonParseException, JsonMappingException,
+            IOException {
+        if (value != null && !value.isEmpty()) {
+            return JsonHandler.mapper.readValue(value, JsonPacket.class);
+        }
+        return null;
+    }
 
-	/**
-	 * Set from other Json
-	 * @param json
-	 */
-	public void fromJson(JsonPacket json) {
-		this.comment = json.comment;
-		this.requestUserPacket = json.requestUserPacket;
-	}
+    /**
+     * Set from other Json
+     * 
+     * @param json
+     */
+    public void fromJson(JsonPacket json) {
+        this.comment = json.comment;
+        this.requestUserPacket = json.requestUserPacket;
+    }
 }

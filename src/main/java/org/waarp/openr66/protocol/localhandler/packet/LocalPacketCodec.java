@@ -34,43 +34,43 @@ public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		// Make sure if the length field was received.
-		if (buf.readableBytes() < 4) {
-			// The length field was not received yet - return null.
-			// This method will be invoked again when more packets are
-			// received and appended to the buffer.
-			return;
-		}
-		AbstractLocalPacket newbuf = decodeNetworkPacket(buf);
-		if (newbuf != null) {
-		    out.add(newbuf);
-		}
-	}
+        // Make sure if the length field was received.
+        if (buf.readableBytes() < 4) {
+            // The length field was not received yet - return null.
+            // This method will be invoked again when more packets are
+            // received and appended to the buffer.
+            return;
+        }
+        AbstractLocalPacket newbuf = decodeNetworkPacket(buf);
+        if (newbuf != null) {
+            out.add(newbuf);
+        }
+    }
 
-	public static AbstractLocalPacket decodeNetworkPacket(ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		// Mark the current buffer position
-		buf.markReaderIndex();
-		// Read the length field
-		final int length = buf.readInt();
-		if (buf.readableBytes() < length) {
-			buf.resetReaderIndex();
-			return null;
-		}
-		// Now we can read the header
-		// Header: Header length field (4 bytes) = Middle length field (4
-		// bytes), End length field (4 bytes), type field (1 byte), ...
-		final int middleLength = buf.readInt();
-		final int endLength = buf.readInt();
-		// check if the packet is complete
-		if (middleLength + endLength + length - 8 > buf.readableBytes()) {
-			buf.resetReaderIndex();
-			return null;
-		}
-		// createPacketFromByteBuf read the buffer
-		return LocalPacketFactory.createPacketFromByteBuf(length - 8,
-				middleLength, endLength, buf);
-	}
+    public static AbstractLocalPacket decodeNetworkPacket(ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        // Mark the current buffer position
+        buf.markReaderIndex();
+        // Read the length field
+        final int length = buf.readInt();
+        if (buf.readableBytes() < length) {
+            buf.resetReaderIndex();
+            return null;
+        }
+        // Now we can read the header
+        // Header: Header length field (4 bytes) = Middle length field (4
+        // bytes), End length field (4 bytes), type field (1 byte), ...
+        final int middleLength = buf.readInt();
+        final int endLength = buf.readInt();
+        // check if the packet is complete
+        if (middleLength + endLength + length - 8 > buf.readableBytes()) {
+            buf.resetReaderIndex();
+            return null;
+        }
+        // createPacketFromByteBuf read the buffer
+        return LocalPacketFactory.createPacketFromByteBuf(length - 8,
+                middleLength, endLength, buf);
+    }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, AbstractLocalPacket msg, ByteBuf out) throws Exception {
@@ -81,6 +81,6 @@ public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
         final ByteBuf buf = msg.getLocalPacket(null);
         out.writeBytes(buf);
         buf.release();
-	}
+    }
 
 }

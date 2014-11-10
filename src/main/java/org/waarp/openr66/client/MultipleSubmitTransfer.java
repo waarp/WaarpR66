@@ -50,207 +50,221 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -to host3 -file file1<br>
  * -to host3 -file file2<br>
  * <br>
- * <br>Extra option is -client which allows the filename resolution on remote (recv files) when using wildcards.<br>
+ * <br>
+ * Extra option is -client which allows the filename resolution on remote (recv files) when using wildcards.<br>
  * 
  * @author Frederic Bregier
  * 
  */
 public class MultipleSubmitTransfer extends SubmitTransfer {
-	public int errorMultiple = 0;
-	public int doneMultiple = 0;
-	protected boolean submit = false;
-	protected NetworkTransaction networkTransaction = null;
-	public List<OutputFormat> results = new ArrayList<OutputFormat>();
+    public int errorMultiple = 0;
+    public int doneMultiple = 0;
+    protected boolean submit = false;
+    protected NetworkTransaction networkTransaction = null;
+    public List<OutputFormat> results = new ArrayList<OutputFormat>();
 
-	public MultipleSubmitTransfer(R66Future future, String remoteHost,
-			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
-			long id,
-			Timestamp starttime, NetworkTransaction networkTransaction) {
-		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, starttime);
-		this.networkTransaction = networkTransaction;
-	}
+    public MultipleSubmitTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
+            long id,
+            Timestamp starttime, NetworkTransaction networkTransaction) {
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, starttime);
+        this.networkTransaction = networkTransaction;
+    }
 
-	
-	@Override
-	public void run() {
-		String [] localfilenames = filename.split(",");
-		String [] rhosts = remoteHost.split(",");
-		R66Result resultError = null;
+    @Override
+    public void run() {
+        String[] localfilenames = filename.split(",");
+        String[] rhosts = remoteHost.split(",");
+        R66Result resultError = null;
 
-		// first check if filenames contains wildcards
-		DbRule dbrule = null;
-		try {
-			dbrule = new DbRule(DbConstant.admin.session, rulename);
-		} catch (WaarpDatabaseException e) {
-			logger.error(Messages.getString("SubmitTransfer.2")+rule); //$NON-NLS-1$
-			ChannelUtils.stopLogger();
-			System.exit(2);
-		}
-        if (! submit && dbrule.isRecvMode() && networkTransaction == null) {
-            logger.error(Messages.getString("Configuration.WrongInit")+" => -client argument is missing"); //$NON-NLS-1$
+        // first check if filenames contains wildcards
+        DbRule dbrule = null;
+        try {
+            dbrule = new DbRule(DbConstant.admin.session, rulename);
+        } catch (WaarpDatabaseException e) {
+            logger.error(Messages.getString("SubmitTransfer.2") + rule); //$NON-NLS-1$
             ChannelUtils.stopLogger();
             System.exit(2);
         }
-		List<String> files = null;
-		if (dbrule.isSendMode()) {
-			files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
-		} else if (submit) {
-			files = new ArrayList<String>();
-			for (String string : localfilenames) {
-				files.add(string);
-			}
-		}
-		for (String host : rhosts) {
-			host = host.trim();
-			if (host != null && ! host.isEmpty()) {
-				if (! submit && dbrule.isRecvMode()) {
-					files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
-				}
-				for (String filename : files) {
-					filename = filename.trim();
-					if (filename != null && ! filename.isEmpty()) {
-						R66Future future = new R66Future(true);
-						SubmitTransfer transaction = new SubmitTransfer(future,
-								host, filename, rule, fileInfo, ismd5, block, idt,
-								ttimestart);
-						transaction.normalInfoAsWarn = normalInfoAsWarn;
-						transaction.run();
-						future.awaitUninterruptibly();
-						DbTaskRunner runner = future.getResult().runner;
-						OutputFormat outputFormat = new OutputFormat(MultipleSubmitTransfer.class.getSimpleName(), null);
-						if (future.isSuccess()) {
-							outputFormat.setValue(FIELDS.status.name(), 0);
-							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
-							outputFormat.setValue(FIELDS.remote.name(), host);
-							outputFormat.setValueString(runner.getJson());
-							results.add(outputFormat);
-							if (transaction.normalInfoAsWarn) {
-								logger.warn(outputFormat.loggerOut());
-							} else {
-								logger.info(outputFormat.loggerOut());
-							}
-							doneMultiple++;
-						} else {
-							outputFormat.setValue(FIELDS.status.name(), 2);
-							if (runner == null) {
-								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
-								outputFormat.setValue(FIELDS.remote.name(), host);
-							} else {
-								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
-								outputFormat.setValue(FIELDS.remote.name(), host);
-								outputFormat.setValueString(runner.getJson());
-							}
-							logger.error(outputFormat.loggerOut(), future.getCause());
-							if (future.getCause() != null) {
-								outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
-							}
-							results.add(outputFormat);
-							errorMultiple++;
-							resultError = future.getResult();
-						}
-					}
-				}
-			}
-		}
-		if (errorMultiple > 0) {
-			if (resultError != null) {
-				this.future.setResult(resultError);
-			}
-			this.future.cancel();
-		} else {
-			this.future.setSuccess();
-		}
-	}
+        if (!submit && dbrule.isRecvMode() && networkTransaction == null) {
+            logger.error(Messages.getString("Configuration.WrongInit") + " => -client argument is missing"); //$NON-NLS-1$
+            ChannelUtils.stopLogger();
+            System.exit(2);
+        }
+        List<String> files = null;
+        if (dbrule.isSendMode()) {
+            files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
+        } else if (submit) {
+            files = new ArrayList<String>();
+            for (String string : localfilenames) {
+                files.add(string);
+            }
+        }
+        for (String host : rhosts) {
+            host = host.trim();
+            if (host != null && !host.isEmpty()) {
+                if (!submit && dbrule.isRecvMode()) {
+                    files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+                }
+                for (String filename : files) {
+                    filename = filename.trim();
+                    if (filename != null && !filename.isEmpty()) {
+                        R66Future future = new R66Future(true);
+                        SubmitTransfer transaction = new SubmitTransfer(future,
+                                host, filename, rule, fileInfo, ismd5, block, idt,
+                                ttimestart);
+                        transaction.normalInfoAsWarn = normalInfoAsWarn;
+                        transaction.run();
+                        future.awaitUninterruptibly();
+                        DbTaskRunner runner = future.getResult().runner;
+                        OutputFormat outputFormat = new OutputFormat(MultipleSubmitTransfer.class.getSimpleName(), null);
+                        if (future.isSuccess()) {
+                            outputFormat.setValue(FIELDS.status.name(), 0);
+                            outputFormat
+                                    .setValue(
+                                            FIELDS.statusTxt.name(),
+                                            Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+                            outputFormat.setValue(FIELDS.remote.name(), host);
+                            outputFormat.setValueString(runner.getJson());
+                            results.add(outputFormat);
+                            if (transaction.normalInfoAsWarn) {
+                                logger.warn(outputFormat.loggerOut());
+                            } else {
+                                logger.info(outputFormat.loggerOut());
+                            }
+                            doneMultiple++;
+                        } else {
+                            outputFormat.setValue(FIELDS.status.name(), 2);
+                            if (runner == null) {
+                                outputFormat
+                                        .setValue(
+                                                FIELDS.statusTxt.name(),
+                                                Messages.getString("SubmitTransfer.3") + Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+                                outputFormat.setValue(FIELDS.remote.name(), host);
+                            } else {
+                                outputFormat
+                                        .setValue(
+                                                FIELDS.statusTxt.name(),
+                                                Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+                                outputFormat.setValue(FIELDS.remote.name(), host);
+                                outputFormat.setValueString(runner.getJson());
+                            }
+                            logger.error(outputFormat.loggerOut(), future.getCause());
+                            if (future.getCause() != null) {
+                                outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+                            }
+                            results.add(outputFormat);
+                            errorMultiple++;
+                            resultError = future.getResult();
+                        }
+                    }
+                }
+            }
+        }
+        if (errorMultiple > 0) {
+            if (resultError != null) {
+                this.future.setResult(resultError);
+            }
+            this.future.cancel();
+        } else {
+            this.future.setSuccess();
+        }
+    }
 
-
-	/**
-	 * 
-	 * @param args
-	 *            configuration file, the remoteHost Id, the file to transfer, the rule, file
-	 *            transfer information as arguments and optionally isMD5=1 for true or 0 for
-	 *            false(default) and the blocksize if different than default
-	 */
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(MultipleSubmitTransfer.class);
-		}
-		boolean submit = true;
-		for (String string : args) {
-			if (string.equalsIgnoreCase("-client")) {
-				submit = false;
-			}
-		}
-		if (!getParams(args, submit)) {
-			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! OutputFormat.isQuiet()) {
-				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			}
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(1);
-		}
-		NetworkTransaction networkTransaction = null;
-		if (! submit) {
-			Configuration.configuration.pipelineInit();
-			networkTransaction = new NetworkTransaction();
-		}
-		try {
-			R66Future future = new R66Future(true);
-			MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
-					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
-					ttimestart, networkTransaction);
-			transaction.normalInfoAsWarn = snormalInfoAsWarn;
-			transaction.run();
-			future.awaitUninterruptibly();
-			OutputFormat outputFormat = new OutputFormat("Unique "+MultipleSubmitTransfer.class.getSimpleName(), args);
-			if (future.isSuccess()) {
-				outputFormat.setValue(FIELDS.status.name(), 0);
-				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
-				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				outputFormat.setValue("ok", transaction.doneMultiple);
-				if (transaction.normalInfoAsWarn) {
-					logger.warn(outputFormat.loggerOut());
-				} else {
-					logger.info(outputFormat.loggerOut());
-				}
-				if (! OutputFormat.isQuiet()) {
-					outputFormat.sysout();
-					for (OutputFormat result : transaction.results) {
-						System.out.println();
-						result.sysout();
-					}
-				}
-			} else {
-				outputFormat.setValue(FIELDS.status.name(), 2);
-				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("SubmitTransfer.14")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
-				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				outputFormat.setValue("ok", transaction.doneMultiple);
-				outputFormat.setValue("ko", transaction.errorMultiple);
-				logger.error(outputFormat.loggerOut());
-				if (! OutputFormat.isQuiet()) {
-					outputFormat.sysout();
-					for (OutputFormat result : transaction.results) {
-						System.out.println();
-						result.sysout();
-					}
-				}
-				if (networkTransaction != null)  {
-					networkTransaction.closeAll();
-					networkTransaction = null;
-				}
-				DbConstant.admin.close();
-				ChannelUtils.stopLogger();
-				System.exit(transaction.errorMultiple);
-			}
-			DbConstant.admin.close();
-		} finally {
-			if (networkTransaction != null)  {
-				networkTransaction.closeAll();
-			}
-		}
-	}
+    /**
+     * 
+     * @param args
+     *            configuration file, the remoteHost Id, the file to transfer, the rule, file
+     *            transfer information as arguments and optionally isMD5=1 for true or 0 for
+     *            false(default) and the blocksize if different than default
+     */
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(MultipleSubmitTransfer.class);
+        }
+        boolean submit = true;
+        for (String string : args) {
+            if (string.equalsIgnoreCase("-client")) {
+                submit = false;
+            }
+        }
+        if (!getParams(args, submit)) {
+            logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            if (!OutputFormat.isQuiet()) {
+                System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            }
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(1);
+        }
+        NetworkTransaction networkTransaction = null;
+        if (!submit) {
+            Configuration.configuration.pipelineInit();
+            networkTransaction = new NetworkTransaction();
+        }
+        try {
+            R66Future future = new R66Future(true);
+            MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
+                    rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+                    ttimestart, networkTransaction);
+            transaction.normalInfoAsWarn = snormalInfoAsWarn;
+            transaction.run();
+            future.awaitUninterruptibly();
+            OutputFormat outputFormat = new OutputFormat("Unique " + MultipleSubmitTransfer.class.getSimpleName(), args);
+            if (future.isSuccess()) {
+                outputFormat.setValue(FIELDS.status.name(), 0);
+                outputFormat
+                        .setValue(
+                                FIELDS.statusTxt.name(),
+                                "Multiple " + Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                outputFormat.setValue("ok", transaction.doneMultiple);
+                if (transaction.normalInfoAsWarn) {
+                    logger.warn(outputFormat.loggerOut());
+                } else {
+                    logger.info(outputFormat.loggerOut());
+                }
+                if (!OutputFormat.isQuiet()) {
+                    outputFormat.sysout();
+                    for (OutputFormat result : transaction.results) {
+                        System.out.println();
+                        result.sysout();
+                    }
+                }
+            } else {
+                outputFormat.setValue(FIELDS.status.name(), 2);
+                outputFormat
+                        .setValue(
+                                FIELDS.statusTxt.name(),
+                                "Multiple " + Messages.getString("SubmitTransfer.14") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+                outputFormat.setValue(FIELDS.remote.name(), rhost);
+                outputFormat.setValue("ok", transaction.doneMultiple);
+                outputFormat.setValue("ko", transaction.errorMultiple);
+                logger.error(outputFormat.loggerOut());
+                if (!OutputFormat.isQuiet()) {
+                    outputFormat.sysout();
+                    for (OutputFormat result : transaction.results) {
+                        System.out.println();
+                        result.sysout();
+                    }
+                }
+                if (networkTransaction != null) {
+                    networkTransaction.closeAll();
+                    networkTransaction = null;
+                }
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(transaction.errorMultiple);
+            }
+            DbConstant.admin.close();
+        } finally {
+            if (networkTransaction != null) {
+                networkTransaction.closeAll();
+            }
+        }
+    }
 
 }

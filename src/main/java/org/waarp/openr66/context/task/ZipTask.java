@@ -35,74 +35,74 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class ZipTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(ZipTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(ZipTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public ZipTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.ZIP, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public ZipTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.ZIP, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("ZIP with " + argRule + ":" + argTransfer + ":" + delay + " and {}",
-				session);
-		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" "));
-		boolean zip = false;
-		switch (delay) {
-			case 2: {
-				// directory: zip finalname where finalname="target directory"
-				String[] args = finalname.split(" ");
-				zip = ZipUtility.createZipFromDirectory(args[1], args[0], true);
-				break;
-			}
-			case 3: {
-				// list of files: zip finalname where finalname="target file1 file2..."
-				String[] args = finalname.split(" ");
-				List<File> files = new ArrayList<File>(args.length - 1);
-				for (int i = 1; i < args.length; i++) {
-					files.add(new File(args[i]));
-				}
-				zip = ZipUtility.createZipFromFiles(files, args[0]);
-				break;
-			}
-			default: {
-				// unzip
-				// directory: unzip finalname where finalname="source directory"
-				String[] args = finalname.split(" ");
-				File zipFile = new File(args[0]);
-				File directory = new File(args[1]);
-				try {
-					ZipUtility.unZip(zipFile, directory);
-					zip = true;
-				} catch (IOException e) {
-					logger.warn("Error while unzip", e);
-					zip = false;
-				}
-				break;
-			}
-		}
-		if (!zip) {
-			logger.error("Zip error with " + argRule + ":" + argTransfer + ":" + delay + " and " +
-					session);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Zip error"));
-			return;
-		}
-		futureCompletion.setSuccess();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("ZIP with " + argRule + ":" + argTransfer + ":" + delay + " and {}",
+                session);
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        boolean zip = false;
+        switch (delay) {
+            case 2: {
+                // directory: zip finalname where finalname="target directory"
+                String[] args = finalname.split(" ");
+                zip = ZipUtility.createZipFromDirectory(args[1], args[0], true);
+                break;
+            }
+            case 3: {
+                // list of files: zip finalname where finalname="target file1 file2..."
+                String[] args = finalname.split(" ");
+                List<File> files = new ArrayList<File>(args.length - 1);
+                for (int i = 1; i < args.length; i++) {
+                    files.add(new File(args[i]));
+                }
+                zip = ZipUtility.createZipFromFiles(files, args[0]);
+                break;
+            }
+            default: {
+                // unzip
+                // directory: unzip finalname where finalname="source directory"
+                String[] args = finalname.split(" ");
+                File zipFile = new File(args[0]);
+                File directory = new File(args[1]);
+                try {
+                    ZipUtility.unZip(zipFile, directory);
+                    zip = true;
+                } catch (IOException e) {
+                    logger.warn("Error while unzip", e);
+                    zip = false;
+                }
+                break;
+            }
+        }
+        if (!zip) {
+            logger.error("Zip error with " + argRule + ":" + argTransfer + ":" + delay + " and " +
+                    session);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException("Zip error"));
+            return;
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

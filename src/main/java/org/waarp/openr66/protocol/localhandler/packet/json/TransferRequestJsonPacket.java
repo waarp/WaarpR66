@@ -26,265 +26,283 @@ import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Transfer request JSON packet
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class TransferRequestJsonPacket extends JsonPacket {
 
-	protected static final byte REQVALIDATE = 0;
+    protected static final byte REQVALIDATE = 0;
 
-	protected static final byte REQANSWERVALIDATE = 1;
+    protected static final byte REQANSWERVALIDATE = 1;
 
-	protected String rulename;
+    protected String rulename;
 
-	protected int mode;
+    protected int mode;
 
-	protected String filename;
-	
-	protected String requested;
+    protected String filename;
 
-	protected int blocksize;
+    protected String requested;
 
-	protected int rank;
+    protected int blocksize;
 
-	protected long specialId;
+    protected int rank;
 
-	protected byte validate;
+    protected long specialId;
 
-	protected long originalSize;
+    protected byte validate;
 
-	protected String fileInformation;
+    protected long originalSize;
 
-	protected String separator = PartnerConfiguration.BAR_JSON_FIELD;
-	
-	protected Date start;
+    protected String fileInformation;
 
-	protected boolean isAdditionalDelay;
-	
-	protected long delay;
-	
-	/**
-	 * @return the isAdditionalDelay
-	 */
-	public boolean isAdditionalDelay() {
-		return isAdditionalDelay;
-	}
+    protected String separator = PartnerConfiguration.BAR_JSON_FIELD;
 
-	/**
-	 * @param isAdditionalDelay the isAdditionalDelay to set
-	 */
-	public void setAdditionalDelay(boolean isAdditionalDelay) {
-		this.isAdditionalDelay = isAdditionalDelay;
-	}
+    protected Date start;
 
-	/**
-	 * @return the delay
-	 */
-	public long getDelay() {
-		return delay;
-	}
+    protected boolean isAdditionalDelay;
 
-	/**
-	 * @param delay the delay to set
-	 */
-	public void setDelay(long delay) {
-		this.delay = delay;
-	}
+    protected long delay;
 
-	/**
-	 * @return the start
-	 */
-	public Date getStart() {
-		return start;
-	}
+    /**
+     * @return the isAdditionalDelay
+     */
+    public boolean isAdditionalDelay() {
+        return isAdditionalDelay;
+    }
 
-	/**
-	 * @param start the start to set
-	 */
-	public void setStart(Date start) {
-		this.start = start;
-	}
+    /**
+     * @param isAdditionalDelay
+     *            the isAdditionalDelay to set
+     */
+    public void setAdditionalDelay(boolean isAdditionalDelay) {
+        this.isAdditionalDelay = isAdditionalDelay;
+    }
 
-	/**
-	 * @return the requested
-	 */
-	public String getRequested() {
-		return requested;
-	}
+    /**
+     * @return the delay
+     */
+    public long getDelay() {
+        return delay;
+    }
 
-	/**
-	 * @param requested the requested to set
-	 */
-	public void setRequested(String requested) {
-		this.requested = requested;
-	}
+    /**
+     * @param delay
+     *            the delay to set
+     */
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
 
-	/**
-	 * @return the rulename
-	 */
-	public String getRulename() {
-		return rulename;
-	}
+    /**
+     * @return the start
+     */
+    public Date getStart() {
+        return start;
+    }
 
-	/**
-	 * @param rulename the rulename to set
-	 */
-	public void setRulename(String rulename) {
-		this.rulename = rulename;
-	}
+    /**
+     * @param start
+     *            the start to set
+     */
+    public void setStart(Date start) {
+        this.start = start;
+    }
 
-	/**
-	 * @return the mode
-	 */
-	public int getMode() {
-		return mode;
-	}
+    /**
+     * @return the requested
+     */
+    public String getRequested() {
+        return requested;
+    }
 
-	/**
-	 * @param mode the mode to set
-	 */
-	public void setMode(int mode) {
-		this.mode = mode;
-	}
+    /**
+     * @param requested
+     *            the requested to set
+     */
+    public void setRequested(String requested) {
+        this.requested = requested;
+    }
 
-	/**
-	 * @return the filename
-	 */
-	public String getFilename() {
-		return filename;
-	}
+    /**
+     * @return the rulename
+     */
+    public String getRulename() {
+        return rulename;
+    }
 
-	/**
-	 * @param filename the filename to set
-	 */
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
+    /**
+     * @param rulename
+     *            the rulename to set
+     */
+    public void setRulename(String rulename) {
+        this.rulename = rulename;
+    }
 
-	/**
-	 * @return the blocksize
-	 */
-	public int getBlocksize() {
-		return blocksize;
-	}
+    /**
+     * @return the mode
+     */
+    public int getMode() {
+        return mode;
+    }
 
-	/**
-	 * @param blocksize the blocksize to set
-	 */
-	public void setBlocksize(int blocksize) {
-		this.blocksize = blocksize;
-	}
+    /**
+     * @param mode
+     *            the mode to set
+     */
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
 
-	/**
-	 * @return the rank
-	 */
-	public int getRank() {
-		return rank;
-	}
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
 
-	/**
-	 * @param rank the rank to set
-	 */
-	public void setRank(int rank) {
-		this.rank = rank;
-	}
+    /**
+     * @param filename
+     *            the filename to set
+     */
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
-	/**
-	 * @return the specialId
-	 */
-	public long getSpecialId() {
-		return specialId;
-	}
+    /**
+     * @return the blocksize
+     */
+    public int getBlocksize() {
+        return blocksize;
+    }
 
-	/**
-	 * @param specialId the specialId to set
-	 */
-	public void setSpecialId(long specialId) {
-		this.specialId = specialId;
-	}
+    /**
+     * @param blocksize
+     *            the blocksize to set
+     */
+    public void setBlocksize(int blocksize) {
+        this.blocksize = blocksize;
+    }
 
-	/**
-	 * @return the validate
-	 */
-	public byte getValidate() {
-		return validate;
-	}
-	/**
-	 * @return True if is to validate
-	 */
-	public boolean isToValidate() {
-		return validate == REQVALIDATE;
-	}
+    /**
+     * @return the rank
+     */
+    public int getRank() {
+        return rank;
+    }
 
-	/**
-	 * @param validate the validate to set
-	 */
-	public void setValidate(byte validate) {
-		this.validate = validate;
-	}
+    /**
+     * @param rank
+     *            the rank to set
+     */
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
 
-	/**
-	 * Validate the request
-	 */
-	public void validate() {
-		this.validate = REQANSWERVALIDATE;
-	}
+    /**
+     * @return the specialId
+     */
+    public long getSpecialId() {
+        return specialId;
+    }
 
-	/**
-	 * @return the originalSize
-	 */
-	public long getOriginalSize() {
-		return originalSize;
-	}
+    /**
+     * @param specialId
+     *            the specialId to set
+     */
+    public void setSpecialId(long specialId) {
+        this.specialId = specialId;
+    }
 
-	/**
-	 * @param originalSize the originalSize to set
-	 */
-	public void setOriginalSize(long originalSize) {
-		this.originalSize = originalSize;
-	}
+    /**
+     * @return the validate
+     */
+    public byte getValidate() {
+        return validate;
+    }
 
-	/**
-	 * @return the fileInformation
-	 */
-	public String getFileInformation() {
-		return fileInformation;
-	}
+    /**
+     * @return True if is to validate
+     */
+    public boolean isToValidate() {
+        return validate == REQVALIDATE;
+    }
 
-	/**
-	 * @param fileInformation the fileInformation to set
-	 */
-	public void setFileInformation(String fileInformation) {
-		this.fileInformation = fileInformation;
-	}
+    /**
+     * @param validate
+     *            the validate to set
+     */
+    public void setValidate(byte validate) {
+        this.validate = validate;
+    }
 
-	/**
-	 * @return the separator
-	 */
-	public String getSeparator() {
-		return separator;
-	}
+    /**
+     * Validate the request
+     */
+    public void validate() {
+        this.validate = REQANSWERVALIDATE;
+    }
 
-	/**
-	 * @param separator the separator to set
-	 */
-	public void setSeparator(String separator) {
-		this.separator = separator;
-	}
-	/**
-	 * Update the JsonPacket from runner (blocksize, rank, specialid)
-	 * @param runner
-	 */
-	public void setFromDbTaskRunner(DbTaskRunner runner) {
-		this.blocksize = runner.getBlocksize();
-		this.rank = runner.getRank();
-		this.specialId = runner.getSpecialId();
-		this.originalSize = runner.getOriginalSize();
-	}
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.REQUESTPACKET);
-	}
+    /**
+     * @return the originalSize
+     */
+    public long getOriginalSize() {
+        return originalSize;
+    }
+
+    /**
+     * @param originalSize
+     *            the originalSize to set
+     */
+    public void setOriginalSize(long originalSize) {
+        this.originalSize = originalSize;
+    }
+
+    /**
+     * @return the fileInformation
+     */
+    public String getFileInformation() {
+        return fileInformation;
+    }
+
+    /**
+     * @param fileInformation
+     *            the fileInformation to set
+     */
+    public void setFileInformation(String fileInformation) {
+        this.fileInformation = fileInformation;
+    }
+
+    /**
+     * @return the separator
+     */
+    public String getSeparator() {
+        return separator;
+    }
+
+    /**
+     * @param separator
+     *            the separator to set
+     */
+    public void setSeparator(String separator) {
+        this.separator = separator;
+    }
+
+    /**
+     * Update the JsonPacket from runner (blocksize, rank, specialid)
+     * 
+     * @param runner
+     */
+    public void setFromDbTaskRunner(DbTaskRunner runner) {
+        this.blocksize = runner.getBlocksize();
+        this.rank = runner.getRank();
+        this.specialId = runner.getSpecialId();
+        this.originalSize = runner.getOriginalSize();
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.REQUESTPACKET);
+    }
 }

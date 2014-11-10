@@ -31,87 +31,94 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
  * @author Frederic Bregier
  */
 public class NetworkPacket {
-	private final ByteBuf buffer;
+    private ByteBuf buffer;
 
-	private final int remoteId;
+    private final int remoteId;
 
-	private final int localId;
+    private final int localId;
 
-	private final byte code;
+    private final byte code;
 
-	/**
-	 * @param localId
-	 * @param remoteId
-	 * @param code
-	 * @param buffer
-	 */
-	public NetworkPacket(int localId, int remoteId, byte code,
-			ByteBuf buffer) {
-		this.remoteId = remoteId;
-		this.localId = localId;
-		this.code = code;
-		this.buffer = buffer;
-	}
+    /**
+     * @param localId
+     * @param remoteId
+     * @param code
+     * @param buffer
+     */
+    public NetworkPacket(int localId, int remoteId, byte code,
+            ByteBuf buffer) {
+        this.remoteId = remoteId;
+        this.localId = localId;
+        this.code = code;
+        this.buffer = buffer;
+    }
 
-	/**
-	 * @param localId
-	 * @param remoteId
-	 * @param packet
-	 * @param lcr the LocalChannelReference in use
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet, LocalChannelReference lcr)
-			throws OpenR66ProtocolPacketException {
-		this.remoteId = remoteId;
-		this.localId = localId;
-		code = packet.getType();
-		buffer = packet.getLocalPacket(lcr);
-	}
+    /**
+     * @param localId
+     * @param remoteId
+     * @param packet
+     * @param lcr
+     *            the LocalChannelReference in use
+     * @throws OpenR66ProtocolPacketException
+     */
+    public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet, LocalChannelReference lcr)
+            throws OpenR66ProtocolPacketException {
+        this.remoteId = remoteId;
+        this.localId = localId;
+        code = packet.getType();
+        buffer = packet.getLocalPacket(lcr);
+    }
 
-	/**
-	 * @return the buffer
-	 */
-	public ByteBuf getBuffer() {
-		return buffer;
-	}
+    /**
+     * @return the buffer
+     */
+    public ByteBuf getBuffer() {
+        return buffer;
+    }
 
-	/**
-	 * @return the remoteId
-	 */
-	public int getRemoteId() {
-		return remoteId;
-	}
+    /**
+     * @return the remoteId
+     */
+    public int getRemoteId() {
+        return remoteId;
+    }
 
-	/**
-	 * @return the localId
-	 */
-	public int getLocalId() {
-		return localId;
-	}
+    /**
+     * @return the localId
+     */
+    public int getLocalId() {
+        return localId;
+    }
 
-	/**
-	 * @return the code
-	 */
-	public byte getCode() {
-		return code;
-	}
+    /**
+     * @return the code
+     */
+    public byte getCode() {
+        return code;
+    }
 
-	/**
-	 * @return The corresponding ByteBuf
-	 */
-	public ByteBuf getNetworkPacket() {
-		final ByteBuf buf = Unpooled.buffer(13);
-		buf.writeInt(buffer.readableBytes() + 9);
-		buf.writeInt(remoteId);
-		buf.writeInt(localId);
-		buf.writeByte(code);
-		return Unpooled.wrappedBuffer(buf, buffer);
-	}
+    /**
+     * @return The corresponding ByteBuf
+     */
+    public ByteBuf getNetworkPacket() {
+        final ByteBuf buf = Unpooled.buffer(13);
+        buf.writeInt(buffer.readableBytes() + 9);
+        buf.writeInt(remoteId);
+        buf.writeInt(localId);
+        buf.writeByte(code);
+        return Unpooled.wrappedBuffer(buf, buffer);
+    }
 
-	@Override
-	public String toString() {
-		return "RId: " + remoteId + " LId: " + localId + " Code: " + code +
-				" Length: " + buffer.readableBytes();
-	}
+    @Override
+    public String toString() {
+        return "RId: " + remoteId + " LId: " + localId + " Code: " + code +
+                " Length: " + buffer.readableBytes();
+    }
 
+    public void clear() {
+        if (buffer != null) {
+            buffer.release();
+            buffer = null;
+        }
+    }
 }

@@ -46,132 +46,132 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * 
  */
 public class ExecuteExecutor extends AbstractExecutor {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(ExecuteExecutor.class);
-	private final String[] args;
-	private final String arg;
-	private final WaarpFuture futureCompletion;
-	private final long delay;
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(ExecuteExecutor.class);
+    private final String[] args;
+    private final String arg;
+    private final WaarpFuture futureCompletion;
+    private final long delay;
 
-	/**
-	 * 
-	 * @param command
-	 * @param delay
-	 * @param futureCompletion
-	 */
-	public ExecuteExecutor(String command, long delay, WaarpFuture futureCompletion) {
-		this.args = command.split(" ");
-		this.arg = command;
-		this.futureCompletion = futureCompletion;
-		this.delay = delay;
-	}
+    /**
+     * 
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
+    public ExecuteExecutor(String command, long delay, WaarpFuture futureCompletion) {
+        this.args = command.split(" ");
+        this.arg = command;
+        this.futureCompletion = futureCompletion;
+        this.delay = delay;
+    }
 
-	public void run() throws Reply421Exception {
-		// Check if the execution will be done through LocalExec daemon
-		if (AbstractExecutor.useLocalExec) {
-			LocalExecClient localExecClient = new LocalExecClient();
-			if (localExecClient.connect()) {
-				localExecClient.runOneCommand(arg, delay, futureCompletion);
-				localExecClient.disconnect();
-				return;
-			}// else continue
-		}
-		// Execution is done internally
-		File exec = new File(args[0]);
-		if (exec.isAbsolute()) {
-			if (!exec.canExecute()) {
-				logger.error("Exec command is not executable: " + args[0]);
-				throw new Reply421Exception("Pre Exec command is not executable");
-			}
-		}
-		CommandLine commandLine = new CommandLine(args[0]);
-		for (int i = 1; i < args.length; i++) {
-			commandLine.addArgument(args[i]);
-		}
-		DefaultExecutor defaultExecutor = new DefaultExecutor();
-		PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(null, null);
-		defaultExecutor.setStreamHandler(pumpStreamHandler);
-		int[] correctValues = {
-				0, 1 };
-		defaultExecutor.setExitValues(correctValues);
-		ExecuteWatchdog watchdog = null;
-		if (delay > 0) {
-			watchdog = new ExecuteWatchdog(delay);
-			defaultExecutor.setWatchdog(watchdog);
-		}
-		int status = -1;
-		try {
-			status = defaultExecutor.execute(commandLine);
-		} catch (ExecuteException e) {
-			if (e.getExitValue() == -559038737) {
-				// Cannot run immediately so retry once
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e1) {
-				}
-				try {
-					status = defaultExecutor.execute(commandLine);
-				} catch (ExecuteException e2) {
-					try {
-						pumpStreamHandler.stop();
-					} catch (IOException e1) {
-					}
-					logger.error("System Exception: " + e.getMessage() +
-							"\n    Exec cannot execute command " + commandLine.toString());
-					throw new Reply421Exception("Cannot execute Pre command");
-				} catch (IOException e2) {
-					try {
-						pumpStreamHandler.stop();
-					} catch (IOException e1) {
-					}
-					logger.error("Exception: " + e.getMessage() +
-							"\n    Exec in error with " + commandLine.toString());
-					throw new Reply421Exception("Cannot execute Pre command");
-				}
-				logger.info("System Exception: " + e.getMessage() +
-						" but finally get the command executed " + commandLine.toString());
-			} else {
-				try {
-					pumpStreamHandler.stop();
-				} catch (IOException e1) {
-				}
-				logger.error("Exception: " + e.getMessage() +
-						"\n    Exec in error with " + commandLine.toString());
-				throw new Reply421Exception("Cannot execute Pre command");
-			}
-		} catch (IOException e) {
-			try {
-				pumpStreamHandler.stop();
-			} catch (IOException e1) {
-			}
-			logger.error("Exception: " + e.getMessage() +
-					"\n    Exec in error with " + commandLine.toString());
-			throw new Reply421Exception("Cannot execute Pre command");
-		}
-		try {
-			pumpStreamHandler.stop();
-		} catch (IOException e1) {
-		}
-		if (watchdog != null &&
-				watchdog.killedProcess()) {
-			// kill by the watchdoc (time out)
-			logger.error("Exec is in Time Out");
-			status = -1;
-		}
-		if (status == 0) {
-			futureCompletion.setSuccess();
-			logger.info("Exec OK with {}", commandLine);
-		} else if (status == 1) {
-			logger.warn("Exec in warning with {}", commandLine);
-			futureCompletion.setSuccess();
-		} else {
-			logger.debug("Status: " + status + (status == -1 ? " Tiemout" : "")
-					+ " Exec in error with " +
-					commandLine.toString());
-			throw new Reply421Exception("Pre command executed in error");
-		}
-	}
+    public void run() throws Reply421Exception {
+        // Check if the execution will be done through LocalExec daemon
+        if (AbstractExecutor.useLocalExec) {
+            LocalExecClient localExecClient = new LocalExecClient();
+            if (localExecClient.connect()) {
+                localExecClient.runOneCommand(arg, delay, futureCompletion);
+                localExecClient.disconnect();
+                return;
+            }// else continue
+        }
+        // Execution is done internally
+        File exec = new File(args[0]);
+        if (exec.isAbsolute()) {
+            if (!exec.canExecute()) {
+                logger.error("Exec command is not executable: " + args[0]);
+                throw new Reply421Exception("Pre Exec command is not executable");
+            }
+        }
+        CommandLine commandLine = new CommandLine(args[0]);
+        for (int i = 1; i < args.length; i++) {
+            commandLine.addArgument(args[i]);
+        }
+        DefaultExecutor defaultExecutor = new DefaultExecutor();
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(null, null);
+        defaultExecutor.setStreamHandler(pumpStreamHandler);
+        int[] correctValues = {
+                0, 1 };
+        defaultExecutor.setExitValues(correctValues);
+        ExecuteWatchdog watchdog = null;
+        if (delay > 0) {
+            watchdog = new ExecuteWatchdog(delay);
+            defaultExecutor.setWatchdog(watchdog);
+        }
+        int status = -1;
+        try {
+            status = defaultExecutor.execute(commandLine);
+        } catch (ExecuteException e) {
+            if (e.getExitValue() == -559038737) {
+                // Cannot run immediately so retry once
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e1) {
+                }
+                try {
+                    status = defaultExecutor.execute(commandLine);
+                } catch (ExecuteException e2) {
+                    try {
+                        pumpStreamHandler.stop();
+                    } catch (IOException e1) {
+                    }
+                    logger.error("System Exception: " + e.getMessage() +
+                            "\n    Exec cannot execute command " + commandLine.toString());
+                    throw new Reply421Exception("Cannot execute Pre command");
+                } catch (IOException e2) {
+                    try {
+                        pumpStreamHandler.stop();
+                    } catch (IOException e1) {
+                    }
+                    logger.error("Exception: " + e.getMessage() +
+                            "\n    Exec in error with " + commandLine.toString());
+                    throw new Reply421Exception("Cannot execute Pre command");
+                }
+                logger.info("System Exception: " + e.getMessage() +
+                        " but finally get the command executed " + commandLine.toString());
+            } else {
+                try {
+                    pumpStreamHandler.stop();
+                } catch (IOException e1) {
+                }
+                logger.error("Exception: " + e.getMessage() +
+                        "\n    Exec in error with " + commandLine.toString());
+                throw new Reply421Exception("Cannot execute Pre command");
+            }
+        } catch (IOException e) {
+            try {
+                pumpStreamHandler.stop();
+            } catch (IOException e1) {
+            }
+            logger.error("Exception: " + e.getMessage() +
+                    "\n    Exec in error with " + commandLine.toString());
+            throw new Reply421Exception("Cannot execute Pre command");
+        }
+        try {
+            pumpStreamHandler.stop();
+        } catch (IOException e1) {
+        }
+        if (watchdog != null &&
+                watchdog.killedProcess()) {
+            // kill by the watchdoc (time out)
+            logger.error("Exec is in Time Out");
+            status = -1;
+        }
+        if (status == 0) {
+            futureCompletion.setSuccess();
+            logger.info("Exec OK with {}", commandLine);
+        } else if (status == 1) {
+            logger.warn("Exec in warning with {}", commandLine);
+            futureCompletion.setSuccess();
+        } else {
+            logger.debug("Status: " + status + (status == -1 ? " Tiemout" : "")
+                    + " Exec in error with " +
+                    commandLine.toString());
+            throw new Reply421Exception("Pre command executed in error");
+        }
+    }
 }

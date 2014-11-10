@@ -28,41 +28,41 @@ import org.waarp.snmp.interf.WaarpTimeTicks;
  */
 public class R66TimeTicks extends WaarpTimeTicks {
 
-	private int type = 1;
-	private int entry = 0;
-	/**
+    private int type = 1;
+    private int entry = 0;
+    /**
      * 
      */
-	private static final long serialVersionUID = -5850987508703222927L;
+    private static final long serialVersionUID = -5850987508703222927L;
 
-	public R66TimeTicks(int type, int entry) {
-		this.type = type;
-		this.entry = entry;
-		setInternalValue();
-	}
+    public R66TimeTicks(int type, int entry) {
+        this.type = type;
+        this.entry = entry;
+        setInternalValue();
+    }
 
-	public R66TimeTicks(int type, int entry, long value) {
-		this.type = type;
-		this.entry = entry;
-		setInternalValue(value);
-	}
+    public R66TimeTicks(int type, int entry, long value) {
+        this.type = type;
+        this.entry = entry;
+        setInternalValue(value);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue()
-	 */
-	@Override
-	protected void setInternalValue() {
-		Configuration.configuration.monitoring.run(type, entry);
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue()
+     */
+    @Override
+    protected void setInternalValue() {
+        Configuration.configuration.monitoring.run(type, entry);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue(long)
-	 */
-	@Override
-	protected void setInternalValue(long value) {
-		setValue(value);
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue(long)
+     */
+    @Override
+    protected void setInternalValue(long value) {
+        setValue(value);
+    }
 
 }

@@ -31,53 +31,53 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class MoveTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(MoveTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(MoveTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public MoveTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.MOVE, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public MoveTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.MOVE, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
-				session);
-		boolean success = false;
-		String directory = argRule;
-		directory = getReplacedValue(directory, argTransfer.split(" ")).replace('\\', '/');
-		String finalname = directory.split(" ")[0] + R66Dir.SEPARATOR +
-				session.getFile().getBasename();
-		try {
-			success = session.getFile().renameTo(finalname, true);
-		} catch (CommandAbstractException e) {
-			logger.error("Move with " + argRule + ":" + argTransfer + " to " + finalname + " and " +
-					session, e);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
-			return;
-		}
-		if (success) {
-			session.getRunner().setFileMoved(finalname, success);
-			futureCompletion.setSuccess();
-		} else {
-			logger.error("Cannot Move with " + argRule + ":" + argTransfer  + " to " + finalname +
-					" and " + session);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-					"Cannot move file"));
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
+                session);
+        boolean success = false;
+        String directory = argRule;
+        directory = getReplacedValue(directory, argTransfer.split(" ")).replace('\\', '/');
+        String finalname = directory.split(" ")[0] + R66Dir.SEPARATOR +
+                session.getFile().getBasename();
+        try {
+            success = session.getFile().renameTo(finalname, true);
+        } catch (CommandAbstractException e) {
+            logger.error("Move with " + argRule + ":" + argTransfer + " to " + finalname + " and " +
+                    session, e);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            return;
+        }
+        if (success) {
+            session.getRunner().setFileMoved(finalname, success);
+            futureCompletion.setSuccess();
+        } else {
+            logger.error("Cannot Move with " + argRule + ":" + argTransfer + " to " + finalname +
+                    " and " + session);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Cannot move file"));
+        }
+    }
 
 }

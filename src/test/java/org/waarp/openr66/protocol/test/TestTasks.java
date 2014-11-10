@@ -56,186 +56,188 @@ import org.waarp.openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE
  */
 public class TestTasks {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-				null));
-		if (args.length < 4) {
-			System.err.println("Need config inDirectory outDirectory filename (in inDirectory)");
-			return;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			System.err.println("Needs a correct configuration file as first argument");
-			return;
-		}
-		String in = args[1];
-		String out = args[2];
-		String filename = args[3];
-		File file = new File(in+"/"+filename);
-		File out2 = new File(out+"/move");
-		out2.mkdirs();
-		long size = file.length();
-		String argRule = out+"/#DATE#_%s_%s_"+filename;
-		String argTransfer = "basic information";
-		R66Session session = new R66Session();
-		DbRule rule = new DbRule(null, "idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in, null, null, null, null, null, null);
-		RequestPacket requestPacket = new RequestPacket(rule.idRule, rule.mode, filename, Configuration.BUFFERSIZEDEFAULT, (int) size/Configuration.BUFFERSIZEDEFAULT+1, 
-				1, argTransfer, size, PartnerConfiguration.BAR_SEPARATOR_FIELD);
-		DbTaskRunner runner = null;
-		DbConstant.admin = new DbAdmin();
-		session.getAuth().specialNoSessionAuth(false, "false");
-		try {
-			runner = new DbTaskRunner(null, session, rule, false, requestPacket);
-		} catch (WaarpDatabaseException e) {
-		}
-		runner.setPostTask();
-		session.setBadRunner(runner, ErrorCode.QueryAlreadyFinished);
-		
-		// LOG
-		LogTask logTask = new LogTask(argRule, 1, argTransfer, session);
-		logTask.run();
-		try {
-			logTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("LOG: "+logTask.getFutureCompletion().isSuccess());
-		logTask = new LogTask(argRule+" "+out+"/log.txt", 3, argTransfer, session);
-		logTask.run();
-		try {
-			logTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("LOG2: "+logTask.getFutureCompletion().isSuccess());
-		
-		// COPYRENAME
-		CopyRenameTask copyRenameTask = new CopyRenameTask(argRule+"_copyrename", 0, argTransfer, session);
-		copyRenameTask.run();
-		try {
-			copyRenameTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("COPYRENAME: "+copyRenameTask.getFutureCompletion().isSuccess());
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+                null));
+        if (args.length < 4) {
+            System.err.println("Need config inDirectory outDirectory filename (in inDirectory)");
+            return;
+        }
+        if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            System.err.println("Needs a correct configuration file as first argument");
+            return;
+        }
+        String in = args[1];
+        String out = args[2];
+        String filename = args[3];
+        File file = new File(in + "/" + filename);
+        File out2 = new File(out + "/move");
+        out2.mkdirs();
+        long size = file.length();
+        String argRule = out + "/#DATE#_%s_%s_" + filename;
+        String argTransfer = "basic information";
+        R66Session session = new R66Session();
+        DbRule rule = new DbRule(null, "idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in,
+                null, null, null, null, null, null);
+        RequestPacket requestPacket = new RequestPacket(rule.idRule, rule.mode, filename,
+                Configuration.BUFFERSIZEDEFAULT, (int) size / Configuration.BUFFERSIZEDEFAULT + 1,
+                1, argTransfer, size, PartnerConfiguration.BAR_SEPARATOR_FIELD);
+        DbTaskRunner runner = null;
+        DbConstant.admin = new DbAdmin();
+        session.getAuth().specialNoSessionAuth(false, "false");
+        try {
+            runner = new DbTaskRunner(null, session, rule, false, requestPacket);
+        } catch (WaarpDatabaseException e) {
+        }
+        runner.setPostTask();
+        session.setBadRunner(runner, ErrorCode.QueryAlreadyFinished);
 
-		// COPY
-		CopyTask copyTask = new CopyTask(out, 0, argTransfer, session);
-		copyTask.run();
-		try {
-			copyTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("COPY: "+copyTask.getFutureCompletion().isSuccess());
-		
-		// EXEC
-		ExecTask execTask = new ExecTask("ping 127.0.0.1", 10000, argTransfer, session);
-		execTask.run();
-		try {
-			execTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("EXEC: "+execTask.getFutureCompletion().isSuccess());
-		
-		// VALIDFILEPATH
-		ValidFilePathTask validFilePathTask = new ValidFilePathTask(in, 1, argTransfer, session);
-		validFilePathTask.run();
-		try {
-			validFilePathTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("VALIDFILEPATH: "+validFilePathTask.getFutureCompletion().isSuccess());
-		
-		// TAR
-		TarTask tarTask = new TarTask(out+"/test.tar "+out, 2, argTransfer, session);
-		tarTask.run();
-		try {
-			tarTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("TAR: "+tarTask.getFutureCompletion().isSuccess());
-		tarTask = new TarTask(out+"/test.tar "+out+"/move", 1, argTransfer, session);
-		tarTask.run();
-		try {
-			tarTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("UNTAR: "+tarTask.getFutureCompletion().isSuccess());
+        // LOG
+        LogTask logTask = new LogTask(argRule, 1, argTransfer, session);
+        logTask.run();
+        try {
+            logTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("LOG: " + logTask.getFutureCompletion().isSuccess());
+        logTask = new LogTask(argRule + " " + out + "/log.txt", 3, argTransfer, session);
+        logTask.run();
+        try {
+            logTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("LOG2: " + logTask.getFutureCompletion().isSuccess());
 
-		// ZIP
-		ZipTask zipTask = new ZipTask(out+"/test.zip "+out, 2, argTransfer, session);
-		zipTask.run();
-		try {
-			zipTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("ZIP: "+zipTask.getFutureCompletion().isSuccess());
-		zipTask = new ZipTask(out+"/test.zip "+out+"/move", 1, argTransfer, session);
-		zipTask.run();
-		try {
-			zipTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("UNZIP: "+zipTask.getFutureCompletion().isSuccess());
+        // COPYRENAME
+        CopyRenameTask copyRenameTask = new CopyRenameTask(argRule + "_copyrename", 0, argTransfer, session);
+        copyRenameTask.run();
+        try {
+            copyRenameTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("COPYRENAME: " + copyRenameTask.getFutureCompletion().isSuccess());
 
-		// TRANSCODE
-		TranscodeTask transcodeTask = new TranscodeTask("-from UTF8 -to ISO-8859-15", 0, argTransfer, session);
-		transcodeTask.run();
-		try {
-			transcodeTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("TRANSCODE: "+transcodeTask.getFutureCompletion().isSuccess());
-		
-		// MOVERENAME
-		MoveRenameTask moveReameTask = new MoveRenameTask(argRule+"_moverename", 0, argTransfer, session);
-		moveReameTask.run();
-		try {
-			moveReameTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("MOVERENAME: "+moveReameTask.getFutureCompletion().isSuccess());
-		
-		copyRenameTask = new CopyRenameTask(in+"/"+filename, 0, argTransfer, session);
-		copyRenameTask.run();
-		try {
-			copyRenameTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("COPYRENAME: "+copyRenameTask.getFutureCompletion().isSuccess());
-		
-		// MOVE
-		MoveTask moveTask = new MoveTask(out+"/move", 0, argTransfer, session);
-		moveTask.run();
-		try {
-			moveTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("MOVE: "+moveTask.getFutureCompletion().isSuccess());
-		
-		zipTask = new ZipTask(out+"/testx.zip "+out, 2, argTransfer, session);
-		zipTask.run();
-		try {
-			zipTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("ZIP: "+zipTask.getFutureCompletion().isSuccess());
-		zipTask = new ZipTask(out+"/testx.zip "+out+"/move", 1, argTransfer, session);
-		zipTask.run();
-		try {
-			zipTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("UNZIP: "+zipTask.getFutureCompletion().isSuccess());
+        // COPY
+        CopyTask copyTask = new CopyTask(out, 0, argTransfer, session);
+        copyTask.run();
+        try {
+            copyTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("COPY: " + copyTask.getFutureCompletion().isSuccess());
 
-		// DELETE
-		DeleteTask deleteTask = new DeleteTask(out+"/move", 0, argTransfer, session);
-		deleteTask.run();
-		try {
-			deleteTask.getFutureCompletion().await();
-		} catch (InterruptedException e) {
-		}
-		System.out.println("DELETE: "+deleteTask.getFutureCompletion().isSuccess());
-	}
+        // EXEC
+        ExecTask execTask = new ExecTask("ping 127.0.0.1", 10000, argTransfer, session);
+        execTask.run();
+        try {
+            execTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("EXEC: " + execTask.getFutureCompletion().isSuccess());
+
+        // VALIDFILEPATH
+        ValidFilePathTask validFilePathTask = new ValidFilePathTask(in, 1, argTransfer, session);
+        validFilePathTask.run();
+        try {
+            validFilePathTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("VALIDFILEPATH: " + validFilePathTask.getFutureCompletion().isSuccess());
+
+        // TAR
+        TarTask tarTask = new TarTask(out + "/test.tar " + out, 2, argTransfer, session);
+        tarTask.run();
+        try {
+            tarTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("TAR: " + tarTask.getFutureCompletion().isSuccess());
+        tarTask = new TarTask(out + "/test.tar " + out + "/move", 1, argTransfer, session);
+        tarTask.run();
+        try {
+            tarTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("UNTAR: " + tarTask.getFutureCompletion().isSuccess());
+
+        // ZIP
+        ZipTask zipTask = new ZipTask(out + "/test.zip " + out, 2, argTransfer, session);
+        zipTask.run();
+        try {
+            zipTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("ZIP: " + zipTask.getFutureCompletion().isSuccess());
+        zipTask = new ZipTask(out + "/test.zip " + out + "/move", 1, argTransfer, session);
+        zipTask.run();
+        try {
+            zipTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("UNZIP: " + zipTask.getFutureCompletion().isSuccess());
+
+        // TRANSCODE
+        TranscodeTask transcodeTask = new TranscodeTask("-from UTF8 -to ISO-8859-15", 0, argTransfer, session);
+        transcodeTask.run();
+        try {
+            transcodeTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("TRANSCODE: " + transcodeTask.getFutureCompletion().isSuccess());
+
+        // MOVERENAME
+        MoveRenameTask moveReameTask = new MoveRenameTask(argRule + "_moverename", 0, argTransfer, session);
+        moveReameTask.run();
+        try {
+            moveReameTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("MOVERENAME: " + moveReameTask.getFutureCompletion().isSuccess());
+
+        copyRenameTask = new CopyRenameTask(in + "/" + filename, 0, argTransfer, session);
+        copyRenameTask.run();
+        try {
+            copyRenameTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("COPYRENAME: " + copyRenameTask.getFutureCompletion().isSuccess());
+
+        // MOVE
+        MoveTask moveTask = new MoveTask(out + "/move", 0, argTransfer, session);
+        moveTask.run();
+        try {
+            moveTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("MOVE: " + moveTask.getFutureCompletion().isSuccess());
+
+        zipTask = new ZipTask(out + "/testx.zip " + out, 2, argTransfer, session);
+        zipTask.run();
+        try {
+            zipTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("ZIP: " + zipTask.getFutureCompletion().isSuccess());
+        zipTask = new ZipTask(out + "/testx.zip " + out + "/move", 1, argTransfer, session);
+        zipTask.run();
+        try {
+            zipTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("UNZIP: " + zipTask.getFutureCompletion().isSuccess());
+
+        // DELETE
+        DeleteTask deleteTask = new DeleteTask(out + "/move", 0, argTransfer, session);
+        deleteTask.run();
+        try {
+            deleteTask.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
+        System.out.println("DELETE: " + deleteTask.getFutureCompletion().isSuccess());
+    }
 
 }

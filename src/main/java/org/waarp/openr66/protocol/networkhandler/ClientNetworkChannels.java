@@ -17,9 +17,9 @@
  */
 package org.waarp.openr66.protocol.networkhandler;
 
-import java.util.Collections;
+import io.netty.util.internal.ConcurrentSet;
+
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Client NetworkChannelReference attached to one HostId.
@@ -36,42 +36,42 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ClientNetworkChannels {
 
-	private final String hostId;
-	private final Set<NetworkChannelReference> networkChannelReferences = Collections.newSetFromMap(new ConcurrentHashMap<NetworkChannelReference, Boolean>());
+    private final String hostId;
+    private final Set<NetworkChannelReference> networkChannelReferences = new ConcurrentSet<NetworkChannelReference>();
 
-	public ClientNetworkChannels(String hostId) {
-		this.hostId = hostId;
-	}
+    public ClientNetworkChannels(String hostId) {
+        this.hostId = hostId;
+    }
 
-	public void add(NetworkChannelReference networkChannelReference) {
-		networkChannelReferences.add(networkChannelReference);
-		networkChannelReference.clientNetworkChannels = this;
-		networkChannelReference.setHostId(this.hostId);
-	}
+    public void add(NetworkChannelReference networkChannelReference) {
+        networkChannelReferences.add(networkChannelReference);
+        networkChannelReference.clientNetworkChannels = this;
+        networkChannelReference.setHostId(this.hostId);
+    }
 
-	public void remove(NetworkChannelReference networkChannelReference) {
-		networkChannelReferences.remove(networkChannelReference);
-	}
+    public void remove(NetworkChannelReference networkChannelReference) {
+        networkChannelReferences.remove(networkChannelReference);
+    }
 
-	public boolean isEmpty() {
-		return networkChannelReferences.isEmpty();
-	}
+    public boolean isEmpty() {
+        return networkChannelReferences.isEmpty();
+    }
 
-	public int size() {
-		return networkChannelReferences.size();
-	}
+    public int size() {
+        return networkChannelReferences.size();
+    }
 
-	public boolean shutdownAllNetworkChannels() {
-		boolean status = false;
-		for (NetworkChannelReference networkChannelReference : networkChannelReferences) {
-			NetworkTransaction.shuttingDownNetworkChannel(networkChannelReference);
-			status = true;
-		}
-		networkChannelReferences.clear();
-		return status;
-	}
+    public boolean shutdownAllNetworkChannels() {
+        boolean status = false;
+        for (NetworkChannelReference networkChannelReference : networkChannelReferences) {
+            NetworkTransaction.shuttingDownNetworkChannel(networkChannelReference);
+            status = true;
+        }
+        networkChannelReferences.clear();
+        return status;
+    }
 
-	public String getHostId() {
-		return hostId;
-	}
+    public String getHostId() {
+        return hostId;
+    }
 }

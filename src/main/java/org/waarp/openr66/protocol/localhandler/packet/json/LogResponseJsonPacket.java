@@ -22,67 +22,79 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Export Log response JSON packet
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class LogResponseJsonPacket extends LogJsonPacket {
 
-	protected byte command;
-	protected String filename;
-	protected long exported, purged;
-	/**
-	 * @return the command
-	 */
-	public byte getCommand() {
-		return command;
-	}
-	/**
-	 * @param command the command to set
-	 */
-	public void setCommand(byte command) {
-		this.command = command;
-	}
-	/**
-	 * @return the filename
-	 */
-	public String getFilename() {
-		return filename;
-	}
-	/**
-	 * @param filename the filename to set
-	 */
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-	/**
-	 * @return the exported
-	 */
-	public long getExported() {
-		return exported;
-	}
-	/**
-	 * @param exported the exported to set
-	 */
-	public void setExported(long exported) {
-		this.exported = exported;
-	}
-	/**
-	 * @return the purged
-	 */
-	public long getPurged() {
-		return purged;
-	}
-	/**
-	 * @param purged the purged to set
-	 */
-	public void setPurged(long purged) {
-		this.purged = purged;
-	}
-	
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.LOGPACKET);
-	}
+    protected byte command;
+    protected String filename;
+    protected long exported, purged;
+
+    /**
+     * @return the command
+     */
+    public byte getCommand() {
+        return command;
+    }
+
+    /**
+     * @param command
+     *            the command to set
+     */
+    public void setCommand(byte command) {
+        this.command = command;
+    }
+
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * @param filename
+     *            the filename to set
+     */
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    /**
+     * @return the exported
+     */
+    public long getExported() {
+        return exported;
+    }
+
+    /**
+     * @param exported
+     *            the exported to set
+     */
+    public void setExported(long exported) {
+        this.exported = exported;
+    }
+
+    /**
+     * @return the purged
+     */
+    public long getPurged() {
+        return purged;
+    }
+
+    /**
+     * @param purged
+     *            the purged to set
+     */
+    public void setPurged(long purged) {
+        this.purged = purged;
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.LOGPACKET);
+    }
 }

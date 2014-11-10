@@ -44,268 +44,271 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * 
  */
 public class ServerInitDatabase {
-	/**
-	 * Internal Logger
-	 */
-	static volatile WaarpLogger logger;
+    /**
+     * Internal Logger
+     */
+    static volatile WaarpLogger logger;
 
-	protected static String _INFO_ARGS = 
-			Messages.getString("ServerInitDatabase.Help"); //$NON-NLS-1$
-	
-	static String sxml = null;
-	static boolean database = false;
-	static boolean upgradeDb = false;
-	static String sbusiness = null;
-	static String salias = null;
-	static String sroles = null;
-	static String sdirconfig = null;
-	static String shostauth = null;
-	static String slimitconfig = null;
+    protected static String _INFO_ARGS =
+            Messages.getString("ServerInitDatabase.Help"); //$NON-NLS-1$
 
-	protected static boolean getParams(String[] args) {
-		if (args.length < 1) {
-			logger.error(_INFO_ARGS);
-			return false;
-		}
-		sxml = args[0];
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-initdb")) {
-				database = true;
-				FileBasedConfiguration.checkDatabase = false;
-			} else if (args[i].equalsIgnoreCase("-upgradeDb")) {
-				upgradeDb = true;
-			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
-				i++;
-				sbusiness = args[i];
-			} else if (args[i].equalsIgnoreCase("-loadAlias")) {
-				i++;
-				salias = args[i];
-			} else if (args[i].equalsIgnoreCase("-loadRoles")) {
-				i++;
-				sroles = args[i];
-			} else if (args[i].equalsIgnoreCase("-dir")) {
-				i++;
-				sdirconfig = args[i];
-			} else if (args[i].equalsIgnoreCase("-limit")) {
-				i++;
-				slimitconfig = args[i];
-			} else if (args[i].equalsIgnoreCase("-auth")) {
-				i++;
-				shostauth = args[i];
-			}
-		}
-		return true;
-	}
+    static String sxml = null;
+    static boolean database = false;
+    static boolean upgradeDb = false;
+    static String sbusiness = null;
+    static String salias = null;
+    static String sroles = null;
+    static String sdirconfig = null;
+    static String shostauth = null;
+    static String slimitconfig = null;
 
-	/**
-	 * @param args
-	 *            as config_database file [rules_directory host_authent limit_configuration]
-	 */
-	public static void main(String[] args) {
-		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
-		}
-		if (!getParams(args)) {
-			logger.error(_INFO_ARGS);
-			if (DbConstant.admin != null && DbConstant.admin.isActive) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(1);
-		}
+    protected static boolean getParams(String[] args) {
+        if (args.length < 1) {
+            logger.error(_INFO_ARGS);
+            return false;
+        }
+        sxml = args[0];
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-initdb")) {
+                database = true;
+                FileBasedConfiguration.checkDatabase = false;
+            } else if (args[i].equalsIgnoreCase("-upgradeDb")) {
+                upgradeDb = true;
+            } else if (args[i].equalsIgnoreCase("-loadBusiness")) {
+                i++;
+                sbusiness = args[i];
+            } else if (args[i].equalsIgnoreCase("-loadAlias")) {
+                i++;
+                salias = args[i];
+            } else if (args[i].equalsIgnoreCase("-loadRoles")) {
+                i++;
+                sroles = args[i];
+            } else if (args[i].equalsIgnoreCase("-dir")) {
+                i++;
+                sdirconfig = args[i];
+            } else if (args[i].equalsIgnoreCase("-limit")) {
+                i++;
+                slimitconfig = args[i];
+            } else if (args[i].equalsIgnoreCase("-auth")) {
+                i++;
+                shostauth = args[i];
+            }
+        }
+        return true;
+    }
 
-		try {
-			if (!FileBasedConfiguration
-					.setConfigurationInitDatabase(Configuration.configuration, args[0])) {
-				logger
-						.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-				if (DbConstant.admin != null) {
-					DbConstant.admin.close();
-				}
-				ChannelUtils.stopLogger();
-				System.exit(1);
-				return;
-			}
-			if (database) {
-				// Init database
-				try {
-					initdb();
-				} catch (WaarpDatabaseNoConnectionException e) {
-					logger.error(Messages.getString("ServerInitDatabase.ErrDatabase")); //$NON-NLS-1$
-					return;
-				}
-				System.out.println(Messages.getString("ServerInitDatabase.EndCreation")); //$NON-NLS-1$
-			}
-			if (upgradeDb) {
-				// try to upgrade DB schema
-				upgradedb();
-				System.out.println(Messages.getString("ServerInitDatabase.EndUpgrade")); //$NON-NLS-1$
-			}
-			if (sdirconfig != null) {
-				// load Rules
-				File dirConfig = new File(sdirconfig);
-				if (dirConfig.isDirectory()) {
-					loadRules(dirConfig);
-				} else {
-					System.err.println(Messages.getString("ServerInitDatabase.NotDirectory") + sdirconfig); //$NON-NLS-1$
-				}
-			}
-			if (shostauth != null) {
-				// Load Host Authentications
-				if (args.length > 2) {
-					loadHostAuth(shostauth);
-				}
-			}
-			if (slimitconfig != null) {
-				// Load configuration
-				if (args.length > 2) {
-					FileBasedConfiguration.setConfigurationLoadLimitFromXml(
-							Configuration.configuration,
-							slimitconfig);
-				}
-			}
-			
-			if (sbusiness != null || salias != null || sroles != null) {
-				if (sbusiness != null) {
-					File file = new File(sbusiness);
-					if (file.canRead()) {
-						try {
-							String value = FileUtils.readFileToString(file);
-							if (value != null && ! value.trim().isEmpty()) {
-								value = value.trim().replaceAll("\r|\n|  ", " ").trim();
-								value = value.replaceAll("\r|\n|  ", " ");
-								sbusiness = value.trim();
-							} else {
-								sbusiness = null;
-							}
-						} catch (IOException e) {
-							sbusiness = null;
-							e.printStackTrace();
-						}
-					} else {
-						sbusiness = null;
-					}
-				}
-				if (salias != null) {
-					File file = new File(salias);
-					if (file.canRead()) {
-						try {
-							String value = FileUtils.readFileToString(file);
-							if (value != null && ! value.trim().isEmpty()) {
-								value = value.trim().replaceAll("\r|\t|\n|  ", " ").trim();
-								value = value.replaceAll("\r|\n|  ", " ");
-								salias = value.trim();
-							} else {
-								salias = null;
-							}
-						} catch (IOException e) {
-							salias = null;
-							e.printStackTrace();
-						}
-					} else {
-						salias = null;
-					}
-				}
-				if (sroles != null) {
-					File file = new File(sroles);
-					if (file.canRead()) {
-						try {
-							String value = FileUtils.readFileToString(file);
-							if (value != null && ! value.trim().isEmpty()) {
-								value = value.trim().replaceAll("\r|\n|  ", " ").trim();
-								value = value.replaceAll("\r|\n|  ", " ");
-								sroles = value.trim();
-							} else {
-								sroles = null;
-							}
-						} catch (IOException e) {
-							sroles = null;
-							e.printStackTrace();
-						}
-					} else {
-						sroles = null;
-					}
-				}
-				DbHostConfiguration hostConfiguration = null;
-				try {
-					hostConfiguration = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-					if (salias != null) {
-						hostConfiguration.setAliases(salias);
-					}
-					if (sbusiness != null) {
-						hostConfiguration.setBusiness(sbusiness);
-					}
-					if (sroles != null) {
-						hostConfiguration.setRoles(sroles);
-					}
-					hostConfiguration.update();
-				} catch (WaarpDatabaseException e) {
-					hostConfiguration = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID, 
-							sbusiness, sroles, salias, null);
-					try {
-						hostConfiguration.insert();
-					} catch (WaarpDatabaseException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
-			System.out.println(Messages.getString("ServerInitDatabase.LoadDone")); //$NON-NLS-1$
-		} finally {
-			if (DbConstant.admin != null) {
-				DbConstant.admin.close();
-			}
-		}
-	}
+    /**
+     * @param args
+     *            as config_database file [rules_directory host_authent limit_configuration]
+     */
+    public static void main(String[] args) {
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
+        }
+        if (!getParams(args)) {
+            logger.error(_INFO_ARGS);
+            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(1);
+        }
 
-	public static void initdb() throws WaarpDatabaseNoConnectionException {
-		// Create tables: configuration, hosts, rules, runner, cptrunner
-		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
-	}
+        try {
+            if (!FileBasedConfiguration
+                    .setConfigurationInitDatabase(Configuration.configuration, args[0])) {
+                logger
+                        .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+                if (DbConstant.admin != null) {
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            if (database) {
+                // Init database
+                try {
+                    initdb();
+                } catch (WaarpDatabaseNoConnectionException e) {
+                    logger.error(Messages.getString("ServerInitDatabase.ErrDatabase")); //$NON-NLS-1$
+                    return;
+                }
+                System.out.println(Messages.getString("ServerInitDatabase.EndCreation")); //$NON-NLS-1$
+            }
+            if (upgradeDb) {
+                // try to upgrade DB schema
+                upgradedb();
+                System.out.println(Messages.getString("ServerInitDatabase.EndUpgrade")); //$NON-NLS-1$
+            }
+            if (sdirconfig != null) {
+                // load Rules
+                File dirConfig = new File(sdirconfig);
+                if (dirConfig.isDirectory()) {
+                    loadRules(dirConfig);
+                } else {
+                    System.err.println(Messages.getString("ServerInitDatabase.NotDirectory") + sdirconfig); //$NON-NLS-1$
+                }
+            }
+            if (shostauth != null) {
+                // Load Host Authentications
+                if (args.length > 2) {
+                    loadHostAuth(shostauth);
+                }
+            }
+            if (slimitconfig != null) {
+                // Load configuration
+                if (args.length > 2) {
+                    FileBasedConfiguration.setConfigurationLoadLimitFromXml(
+                            Configuration.configuration,
+                            slimitconfig);
+                }
+            }
 
-	/**
-	 * 
-	 * @return True if the base is up to date, else False (need Upgrade)
-	 */
-	public static boolean upgradedb() {
-		if (logger == null) {
-			logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
-		}
-		// Update tables: runner
-		boolean uptodate = true;
-		// Check if the database is up to date
-		String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-		try {
-			if (version != null) {
-				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
-			} else {
-				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
-			}
-			if (uptodate) {
-				logger.error(Messages.getString("ServerInitDatabase.SchemaNotUptodate")); //$NON-NLS-1$
-				return false;
-			} else {
-				logger.debug(Messages.getString("ServerInitDatabase.SchemaUptodate")); //$NON-NLS-1$
-			}
-		} catch (WaarpDatabaseNoConnectionException e) {
-			logger.error(Messages.getString("Database.CannotConnect"), e); //$NON-NLS-1$
-			return false;
-		}
-		return ! uptodate;
-	}
+            if (sbusiness != null || salias != null || sroles != null) {
+                if (sbusiness != null) {
+                    File file = new File(sbusiness);
+                    if (file.canRead()) {
+                        try {
+                            String value = FileUtils.readFileToString(file);
+                            if (value != null && !value.trim().isEmpty()) {
+                                value = value.trim().replaceAll("\r|\n|  ", " ").trim();
+                                value = value.replaceAll("\r|\n|  ", " ");
+                                sbusiness = value.trim();
+                            } else {
+                                sbusiness = null;
+                            }
+                        } catch (IOException e) {
+                            sbusiness = null;
+                            e.printStackTrace();
+                        }
+                    } else {
+                        sbusiness = null;
+                    }
+                }
+                if (salias != null) {
+                    File file = new File(salias);
+                    if (file.canRead()) {
+                        try {
+                            String value = FileUtils.readFileToString(file);
+                            if (value != null && !value.trim().isEmpty()) {
+                                value = value.trim().replaceAll("\r|\t|\n|  ", " ").trim();
+                                value = value.replaceAll("\r|\n|  ", " ");
+                                salias = value.trim();
+                            } else {
+                                salias = null;
+                            }
+                        } catch (IOException e) {
+                            salias = null;
+                            e.printStackTrace();
+                        }
+                    } else {
+                        salias = null;
+                    }
+                }
+                if (sroles != null) {
+                    File file = new File(sroles);
+                    if (file.canRead()) {
+                        try {
+                            String value = FileUtils.readFileToString(file);
+                            if (value != null && !value.trim().isEmpty()) {
+                                value = value.trim().replaceAll("\r|\n|  ", " ").trim();
+                                value = value.replaceAll("\r|\n|  ", " ");
+                                sroles = value.trim();
+                            } else {
+                                sroles = null;
+                            }
+                        } catch (IOException e) {
+                            sroles = null;
+                            e.printStackTrace();
+                        }
+                    } else {
+                        sroles = null;
+                    }
+                }
+                DbHostConfiguration hostConfiguration = null;
+                try {
+                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.session,
+                            Configuration.configuration.HOST_ID);
+                    if (salias != null) {
+                        hostConfiguration.setAliases(salias);
+                    }
+                    if (sbusiness != null) {
+                        hostConfiguration.setBusiness(sbusiness);
+                    }
+                    if (sroles != null) {
+                        hostConfiguration.setRoles(sroles);
+                    }
+                    hostConfiguration.update();
+                } catch (WaarpDatabaseException e) {
+                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.session,
+                            Configuration.configuration.HOST_ID,
+                            sbusiness, sroles, salias, null);
+                    try {
+                        hostConfiguration.insert();
+                    } catch (WaarpDatabaseException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+            }
+            System.out.println(Messages.getString("ServerInitDatabase.LoadDone")); //$NON-NLS-1$
+        } finally {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
+            }
+        }
+    }
 
-	public static void loadRules(File dirConfig) {
-		try {
-			RuleFileBasedConfiguration.importRules(dirConfig);
-		} catch (OpenR66ProtocolSystemException e3) {
-			e3.printStackTrace();
-		} catch (WaarpDatabaseException e) {
-			e.printStackTrace();
-		}
-	}
+    public static void initdb() throws WaarpDatabaseNoConnectionException {
+        // Create tables: configuration, hosts, rules, runner, cptrunner
+        DbModelFactory.dbModel.createTables(DbConstant.admin.session);
+    }
 
-	public static void loadHostAuth(String filename) {
-		AuthenticationFileBasedConfiguration.loadAuthentication(Configuration.configuration,
-				filename);
-	}
+    /**
+     * 
+     * @return True if the base is up to date, else False (need Upgrade)
+     */
+    public static boolean upgradedb() {
+        if (logger == null) {
+            logger = WaarpLoggerFactory.getLogger(ServerInitDatabase.class);
+        }
+        // Update tables: runner
+        boolean uptodate = true;
+        // Check if the database is up to date
+        String version = DbHostConfiguration
+                .getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+        try {
+            if (version != null) {
+                uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
+            } else {
+                uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+            }
+            if (uptodate) {
+                logger.error(Messages.getString("ServerInitDatabase.SchemaNotUptodate")); //$NON-NLS-1$
+                return false;
+            } else {
+                logger.debug(Messages.getString("ServerInitDatabase.SchemaUptodate")); //$NON-NLS-1$
+            }
+        } catch (WaarpDatabaseNoConnectionException e) {
+            logger.error(Messages.getString("Database.CannotConnect"), e); //$NON-NLS-1$
+            return false;
+        }
+        return !uptodate;
+    }
+
+    public static void loadRules(File dirConfig) {
+        try {
+            RuleFileBasedConfiguration.importRules(dirConfig);
+        } catch (OpenR66ProtocolSystemException e3) {
+            e3.printStackTrace();
+        } catch (WaarpDatabaseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadHostAuth(String filename) {
+        AuthenticationFileBasedConfiguration.loadAuthentication(Configuration.configuration,
+                filename);
+    }
 }

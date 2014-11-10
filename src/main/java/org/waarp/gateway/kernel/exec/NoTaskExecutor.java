@@ -28,19 +28,19 @@ import org.waarp.common.future.WaarpFuture;
  * 
  */
 public class NoTaskExecutor extends AbstractExecutor {
-	private final WaarpFuture futureCompletion;
+    private final WaarpFuture futureCompletion;
 
-	/**
-	 * 
-	 * @param command
-	 * @param delay
-	 * @param futureCompletion
-	 */
-	public NoTaskExecutor(String command, long delay, WaarpFuture futureCompletion) {
-		this.futureCompletion = futureCompletion;
-	}
+    /**
+     * 
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
+    public NoTaskExecutor(String command, long delay, WaarpFuture futureCompletion) {
+        this.futureCompletion = futureCompletion;
+    }
 
-	public void run() throws Reply421Exception {
-		futureCompletion.setSuccess();
-	}
+    public void run() throws Reply421Exception {
+        futureCompletion.setSuccess();
+    }
 }

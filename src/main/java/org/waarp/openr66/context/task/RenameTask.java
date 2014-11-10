@@ -30,48 +30,48 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class RenameTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(RenameTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(RenameTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public RenameTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.RENAME, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public RenameTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.RENAME, delay, argRule, argTransfer, session);
+    }
 
-	@Override
-	public void run() {
-		boolean success = false;
-		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0].replace('\\', '/');
-		logger.debug("Rename to " + finalname + " with " + argRule +
-				":" + argTransfer + " and {}", session);
-		try {
-			session.getFile().replaceFilename(finalname, true);
-			success = true;
-		} catch (CommandAbstractException e) {
-			logger.error("Rename to " + finalname + " with " +
-					argRule + ":" + argTransfer + " and " + session, e);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
-			return;
-		}
-		if (success) {
-			session.getRunner().setFileMoved(finalname, success);
-			futureCompletion.setSuccess();
-		} else {
-			logger.error("Cannot Move and Rename to " + finalname + " with " +
-					argRule + ":" + argTransfer + " and " + session);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-					"Cannot move file"));
-		}
-	}
+    @Override
+    public void run() {
+        boolean success = false;
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0].replace('\\', '/');
+        logger.debug("Rename to " + finalname + " with " + argRule +
+                ":" + argTransfer + " and {}", session);
+        try {
+            session.getFile().replaceFilename(finalname, true);
+            success = true;
+        } catch (CommandAbstractException e) {
+            logger.error("Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session, e);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            return;
+        }
+        if (success) {
+            session.getRunner().setFileMoved(finalname, success);
+            futureCompletion.setSuccess();
+        } else {
+            logger.error("Cannot Move and Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Cannot move file"));
+        }
+    }
 
 }

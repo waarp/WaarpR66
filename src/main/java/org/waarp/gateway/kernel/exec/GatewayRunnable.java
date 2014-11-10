@@ -25,30 +25,30 @@ package org.waarp.gateway.kernel.exec;
  */
 public interface GatewayRunnable extends Runnable {
 
-	/**
-	 * The way the parameter will be set
-	 * 
-	 * @param waitForValidation
-	 *            True if the caller will wait up to delay time in ms
-	 * @param useLocalExec
-	 *            True if currently is configured to use LocalExec (may be ignored)
-	 * @param delay
-	 *            Delay in ms used only if waitForValidation is True
-	 * @param args
-	 *            First arg is the Class name used
-	 */
-	public void setArgs(boolean waitForValidation,
-			boolean useLocalExec, int delay, String[] args);
+    /**
+     * The way the parameter will be set
+     * 
+     * @param waitForValidation
+     *            True if the caller will wait up to delay time in ms
+     * @param useLocalExec
+     *            True if currently is configured to use LocalExec (may be ignored)
+     * @param delay
+     *            Delay in ms used only if waitForValidation is True
+     * @param args
+     *            First arg is the Class name used
+     */
+    public void setArgs(boolean waitForValidation,
+            boolean useLocalExec, int delay, String[] args);
 
-	/**
-	 * 
-	 * @return the final status where 0 is OK, 1 is Warning, 2 is Error
-	 */
-	public int getFinalStatus();
+    /**
+     * 
+     * @return the final status where 0 is OK, 1 is Warning, 2 is Error
+     */
+    public int getFinalStatus();
 
-	/**
-	 * 
-	 * @return Information on task
-	 */
-	public String toString();
+    /**
+     * 
+     * @return Information on task
+     */
+    public String toString();
 }

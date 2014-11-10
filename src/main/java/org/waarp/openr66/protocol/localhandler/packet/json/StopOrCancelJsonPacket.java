@@ -23,60 +23,72 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Stop or Cancel one request JSON packet
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class StopOrCancelJsonPacket extends JsonPacket {
 
-	protected String requester;
-	protected String requested;
-	protected long specialid = DbConstant.ILLEGALVALUE;
-	/**
-	 * @return the requester
-	 */
-	public String getRequester() {
-		return requester;
-	}
-	/**
-	 * @param requester the requester to set
-	 */
-	public void setRequester(String requester) {
-		this.requester = requester;
-	}
-	/**
-	 * @return the requested
-	 */
-	public String getRequested() {
-		return requested;
-	}
-	/**
-	 * @param requested the requested to set
-	 */
-	public void setRequested(String requested) {
-		this.requested = requested;
-	}
-	/**
-	 * @return the specialid
-	 */
-	public long getSpecialid() {
-		return specialid;
-	}
-	/**
-	 * @param specialid the specialid to set
-	 */
-	public void setSpecialid(long specialid) {
-		this.specialid = specialid;
-	}
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
-	}
-	public void setStop() {
-		super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
-	}
-	public void setCancel() {
-		super.setRequestUserPacket(LocalPacketFactory.CANCELPACKET);
-	}
+    protected String requester;
+    protected String requested;
+    protected long specialid = DbConstant.ILLEGALVALUE;
+
+    /**
+     * @return the requester
+     */
+    public String getRequester() {
+        return requester;
+    }
+
+    /**
+     * @param requester
+     *            the requester to set
+     */
+    public void setRequester(String requester) {
+        this.requester = requester;
+    }
+
+    /**
+     * @return the requested
+     */
+    public String getRequested() {
+        return requested;
+    }
+
+    /**
+     * @param requested
+     *            the requested to set
+     */
+    public void setRequested(String requested) {
+        this.requested = requested;
+    }
+
+    /**
+     * @return the specialid
+     */
+    public long getSpecialid() {
+        return specialid;
+    }
+
+    /**
+     * @param specialid
+     *            the specialid to set
+     */
+    public void setSpecialid(long specialid) {
+        this.specialid = specialid;
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
+    }
+
+    public void setStop() {
+        super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
+    }
+
+    public void setCancel() {
+        super.setRequestUserPacket(LocalPacketFactory.CANCELPACKET);
+    }
 }

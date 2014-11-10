@@ -37,59 +37,59 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  */
 public class TestExecJavaTask extends AbstractExecJavaTask {
 
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(TestExecJavaTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(TestExecJavaTask.class);
 
-	@Override
-	public void run() {
-		if (callFromBusiness) {
-			// Business Request to validate?
-			if (isToValidate) {
-				String [] args = fullarg.split(" ");
-				int rank = Integer.parseInt(args[1]);
-				rank++;
-				BusinessRequestPacket packet =
-						new BusinessRequestPacket(this.getClass().getName() + " business " + rank
-								+ " final return", 0);
-				if (rank > 100) {
-					validate(packet);
-					logger.info("Will NOT close the channel: " + rank);
-				} else {
-					logger.info("Continue: " + rank);
-    				if (session.getLocalChannelReference() != null) {
-    					try {
-    						ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-    								packet, true);
-    					} catch (OpenR66ProtocolPacketException e) {
-    					}
-    				}
-				}
-				this.status = 0;
-				return;
-			}
-			finalValidate("Validated");
-			return;
-		} else {
-			// Rule EXECJAVA based
-			R66File file = session.getFile();
-			DbTaskRunner runner = session.getRunner();
-			if (file == null) {
-				logger.info("TestExecJavaTask No File");
-			} else {
-				try {
-					logger.info("TestExecJavaTask File: " + file.getFile());
-				} catch (CommandAbstractException e) {
-				}
-			}
-			if (runner == null) {
-				logger.warn("TestExecJavaTask No Runner: "+fullarg);
-			} else {
-				logger.warn("TestExecJavaTask Runner: " + runner.toShortString());
-			}
-			this.status = 0;
-		}
-	}
+    @Override
+    public void run() {
+        if (callFromBusiness) {
+            // Business Request to validate?
+            if (isToValidate) {
+                String[] args = fullarg.split(" ");
+                int rank = Integer.parseInt(args[1]);
+                rank++;
+                BusinessRequestPacket packet =
+                        new BusinessRequestPacket(this.getClass().getName() + " business " + rank
+                                + " final return", 0);
+                if (rank > 100) {
+                    validate(packet);
+                    logger.info("Will NOT close the channel: " + rank);
+                } else {
+                    logger.info("Continue: " + rank);
+                    if (session.getLocalChannelReference() != null) {
+                        try {
+                            ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
+                                    packet, true);
+                        } catch (OpenR66ProtocolPacketException e) {
+                        }
+                    }
+                }
+                this.status = 0;
+                return;
+            }
+            finalValidate("Validated");
+            return;
+        } else {
+            // Rule EXECJAVA based
+            R66File file = session.getFile();
+            DbTaskRunner runner = session.getRunner();
+            if (file == null) {
+                logger.info("TestExecJavaTask No File");
+            } else {
+                try {
+                    logger.info("TestExecJavaTask File: " + file.getFile());
+                } catch (CommandAbstractException e) {
+                }
+            }
+            if (runner == null) {
+                logger.warn("TestExecJavaTask No Runner: " + fullarg);
+            } else {
+                logger.warn("TestExecJavaTask Runner: " + runner.toShortString());
+            }
+            this.status = 0;
+        }
+    }
 }

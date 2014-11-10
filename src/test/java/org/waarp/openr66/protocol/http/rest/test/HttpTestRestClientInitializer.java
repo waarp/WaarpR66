@@ -15,7 +15,6 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
-
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -37,7 +36,7 @@ public class HttpTestRestClientInitializer extends ChannelInitializer<SocketChan
     }
 
     protected void initChannel(SocketChannel ch) throws Exception {
-     // Create a default pipeline implementation.
+        // Create a default pipeline implementation.
         ChannelPipeline pipeline = ch.pipeline();
 
         // Enable HTTPS if necessary.

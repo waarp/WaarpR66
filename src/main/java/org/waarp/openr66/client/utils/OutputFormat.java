@@ -39,273 +39,274 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public class OutputFormat extends JsonHandler {
-	public static enum OUTPUTFORMAT {
-		QUIET,
-		JSON,
-		XML,
-		PROPERTY,
-		CSV
-	}
-	
-	public static OUTPUTFORMAT defaultOutput = OUTPUTFORMAT.JSON;
+    public static enum OUTPUTFORMAT {
+        QUIET,
+        JSON,
+        XML,
+        PROPERTY,
+        CSV
+    }
 
-	public static enum FIELDS {
-		command, args, status, statusTxt, transfer, error, remote
-	}
-	
-	/**
-	 * Helper to set the output format desired for the command
-	 * @param args
-	 */
-	public static void getParams(String []args) {
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-quiet")) {
-				defaultOutput = OUTPUTFORMAT.QUIET;
-			} else if (args[i].equalsIgnoreCase("-xml")) {
-				defaultOutput = OUTPUTFORMAT.XML;
-			} else if (args[i].equalsIgnoreCase("-csv")) {
-				defaultOutput = OUTPUTFORMAT.CSV;
-			} else if (args[i].equalsIgnoreCase("-json")) {
-				defaultOutput = OUTPUTFORMAT.JSON;
-			} else if (args[i].equalsIgnoreCase("-property")) {
-				defaultOutput = OUTPUTFORMAT.PROPERTY;
-			}
-		}
-	}
-	
-	private OUTPUTFORMAT format = defaultOutput;
-	private ObjectNode node = createObjectNode();
-	
-	/**
-	 * Create an OutputFormat helper using the default Format defined in defaultOutput
-	 * @param command
-	 * @param args
-	 */
-	public OutputFormat(String command, String []args) {
-		setValue(FIELDS.command.name(), command);
-		if (args != null) {
-			StringBuilder builder = new StringBuilder();
-			for (String string : args) {
-				builder.append(string);
-				builder.append(' ');
-			}
-			setValue(FIELDS.args.name(), builder.toString());
-		}
-	}
-	
-	/**
-	 * To change the applied format
-	 * @param format
-	 */
-	public void setFormat(OUTPUTFORMAT format) {
-		this.format = format;
-	}
+    public static OUTPUTFORMAT defaultOutput = OUTPUTFORMAT.JSON;
 
-	/**
-	 * 
-	 * @param values
-	 */
-	public void setValue(Map<String, Object> values) {
-		String json = writeAsString(values);
-		ObjectNode temp = getFromString(json);
-		node.setAll(temp);
-	}
+    public static enum FIELDS {
+        command, args, status, statusTxt, transfer, error, remote
+    }
 
-	/**
-	 * 
-	 * @param values
-	 */
-	public void setValueString(Map<String, String> values) {
-		String json = writeAsString(values);
-		ObjectNode temp = getFromString(json);
-		node.setAll(temp);
-	}
-	/**
-	 * 
-	 * @param node
-	 */
-	public void setValueString(ObjectNode node) {
-		node.setAll(node);
-	}
+    /**
+     * Helper to set the output format desired for the command
+     * 
+     * @param args
+     */
+    public static void getParams(String[] args) {
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-quiet")) {
+                defaultOutput = OUTPUTFORMAT.QUIET;
+            } else if (args[i].equalsIgnoreCase("-xml")) {
+                defaultOutput = OUTPUTFORMAT.XML;
+            } else if (args[i].equalsIgnoreCase("-csv")) {
+                defaultOutput = OUTPUTFORMAT.CSV;
+            } else if (args[i].equalsIgnoreCase("-json")) {
+                defaultOutput = OUTPUTFORMAT.JSON;
+            } else if (args[i].equalsIgnoreCase("-property")) {
+                defaultOutput = OUTPUTFORMAT.PROPERTY;
+            }
+        }
+    }
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public void setValue(String field, boolean value) {
-		setValue(node, field, value);
-	}
+    private OUTPUTFORMAT format = defaultOutput;
+    private ObjectNode node = createObjectNode();
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public final void setValue(String field, double value) {
-		setValue(node, field, value);
-	}
+    /**
+     * Create an OutputFormat helper using the default Format defined in defaultOutput
+     * 
+     * @param command
+     * @param args
+     */
+    public OutputFormat(String command, String[] args) {
+        setValue(FIELDS.command.name(), command);
+        if (args != null) {
+            StringBuilder builder = new StringBuilder();
+            for (String string : args) {
+                builder.append(string).append(' ');
+            }
+            setValue(FIELDS.args.name(), builder.toString());
+        }
+    }
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public final void setValue(String field, int value) {
-		setValue(node, field, value);
-	}
+    /**
+     * To change the applied format
+     * 
+     * @param format
+     */
+    public void setFormat(OUTPUTFORMAT format) {
+        this.format = format;
+    }
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public final void setValue(String field, long value) {
-		setValue(node, field, value);
-	}
+    /**
+     * 
+     * @param values
+     */
+    public void setValue(Map<String, Object> values) {
+        String json = writeAsString(values);
+        ObjectNode temp = getFromString(json);
+        node.setAll(temp);
+    }
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public final void setValue(String field, String value) {
-		setValue(node, field, value);
-	}
+    /**
+     * 
+     * @param values
+     */
+    public void setValueString(Map<String, String> values) {
+        String json = writeAsString(values);
+        ObjectNode temp = getFromString(json);
+        node.setAll(temp);
+    }
 
-	/**
-	 * 
-	 * @param field
-	 * @param value
-	 */
-	public final void setValue(String field, byte []value) {
-		setValue(node, field, value);
-	}
-	
-	/**
-	 * 
-	 * @param field
-	 * @return True if all fields exist
-	 */
-	public final boolean exist(String ...field) {
-		return exist(node, field);
-	}
+    /**
+     * 
+     * @param node
+     */
+    public void setValueString(ObjectNode node) {
+        node.setAll(node);
+    }
 
-	/**
-	 * 
-	 * @return True if the current default output format is on QUIET
-	 */
-	public static boolean isQuiet() {
-		return defaultOutput == OUTPUTFORMAT.QUIET;
-	}
-	/**
-	 * Helper for sysOut
-	 */
-	public void sysout() {
-		if (format != OUTPUTFORMAT.QUIET) {
-			System.out.println(getContext());
-			System.out.println(this.toString(format));
-		}
-	}
-	
-	private String getContext() {
-		return "[" + getValue(node, FIELDS.command, "") + "] " +getValue(node, FIELDS.statusTxt, "");
-	}
-	/**
-	 * Helper for Logger
-	 * @return the String to print in logger
-	 */
-	public String loggerOut() {
-		return getContext() + " => " + toString(OUTPUTFORMAT.JSON);
-	}
-	
-	@Override
-	public String toString() {
-		return toString(format);
-	}
-	
-	/**
-	 * Helper to get string representation of the current object
-	 * @param format
-	 * @return the String representation
-	 */
-	public String toString(OUTPUTFORMAT format) {
-		String inString = writeAsString(node);
-		switch (format) {
-			case QUIET:
-			case JSON:
-				return inString;
-			case CSV:
-				try {
-					Map<String, Object> map =  mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
-					StringBuilder builderKeys = new StringBuilder();
-					StringBuilder builderValues = new StringBuilder();
-					boolean next = false;
-					for (Entry<String, Object> entry : map.entrySet()) {
-						if (next) {
-							builderKeys.append(';');
-							builderValues.append(';');
-						} else {
-							next = true;
-						}
-						builderKeys.append(entry.getKey());
-						builderValues.append(entry.getValue());
-					}
-					return builderKeys.toString()+"\n"+builderValues.toString();
-				} catch (JsonParseException e) {
-					return Messages.getString("Message.CantConvert", "CSV") + inString;
-				} catch (JsonMappingException e) {
-					return Messages.getString("Message.CantConvert", "CSV") +inString;
-				} catch (IOException e) {
-					return Messages.getString("Message.CantConvert", "CSV") +inString;
-				}
-			case PROPERTY:
-				try {
-					Map<String, Object> map =  mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
-					StringBuilder builder = new StringBuilder();
-					boolean next = false;
-					for (Entry<String, Object> entry : map.entrySet()) {
-						if (next) {
-							builder.append('\n');
-						} else {
-							next = true;
-						}
-						builder.append(entry.getKey());
-						builder.append('=');
-						builder.append(entry.getValue());
-					}
-					return builder.toString();
-				} catch (JsonParseException e) {
-					return Messages.getString("Message.CantConvert", "PROPERTY") +inString;
-				} catch (JsonMappingException e) {
-					return Messages.getString("Message.CantConvert", "PROPERTY") +inString;
-				} catch (IOException e) {
-					return Messages.getString("Message.CantConvert", "PROPERTY") +inString;
-				}
-			case XML:
-				try {
-					Map<String, Object> map =  mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
-					StringBuilder builder = new StringBuilder("<xml>");
-					for (Entry<String, Object> entry : map.entrySet()) {
-						builder.append('<');
-						builder.append(entry.getKey());
-						builder.append('>');
-						builder.append(entry.getValue());
-						builder.append("</");
-						builder.append(entry.getKey());
-						builder.append('>');
-					}
-					builder.append("</xml>");
-					return builder.toString();
-				} catch (JsonParseException e) {
-					return Messages.getString("Message.CantConvert", "XML") +inString;
-				} catch (JsonMappingException e) {
-					return Messages.getString("Message.CantConvert", "XML") +inString;
-				} catch (IOException e) {
-					return Messages.getString("Message.CantConvert", "XML") +inString;
-				}
-			default:
-				return inString;
-		}
-	}
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public void setValue(String field, boolean value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public final void setValue(String field, double value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public final void setValue(String field, int value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public final void setValue(String field, long value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public final void setValue(String field, String value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @param value
+     */
+    public final void setValue(String field, byte[] value) {
+        setValue(node, field, value);
+    }
+
+    /**
+     * 
+     * @param field
+     * @return True if all fields exist
+     */
+    public final boolean exist(String... field) {
+        return exist(node, field);
+    }
+
+    /**
+     * 
+     * @return True if the current default output format is on QUIET
+     */
+    public static boolean isQuiet() {
+        return defaultOutput == OUTPUTFORMAT.QUIET;
+    }
+
+    /**
+     * Helper for sysOut
+     */
+    public void sysout() {
+        if (format != OUTPUTFORMAT.QUIET) {
+            System.out.println(getContext());
+            System.out.println(this.toString(format));
+        }
+    }
+
+    private String getContext() {
+        return "[" + getValue(node, FIELDS.command, "") + "] " + getValue(node, FIELDS.statusTxt, "");
+    }
+
+    /**
+     * Helper for Logger
+     * 
+     * @return the String to print in logger
+     */
+    public String loggerOut() {
+        return getContext() + " => " + toString(OUTPUTFORMAT.JSON);
+    }
+
+    @Override
+    public String toString() {
+        return toString(format);
+    }
+
+    /**
+     * Helper to get string representation of the current object
+     * 
+     * @param format
+     * @return the String representation
+     */
+    public String toString(OUTPUTFORMAT format) {
+        String inString = writeAsString(node);
+        switch (format) {
+            case QUIET:
+            case JSON:
+                return inString;
+            case CSV:
+                try {
+                    Map<String, Object> map = mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
+                    StringBuilder builderKeys = new StringBuilder();
+                    StringBuilder builderValues = new StringBuilder();
+                    boolean next = false;
+                    for (Entry<String, Object> entry : map.entrySet()) {
+                        if (next) {
+                            builderKeys.append(';');
+                            builderValues.append(';');
+                        } else {
+                            next = true;
+                        }
+                        builderKeys.append(entry.getKey());
+                        builderValues.append(entry.getValue());
+                    }
+                    return builderKeys.toString() + "\n" + builderValues.toString();
+                } catch (JsonParseException e) {
+                    return Messages.getString("Message.CantConvert", "CSV") + inString;
+                } catch (JsonMappingException e) {
+                    return Messages.getString("Message.CantConvert", "CSV") + inString;
+                } catch (IOException e) {
+                    return Messages.getString("Message.CantConvert", "CSV") + inString;
+                }
+            case PROPERTY:
+                try {
+                    Map<String, Object> map = mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
+                    StringBuilder builder = new StringBuilder();
+                    boolean next = false;
+                    for (Entry<String, Object> entry : map.entrySet()) {
+                        if (next) {
+                            builder.append('\n');
+                        } else {
+                            next = true;
+                        }
+                        builder.append(entry.getKey()).append('=').append(entry.getValue());
+                    }
+                    return builder.toString();
+                } catch (JsonParseException e) {
+                    return Messages.getString("Message.CantConvert", "PROPERTY") + inString;
+                } catch (JsonMappingException e) {
+                    return Messages.getString("Message.CantConvert", "PROPERTY") + inString;
+                } catch (IOException e) {
+                    return Messages.getString("Message.CantConvert", "PROPERTY") + inString;
+                }
+            case XML:
+                try {
+                    Map<String, Object> map = mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
+                    StringBuilder builder = new StringBuilder("<xml>");
+                    for (Entry<String, Object> entry : map.entrySet()) {
+                        builder.append('<').append(entry.getKey()).append('>')
+                                .append(entry.getValue())
+                                .append("</").append(entry.getKey()).append('>');
+                    }
+                    builder.append("</xml>");
+                    return builder.toString();
+                } catch (JsonParseException e) {
+                    return Messages.getString("Message.CantConvert", "XML") + inString;
+                } catch (JsonMappingException e) {
+                    return Messages.getString("Message.CantConvert", "XML") + inString;
+                } catch (IOException e) {
+                    return Messages.getString("Message.CantConvert", "XML") + inString;
+                }
+            default:
+                return inString;
+        }
+    }
 }

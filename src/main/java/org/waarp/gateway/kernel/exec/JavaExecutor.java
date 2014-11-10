@@ -33,82 +33,82 @@ import org.waarp.common.utility.WaarpThreadFactory;
  * 
  */
 public class JavaExecutor extends AbstractExecutor {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(JavaExecutor.class);
-	private final String[] args;
-	@SuppressWarnings("unused")
-	private final String arg;
-	private final WaarpFuture futureCompletion;
-	private final long delay;
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(JavaExecutor.class);
+    private final String[] args;
+    @SuppressWarnings("unused")
+    private final String arg;
+    private final WaarpFuture futureCompletion;
+    private final long delay;
 
-	/**
-	 * @param command
-	 * @param delay
-	 * @param futureCompletion
-	 */
-	public JavaExecutor(String command, long delay, WaarpFuture futureCompletion) {
-		this.args = command.split(" ");
-		this.arg = command;
-		this.futureCompletion = futureCompletion;
-		this.delay = delay;
-	}
+    /**
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
+    public JavaExecutor(String command, long delay, WaarpFuture futureCompletion) {
+        this.args = command.split(" ");
+        this.arg = command;
+        this.futureCompletion = futureCompletion;
+        this.delay = delay;
+    }
 
-	@Override
-	public void run() throws CommandAbstractException {
-		String className = this.args[0];
-		GatewayRunnable runnable = null;
-		try {
-			runnable = (GatewayRunnable) Class.forName(className).newInstance();
-		} catch (Exception e) {
-			logger.error("ExecJava command is not available: " + className, e);
-			throw new Reply421Exception("Pre Exec command is not executable");
-		}
-		runnable.setArgs(true, useLocalExec,
-				(int) this.delay, args);
-		logger.debug(className + " " + runnable.getClass().getName());
-		int status = -1;
-		if (delay <= 0) {
-			runnable.run();
-			status = runnable.getFinalStatus();
-		} else {
-			ExecutorService executorService = Executors.newFixedThreadPool(1, new WaarpThreadFactory("JavaExecutor"));
-			executorService.execute(runnable);
-			try {
-				Thread.yield();
-				executorService.shutdown();
-				if (delay > 100) {
-					if (!executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
-						executorService.shutdownNow();
-						logger.error("Exec is in Time Out");
-						status = -1;
-					} else {
-						status = runnable.getFinalStatus();
-					}
-				} else {
-					while (!executorService.awaitTermination(30, TimeUnit.SECONDS))
-						;
-					status = runnable.getFinalStatus();
-				}
-			} catch (InterruptedException e) {
-				logger.error("Status: " + e.getMessage() + "\n\t Exec in error with " +
-						runnable);
-				throw new Reply421Exception("Pre Exec command is not correctly executed");
-			}
-		}
-		if (status == 0) {
-			futureCompletion.setSuccess();
-			logger.info("Exec OK with {}", runnable);
-		} else if (status == 1) {
-			logger.warn("Exec in warning with " + runnable);
-			futureCompletion.setSuccess();
-		} else {
-			logger.error("Status: " + status + " Exec in error with " +
-					runnable);
-			throw new Reply421Exception("Pre command executed in error");
-		}
-	}
+    @Override
+    public void run() throws CommandAbstractException {
+        String className = this.args[0];
+        GatewayRunnable runnable = null;
+        try {
+            runnable = (GatewayRunnable) Class.forName(className).newInstance();
+        } catch (Exception e) {
+            logger.error("ExecJava command is not available: " + className, e);
+            throw new Reply421Exception("Pre Exec command is not executable");
+        }
+        runnable.setArgs(true, useLocalExec,
+                (int) this.delay, args);
+        logger.debug(className + " " + runnable.getClass().getName());
+        int status = -1;
+        if (delay <= 0) {
+            runnable.run();
+            status = runnable.getFinalStatus();
+        } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(1, new WaarpThreadFactory("JavaExecutor"));
+            executorService.execute(runnable);
+            try {
+                Thread.yield();
+                executorService.shutdown();
+                if (delay > 100) {
+                    if (!executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
+                        executorService.shutdownNow();
+                        logger.error("Exec is in Time Out");
+                        status = -1;
+                    } else {
+                        status = runnable.getFinalStatus();
+                    }
+                } else {
+                    while (!executorService.awaitTermination(30, TimeUnit.SECONDS))
+                        ;
+                    status = runnable.getFinalStatus();
+                }
+            } catch (InterruptedException e) {
+                logger.error("Status: " + e.getMessage() + "\n\t Exec in error with " +
+                        runnable);
+                throw new Reply421Exception("Pre Exec command is not correctly executed");
+            }
+        }
+        if (status == 0) {
+            futureCompletion.setSuccess();
+            logger.info("Exec OK with {}", runnable);
+        } else if (status == 1) {
+            logger.warn("Exec in warning with " + runnable);
+            futureCompletion.setSuccess();
+        } else {
+            logger.error("Status: " + status + " Exec in error with " +
+                    runnable);
+            throw new Reply421Exception("Pre command executed in error");
+        }
+    }
 
 }

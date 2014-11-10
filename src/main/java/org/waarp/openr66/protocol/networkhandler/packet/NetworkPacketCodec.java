@@ -39,65 +39,66 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
-    
-	@Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		// Make sure if the length field was received.
-		if (buf.readableBytes() < 4) {
-			// The length field was not received yet - return null.
-			// This method will be invoked again when more packets are
-			// received and appended to the buffer.
-			return;
-		}
-		// Mark the current buffer position
-		buf.markReaderIndex();
-		// Read the length field
-		final int length = buf.readInt();
-		if (length < 9) {
-		    throw new OpenR66ProtocolPacketException("Incorrect decode first field in Network Packet: "+length+" < 9");
-		}
-		if (buf.readableBytes() < length) {
-			buf.resetReaderIndex();
-			return;
-		}
-		// Now we can read the two Ids
-		final int localId = buf.readInt();
-		final int remoteId = buf.readInt();
-		final byte code = buf.readByte();
-		int readerInder = buf.readerIndex();
-		ByteBuf buffer = buf.slice(readerInder, length - 9);
-		buffer.retain();
-		buf.skipBytes(length - 9);
-		NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
-		if (code == LocalPacketFactory.KEEPALIVEPACKET) {
-			KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
-					LocalPacketCodec.decodeNetworkPacket(networkPacket.getBuffer());
-			if (keepAlivePacket.isToValidate()) {
-				keepAlivePacket.validate();
-				NetworkPacket response =
-						new NetworkPacket(ChannelUtils.NOCHANNEL,
-								ChannelUtils.NOCHANNEL, keepAlivePacket, null);
-				NetworkChannelReference nc = NetworkTransaction.getImmediateNetworkChannel(ctx.channel());
-				if (nc != null) {
-					nc.useIfUsed();
-				}
-				ctx.writeAndFlush(response.getNetworkPacket());
-			}
-			// Replaced by a NoOp packet
-			networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket(), null);
-			NetworkServerHandler nsh = (NetworkServerHandler) ctx.pipeline().last();
-			nsh.setKeepAlivedSent();
-		}
-		out.add(networkPacket);
-	}
 
-	@Override
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+        // Make sure if the length field was received.
+        if (buf.readableBytes() < 4) {
+            // The length field was not received yet - return null.
+            // This method will be invoked again when more packets are
+            // received and appended to the buffer.
+            return;
+        }
+        // Mark the current buffer position
+        buf.markReaderIndex();
+        // Read the length field
+        final int length = buf.readInt();
+        if (length < 9) {
+            throw new OpenR66ProtocolPacketException("Incorrect decode first field in Network Packet: " + length
+                    + " < 9");
+        }
+        if (buf.readableBytes() < length) {
+            buf.resetReaderIndex();
+            return;
+        }
+        // Now we can read the two Ids
+        final int localId = buf.readInt();
+        final int remoteId = buf.readInt();
+        final byte code = buf.readByte();
+        int readerInder = buf.readerIndex();
+        ByteBuf buffer = buf.slice(readerInder, length - 9);
+        buffer.retain();
+        buf.skipBytes(length - 9);
+        NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
+        if (code == LocalPacketFactory.KEEPALIVEPACKET) {
+            KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
+                    LocalPacketCodec.decodeNetworkPacket(networkPacket.getBuffer());
+            if (keepAlivePacket.isToValidate()) {
+                keepAlivePacket.validate();
+                NetworkPacket response =
+                        new NetworkPacket(ChannelUtils.NOCHANNEL,
+                                ChannelUtils.NOCHANNEL, keepAlivePacket, null);
+                NetworkChannelReference nc = NetworkTransaction.getImmediateNetworkChannel(ctx.channel());
+                if (nc != null) {
+                    nc.useIfUsed();
+                }
+                ctx.writeAndFlush(response.getNetworkPacket());
+            }
+            // Replaced by a NoOp packet
+            networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket(), null);
+            NetworkServerHandler nsh = (NetworkServerHandler) ctx.pipeline().last();
+            nsh.setKeepAlivedSent();
+        }
+        out.add(networkPacket);
+    }
+
+    @Override
     protected void encode(ChannelHandlerContext ctx, NetworkPacket msg, ByteBuf out) throws Exception {
         final NetworkPacket packet = (NetworkPacket) msg;
         final ByteBuf finalBuf = packet.getNetworkPacket();
         out.writeBytes(finalBuf);
         finalBuf.release();
         //msg.getBuffer().release();
-	}
+    }
 
 }

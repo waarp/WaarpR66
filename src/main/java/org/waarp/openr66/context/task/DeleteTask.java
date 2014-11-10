@@ -33,57 +33,57 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class DeleteTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpLogger logger = WaarpLoggerFactory
-			.getLogger(DeleteTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(DeleteTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public DeleteTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.DELETE, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public DeleteTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.DELETE, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("Delete file from session {}",
-				session);
-		try {
-			if (!session.getFile().delete()) {
-				/*
-				logger.debug("CANNOT Delete file {} from session {}", session.getFile().getFile(),
-						session);
-				R66Result result = new R66Result(session, false,
-						ErrorCode.FileNotFound, session.getRunner());
-				futureCompletion.setResult(result);
-				futureCompletion.setFailure(new OpenR66ProtocolSystemException("File not deleted: "+session.getFile().getFile()));
-				*/
-				logger.warn("CANNOT Delete file {} from session {}", session.getFile().getFile(),
-						session);
-				session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
-				futureCompletion.setSuccess();
-				return;
-			}
-		} catch (CommandAbstractException e1) {
-			logger.debug("CANNOT Delete file from session {}",
-					session, e1);
-			R66Result result = new R66Result(session, false,
-					ErrorCode.FileNotFound, session.getRunner());
-			futureCompletion.setResult(result);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
-			return;
-		}
-		futureCompletion.setSuccess();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("Delete file from session {}",
+                session);
+        try {
+            if (!session.getFile().delete()) {
+                /*
+                logger.debug("CANNOT Delete file {} from session {}", session.getFile().getFile(),
+                		session);
+                R66Result result = new R66Result(session, false,
+                		ErrorCode.FileNotFound, session.getRunner());
+                futureCompletion.setResult(result);
+                futureCompletion.setFailure(new OpenR66ProtocolSystemException("File not deleted: "+session.getFile().getFile()));
+                */
+                logger.warn("CANNOT Delete file {} from session {}", session.getFile().getFile(),
+                        session);
+                session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+                futureCompletion.setSuccess();
+                return;
+            }
+        } catch (CommandAbstractException e1) {
+            logger.debug("CANNOT Delete file from session {}",
+                    session, e1);
+            R66Result result = new R66Result(session, false,
+                    ErrorCode.FileNotFound, session.getRunner());
+            futureCompletion.setResult(result);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
+            return;
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

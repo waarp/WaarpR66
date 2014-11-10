@@ -21,7 +21,6 @@ package org.waarp.openr66.protocol.http.rest;
 
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
-import org.waarp.openr66.protocol.configuration.Configuration;
 
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelInitializer;
@@ -38,11 +37,12 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * 
  */
 public class HttpRestR66Initializer extends ChannelInitializer<SocketChannel> {
-	private final boolean useHttpCompression;
+    private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
     private final RestConfiguration restConfiguration;
-    
-    public HttpRestR66Initializer(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory, RestConfiguration configuration) {
+
+    public HttpRestR66Initializer(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory,
+            RestConfiguration configuration) {
         this.waarpSslContextFactory = waarpSslContextFactory;
         this.useHttpCompression = useHttpCompression;
         this.restConfiguration = configuration;
@@ -54,10 +54,10 @@ public class HttpRestR66Initializer extends ChannelInitializer<SocketChannel> {
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initInitializer(true, false);
-        	pipeline.addLast("ssl", handler);
+            SslHandler handler = waarpSslContextFactory.initInitializer(true, false);
+            pipeline.addLast("ssl", handler);
         }
-        
+
         pipeline.addLast("codec", new HttpServerCodec());
         /*
         GlobalTrafficShapingHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
@@ -78,6 +78,6 @@ public class HttpRestR66Initializer extends ChannelInitializer<SocketChannel> {
         }
         pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
         HttpRestR66Handler r66handler = new HttpRestR66Handler(restConfiguration);
-        pipeline.addLast(Configuration.configuration.getSubTaskGroup(), "handler", r66handler);
+        pipeline.addLast("handler", r66handler);
     }
 }

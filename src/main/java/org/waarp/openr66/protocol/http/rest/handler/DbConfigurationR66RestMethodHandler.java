@@ -47,180 +47,187 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * DBConfiguration Rest Handler
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHandler<DbConfiguration> {
-	public static final String BASEURI = "configurations";
-	
-	public static enum FILTER_ARGS {
-		HOSTID("host name"),
-		BANDWIDTH("<0 for no filter, =0 for no bandwidth, >0 for a limit greater than value");
-		
-		public String type;
-		FILTER_ARGS(String type) {
-			this.type = type;
-		}
-	}
-	/**
-	 * @param config
-	 * @param method
-	 */
-	public DbConfigurationR66RestMethodHandler(RestConfiguration config, METHOD ...method) {
-		super(BASEURI, config, method);
-	}
+    public static final String BASEURI = "configurations";
 
-	protected DbConfiguration getItem(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body) throws HttpIncorrectRequestException,
-			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		try {
-			JsonNode node = RestArgument.getId(arg);
-			String id;
-			if (node.isMissingNode()) {
-				// shall not be but continue however
-				id = arg.path(DbConfiguration.Columns.HOSTID.name()).asText();
-			} else {
-				id = node.asText();
-			}
-			return new DbConfiguration(handler.getDbSession(), id);
-		} catch (WaarpDatabaseException e) {
-			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
-		}
-	}
+    public static enum FILTER_ARGS {
+        HOSTID("host name"),
+        BANDWIDTH("<0 for no filter, =0 for no bandwidth, >0 for a limit greater than value");
 
-	@Override
-	protected DbConfiguration createItem(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body) throws HttpIncorrectRequestException,
-			HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		try {
-			return new DbConfiguration(handler.getDbSession(), arg);
-		} catch (WaarpDatabaseException e) {
-			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
-		}
-	}
+        public String type;
 
-	@Override
-	protected DbPreparedStatement getPreparedStatement(HttpRestHandler handler,
-			RestArgument arguments, RestArgument result, Object body)
-			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getUriArgs().deepCopy();
-		arg.setAll(arguments.getBody());
-		String host = arg.path(FILTER_ARGS.HOSTID.name()).asText();
-		if (host == null || host.isEmpty()) {
-			host = null;
-		}
-		int limit = arg.path(FILTER_ARGS.BANDWIDTH.name()).asInt(-1);
-		try {
-			return DbConfiguration.getFilterPrepareStament(handler.getDbSession(), 
-					host, limit);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			throw new HttpIncorrectRequestException("Issue while reading from database", e);
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while reading from database", e);
-		}
-	}
+        FILTER_ARGS(String type) {
+            this.type = type;
+        }
+    }
 
-	@Override
-	protected DbConfiguration getItemPreparedStatement(DbPreparedStatement statement)
-			throws HttpIncorrectRequestException, HttpNotFoundRequestException {
-		try {
-			return DbConfiguration.getFromStatement(statement);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			throw new HttpIncorrectRequestException("Issue while selecting from database", e);
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpNotFoundRequestException("Issue while selecting from database", e);
-		}
-	}
+    /**
+     * @param config
+     * @param method
+     */
+    public DbConfigurationR66RestMethodHandler(RestConfiguration config, METHOD... method) {
+        super(BASEURI, config, method);
+    }
 
-	@Override
-	protected ArrayNode getDetailedAllow() {
-		ArrayNode node = JsonHandler.createArrayNode();
-		
-		ObjectNode node1 = JsonHandler.createObjectNode();
-		node1.put(DbConfiguration.JSON_MODEL, DbConfiguration.class.getSimpleName());
-		DbValue []values = DbConfiguration.getAllType();
-		for (DbValue dbValue : values) {
-			node1.put(dbValue.column, dbValue.getType());
-		}
+    protected DbConfiguration getItem(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException, HttpNotFoundRequestException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        try {
+            JsonNode node = RestArgument.getId(arg);
+            String id;
+            if (node.isMissingNode()) {
+                // shall not be but continue however
+                id = arg.path(DbConfiguration.Columns.HOSTID.name()).asText();
+            } else {
+                id = node.asText();
+            }
+            return new DbConfiguration(handler.getDbSession(), id);
+        } catch (WaarpDatabaseException e) {
+            throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
+        }
+    }
 
-		ObjectNode node2, node3;
-		if (this.methods.contains(METHOD.GET)) {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-					JsonHandler.createObjectNode().put(DbConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"),
-					node1);
-			node.add(node2);
+    @Override
+    protected DbConfiguration createItem(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        try {
+            return new DbConfiguration(handler.getDbSession(), arg);
+        } catch (WaarpDatabaseException e) {
+            throw new HttpIncorrectRequestException("Issue while inserting into database", e);
+        }
+    }
 
-			node3 = JsonHandler.createObjectNode();
-			for (FILTER_ARGS arg : FILTER_ARGS.values()) {
-				node3.put(arg.name(), arg.type);
-			}
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-					node3, JsonHandler.createArrayNode().add(node1));
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.PUT)) {
-			node3 = JsonHandler.createObjectNode();
-			node3.put(DbConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id");
-			for (DbValue dbValue : values) {
-				if (dbValue.column.equalsIgnoreCase(DbConfiguration.Columns.HOSTID.name())) {
-					continue;
-				}
-				node3.put(dbValue.column, dbValue.getType());
-			}
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.DELETE)) {
-			node3 = JsonHandler.createObjectNode();
-			node3.put(DbConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
-			node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		if (this.methods.contains(METHOD.POST)) {
-			node3 = JsonHandler.createObjectNode();
-			for (DbValue dbValue : values) {
-				node3.put(dbValue.column, dbValue.getType());
-			}
-			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-					node3, node1);
-			node.add(node2);
-		}
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
-		node.add(node2);
+    @Override
+    protected DbPreparedStatement getPreparedStatement(HttpRestHandler handler,
+            RestArgument arguments, RestArgument result, Object body)
+            throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
+        ObjectNode arg = arguments.getUriArgs().deepCopy();
+        arg.setAll(arguments.getBody());
+        String host = arg.path(FILTER_ARGS.HOSTID.name()).asText();
+        if (host == null || host.isEmpty()) {
+            host = null;
+        }
+        int limit = arg.path(FILTER_ARGS.BANDWIDTH.name()).asInt(-1);
+        try {
+            return DbConfiguration.getFilterPrepareStament(handler.getDbSession(),
+                    host, limit);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            throw new HttpIncorrectRequestException("Issue while reading from database", e);
+        } catch (WaarpDatabaseSqlException e) {
+            throw new HttpIncorrectRequestException("Issue while reading from database", e);
+        }
+    }
 
-		return node;
-	}
+    @Override
+    protected DbConfiguration getItemPreparedStatement(DbPreparedStatement statement)
+            throws HttpIncorrectRequestException, HttpNotFoundRequestException {
+        try {
+            return DbConfiguration.getFromStatement(statement);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            throw new HttpIncorrectRequestException("Issue while selecting from database", e);
+        } catch (WaarpDatabaseSqlException e) {
+            throw new HttpNotFoundRequestException("Issue while selecting from database", e);
+        }
+    }
 
-	@Override
-	public String getPrimaryPropertyName() {
-		return Columns.HOSTID.name();
-	}
+    @Override
+    protected ArrayNode getDetailedAllow() {
+        ArrayNode node = JsonHandler.createArrayNode();
 
-	@Override
-	protected void put(HttpRestHandler handler, RestArgument arguments, RestArgument result,
-			Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException,
-			HttpNotFoundRequestException {
-		super.put(handler, arguments, result, body);
-		DbConfiguration item = getItem(handler, arguments, result, body);
-		if (item.isOwnConfiguration()) {
-			item.updateConfiguration();
-		}
-	}
+        ObjectNode node1 = JsonHandler.createObjectNode();
+        node1.put(DbConfiguration.JSON_MODEL, DbConfiguration.class.getSimpleName());
+        DbValue[] values = DbConfiguration.getAllType();
+        for (DbValue dbValue : values) {
+            node1.put(dbValue.column, dbValue.getType());
+        }
 
-	@Override
-	protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, METHOD method) throws HttpForbiddenRequestException {
-		HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
-		R66Session session = r66handler.serverHandler.getSession();
-		if (! session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
-			throw new HttpForbiddenRequestException("Partner must have ConfigAdmin role");
-		}
-	}
+        ObjectNode node2, node3;
+        if (this.methods.contains(METHOD.GET)) {
+            node2 = RestArgument.fillDetailedAllow(
+                    METHOD.GET,
+                    this.path + "/id",
+                    COMMAND_TYPE.GET.name(),
+                    JsonHandler.createObjectNode().put(DbConfiguration.Columns.HOSTID.name(),
+                            "HostId as VARCHAR in URI as " + this.path + "/id"),
+                    node1);
+            node.add(node2);
+
+            node3 = JsonHandler.createObjectNode();
+            for (FILTER_ARGS arg : FILTER_ARGS.values()) {
+                node3.put(arg.name(), arg.type);
+            }
+            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(),
+                    node3, JsonHandler.createArrayNode().add(node1));
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.PUT)) {
+            node3 = JsonHandler.createObjectNode();
+            node3.put(DbConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as " + this.path + "/id");
+            for (DbValue dbValue : values) {
+                if (dbValue.column.equalsIgnoreCase(DbConfiguration.Columns.HOSTID.name())) {
+                    continue;
+                }
+                node3.put(dbValue.column, dbValue.getType());
+            }
+            node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.DELETE)) {
+            node3 = JsonHandler.createObjectNode();
+            node3.put(DbConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as " + this.path + "/id");
+            node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path + "/id", COMMAND_TYPE.DELETE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        if (this.methods.contains(METHOD.POST)) {
+            node3 = JsonHandler.createObjectNode();
+            for (DbValue dbValue : values) {
+                node3.put(dbValue.column, dbValue.getType());
+            }
+            node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
+                    node3, node1);
+            node.add(node2);
+        }
+        node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
+        node.add(node2);
+
+        return node;
+    }
+
+    @Override
+    public String getPrimaryPropertyName() {
+        return Columns.HOSTID.name();
+    }
+
+    @Override
+    protected void put(HttpRestHandler handler, RestArgument arguments, RestArgument result,
+            Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException,
+            HttpNotFoundRequestException {
+        super.put(handler, arguments, result, body);
+        DbConfiguration item = getItem(handler, arguments, result, body);
+        if (item.isOwnConfiguration()) {
+            item.updateConfiguration();
+        }
+    }
+
+    @Override
+    protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, METHOD method) throws HttpForbiddenRequestException {
+        HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
+        R66Session session = r66handler.serverHandler.getSession();
+        if (!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+            throw new HttpForbiddenRequestException("Partner must have ConfigAdmin role");
+        }
+    }
 
 }

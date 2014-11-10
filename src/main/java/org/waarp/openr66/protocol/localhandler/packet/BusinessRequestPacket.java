@@ -26,130 +26,131 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * Business Request Message class for packet
  * 
  * 1 string and on integer and one byte:<br>
- * - sheader = full text with class at first place, following (space separated) by extra arguments - smiddle = integer - send = byte
+ * - sheader = full text with class at first place, following (space separated) by extra arguments - smiddle = integer - send =
+ * byte
  * 
  * @author frederic bregier
  */
 public class BusinessRequestPacket extends AbstractLocalPacket {
-	private static final byte ASKVALIDATE = 0;
+    private static final byte ASKVALIDATE = 0;
 
-	private static final byte ANSWERVALIDATE = 1;
-	private static final byte ANSWERINVALIDATE = 2;
+    private static final byte ANSWERVALIDATE = 1;
+    private static final byte ANSWERINVALIDATE = 2;
 
-	private String sheader;
+    private String sheader;
 
-	private int delay = 0;
+    private int delay = 0;
 
-	private byte way;
+    private byte way;
 
-	public static BusinessRequestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		final byte[] bheader = new byte[headerLength - 1];
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		if (middleLength != 4) {
-			throw new OpenR66ProtocolPacketException("Packet not correct");
-		}
-		int delay = buf.readInt();
-		if (endLength != 1) {
-			throw new OpenR66ProtocolPacketException("Packet not correct");
-		}
-		byte valid = buf.readByte();
-		return new BusinessRequestPacket(new String(bheader), delay, valid);
-	}
+    public static BusinessRequestPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        final byte[] bheader = new byte[headerLength - 1];
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        if (middleLength != 4) {
+            throw new OpenR66ProtocolPacketException("Packet not correct");
+        }
+        int delay = buf.readInt();
+        if (endLength != 1) {
+            throw new OpenR66ProtocolPacketException("Packet not correct");
+        }
+        byte valid = buf.readByte();
+        return new BusinessRequestPacket(new String(bheader), delay, valid);
+    }
 
-	public BusinessRequestPacket(String header, int delay, byte way) {
-		this.sheader = header;
-		this.delay = delay;
-		this.way = way;
-	}
+    public BusinessRequestPacket(String header, int delay, byte way) {
+        this.sheader = header;
+        this.delay = delay;
+        this.way = way;
+    }
 
-	public BusinessRequestPacket(String header, int delay) {
-		this.sheader = header;
-		this.delay = delay;
-		this.way = ASKVALIDATE;
-	}
+    public BusinessRequestPacket(String header, int delay) {
+        this.sheader = header;
+        this.delay = delay;
+        this.way = ASKVALIDATE;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = Unpooled.buffer(1);
-		end.writeByte(way);
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = Unpooled.buffer(1);
+        end.writeByte(way);
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = Unpooled.wrappedBuffer(sheader.getBytes());
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = Unpooled.wrappedBuffer(sheader.getBytes());
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = Unpooled.buffer(4);
-		middle.writeInt(delay);
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = Unpooled.buffer(4);
+        middle.writeInt(delay);
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.BUSINESSREQUESTPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.BUSINESSREQUESTPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "BusinessRequestPacket: " + sheader + ":" + delay + ":" + way;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "BusinessRequestPacket: " + sheader + ":" + delay + ":" + way;
+    }
 
-	/**
-	 * @return True if this packet is to be validated
-	 */
-	public boolean isToValidate() {
-		return way == ASKVALIDATE;
-	}
+    /**
+     * @return True if this packet is to be validated
+     */
+    public boolean isToValidate() {
+        return way == ASKVALIDATE;
+    }
 
-	/**
-	 * Validate the request
-	 */
-	public void validate() {
-		way = ANSWERVALIDATE;
-		header = null;
-		middle = null;
-		end = null;
-	}
+    /**
+     * Validate the request
+     */
+    public void validate() {
+        way = ANSWERVALIDATE;
+        header = null;
+        middle = null;
+        end = null;
+    }
 
-	/**
-	 * Invalidate the request
-	 */
-	public void invalidate() {
-		way = ANSWERINVALIDATE;
-		header = null;
-		middle = null;
-		end = null;
-	}
+    /**
+     * Invalidate the request
+     */
+    public void invalidate() {
+        way = ANSWERINVALIDATE;
+        header = null;
+        middle = null;
+        end = null;
+    }
 
-	/**
-	 * @return the sheader
-	 */
-	public String getSheader() {
-		return sheader;
-	}
+    /**
+     * @return the sheader
+     */
+    public String getSheader() {
+        return sheader;
+    }
 
-	/**
-	 * @return the delay
-	 */
-	public int getDelay() {
-		return delay;
-	}
+    /**
+     * @return the delay
+     */
+    public int getDelay() {
+        return delay;
+    }
 
-	/**
-	 * @param delay
-	 *            the delay to set
-	 */
-	public void setDelay(int delay) {
-		this.delay = delay;
-		middle = null;
-	}
+    /**
+     * @param delay
+     *            the delay to set
+     */
+    public void setDelay(int delay) {
+        this.delay = delay;
+        middle = null;
+    }
 }

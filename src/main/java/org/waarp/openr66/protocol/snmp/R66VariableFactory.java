@@ -36,47 +36,47 @@ import org.waarp.snmp.interf.WaarpInterfaceVariableFactory;
  */
 public class R66VariableFactory implements WaarpInterfaceVariableFactory {
 
-	public Variable getVariable(OID oid, int type, int mibLevel, int entry) {
-		Variable var;
-		switch (type) {
-			case SMIConstants.SYNTAX_INTEGER:
-				// case SMIConstants.SYNTAX_INTEGER32:
-				var = new Integer32();
-				break;
-			case SMIConstants.SYNTAX_OCTET_STRING:
-				// case SMIConstants.SYNTAX_BITS:
-				var = new OctetString();
-				break;
-			case SMIConstants.SYNTAX_NULL:
-				var = new Null();
-				break;
-			case SMIConstants.SYNTAX_OBJECT_IDENTIFIER:
-				var = new OID();
-				break;
-			case SMIConstants.SYNTAX_IPADDRESS:
-				var = new IpAddress();
-				break;
-			case SMIConstants.SYNTAX_COUNTER32:
-				var = new R66Counter32(mibLevel, entry);
-				break;
-			case SMIConstants.SYNTAX_GAUGE32:
-				// case SMIConstants.SYNTAX_UNSIGNED_INTEGER32:
-				var = new R66Gauge32(mibLevel, entry);
-				break;
-			case SMIConstants.SYNTAX_TIMETICKS:
-				var = new R66TimeTicks(mibLevel, entry);
-				break;
-			case SMIConstants.SYNTAX_OPAQUE:
-				var = new Opaque();
-				break;
-			case SMIConstants.SYNTAX_COUNTER64:
-				var = new Counter64();
-				break;
-			default:
-				throw new IllegalArgumentException("Unmanaged Type: " +
-						type);
-		}
-		return var;
-	}
+    public Variable getVariable(OID oid, int type, int mibLevel, int entry) {
+        Variable var;
+        switch (type) {
+            case SMIConstants.SYNTAX_INTEGER:
+                // case SMIConstants.SYNTAX_INTEGER32:
+                var = new Integer32();
+                break;
+            case SMIConstants.SYNTAX_OCTET_STRING:
+                // case SMIConstants.SYNTAX_BITS:
+                var = new OctetString();
+                break;
+            case SMIConstants.SYNTAX_NULL:
+                var = new Null();
+                break;
+            case SMIConstants.SYNTAX_OBJECT_IDENTIFIER:
+                var = new OID();
+                break;
+            case SMIConstants.SYNTAX_IPADDRESS:
+                var = new IpAddress();
+                break;
+            case SMIConstants.SYNTAX_COUNTER32:
+                var = new R66Counter32(mibLevel, entry);
+                break;
+            case SMIConstants.SYNTAX_GAUGE32:
+                // case SMIConstants.SYNTAX_UNSIGNED_INTEGER32:
+                var = new R66Gauge32(mibLevel, entry);
+                break;
+            case SMIConstants.SYNTAX_TIMETICKS:
+                var = new R66TimeTicks(mibLevel, entry);
+                break;
+            case SMIConstants.SYNTAX_OPAQUE:
+                var = new Opaque();
+                break;
+            case SMIConstants.SYNTAX_COUNTER64:
+                var = new Counter64();
+                break;
+            default:
+                throw new IllegalArgumentException("Unmanaged Type: " +
+                        type);
+        }
+        return var;
+    }
 
 }

@@ -23,5 +23,4 @@ package org.waarp.openr66.database;
  * @author Frederic Bregier
  * 
  */
-public class DbConstant extends org.waarp.common.database.DbConstant {
-}
+public class DbConstant extends org.waarp.common.database.DbConstant {}

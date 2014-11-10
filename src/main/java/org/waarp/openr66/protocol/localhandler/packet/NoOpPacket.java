@@ -31,47 +31,47 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  */
 public class NoOpPacket extends AbstractLocalPacket {
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new EndTransferPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static NoOpPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ByteBuf buf)
-			throws OpenR66ProtocolPacketException {
-		return new NoOpPacket();
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new EndTransferPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static NoOpPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ByteBuf buf)
+            throws OpenR66ProtocolPacketException {
+        return new NoOpPacket();
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) {
-		end = Unpooled.EMPTY_BUFFER;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) {
+        end = Unpooled.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) {
-		header = Unpooled.EMPTY_BUFFER;
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) {
+        header = Unpooled.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) {
-		middle = Unpooled.EMPTY_BUFFER;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) {
+        middle = Unpooled.EMPTY_BUFFER;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.NOOPPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.NOOPPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "NoOpPacket";
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "NoOpPacket";
+    }
 
 }

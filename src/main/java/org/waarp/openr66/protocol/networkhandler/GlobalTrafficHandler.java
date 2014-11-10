@@ -30,16 +30,16 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
  */
 public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 
-	/**
-	 * @param objectSizeEstimator
-	 * @param timer
-	 * @param writeLimit
-	 * @param readLimit
-	 * @param checkInterval
-	 */
-	public GlobalTrafficHandler(EventExecutorGroup executor, long writeLimit, long readLimit, long checkInterval) {
-		super(executor, writeLimit, readLimit, checkInterval);
-	}
+    /**
+     * @param objectSizeEstimator
+     * @param timer
+     * @param writeLimit
+     * @param readLimit
+     * @param checkInterval
+     */
+    public GlobalTrafficHandler(EventExecutorGroup executor, long writeLimit, long readLimit, long checkInterval) {
+        super(executor, writeLimit, readLimit, checkInterval);
+    }
 
     @Override
     protected long calculateSize(Object msg) {
