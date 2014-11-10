@@ -189,6 +189,8 @@ public class DirectTransfer extends AbstractTransfer {
                                 e);
                     }
                 }
+                networkTransaction.closeAll();
+                System.exit(0);
             } else {
                 if (result == null || result.runner == null) {
                     outputFormat.setValue(FIELDS.status.name(), 2);
@@ -223,9 +225,6 @@ public class DirectTransfer extends AbstractTransfer {
                     outputFormat.sysout();
                 }
                 networkTransaction.closeAll();
-                if (result.code == ErrorCode.CompleteOk) {
-                    System.exit(0);
-                }
                 System.exit(result.code.ordinal());
             }
         } catch (Throwable e) {
