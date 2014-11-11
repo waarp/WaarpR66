@@ -106,8 +106,10 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             logger.warn("Connection refused since Partner is in BlackListed from "
                     + networkChannel.getRemoteAddress().toString());
             isBlackListed = true;
-            Configuration.configuration.r66Mib.notifyError(
+            if (Configuration.configuration.r66Mib != null) {
+                Configuration.configuration.r66Mib.notifyError(
                     "Black Listed connection temptative", "During Handshake");
+            }
             // close immediately the connection
             WaarpSslUtility.closingSslChannel(networkChannel);
             return;
@@ -126,8 +128,10 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
                 // Get the SslHandler and begin handshake ASAP.
                 // Get notified when SSL handshake is done.
                 if (!WaarpSslUtility.runHandshake(ctx.getChannel())) {
-                    Configuration.configuration.r66Mib.notifyError(
+                    if (Configuration.configuration.r66Mib != null) {
+                        Configuration.configuration.r66Mib.notifyError(
                             "SSL Connection Error", "During Handshake");
+                    }
                 }
             }
             logger.debug("Ssl done for channel");
