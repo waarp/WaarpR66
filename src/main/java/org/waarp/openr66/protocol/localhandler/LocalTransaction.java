@@ -106,7 +106,7 @@ public class LocalTransaction {
 
         clientBootstrap.channel(LocalChannel.class);
         // Same Group than Network final handler 
-        clientBootstrap.group(Configuration.configuration.getHandlerGroup());
+        clientBootstrap.group(Configuration.configuration.getSubTaskGroup());
         clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
         clientBootstrap.handler(new LocalClientInitializer());
     }
@@ -169,6 +169,7 @@ public class LocalTransaction {
             channelFuture = clientBootstrap.connect(socketLocalServerAddress);
             try {
                 channelFuture.await();
+                //channelFuture.await(Configuration.WAITFORNETOP);
             } catch (InterruptedException e1) {
                 logger.error("LocalChannelServer Interrupted: " +
                         serverChannel.getClass().getName() + " " +
@@ -194,7 +195,7 @@ public class LocalTransaction {
                 StartupPacket startup = new StartupPacket(
                         localChannelReference.getLocalId());
                 try {
-                    channel.writeAndFlush(startup).await();
+                    channel.writeAndFlush(startup).await(Configuration.WAITFORNETOP);
                 } catch (InterruptedException e) {
                     logger.error("Can't connect to local server due to interruption" + i);
                     throw new OpenR66ProtocolSystemException(
@@ -346,7 +347,7 @@ public class LocalTransaction {
                             localChannelReference.getRemoteId(),
                             packet.getType(), buffer);
                     try {
-                        localChannelReference.getNetworkChannel().writeAndFlush(message).await();
+                        localChannelReference.getNetworkChannel().writeAndFlush(message).await(Configuration.WAITFORNETOP);
                     } catch (InterruptedException e1) {
                     }
                     try {

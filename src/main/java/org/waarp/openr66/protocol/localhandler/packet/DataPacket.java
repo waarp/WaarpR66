@@ -59,9 +59,11 @@ public class DataPacket extends AbstractLocalPacket {
         }
         int packetRank = buf.readInt();
         ByteBuf data = buf.readSlice(middleLength);
+        data.retain();
         ByteBuf key;
         if (endLength > 0) {
             key = buf.readSlice(endLength);
+            key.retain();
         } else {
             key = Unpooled.EMPTY_BUFFER;
         }

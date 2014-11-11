@@ -278,31 +278,9 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
             logger.debug("NetworkRecv Create: {} {}", packet,
                     channel.id());
-            try {
-                localChannelReference =
-                        NetworkTransaction.createConnectionFromNetworkChannelStartup(
-                                this.networkChannelReference, packet);
-            } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot create LocalChannel for: " + packet + " due to "
-                        + e1.getMessage());
-                final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                        "Cannot connect to localChannel since cannot create it", null);
-                writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);
-                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
-                return;
-            } catch (OpenR66ProtocolRemoteShutdownException e1) {
-                logger.info("Will Close Local from Network Channel");
-                WaarpSslUtility.closingSslChannel(channel);
-                return;
-            } catch (OpenR66ProtocolNoConnectionException e1) {
-                logger.error("Cannot create LocalChannel for: " + packet + " due to "
-                        + e1.getMessage());
-                final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                        "Cannot connect to localChannel since cannot create it", null);
-                writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);
-                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
-                return;
-            }
+            NetworkTransaction.createConnectionFromNetworkChannelStartup(
+                    this.networkChannelReference, packet);
+            return;
         } else {
             if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
                 // Not a local error but a remote one
@@ -434,7 +412,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
      * @param localId
      * @param error
      */
-    void writeError(Channel channel, Integer remoteId, Integer localId, AbstractLocalPacket error) {
+    static void writeError(Channel channel, Integer remoteId, Integer localId, AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;
         try {
             networkPacket = new NetworkPacket(localId, remoteId, error, null);
@@ -442,12 +420,10 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
         }
         try {
             if (channel.isActive()) {
-                channel.writeAndFlush(networkPacket).await();
+                channel.writeAndFlush(networkPacket).await(Configuration.WAITFORNETOP);
             }
         } catch (InterruptedException e) {
         }
-        networkPacket.clear();
-        error.clear();
     }
 
     /**

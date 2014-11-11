@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelId;
@@ -491,27 +492,62 @@ public class NetworkTransaction {
      * 
      * @param networkChannelReference
      * @param packet
-     * @return the LocalChannelReference
-     * @throws OpenR66ProtocolRemoteShutdownException
-     * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66ProtocolNoConnectionException
      */
-    public static LocalChannelReference createConnectionFromNetworkChannelStartup(
+    public static void createConnectionFromNetworkChannelStartup(
             NetworkChannelReference networkChannelReference,
-            NetworkPacket packet)
-            throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException,
-            OpenR66ProtocolNoConnectionException {
-        WaarpLock lock = networkChannelReference.getLock();
-        try {
-            lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
-            return Configuration.configuration
-                    .getLocalTransaction().createNewClient(networkChannelReference,
-                            packet.getRemoteId(), null);
-        } finally {
-            lock.unlock();
-        }
+            NetworkPacket packet) {
+        CreateConnectionFromNetworkChannel ccfnc =
+                new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
+        ccfnc.setDaemon(true);
+        retrieveExecutor.execute(ccfnc);
     }
 
+    private static class CreateConnectionFromNetworkChannel extends Thread {
+        final NetworkChannelReference networkChannelReference;
+        final NetworkPacket startupPacket;
+        private CreateConnectionFromNetworkChannel(NetworkChannelReference networkChannelReference,
+            NetworkPacket packet) {
+            this.networkChannelReference = networkChannelReference;
+            this.startupPacket = packet;
+        }
+
+        @Override
+        public void run() {
+            Channel channel = networkChannelReference.channel();
+            LocalChannelReference lcr = null;
+            WaarpLock lock = networkChannelReference.getLock();
+            try {
+                lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+                lcr = Configuration.configuration
+                        .getLocalTransaction().createNewClient(networkChannelReference,
+                                startupPacket.getRemoteId(), null);
+            } catch (OpenR66ProtocolSystemException e1) {
+                logger.error("Cannot create LocalChannel for: " + startupPacket + " due to "
+                        + e1.getMessage());
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel since cannot create it", null);
+                NetworkServerHandler.writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
+                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                return;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                logger.info("Will Close Local from Network Channel");
+                WaarpSslUtility.closingSslChannel(channel);
+                return;
+            } catch (OpenR66ProtocolNoConnectionException e1) {
+                logger.error("Cannot create LocalChannel for: " + startupPacket + " due to "
+                        + e1.getMessage());
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel since cannot create it", null);
+                NetworkServerHandler.writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
+                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                return;
+            } finally {
+                lock.unlock();
+            }
+            ByteBuf buf = startupPacket.getBuffer();
+            lcr.getLocalChannel().writeAndFlush(buf);
+        }
+    }
     /**
      * Send a validation of connection with Authentication
      * 
@@ -829,7 +865,6 @@ public class NetworkTransaction {
         if (networkChannelReference == null) {
             return;
         }
-        //networkChannelReference.lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
         try {
             if (!networkChannelReference.isShuttingDown) {
                 networkChannelReference.shutdownAllLocalChannels();
@@ -847,7 +882,6 @@ public class NetworkTransaction {
                 }
             }
         } finally {
-            //networkChannelReference.lock.unlock();
             removeChannelLock();
         }
     }

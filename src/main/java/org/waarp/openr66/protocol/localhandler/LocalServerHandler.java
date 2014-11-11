@@ -22,6 +22,7 @@ import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 import static org.waarp.openr66.context.R66FiniteDualStates.INFORMATION;
 import static org.waarp.openr66.context.R66FiniteDualStates.SHUTDOWN;
 import static org.waarp.openr66.context.R66FiniteDualStates.TEST;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.local.LocalChannel;
@@ -101,7 +102,7 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, AbstractLocalPacket msg) throws Exception {
+    protected void channelRead0(final ChannelHandlerContext ctx, AbstractLocalPacket msg) throws Exception {
         // action as requested and answer if necessary
         final AbstractLocalPacket packet = msg;
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
@@ -116,11 +117,7 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                                 packet.getClass().getName(),
                         ErrorCode.ConnectionImpossible.getCode(),
                         ErrorPacket.FORWARDCLOSECODE);
-                try {
-                    ctx.channel().writeAndFlush(errorPacket).await();
-                } catch (InterruptedException e1) {
-                }
-                ChannelUtils.close((LocalChannel) ctx.channel());
+                ctx.channel().writeAndFlush(errorPacket).addListener(ChannelFutureListener.CLOSE);
                 if (Configuration.configuration.r66Mib != null) {
                     Configuration.configuration.r66Mib.notifyWarning(
                             "No LocalChannelReference", packet.getClass().getSimpleName());

@@ -270,13 +270,9 @@ public abstract class ConnectionActions {
             if (channel.isActive()) {
                 ErrorPacket error = new ErrorPacket("Cannot startup connection",
                         ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                try {
-                    channel.writeAndFlush(error).await();
-                } catch (InterruptedException e) {
-                }
+                channel.writeAndFlush(error).addListener(ChannelFutureListener.CLOSE);
                 // Cannot do writeBack(error, true);
                 session.setStatus(40);
-                ChannelCloseTimer.closeFutureChannel(channel);
             }
             return;
         }

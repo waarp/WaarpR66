@@ -234,6 +234,13 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                         result.sysout();
                     }
                 }
+                if (networkTransaction != null) {
+                    networkTransaction.closeAll();
+                    networkTransaction = null;
+                }
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(0);
             } else {
                 outputFormat.setValue(FIELDS.status.name(), 2);
                 outputFormat
@@ -259,7 +266,6 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                 ChannelUtils.stopLogger();
                 System.exit(transaction.errorMultiple);
             }
-            DbConstant.admin.close();
         } finally {
             if (networkTransaction != null) {
                 networkTransaction.closeAll();

@@ -574,7 +574,7 @@ public class Configuration {
         bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss"));
         workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
         handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
-        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("SubTask"));
+        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 10, new WaarpThreadFactory("SubTask"));
         httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
         httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
         // Init FiniteStates
@@ -690,6 +690,7 @@ public class Configuration {
         startMonitoring();
         launchStatistics();
         startRestSupport();
+
         logger.info("Current launched threads: " + ManagementFactory.getThreadMXBean().getThreadCount());
     }
 

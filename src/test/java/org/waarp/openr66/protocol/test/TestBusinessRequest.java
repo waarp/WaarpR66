@@ -100,7 +100,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Simple TestExecJavaTask Success: " + success + " Error: " + error + " NB/s: " +
                 success * 100 * 1000 / (time2 - time1));
         R66Future future = new R66Future(true);
         classname = BusinessRequest.DEFAULT_CLASS;
@@ -116,7 +116,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
             error++;
         }
         long time3 = System.currentTimeMillis();
-        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Simple DefaultClass LOG Success: " + success + " Error: " + error + " NB/s: " +
                 1000 / (time3 - time2));
 
         future = new R66Future(true);
@@ -134,7 +134,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
             error++;
         }
         long time4 = System.currentTimeMillis();
-        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Simple ExecJava Success: " + success + " Error: " + error + " NB/s: " +
                 1000 / (time4 - time3));
 
         logger.info("Start Test of Increasing Transaction");
@@ -170,7 +170,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
             }
         }
         time2 = System.currentTimeMillis();
-        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Simple TestExecJavaTask with increasing argument size Success: " + success + " Error: " + error + " NB/s: " +
                 success * 100 * 1000 / (time2 - time1));
 
         executorService.shutdown();
