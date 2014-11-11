@@ -563,7 +563,7 @@ public class Configuration {
     public int limitCache = 20000;
 
     public long timeLimitCache = 180000;
-
+    
     public Configuration() {
         // Init signal handler
         shutdownConfiguration.timeout = TIMEOUTCON;
@@ -571,7 +571,7 @@ public class Configuration {
         computeNbThreads();
         scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
                 "ScheduledTask"));
-        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss"));
+        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss", false));
         workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
         handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 10, new WaarpThreadFactory("SubTask"));

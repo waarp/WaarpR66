@@ -84,8 +84,7 @@ public class NetworkTransaction {
     /**
      * Internal Logger
      */
-    private static final WaarpLogger logger = WaarpLoggerFactory
-            .getLogger(NetworkTransaction.class);
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(NetworkTransaction.class);
 
     /**
      * To protect access to socketLocks when no address associated

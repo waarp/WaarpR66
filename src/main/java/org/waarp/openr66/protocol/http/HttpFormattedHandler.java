@@ -645,37 +645,22 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
     private void spooled(ChannelHandlerContext ctx, boolean detail, String name, int istatus) {
         responseContent
                 .append(REQUEST.status.readHeader(this))
-                .append("<p><table border='0' cellpadding='0' cellspacing='0' >"
-                        +
-                        "<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'><td class='col_MenuHaut'>"
-                        +
-                        "<a data-i18n='menu2.sous-menu4a' href='Spooled.html' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY no detail</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>"
-                        +
-                        "<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4c' href='Spooled.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY no detail KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>"
-                        +
-                        "<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4d' href='Spooled.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY no detail OK</a></td></tr><tr style='background-image:url(gre/gre11.png);background-repeat:repeat-x;background-position:left top;'>"
-                        +
-                        "<td><img src='gre/gre11.png' height='1' width='100%' style='border: none; display: block;' alt='' /></td></tr>"
-                        +
-                        "<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'>"
-                        +
-                        "<td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4b' href='SpooledDetailed.html' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY detailed</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>"
-                        +
-                        "<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4e' href='SpooledDetailed.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY detailed KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>"
-                        +
-                        "<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4f' href='SpooledDetailed.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>"
-                        +
-                        "SPOOLED DIRECTORY detailed OK</a></td></tr></table></p>");
+                .append("<p><table border='0' cellpadding='0' cellspacing='0' >")
+                .append("<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'><td class='col_MenuHaut'>")
+                .append("<a data-i18n='menu2.sous-menu4a' href='Spooled.html' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY no detail</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>")
+                .append("<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4c' href='Spooled.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY no detail KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>")
+                .append("<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4d' href='Spooled.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY no detail OK</a></td></tr><tr style='background-image:url(gre/gre11.png);background-repeat:repeat-x;background-position:left top;'>")
+                .append("<td><img src='gre/gre11.png' height='1' width='100%' style='border: none; display: block;' alt='' /></td></tr>")
+                .append("<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'>")
+                .append("<td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4b' href='SpooledDetailed.html' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY detailed</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>")
+                .append("<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4e' href='SpooledDetailed.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY detailed KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>")
+                .append("<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4f' href='SpooledDetailed.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>")
+                .append("SPOOLED DIRECTORY detailed OK</a></td></tr></table></p>");
         String uri = null;
         if (detail) {
             uri = "SpooledDetailed.html";
@@ -788,8 +773,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
         // Close the connection as soon as the error message is sent.
-        ctx.writeAndFlush(response).addListener(
-                ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

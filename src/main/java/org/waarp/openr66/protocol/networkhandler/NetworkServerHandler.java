@@ -138,8 +138,10 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
         if (NetworkTransaction.isBlacklisted(netChannel)) {
             logger.warn("Connection refused since Partner is BlackListed from " + remoteAddress.toString());
             isBlackListed = true;
-            Configuration.configuration.r66Mib.notifyError(
+            if (Configuration.configuration.r66Mib != null) {
+                Configuration.configuration.r66Mib.notifyError(
                     "Black Listed connection temptative", "During connection");
+            }
             // close immediately the connection
             WaarpSslUtility.closingSslChannel(netChannel);
             return;
