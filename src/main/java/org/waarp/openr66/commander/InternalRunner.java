@@ -68,7 +68,8 @@ public class InternalRunner {
         } else {
             commander = new CommanderNoDb(this, true);
         }
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new WaarpThreadFactory("InternalRunner"));
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
+                new WaarpThreadFactory("InternalRunner", false));
         isRunning = true;
         BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
         threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,

@@ -295,6 +295,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 localChannelReference =
                         NetworkTransaction.createConnectionFromNetworkChannelStartup(
                                 this.networkChannelReference, packet);
+                return;
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.error("Cannot create LocalChannel for: " + packet + " due to "
                         + e1.getMessage());
@@ -448,7 +449,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      * @param localId
      * @param error
      */
-    void writeError(Channel channel, Integer remoteId, Integer localId,
+    static void writeError(Channel channel, Integer remoteId, Integer localId,
             AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;
         try {

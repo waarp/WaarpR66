@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -99,11 +100,6 @@ public class NetworkTransaction {
      */
     private static final SynchronizedLruCache<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap =
             new SynchronizedLruCache<Integer, ReentrantLock>(20000, 180000);
-    /**
-     * Hashmap for lock based on remote string address
-     */
-    private static final SynchronizedLruCache<String, ReentrantLock> reentrantLockOnStringAddressConcurrentHashMap =
-            new SynchronizedLruCache<String, ReentrantLock>(20000, 180000);
     /**
      * Hashmap for Currently Shutdown remote host based on socketAddress.hashCode()
      */
@@ -203,7 +199,6 @@ public class NetworkTransaction {
         }
         partial += "\n NetworkChannels: " + networkChannelOnSocketAddressConcurrentHashMap.size() +
                 " LockOnSocketAddress: " + reentrantLockOnSocketAddressConcurrentHashMap.size() +
-                " LockOnStringAddress: " + reentrantLockOnStringAddressConcurrentHashMap.size() +
                 " Sum of NetworkChannels LocalClients: " + nb + "] ";
         return partial;
     }
@@ -214,14 +209,6 @@ public class NetworkTransaction {
 
     private static final void addLockNCR(SocketAddress sa, ReentrantLock lock) {
         reentrantLockOnSocketAddressConcurrentHashMap.put(sa.hashCode(), lock);
-    }
-
-    private static final ReentrantLock getLockCNC(String name) {
-        return reentrantLockOnStringAddressConcurrentHashMap.get(name);
-    }
-
-    private static final void addLockCNC(String name, ReentrantLock lock) {
-        reentrantLockOnStringAddressConcurrentHashMap.put(name, lock);
     }
 
     private static final void addNCR(NetworkChannelReference ncr) {
@@ -305,35 +292,6 @@ public class NetworkTransaction {
         lockOfLock.lock();
         try {
             reentrantLockOnSocketAddressConcurrentHashMap.forceClearOldest();
-        } finally {
-            lockOfLock.unlock();
-        }
-    }
-
-    private static final ReentrantLock getRequesterLock(String requester) {
-        lockOfLock.lock();
-        try {
-            if (requester == null) {
-                // should not
-                logger.info("Requester empty here !");
-                return emptyLock;
-            }
-            ReentrantLock socketLock = getLockCNC(requester);
-            if (socketLock == null) {
-                socketLock = new ReentrantLock(true);
-            }
-            // update TTL
-            addLockCNC(requester, socketLock);
-            return socketLock;
-        } finally {
-            lockOfLock.unlock();
-        }
-    }
-
-    private static void removeRequesterLock() {
-        lockOfLock.lock();
-        try {
-            reentrantLockOnStringAddressConcurrentHashMap.forceClearOldest();
         } finally {
             lockOfLock.unlock();
         }
@@ -566,11 +524,56 @@ public class NetworkTransaction {
             NetworkPacket packet)
             throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException,
             OpenR66ProtocolNoConnectionException {
-        return Configuration.configuration
+        CreateConnectionFromNetworkChannel ccfnc = 
+                new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
+        ccfnc.setDaemon(true);
+        retrieveExecutor.execute(ccfnc);
+        return null;
+        /*return Configuration.configuration
                 .getLocalTransaction().createNewClient(networkChannelReference,
-                        packet.getRemoteId(), null);
+                        packet.getRemoteId(), null);*/
     }
 
+    private static class CreateConnectionFromNetworkChannel extends Thread {
+        final NetworkChannelReference networkChannelReference;
+        final NetworkPacket packet;
+        public CreateConnectionFromNetworkChannel(NetworkChannelReference networkChannelReference, NetworkPacket packet) {
+            this.networkChannelReference = networkChannelReference;
+            this.packet = packet;
+        }
+        public void run() {
+            Channel channel = networkChannelReference.getChannel();
+            LocalChannelReference lcr;
+            try {
+                lcr = Configuration.configuration
+                        .getLocalTransaction().createNewClient(networkChannelReference,
+                                packet.getRemoteId(), null);
+            } catch (OpenR66ProtocolSystemException e1) {
+                logger.error("Cannot create LocalChannel for: " + packet + " due to "
+                        + e1.getMessage());
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel since cannot create it", null);
+                NetworkServerHandler.writeError(channel, packet.getRemoteId(), packet
+                        .getLocalId(), error);
+                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                return;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                logger.info("Will Close Local from Network Channel");
+                WaarpSslUtility.closingSslChannel(channel);
+                return;
+            } catch (OpenR66ProtocolNoConnectionException e1) {
+                logger.error("Cannot create LocalChannel for: " + packet + " due to "
+                        + e1.getMessage());
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel since cannot create it", null);
+                NetworkServerHandler.writeError(channel, packet.getRemoteId(), packet
+                        .getLocalId(), error);
+                NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                return;
+            }
+            Channels.write(lcr.getLocalChannel(), packet.getBuffer());
+        }
+    }
     /**
      * Send a validation of connection with Authentication
      * 
@@ -762,12 +765,7 @@ public class NetworkTransaction {
      * @param networkChannelReference
      */
     public static void shuttingDownNetworkChannel(NetworkChannelReference networkChannelReference) {
-        networkChannelReference.lock.lock();
-        try {
-            shuttingDownNetworkChannelInternal(networkChannelReference);
-        } finally {
-            networkChannelReference.lock.unlock();
-        }
+        shuttingDownNetworkChannelInternal(networkChannelReference);
     }
 
     /**
@@ -777,28 +775,23 @@ public class NetworkTransaction {
      * @return True if this channel is now blacklisted for a while
      */
     public static boolean shuttingDownNetworkChannelBlackList(NetworkChannelReference networkChannelReference) {
-        networkChannelReference.lock.lock();
-        try {
-            shuttingDownNetworkChannelInternal(networkChannelReference);
-            if (!Configuration.configuration.blacklistBadAuthent) {
-                return false;
-            }
-            if (containsBlacklistNCR(networkChannelReference)) {
-                return false;
-            }
-            addBlacklistNCR(networkChannelReference);
-            R66ShutdownNetworkChannelTimerTask timerTask;
-            try {
-                timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, true);
-                Configuration.configuration.getTimerClose().newTimeout(timerTask,
-                        Configuration.configuration.TIMEOUTCON * 10, TimeUnit.MILLISECONDS);
-            } catch (OpenR66RunnerErrorException e) {
-                // ignore
-            }
-            return true;
-        } finally {
-            networkChannelReference.lock.unlock();
+        shuttingDownNetworkChannelInternal(networkChannelReference);
+        if (!Configuration.configuration.blacklistBadAuthent) {
+            return false;
         }
+        if (containsBlacklistNCR(networkChannelReference)) {
+            return false;
+        }
+        addBlacklistNCR(networkChannelReference);
+        R66ShutdownNetworkChannelTimerTask timerTask;
+        try {
+            timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, true);
+            Configuration.configuration.getTimerClose().newTimeout(timerTask,
+                    Configuration.configuration.TIMEOUTCON * 10, TimeUnit.MILLISECONDS);
+        } catch (OpenR66RunnerErrorException e) {
+            // ignore
+        }
+        return true;
     }
 
     /**
@@ -835,18 +828,10 @@ public class NetworkTransaction {
         if (requester == null) {
             return false;
         }
-        ClientNetworkChannels clientNetworkChannels = null;
-        ReentrantLock lock = getRequesterLock(requester);
-        lock.lock();
-        try {
-            clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
-            logger.info("AddClient: shutdown previous exist? " + (clientNetworkChannels != null) + " for :" + requester);
-            if (clientNetworkChannels != null) {
-                return clientNetworkChannels.shutdownAllNetworkChannels();
-            }
-        } finally {
-            lock.unlock();
-            removeRequesterLock();
+        ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
+        logger.info("AddClient: shutdown previous exist? " + (clientNetworkChannels != null) + " for :" + requester);
+        if (clientNetworkChannels != null) {
+            return clientNetworkChannels.shutdownAllNetworkChannels();
         }
         return false;
     }
@@ -859,35 +844,23 @@ public class NetworkTransaction {
      */
     public static void addClient(NetworkChannelReference networkChannelReference, String requester) {
         if (networkChannelReference != null && requester != null) {
-            ReentrantLock lock = getRequesterLock(requester);
-            lock.lock();
-            try {
-                ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
-                if (clientNetworkChannels == null) {
-                    clientNetworkChannels = new ClientNetworkChannels(requester);
-                    clientNetworkChannelsPerHostId.put(requester, clientNetworkChannels);
-                }
-                logger.debug("AddClient: add count? " + clientNetworkChannels.size() + " for " + requester);
-                clientNetworkChannels.add(networkChannelReference);
-            } finally {
-                lock.unlock();
+            ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
+            if (clientNetworkChannels == null) {
+                clientNetworkChannels = new ClientNetworkChannels(requester);
+                clientNetworkChannelsPerHostId.put(requester, clientNetworkChannels);
             }
+            logger.debug("AddClient: add count? " + clientNetworkChannels.size() + " for " + requester);
+            clientNetworkChannels.add(networkChannelReference);
         }
     }
 
     private static void removeClient(NetworkChannelReference networkChannelReference, String requester,
             ClientNetworkChannels clientNetworkChannels) {
         if (networkChannelReference != null && clientNetworkChannels != null && requester != null) {
-            ReentrantLock lock = getRequesterLock(requester);
-            lock.lock();
-            try {
-                clientNetworkChannels.remove(networkChannelReference);
-                logger.debug("removeClient: remove for :" + requester + " still " + clientNetworkChannels.size());
-                if (clientNetworkChannels.isEmpty()) {
-                    clientNetworkChannelsPerHostId.remove(requester);
-                }
-            } finally {
-                lock.unlock();
+            clientNetworkChannels.remove(networkChannelReference);
+            logger.debug("removeClient: remove for :" + requester + " still " + clientNetworkChannels.size());
+            if (clientNetworkChannels.isEmpty()) {
+                clientNetworkChannelsPerHostId.remove(requester);
             }
         }
     }
@@ -914,7 +887,6 @@ public class NetworkTransaction {
         if (networkChannelReference == null) {
             return;
         }
-        networkChannelReference.lock.lock();
         try {
             if (!networkChannelReference.isShuttingDown) {
                 networkChannelReference.shutdownAllLocalChannels();
@@ -932,7 +904,6 @@ public class NetworkTransaction {
                 }
             }
         } finally {
-            networkChannelReference.lock.unlock();
             removeChannelLock();
         }
     }
@@ -960,8 +931,8 @@ public class NetworkTransaction {
      */
     private static class CloseFutureChannel implements TimerTask {
 
-        private static SortedSet<Integer> inCloseRunning =
-                Collections.synchronizedSortedSet(new TreeSet<Integer>());
+        private static ConcurrentSkipListSet<Integer> inCloseRunning =
+                new ConcurrentSkipListSet<Integer>();
         private final NetworkChannelReference networkChannelReference;
 
         /**
