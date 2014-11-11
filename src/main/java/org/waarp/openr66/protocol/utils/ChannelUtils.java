@@ -368,7 +368,7 @@ public class ChannelUtils extends Thread {
      * Exit global ChannelFactory
      */
     public static void exit() {
-        logger.info("Current launched threads before exit: " + ManagementFactory.getThreadMXBean().getThreadCount(), new Exception("trace"));
+        logger.info("Current launched threads before exit: " + ManagementFactory.getThreadMXBean().getThreadCount());
         if (Configuration.configuration.constraintLimitHandler != null) {
             Configuration.configuration.constraintLimitHandler.release();
         }
