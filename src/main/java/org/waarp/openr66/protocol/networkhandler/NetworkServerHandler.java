@@ -111,7 +111,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                         networkChannelReference.nbLocalChannels());
                 // Give an extra time if necessary to let the local channel being closed
                 try {
-                    Thread.sleep(Configuration.WAITFORNETOP);
+                    Thread.sleep(Configuration.RETRYINMS*2);
                 } catch (InterruptedException e1) {
                 }
             }

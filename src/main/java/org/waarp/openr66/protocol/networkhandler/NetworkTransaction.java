@@ -462,7 +462,7 @@ public class NetworkTransaction {
                     return networkChannelReference;
                 } else {
                     try {
-                        Thread.sleep(Configuration.WAITFORNETOP);
+                        Thread.sleep(Configuration.RETRYINMS);
                     } catch (InterruptedException e) {
                     }
                     if (!channelFuture.isDone()) {
@@ -625,11 +625,7 @@ public class NetworkTransaction {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
-            localChannelReference.getLocalChannel().close();
-            try {
-                Thread.sleep(Configuration.RETRYINMS * 20);
-            } catch (InterruptedException e) {
-            }
+            localChannelReference.getLocalChannel().close().awaitUninterruptibly(Configuration.RETRYINMS*2);
             throw new OpenR66ProtocolNetworkException(
                     "Cannot validate connection: " + future.getResult(), future
                             .getCause());

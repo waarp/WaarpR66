@@ -285,11 +285,15 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     }
 
     private String getTrimValue(String varname) {
-        String value = params.get(varname).get(0).trim();
-        if (value.isEmpty()) {
-            value = null;
+        List<String> varlist = params.get(varname);
+        if (varlist != null && ! varlist.isEmpty()) {
+            String value = params.get(varname).get(0).trim();
+            if (value.isEmpty()) {
+                value = null;
+            }
+            return value;
         }
-        return value;
+        return null;
     }
 
     private String getValue(String varname) {

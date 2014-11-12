@@ -182,7 +182,7 @@ public class NetworkChannelReference {
             localChannelReference.getLocalChannel().close();
         }
         try {
-            Thread.sleep(Configuration.RETRYINMS * 20);
+            Thread.sleep(Configuration.WAITFORNETOP);
         } catch (InterruptedException e) {
         }
         for (LocalChannelReference localChannelReference : toCloseLater) {
