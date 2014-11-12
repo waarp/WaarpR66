@@ -528,10 +528,8 @@ public class NetworkTransaction {
                 new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
         ccfnc.setDaemon(true);
         retrieveExecutor.execute(ccfnc);
+        ccfnc.setName("Connect_"+packet.getRemoteId());
         return null;
-        /*return Configuration.configuration
-                .getLocalTransaction().createNewClient(networkChannelReference,
-                        packet.getRemoteId(), null);*/
     }
 
     private static class CreateConnectionFromNetworkChannel extends Thread {
@@ -542,6 +540,7 @@ public class NetworkTransaction {
             this.packet = packet;
         }
         public void run() {
+            this.setName("Connect_"+packet.getRemoteId());
             Channel channel = networkChannelReference.getChannel();
             LocalChannelReference lcr;
             try {
