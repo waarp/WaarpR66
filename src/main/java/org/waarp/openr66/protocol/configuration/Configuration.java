@@ -144,7 +144,7 @@ public class Configuration {
     /**
      * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
-    public static final long WAITFORNETOP = 1000;
+    public static final long WAITFORNETOP = 200;
 
     /**
      * Extension of file during transfer

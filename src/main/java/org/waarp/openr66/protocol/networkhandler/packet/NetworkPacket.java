@@ -117,8 +117,9 @@ public class NetworkPacket {
 
     public void clear() {
         if (buffer != null) {
-            buffer.release();
-            buffer = null;
+            if (buffer.release()) {
+                buffer = null;
+            }
         }
     }
 }
