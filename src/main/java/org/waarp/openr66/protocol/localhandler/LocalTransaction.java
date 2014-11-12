@@ -168,8 +168,8 @@ public class LocalTransaction {
             }
             channelFuture = clientBootstrap.connect(socketLocalServerAddress);
             try {
-                //channelFuture.await();
-                channelFuture.await(Configuration.configuration.TIMEOUTCON/3);
+                channelFuture.await();
+                //channelFuture.await(Configuration.configuration.TIMEOUTCON/3);
             } catch (InterruptedException e1) {
                 logger.error("LocalChannelServer Interrupted: " +
                         serverChannel.getClass().getName() + " " +
