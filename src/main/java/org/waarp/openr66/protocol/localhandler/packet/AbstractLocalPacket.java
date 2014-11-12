@@ -120,16 +120,31 @@ public abstract class AbstractLocalPacket {
 
     public void clear() {
         if (header != null) {
-            header.release();
-            header = null;
+            if (header.release()) {
+                header = null;
+            }
         }
         if (middle != null) {
-            middle.release();
-            middle = null;
+            if (middle.release()) {
+                middle = null;
+            }
         }
         if (end != null) {
-            end.release();
-            end = null;
+            if (end.release()) {
+                end = null;
+            }
+        }
+    }
+    
+    public void retain() {
+        if (header != null) {
+            header.retain();
+        }
+        if (middle != null) {
+            middle.retain();
+        }
+        if (end != null) {
+            end.retain();
         }
     }
 }

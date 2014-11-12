@@ -157,12 +157,14 @@ public class DataPacket extends AbstractLocalPacket {
     public void clear() {
         super.clear();
         if (data != null) {
-            data.release();
-            data = null;
+            if (data.release()) {
+                data = null;
+            }
         }
         if (key != null) {
-            key.release();
-            key = null;
+            if (key.release()) {
+                key = null;
+            }
         }
     }
 }

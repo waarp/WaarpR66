@@ -361,9 +361,7 @@ public class NetworkTransaction {
                         "Cannot connect to remote server due to local overload");
             }
         }
-        WaarpLock socketLock = getChannelLock(socketAddress);
         try {
-            socketLock.lock();
             networkChannelReference = createNewConnection(socketAddress, isSSL);
             try {
                 localChannelReference = Configuration.configuration
@@ -375,7 +373,6 @@ public class NetworkTransaction {
             }
             ok = true;
         } finally {
-            socketLock.unlock();
             if (!ok) {
                 if (networkChannelReference != null) {
                     checkClosingNetworkChannel(networkChannelReference, null);
@@ -413,77 +410,82 @@ public class NetworkTransaction {
             OpenR66ProtocolNoConnectionException {
         WaarpLock socketLock = getChannelLock(socketServerAddress);
         NetworkChannelReference networkChannelReference;
+        socketLock.lock();
         try {
-            networkChannelReference = getRemoteChannel(socketServerAddress);
-        } catch (OpenR66ProtocolNoDataException e1) {
-            networkChannelReference = null;
-        }
-        if (networkChannelReference != null) {
-            networkChannelReference.use();
-            logger.info("Already Connected: {}", networkChannelReference);
-            return networkChannelReference;
-        }
-        logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
-        ChannelFuture channelFuture = null;
-        for (int i = 0; i < Configuration.RETRYNB; i++) {
-            if (R66ShutdownHook.isShutdownStarting()) {
-                throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
-            }
             try {
-                if (isSSL) {
-                    if (Configuration.configuration.HOST_SSLID != null) {
-                        channelFuture = clientSslBootstrap.connect(socketServerAddress);
-                    } else {
-                        throw new OpenR66ProtocolNoConnectionException("No SSL support");
-                    }
-                } else {
-                    channelFuture = clientBootstrap.connect(socketServerAddress);
-                }
-            } catch (ChannelPipelineException e) {
-                throw new OpenR66ProtocolNoConnectionException(
-                        "Cannot connect to remote server due to a channel exception");
+                networkChannelReference = getRemoteChannel(socketServerAddress);
+            } catch (OpenR66ProtocolNoDataException e1) {
+                networkChannelReference = null;
             }
-            try {
-                channelFuture.await();
-            } catch (InterruptedException e1) {
-            }
-            if (channelFuture.isSuccess()) {
-                final Channel channel = channelFuture.channel();
-                if (isSSL) {
-                    if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
-                        logger.debug("KO CONNECT since SSL handshake is over");
-                        channel.close();
-                        throw new OpenR66ProtocolNoConnectionException(
-                                "Cannot finish connect to remote server");
-                    }
-                }
-                networkChannelGroup.add(channel);
-                networkChannelReference = new NetworkChannelReference(channel, socketLock);
-                addNCR(networkChannelReference);
+            if (networkChannelReference != null) {
+                networkChannelReference.use();
+                logger.info("Already Connected: {}", networkChannelReference);
                 return networkChannelReference;
-            } else {
+            }
+            logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
+            ChannelFuture channelFuture = null;
+            for (int i = 0; i < Configuration.RETRYNB; i++) {
+                if (R66ShutdownHook.isShutdownStarting()) {
+                    throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
+                }
                 try {
-                    Thread.sleep(Configuration.WAITFORNETOP);
-                } catch (InterruptedException e) {
-                }
-                if (!channelFuture.isDone()) {
+                    if (isSSL) {
+                        if (Configuration.configuration.HOST_SSLID != null) {
+                            channelFuture = clientSslBootstrap.connect(socketServerAddress);
+                        } else {
+                            throw new OpenR66ProtocolNoConnectionException("No SSL support");
+                        }
+                    } else {
+                        channelFuture = clientBootstrap.connect(socketServerAddress);
+                    }
+                } catch (ChannelPipelineException e) {
                     throw new OpenR66ProtocolNoConnectionException(
-                            "Cannot connect to remote server due to interruption");
+                            "Cannot connect to remote server due to a channel exception");
                 }
-                if (channelFuture.cause() instanceof ConnectException) {
-                    logger.debug("KO CONNECT:" +
-                            channelFuture.cause().getMessage());
-                    throw new OpenR66ProtocolNoConnectionException(
-                            "Cannot connect to remote server", channelFuture
-                                    .cause());
+                try {
+                    channelFuture.await(Configuration.configuration.TIMEOUTCON/3);
+                } catch (InterruptedException e1) {
+                }
+                if (channelFuture.isSuccess()) {
+                    final Channel channel = channelFuture.channel();
+                    if (isSSL) {
+                        if (!NetworkSslServerHandler.isSslConnectedChannel(channel)) {
+                            logger.debug("KO CONNECT since SSL handshake is over");
+                            channel.close();
+                            throw new OpenR66ProtocolNoConnectionException(
+                                    "Cannot finish connect to remote server");
+                        }
+                    }
+                    networkChannelGroup.add(channel);
+                    networkChannelReference = new NetworkChannelReference(channel, socketLock);
+                    addNCR(networkChannelReference);
+                    return networkChannelReference;
                 } else {
-                    logger.debug("KO CONNECT but retry", channelFuture
-                            .cause());
+                    try {
+                        Thread.sleep(Configuration.WAITFORNETOP);
+                    } catch (InterruptedException e) {
+                    }
+                    if (!channelFuture.isDone()) {
+                        throw new OpenR66ProtocolNoConnectionException(
+                                "Cannot connect to remote server due to interruption");
+                    }
+                    if (channelFuture.cause() instanceof ConnectException) {
+                        logger.debug("KO CONNECT:" +
+                                channelFuture.cause().getMessage());
+                        throw new OpenR66ProtocolNoConnectionException(
+                                "Cannot connect to remote server", channelFuture
+                                        .cause());
+                    } else {
+                        logger.debug("KO CONNECT but retry", channelFuture
+                                .cause());
+                    }
                 }
             }
+            throw new OpenR66ProtocolNetworkException(
+                    "Cannot connect to remote server", channelFuture.cause());
+        } finally {
+            socketLock.unlock();
         }
-        throw new OpenR66ProtocolNetworkException(
-                "Cannot connect to remote server", channelFuture.cause());
     }
 
     /**
@@ -498,7 +500,7 @@ public class NetworkTransaction {
         CreateConnectionFromNetworkChannel ccfnc =
                 new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
         ccfnc.setDaemon(true);
-        retrieveExecutor.execute(ccfnc);
+        Configuration.configuration.getExecutorService().execute(ccfnc);
     }
 
     private static class CreateConnectionFromNetworkChannel extends Thread {
@@ -512,11 +514,10 @@ public class NetworkTransaction {
 
         @Override
         public void run() {
+            setName("Connect_"+startupPacket.getRemoteId());
             Channel channel = networkChannelReference.channel();
             LocalChannelReference lcr = null;
-            WaarpLock lock = networkChannelReference.getLock();
             try {
-                lock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
                 lcr = Configuration.configuration
                         .getLocalTransaction().createNewClient(networkChannelReference,
                                 startupPacket.getRemoteId(), null);
@@ -540,8 +541,6 @@ public class NetworkTransaction {
                 NetworkServerHandler.writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
                 NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
                 return;
-            } finally {
-                lock.unlock();
             }
             ByteBuf buf = startupPacket.getBuffer();
             lcr.getLocalChannel().writeAndFlush(buf);
@@ -648,6 +647,7 @@ public class NetworkTransaction {
         SocketAddress socketAddress = channel.remoteAddress();
         WaarpLock socketLock = getChannelLock(socketAddress);
         socketLock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+        //socketLock.lock();
         try {
             NetworkChannelReference nc = null;
             try {

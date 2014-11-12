@@ -26,6 +26,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.local.LocalChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -209,8 +211,11 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                                     packet.getClass().getName(),
                             ErrorCode.Unimplemented.getCode(),
                             ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
-                    ChannelUtils.close((LocalChannel) ctx.channel());
+                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true).addListener(
+                            new GenericFutureListener<Future<? super Void>>() {
+                                public void operationComplete(Future<? super Void> future) throws Exception {
+                                    ctx.close();
+                                }});
                     packet.clear();
                     break;
                 }
@@ -298,8 +303,11 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                     final ErrorPacket errorPacket = new ErrorPacket(
                             "Unkown Mesg: " + packet.getClass().getName(),
                             ErrorCode.Unimplemented.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true);
-                    ChannelUtils.close((LocalChannel) ctx.channel());
+                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true).addListener(
+                            new GenericFutureListener<Future<? super Void>>() {
+                                public void operationComplete(Future<? super Void> future) throws Exception {
+                                    ctx.close();
+                                }});
                     packet.clear();
                 }
             }

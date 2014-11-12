@@ -168,8 +168,8 @@ public class LocalTransaction {
             }
             channelFuture = clientBootstrap.connect(socketLocalServerAddress);
             try {
-                channelFuture.await();
-                //channelFuture.await(Configuration.WAITFORNETOP);
+                //channelFuture.await();
+                channelFuture.await(Configuration.configuration.TIMEOUTCON/3);
             } catch (InterruptedException e1) {
                 logger.error("LocalChannelServer Interrupted: " +
                         serverChannel.getClass().getName() + " " +
@@ -192,21 +192,14 @@ public class LocalTransaction {
                         localChannelReference);
                 logger.info("Add one localChannel to a Network Channel: " + channel.id());
                 // Now send first a Startup message
-                StartupPacket startup = new StartupPacket(
-                        localChannelReference.getLocalId());
-                try {
-                    channel.writeAndFlush(startup).await(Configuration.WAITFORNETOP);
-                } catch (InterruptedException e) {
-                    logger.error("Can't connect to local server due to interruption" + i);
-                    throw new OpenR66ProtocolSystemException(
-                            "Cannot connect to local handler", e);
-                }
+                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId());
+                channel.writeAndFlush(startup);
                 return localChannelReference;
             } else {
-                logger.error("Can't connect to local server " + i);
+                logger.error("Can't connect to local server " + i + " (Done: "+ channelFuture.isDone() + ")");
             }
             try {
-                Thread.sleep(Configuration.RETRYINMS);
+                Thread.sleep(Configuration.RETRYINMS*10);
             } catch (InterruptedException e) {
                 throw new OpenR66ProtocolSystemException(
                         "Cannot connect to local handler", e);
@@ -316,6 +309,7 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = iterator.next();
             logger.info("Inform Shutdown {}", localChannelReference);
             packet.setSmiddle(null);
+            packet.retain();
             // If a transfer is running, save the current rank and inform remote
             // host
             if (localChannelReference.getSession() != null) {
