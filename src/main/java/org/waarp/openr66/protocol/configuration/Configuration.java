@@ -571,8 +571,8 @@ public class Configuration {
         computeNbThreads();
         scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
                 "ScheduledTask"));
-        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss", false));
-        workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
+        bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
+        workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
         handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 10, new WaarpThreadFactory("SubTask"));
         httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
