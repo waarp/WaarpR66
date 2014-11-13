@@ -92,7 +92,7 @@ public class LocalTransaction {
      */
     public LocalTransaction() {
         serverBootstrap.channel(LocalServerChannel.class);
-        serverBootstrap.group(Configuration.configuration.getSubTaskGroup());
+        serverBootstrap.group(Configuration.configuration.getLocalBossGroup(), Configuration.configuration.getLocalWorkerGroup());
         serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
         serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
@@ -106,7 +106,7 @@ public class LocalTransaction {
 
         clientBootstrap.channel(LocalChannel.class);
         // Same Group than Network final handler 
-        clientBootstrap.group(Configuration.configuration.getSubTaskGroup());
+        clientBootstrap.group(Configuration.configuration.getLocalWorkerGroup());
         clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
         clientBootstrap.handler(new LocalClientInitializer());
     }
