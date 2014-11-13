@@ -23,10 +23,9 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -484,7 +483,7 @@ public class NetworkTransaction {
                     return networkChannelReference;
                 } else {
                     try {
-                        Thread.sleep(Configuration.WAITFORNETOP);
+                        Thread.sleep(Configuration.RETRYINMS);
                     } catch (InterruptedException e) {}
                     if (!channelFuture.isDone()) {
                         throw new OpenR66ProtocolNoConnectionException(
@@ -649,10 +648,8 @@ public class NetworkTransaction {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 } catch (OpenR66ProtocolPacketException e) {}
             }
-            Channels.close(localChannelReference.getLocalChannel());
-            try {
-                Thread.sleep(Configuration.RETRYINMS * 20);
-            } catch (InterruptedException e) {}
+            Channels.close(localChannelReference.getLocalChannel())
+                .awaitUninterruptibly(Configuration.RETRYINMS*2);
             throw new OpenR66ProtocolNetworkException(
                     "Cannot validate connection: " + future.getResult(), future
                             .getCause());
@@ -930,8 +927,8 @@ public class NetworkTransaction {
      */
     private static class CloseFutureChannel implements TimerTask {
 
-        private static ConcurrentSkipListSet<Integer> inCloseRunning =
-                new ConcurrentSkipListSet<Integer>();
+        private static Set<Integer> inCloseRunning =
+                Collections.synchronizedSet(new HashSet<Integer>());
         private final NetworkChannelReference networkChannelReference;
 
         /**
@@ -1110,10 +1107,10 @@ public class NetworkTransaction {
      * 
      */
     private static class R66ShutdownNetworkChannelTimerTask implements TimerTask {
-        private static SortedSet<Integer> inShutdownRunning =
-                Collections.synchronizedSortedSet(new TreeSet<Integer>());
-        private static SortedSet<Integer> inBlacklistedRunning =
-                Collections.synchronizedSortedSet(new TreeSet<Integer>());
+        private static Set<Integer> inShutdownRunning =
+                Collections.synchronizedSet(new HashSet<Integer>());
+        private static Set<Integer> inBlacklistedRunning =
+                Collections.synchronizedSet(new HashSet<Integer>());
         /**
          * NCR to remove
          */

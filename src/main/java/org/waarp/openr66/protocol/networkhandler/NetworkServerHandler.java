@@ -117,7 +117,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         networkChannelReference.nbLocalChannels());
                 // Give an extra time if necessary to let the local channel being closed
                 try {
-                    Thread.sleep(Configuration.WAITFORNETOP);
+                    Thread.sleep(Configuration.RETRYINMS * 2);
                 } catch (InterruptedException e1) {}
             }
             NetworkTransaction.closedNetworkChannel(networkChannelReference);
@@ -372,7 +372,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         // ignore
                         return;
                     }
-                    logger.debug("Cannot get LocalChannel: " + packet + " due to " +
+                    logger.warn("Cannot get LocalChannel: " + packet + " due to " +
                             e1.getMessage());
                     final ConnectionErrorPacket error = new ConnectionErrorPacket(
                             "Cannot get localChannel since localId is not found anymore", "" + packet.getLocalId());

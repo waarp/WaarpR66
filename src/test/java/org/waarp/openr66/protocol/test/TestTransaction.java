@@ -120,6 +120,9 @@ public class TestTransaction implements Runnable {
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 100;
 
+        if (args.length > 1) {
+            nb = Integer.parseInt(args[1]);
+        }
         R66Future[] arrayFuture = new R66Future[nb];
         logger.info("Start Test of Transaction");
         long time1 = System.currentTimeMillis();

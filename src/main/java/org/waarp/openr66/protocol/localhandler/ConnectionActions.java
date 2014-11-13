@@ -224,7 +224,7 @@ public abstract class ConnectionActions {
                 ClientRunner clientRunner = localChannelReference.getClientRunner();
                 if (clientRunner != null) {
                     try {
-                        Thread.sleep(Configuration.WAITFORNETOP);
+                        Thread.sleep(Configuration.RETRYINMS);
                     } catch (InterruptedException e1) {}
                     clientRunner.interrupt();
                 }
