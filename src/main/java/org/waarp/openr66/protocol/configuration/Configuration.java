@@ -414,6 +414,8 @@ public class Configuration {
     protected final EventLoopGroup workerGroup;
     protected final EventLoopGroup handlerGroup;
     protected final EventLoopGroup subTaskGroup;
+    protected final EventLoopGroup localBossGroup;
+    protected final EventLoopGroup localWorkerGroup;
     protected final EventLoopGroup httpBossGroup;
     protected final EventLoopGroup httpWorkerGroup;
 
@@ -574,8 +576,10 @@ public class Configuration {
         bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
         workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
         handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
-        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD * 10, new WaarpThreadFactory("SubTask"));
-        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
+        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
+        localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
+        localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
+        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD * 3, new WaarpThreadFactory("HttpBoss"));
         httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
         // Init FiniteStates
         R66FiniteDualStates.initR66FiniteStates();
@@ -880,6 +884,12 @@ public class Configuration {
         if (!subTaskGroup.isShuttingDown()) {
             subTaskGroup.shutdownGracefully();
         }
+        if (!localBossGroup.isShuttingDown()) {
+            localBossGroup.shutdownGracefully();
+        }
+        if (!localWorkerGroup.isShuttingDown()) {
+            localWorkerGroup.shutdownGracefully();
+        }
     }
 
     /**
@@ -1072,6 +1082,20 @@ public class Configuration {
      */
     public EventLoopGroup getNetworkWorkerGroup() {
         return workerGroup;
+    }
+
+    /**
+     * @return the localBossGroup
+     */
+    public EventLoopGroup getLocalBossGroup() {
+        return localBossGroup;
+    }
+
+    /**
+     * @return the localWorkerGroup
+     */
+    public EventLoopGroup getLocalWorkerGroup() {
+        return localWorkerGroup;
     }
 
     /**
