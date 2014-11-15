@@ -49,7 +49,7 @@
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>2.0.0</version>
+      <version>3.0.0</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
@@ -89,13 +89,13 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpExec</artifactId>
-    	<version>2.0.0</version>
+    	<version>3.0.0</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpSnmp</artifactId>
-    	<version>2.0.0</version>
+    	<version>3.0.0</version>
     </dependency>
     <dependency>
     	<groupId>ch.qos.logback</groupId>
@@ -110,7 +110,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpThrift</artifactId>
-    	<version>2.0.0</version>
+    	<version>3.0.0</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -140,12 +140,12 @@
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpGatewayKernel</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
     </dependency>
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpFtpClient</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
     </dependency>
   </dependencies>
   <properties>

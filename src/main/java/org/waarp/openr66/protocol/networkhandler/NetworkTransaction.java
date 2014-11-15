@@ -443,7 +443,7 @@ public class NetworkTransaction {
                             "Cannot connect to remote server due to a channel exception");
                 }
                 try {
-                    channelFuture.await(Configuration.configuration.TIMEOUTCON/3);
+                    channelFuture.await(Configuration.configuration.TIMEOUTCON / 3);
                 } catch (InterruptedException e1) {
                 }
                 if (channelFuture.isSuccess()) {
@@ -506,15 +506,16 @@ public class NetworkTransaction {
     private static class CreateConnectionFromNetworkChannel extends Thread {
         final NetworkChannelReference networkChannelReference;
         final NetworkPacket startupPacket;
+
         private CreateConnectionFromNetworkChannel(NetworkChannelReference networkChannelReference,
-            NetworkPacket packet) {
+                NetworkPacket packet) {
             this.networkChannelReference = networkChannelReference;
             this.startupPacket = packet;
         }
 
         @Override
         public void run() {
-            setName("Connect_"+startupPacket.getRemoteId());
+            setName("Connect_" + startupPacket.getRemoteId());
             Channel channel = networkChannelReference.channel();
             LocalChannelReference lcr = null;
             try {
@@ -526,7 +527,8 @@ public class NetworkTransaction {
                         + e1.getMessage());
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since cannot create it", null);
-                NetworkServerHandler.writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
+                NetworkServerHandler
+                        .writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
                 NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
                 return;
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
@@ -538,7 +540,8 @@ public class NetworkTransaction {
                         + e1.getMessage());
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since cannot create it", null);
-                NetworkServerHandler.writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
+                NetworkServerHandler
+                        .writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
                 NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
                 return;
             }
@@ -546,6 +549,7 @@ public class NetworkTransaction {
             lcr.getLocalChannel().writeAndFlush(buf);
         }
     }
+
     /**
      * Send a validation of connection with Authentication
      * 
@@ -625,7 +629,7 @@ public class NetworkTransaction {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
-            localChannelReference.getLocalChannel().close().awaitUninterruptibly(Configuration.RETRYINMS*2);
+            localChannelReference.getLocalChannel().close().awaitUninterruptibly(Configuration.RETRYINMS * 2);
             throw new OpenR66ProtocolNetworkException(
                     "Cannot validate connection: " + future.getResult(), future
                             .getCause());
@@ -1188,19 +1192,11 @@ public class NetworkTransaction {
      */
     public void closeAll() {
         logger.debug("close All Network Channels");
-        try {
-            Thread.sleep(Configuration.RETRYINMS * 2);
-        } catch (InterruptedException e) {
-        }
         if (!Configuration.configuration.isServer) {
             R66ShutdownHook.shutdownHook.launchFinalExit();
         }
         closeRetrieveExecutors();
-        networkChannelGroup.close().awaitUninterruptibly();
-        try {
-            Thread.sleep(Configuration.WAITFORNETOP);
-        } catch (InterruptedException e) {
-        }
+        networkChannelGroup.close();
         DbAdmin.closeAllConnection();
         Configuration.configuration.clientStop();
         if (!Configuration.configuration.isServer) {

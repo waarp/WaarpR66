@@ -92,7 +92,8 @@ public class LocalTransaction {
      */
     public LocalTransaction() {
         serverBootstrap.channel(LocalServerChannel.class);
-        serverBootstrap.group(Configuration.configuration.getLocalBossGroup(), Configuration.configuration.getLocalWorkerGroup());
+        serverBootstrap.group(Configuration.configuration.getLocalBossGroup(),
+                Configuration.configuration.getLocalWorkerGroup());
         serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
         serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
@@ -196,10 +197,10 @@ public class LocalTransaction {
                 channel.writeAndFlush(startup);
                 return localChannelReference;
             } else {
-                logger.error("Can't connect to local server " + i + " (Done: "+ channelFuture.isDone() + ")");
+                logger.error("Can't connect to local server " + i + " (Done: " + channelFuture.isDone() + ")");
             }
             try {
-                Thread.sleep(Configuration.RETRYINMS*10);
+                Thread.sleep(Configuration.RETRYINMS * 10);
             } catch (InterruptedException e) {
                 throw new OpenR66ProtocolSystemException(
                         "Cannot connect to local handler", e);
@@ -341,7 +342,8 @@ public class LocalTransaction {
                             localChannelReference.getRemoteId(),
                             packet.getType(), buffer);
                     try {
-                        localChannelReference.getNetworkChannel().writeAndFlush(message).await(Configuration.WAITFORNETOP);
+                        localChannelReference.getNetworkChannel().writeAndFlush(message)
+                                .await(Configuration.WAITFORNETOP);
                     } catch (InterruptedException e1) {
                     }
                     try {

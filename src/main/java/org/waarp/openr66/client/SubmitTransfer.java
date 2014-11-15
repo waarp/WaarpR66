@@ -186,6 +186,7 @@ public class SubmitTransfer extends AbstractTransfer {
             System.exit(future.getResult().code.ordinal());
         }
         DbConstant.admin.close();
+        System.exit(0);
     }
 
 }

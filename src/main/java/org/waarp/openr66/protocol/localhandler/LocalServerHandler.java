@@ -211,11 +211,13 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                                     packet.getClass().getName(),
                             ErrorCode.Unimplemented.getCode(),
                             ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true).addListener(
-                            new GenericFutureListener<Future<? super Void>>() {
-                                public void operationComplete(Future<? super Void> future) throws Exception {
-                                    ctx.close();
-                                }});
+                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true)
+                            .addListener(
+                                    new GenericFutureListener<Future<? super Void>>() {
+                                        public void operationComplete(Future<? super Void> future) throws Exception {
+                                            ctx.close();
+                                        }
+                                    });
                     packet.clear();
                     break;
                 }
@@ -303,11 +305,13 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                     final ErrorPacket errorPacket = new ErrorPacket(
                             "Unkown Mesg: " + packet.getClass().getName(),
                             ErrorCode.Unimplemented.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true).addListener(
-                            new GenericFutureListener<Future<? super Void>>() {
-                                public void operationComplete(Future<? super Void> future) throws Exception {
-                                    ctx.close();
-                                }});
+                    ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(), errorPacket, true)
+                            .addListener(
+                                    new GenericFutureListener<Future<? super Void>>() {
+                                        public void operationComplete(Future<? super Void> future) throws Exception {
+                                            ctx.close();
+                                        }
+                                    });
                     packet.clear();
                 }
             }
