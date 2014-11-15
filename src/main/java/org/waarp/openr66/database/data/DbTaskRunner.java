@@ -1848,18 +1848,18 @@ public class DbTaskRunner extends AbstractDbData {
             WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
-        String orderby;
+        String orderby = "";
         if (startid == null && stopid == null &&
                 start == null && stop == null && rule == null && req == null && all) {
             if (owner == null || owner.isEmpty()) {
                 orderby = " WHERE " + getLimitWhereCondition();
-            } else {
+            } else if (! owner.equals("*")) {
                 orderby = " WHERE " + Columns.OWNERREQ + " = '" + owner + "' ";
             }
         } else {
             if (owner == null || owner.isEmpty()) {
                 orderby = " AND " + getLimitWhereCondition();
-            } else {
+            } else if (! owner.equals("*")) {
                 orderby = " AND " + Columns.OWNERREQ + " = '" + owner + "' ";
             }
         }
@@ -4059,6 +4059,7 @@ public class DbTaskRunner extends AbstractDbData {
         NbAndSpecialId nbAndSpecialId = null;
         OutputStream outputStream = null;
         XMLWriter xmlWriter = null;
+        boolean isOk = false;
         try {
             outputStream = new FileOutputStream(filename);
             OutputFormat format = OutputFormat.createPrettyPrint();
@@ -4066,6 +4067,7 @@ public class DbTaskRunner extends AbstractDbData {
             xmlWriter = new XMLWriter(outputStream, format);
             preparedStatement.executeQuery();
             nbAndSpecialId = writeXML(preparedStatement, xmlWriter);
+            isOk = true;
         } catch (FileNotFoundException e) {
             logger.error("Cannot write XML file", e);
             throw new OpenR66ProtocolBusinessException("File not found");
@@ -4094,6 +4096,15 @@ public class DbTaskRunner extends AbstractDbData {
                     file.delete();
                     logger.error("Cannot write XML file", e);
                     throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                }
+                if (! isOk) {
+                    if (outputStream != null) {
+                        try {
+                            outputStream.close();
+                        } catch (IOException e) {}
+                        File file = new File(filename);
+                        file.delete();
+                    }
                 }
             } else if (outputStream != null) {
                 try {
@@ -4258,6 +4269,7 @@ public class DbTaskRunner extends AbstractDbData {
         String filename = backendXmlFilename();
         OutputStream outputStream = null;
         XMLWriter xmlWriter = null;
+        boolean isOk = false;
         try {
             outputStream = new FileOutputStream(filename);
             OutputFormat format = OutputFormat.createPrettyPrint();
@@ -4271,6 +4283,7 @@ public class DbTaskRunner extends AbstractDbData {
                 xmlWriter.write(node);
                 xmlWriter.flush();
                 xmlWriter.writeClose(root);
+                isOk = true;
             } catch (IOException e) {
                 logger.error("Cannot write XML file", e);
                 throw new OpenR66ProtocolBusinessException("Cannot write file: " + e.getMessage());
@@ -4306,6 +4319,13 @@ public class DbTaskRunner extends AbstractDbData {
                     file.delete();
                     logger.error("Cannot write XML file", e);
                     throw new OpenR66ProtocolBusinessException("IO error on XML file", e);
+                }
+                if (! isOk && outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {}
+                    File file = new File(filename);
+                    file.delete();
                 }
             } else if (outputStream != null) {
                 try {

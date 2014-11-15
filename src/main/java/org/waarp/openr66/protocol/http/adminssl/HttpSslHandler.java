@@ -131,6 +131,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
     private static final String R66SESSION = "R66SESSION";
     private static final String I18NEXT = "i18next";
+    private static final String XXXRESULTXXX = "XXXRESULTXXX";
 
     private static enum REQUEST {
         Logon("Logon.html"),
@@ -354,18 +355,26 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         return builder.toString();
     }
 
+    private DbHostConfiguration getDbHostConfiguration() {
+        try {
+            return new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+        } catch (WaarpDatabaseException e2) {
+            return null;
+        }
+    }
     private String Listing() {
         getParams();
         if (params == null) {
             String head = REQUEST.Listing.readHeader(this);
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
-            String end = REQUEST.Listing.readEnd();
+            String end = REQUEST.Listing.readEnd().replace(XXXRESULTXXX, "");
             return head + end;
         }
         String head = REQUEST.Listing.readHeader(this);
         String body0, body, body1;
         body0 = body1 = body = "";
+        String endText = "";
         List<String> parms = params.get("ACTION");
         if (parms != null) {
             body0 = REQUEST.Listing.readBodyHeader();
@@ -404,12 +413,24 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 Long idstart = null;
                 body = REQUEST.Listing.readBody();
+                boolean seeAll = false;
+                if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+                    DbHostConfiguration dbhc = getDbHostConfiguration();
+                    seeAll = dbhc != null && dbhc.isSeeAllId(authentHttp.getAuth().getUser());
+                }
                 DbPreparedStatement preparedStatement = null;
                 try {
-                    preparedStatement =
+                    if (seeAll) {
+                        preparedStatement =
                             DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
                                     startid, stopid, tstart, tstop, rule, req,
-                                    pending, transfer, error, done, all);
+                                    pending, transfer, error, done, all, "*");
+                    } else {
+                        preparedStatement =
+                                DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+                                        startid, stopid, tstart, tstop, rule, req,
+                                        pending, transfer, error, done, all);
+                    }
                     preparedStatement.executeQuery();
                     StringBuilder builder = new StringBuilder();
                     int i = 0;
@@ -437,6 +458,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             // try to continue if possible
                             logger.warn("An error occurs while accessing a Runner: {}",
                                     e.getMessage());
+                            endText += e.getMessage() + "</BR>";
                             continue;
                         }
                     }
@@ -462,8 +484,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
         }
-        String end;
-        end = REQUEST.Listing.readEnd();
+        String end = REQUEST.Listing.readEnd().replace(XXXRESULTXXX, endText);;
         return head + body0 + body + body1 + end;
     }
 
@@ -481,6 +502,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         String body0, body, body1;
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
+        boolean seeAll = false;
+        if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+            DbHostConfiguration dbhc = getDbHostConfiguration();
+            seeAll = dbhc != null && dbhc.isSeeAllId(authentHttp.getAuth().getUser());
+        }
         if (parms != null) {
             body0 = REQUEST.CancelRestart.readBodyHeader();
             String parm = parms.get(0);
@@ -520,10 +546,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Long idstart = null;
                 DbPreparedStatement preparedStatement = null;
                 try {
-                    preparedStatement =
+                    if (seeAll) {
+                        preparedStatement =
                             DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
                                     startid, stopid, tstart, tstop, rule, req,
-                                    pending, transfer, error, done, all);
+                                    pending, transfer, error, done, all, "*");
+                    } else {
+                        preparedStatement =
+                                DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+                                        startid, stopid, tstart, tstop, rule, req,
+                                        pending, transfer, error, done, all);
+                    }
                     preparedStatement.executeQuery();
                     StringBuilder builder = new StringBuilder();
                     int i = 0;
@@ -608,21 +641,40 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 StringBuilder builder = new StringBuilder();
                 if (stopcommand) {
                     if ("StopCleanAll".equalsIgnoreCase(parm)) {
-                        builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
+                        if (seeAll) {
+                            builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
                                 authentHttp, body, startid, stopid, tstart, tstop, rule, req,
-                                pending, transfer, error);
+                                pending, transfer, error, "*");
+                        } else {
+                            builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
+                                    authentHttp, body, startid, stopid, tstart, tstop, rule, req,
+                                    pending, transfer, error);
+                        }
                     } else {
-                        builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder,
+                        if (seeAll) {
+                            builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder,
                                 authentHttp, body, startid, stopid, tstart, tstop, rule, req,
-                                pending, transfer, error);
+                                pending, transfer, error, "*");
+                        } else {
+                            builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder,
+                                    authentHttp, body, startid, stopid, tstart, tstop, rule, req,
+                                    pending, transfer, error);
+                        }
                     }
                 } else {
                     DbPreparedStatement preparedStatement = null;
                     try {
-                        preparedStatement =
+                        if (seeAll) {
+                            preparedStatement =
                                 DbTaskRunner.getFilterPrepareStatement(dbSession, 0, false,
                                         startid, stopid, tstart, tstop, rule, req,
-                                        pending, transfer, error, done, all);
+                                        pending, transfer, error, done, all, "*");
+                        } else {
+                            preparedStatement =
+                                    DbTaskRunner.getFilterPrepareStatement(dbSession, 0, false,
+                                            startid, stopid, tstart, tstop, rule, req,
+                                            pending, transfer, error, done, all);
+                        }
                         preparedStatement.executeQuery();
                         //int i = 0;
                         while (preparedStatement.getNext()) {
@@ -814,7 +866,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             String body = REQUEST.Export.readFileUnique(this);
             body = resetOptionTransfer(body, "", "", "", "", "", "",
                     false, false, false, true, false);
-            return body.replace("XXXRESULTXXX", "");
+            return body.replace(XXXRESULTXXX, "");
         }
         String body = REQUEST.Export.readFileUnique(this);
         String start = getValue("start");
@@ -861,21 +913,40 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Configuration.configuration.archivePath + R66Dir.SEPARATOR +
                 Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
                 "_runners.xml";
+        String errorMsg = "";
+        boolean seeAll = false;
+        if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+            DbHostConfiguration dbhc = getDbHostConfiguration();
+            seeAll = dbhc != null && dbhc.isSeeAllId(authentHttp.getAuth().getUser());
+        }
         try {
-            getValid =
+            if (seeAll) {
+                getValid =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
                             true, null, null, tstart, tstop, rule, req,
-                            pending, transfer, error, done, all);
+                            pending, transfer, error, done, all, "*");
+            } else {
+                getValid =
+                        DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
+                                true, null, null, tstart, tstop, rule, req,
+                                pending, transfer, error, done, all);
+            }
             nbAndSpecialId = DbTaskRunner.writeXMLWriter(getValid, filename);
         } catch (WaarpDatabaseNoConnectionException e1) {
             isexported = false;
             toPurge = false;
+            errorMsg = e1.getMessage();
+            logger.warn("Export error: " + e1.getMessage());
         } catch (WaarpDatabaseSqlException e1) {
             isexported = false;
             toPurge = false;
+            logger.warn("Export error: " + e1.getMessage());
+            errorMsg = e1.getMessage();
         } catch (OpenR66ProtocolBusinessException e) {
             isexported = false;
             toPurge = false;
+            logger.warn("Export error: " + e.getMessage());
+            errorMsg = e.getMessage();
         } finally {
             if (getValid != null) {
                 getValid.realClose();
@@ -884,7 +955,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         int purge = 0;
         if (isexported && nbAndSpecialId != null) {
             if (nbAndSpecialId.nb <= 0) {
-                return body.replace("XXXRESULTXXX",
+                return body.replace(XXXRESULTXXX,
                         Messages.getString("HttpSslHandler.7")); //$NON-NLS-1$
             }
             // in case of purge
@@ -898,18 +969,21 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             DbTaskRunner.purgeLogPrepareStatement(dbSession,
                                     null, stopId, tstart, tstop, rule, req,
                                     pending, transfer, error, done, all);
-                } catch (WaarpDatabaseNoConnectionException e) {} catch (WaarpDatabaseSqlException e) {}
+                } catch (WaarpDatabaseNoConnectionException e) {
+                } catch (WaarpDatabaseSqlException e) {
+                    logger.warn("Export error: " + e.getMessage());
+                }
             }
         }
         return body
                 .replace(
-                        "XXXRESULTXXX",
+                        XXXRESULTXXX,
                         "Export "
-                                + (isexported ? Messages.getString("HttpSslHandler.8") + //$NON-NLS-1$
+                                + (isexported ? "<B>" + Messages.getString("HttpSslHandler.8") + //$NON-NLS-1$
                                         filename
                                         + Messages.getString("HttpSslHandler.9") + nbAndSpecialId.nb + Messages.getString("HttpSslHandler.10") + purge //$NON-NLS-1$ //$NON-NLS-2$
-                                        + Messages.getString("HttpSslHandler.11") : //$NON-NLS-1$
-                                        Messages.getString("HttpSslHandler.12"))); //$NON-NLS-1$
+                                        + Messages.getString("HttpSslHandler.11") + "</B>" : //$NON-NLS-1$
+                                            "<B>" + Messages.getString("HttpSslHandler.12"))) + "</B></BR>" + errorMsg; //$NON-NLS-1$
     }
 
     private String resetOptionHosts(String header,
