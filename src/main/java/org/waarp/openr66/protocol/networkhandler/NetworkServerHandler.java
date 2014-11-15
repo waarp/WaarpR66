@@ -111,7 +111,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                         networkChannelReference.nbLocalChannels());
                 // Give an extra time if necessary to let the local channel being closed
                 try {
-                    Thread.sleep(Configuration.RETRYINMS*2);
+                    Thread.sleep(Configuration.RETRYINMS * 2);
                 } catch (InterruptedException e1) {
                 }
             }
@@ -140,7 +140,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             isBlackListed = true;
             if (Configuration.configuration.r66Mib != null) {
                 Configuration.configuration.r66Mib.notifyError(
-                    "Black Listed connection temptative", "During connection");
+                        "Black Listed connection temptative", "During connection");
             }
             // close immediately the connection
             WaarpSslUtility.closingSslChannel(netChannel);

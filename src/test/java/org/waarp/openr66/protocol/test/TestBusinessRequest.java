@@ -170,7 +170,8 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
             }
         }
         time2 = System.currentTimeMillis();
-        logger.warn("Simple TestExecJavaTask with increasing argument size Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Simple TestExecJavaTask with increasing argument size Success: " + success + " Error: " + error
+                + " NB/s: " +
                 success * 100 * 1000 / (time2 - time1));
 
         executorService.shutdown();

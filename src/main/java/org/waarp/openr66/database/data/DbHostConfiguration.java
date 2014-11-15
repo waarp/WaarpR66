@@ -167,7 +167,7 @@ public class DbHostConfiguration extends AbstractDbData {
             + XML_ALIAS, configAliasDecls, true) };
 
     public static enum OtherFields {
-        root, version
+        root, version, seeallid
     };
 
     // ALL TABLE SHOULD IMPLEMENT THIS
@@ -1219,6 +1219,22 @@ public class DbHostConfiguration extends AbstractDbData {
             }
         }
         return "1.1.0";
+    }
+
+    public boolean isSeeAllId(String id) {
+        Element others = this.getOtherElement();
+        if (others != null) {
+            Element seeallids = (Element) others.selectSingleNode(DbHostConfiguration.OtherFields.seeallid.name());
+            if (seeallids != null) {
+                String[] split = seeallids.getText().split(",");
+                for (String string : split) {
+                    if (string.equals(id)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**

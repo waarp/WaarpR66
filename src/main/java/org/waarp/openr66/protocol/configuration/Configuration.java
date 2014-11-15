@@ -411,11 +411,11 @@ public class Configuration {
             "OtherWorker"));
 
     protected final EventLoopGroup bossGroup;
-    protected final EventLoopGroup workerGroup;
-    protected final EventLoopGroup handlerGroup;
-    protected final EventLoopGroup subTaskGroup;
-    protected final EventLoopGroup localBossGroup;
-    protected final EventLoopGroup localWorkerGroup;
+    protected EventLoopGroup workerGroup;
+    protected EventLoopGroup handlerGroup;
+    protected EventLoopGroup subTaskGroup;
+    protected EventLoopGroup localBossGroup;
+    protected EventLoopGroup localWorkerGroup;
     protected final EventLoopGroup httpBossGroup;
     protected final EventLoopGroup httpWorkerGroup;
 
@@ -565,7 +565,7 @@ public class Configuration {
     public int limitCache = 20000;
 
     public long timeLimitCache = 180000;
-    
+
     public Configuration() {
         // Init signal handler
         shutdownConfiguration.timeout = TIMEOUTCON;
@@ -574,11 +574,11 @@ public class Configuration {
         scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
                 "ScheduledTask"));
         bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
-        workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
-        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
-        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
-        localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
-        localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
+        //workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
+        //handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
+        //subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
+        //localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
+        //localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
         httpBossGroup = new NioEventLoopGroup(SERVER_THREAD * 3, new WaarpThreadFactory("HttpBoss"));
         httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
         // Init FiniteStates
@@ -645,6 +645,11 @@ public class Configuration {
         if (configured) {
             return;
         }
+        workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
+        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
+        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
+        localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
+        localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
         localTransaction = new LocalTransaction();
         WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
         httpPipelineInit();
@@ -863,31 +868,31 @@ public class Configuration {
     }
 
     public void shutdownGracefully() {
-        if (!bossGroup.isShuttingDown()) {
+        if (bossGroup != null && !bossGroup.isShuttingDown()) {
             bossGroup.shutdownGracefully();
         }
-        if (!workerGroup.isShuttingDown()) {
+        if (workerGroup != null && !workerGroup.isShuttingDown()) {
             workerGroup.shutdownGracefully();
         }
-        if (!handlerGroup.isShuttingDown()) {
+        if (handlerGroup != null && !handlerGroup.isShuttingDown()) {
             handlerGroup.shutdownGracefully();
         }
-        if (!httpBossGroup.isShuttingDown()) {
+        if (httpBossGroup != null && !httpBossGroup.isShuttingDown()) {
             httpBossGroup.shutdownGracefully();
         }
-        if (!httpWorkerGroup.isShuttingDown()) {
+        if (httpWorkerGroup != null && !httpWorkerGroup.isShuttingDown()) {
             httpWorkerGroup.shutdownGracefully();
         }
-        if (!handlerGroup.isShuttingDown()) {
+        if (handlerGroup != null && !handlerGroup.isShuttingDown()) {
             handlerGroup.shutdownGracefully();
         }
-        if (!subTaskGroup.isShuttingDown()) {
+        if (subTaskGroup != null && !subTaskGroup.isShuttingDown()) {
             subTaskGroup.shutdownGracefully();
         }
-        if (!localBossGroup.isShuttingDown()) {
+        if (localBossGroup != null && !localBossGroup.isShuttingDown()) {
             localBossGroup.shutdownGracefully();
         }
-        if (!localWorkerGroup.isShuttingDown()) {
+        if (localWorkerGroup != null && !localWorkerGroup.isShuttingDown()) {
             localWorkerGroup.shutdownGracefully();
         }
     }
@@ -935,7 +940,7 @@ public class Configuration {
             localTransaction.closeAll();
             localTransaction = null;
         }
-        shutdownGracefully();
+        //shutdownGracefully();
         if (useLocalExec) {
             LocalExecClient.releaseResources();
         }
@@ -1029,6 +1034,8 @@ public class Configuration {
             logger.info(Messages.getString("Configuration.ThreadNumberChange") + nb); //$NON-NLS-1$
             SERVER_THREAD = nb;
             CLIENT_THREAD = SERVER_THREAD * 10;
+        } else if (CLIENT_THREAD < nb) {
+            CLIENT_THREAD = nb;
         }
     }
 

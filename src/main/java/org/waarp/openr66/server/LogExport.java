@@ -277,6 +277,7 @@ public class LogExport implements Runnable {
             }
         } finally {
             networkTransaction.closeAll();
+            System.exit(0);
         }
     }
 

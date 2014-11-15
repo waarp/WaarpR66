@@ -161,19 +161,23 @@ public class ServerShutdown {
         }
         ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
+        int value = 66;
         if (isblock || isunblock) {
             if (localChannelReference.getFutureRequest().isSuccess()) {
                 logger.warn((isblock ? "Blocking" : "Unblocking") + " OK");
+                value = 0;
             } else {
                 R66Result result = localChannelReference.getFutureRequest()
                         .getResult();
                 logger.error("Cannot " + (isblock ? "Blocking" : "Unblocking") + ": " + result.toString(),
                         localChannelReference
                                 .getFutureRequest().getCause());
+                value = result.code.ordinal();
             }
         } else {
             if (localChannelReference.getFutureRequest().isSuccess()) {
                 logger.warn("Shutdown OK");
+                value = 0;
             } else {
                 R66Result result = localChannelReference.getFutureRequest()
                         .getResult();
@@ -181,15 +185,19 @@ public class ServerShutdown {
                         &&
                         ((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                     logger.warn("Shutdown command OK");
+                    value = 0;
                 } else if (result.code == ErrorCode.Shutdown) {
                     logger.warn("Shutdown command done");
+                    value = 0;
                 } else {
                     logger.error("Cannot Shutdown: " + result.toString(), localChannelReference
                             .getFutureRequest().getCause());
+                    value = result.code.ordinal();
                 }
             }
         }
         networkTransaction.closeAll();
+        System.exit(value);
     }
 
 }

@@ -116,6 +116,7 @@ public class BusinessRequest extends AbstractBusinessRequest {
             System.exit(ErrorCode.Unknown.ordinal());
         }
         networkTransaction.closeAll();
+        System.exit(0);
     }
 
 }

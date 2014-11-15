@@ -88,6 +88,7 @@ public class LogImport {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();
             }
+            System.exit(0);
         }
     }
 }

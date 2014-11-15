@@ -229,6 +229,14 @@ public class TransferUtils {
             StringBuilder builder, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
             String req, boolean pending, boolean transfer, boolean error) {
+        return stopSelectedTransfers(dbSession, limit, builder, session, body, startid, stopid, tstart, tstop,
+                rule, req, pending, transfer, error, null);
+    }
+
+    public static StringBuilder stopSelectedTransfers(DbSession dbSession, int limit,
+            StringBuilder builder, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error, String host) {
         if (dbSession == null || dbSession.isDisActive) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {
@@ -247,7 +255,7 @@ public class TransferUtils {
             preparedStatement =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
                             startid, stopid, tstart, tstop, rule, req,
-                            pending, transfer, error, false, false);
+                            pending, transfer, error, false, false, host);
             preparedStatement.executeQuery();
             while (preparedStatement.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
@@ -338,6 +346,14 @@ public class TransferUtils {
             StringBuilder builder, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
             String req, boolean pending, boolean transfer, boolean error) {
+        return cleanSelectedTransfers(dbSession, limit, builder, session, body, startid, stopid, tstart, tstop,
+                rule, req, pending, transfer, error, null);
+    }
+
+    public static StringBuilder cleanSelectedTransfers(DbSession dbSession, int limit,
+            StringBuilder builder, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error, String host) {
         if (dbSession == null || dbSession.isDisActive) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {
@@ -357,7 +373,7 @@ public class TransferUtils {
             preparedStatement =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
                             startid, stopid, tstart, tstop, rule, req,
-                            pending, transfer, error, false, false);
+                            pending, transfer, error, false, false, host);
             preparedStatement.executeQuery();
             while (preparedStatement.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);

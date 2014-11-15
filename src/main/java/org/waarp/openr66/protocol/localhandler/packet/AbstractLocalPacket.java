@@ -135,7 +135,7 @@ public abstract class AbstractLocalPacket {
             }
         }
     }
-    
+
     public void retain() {
         if (header != null) {
             header.retain();

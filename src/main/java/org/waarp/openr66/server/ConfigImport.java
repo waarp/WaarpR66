@@ -428,6 +428,7 @@ public class ConfigImport implements Runnable {
             }
         } finally {
             networkTransaction.closeAll();
+            System.exit(0);
         }
     }
 
