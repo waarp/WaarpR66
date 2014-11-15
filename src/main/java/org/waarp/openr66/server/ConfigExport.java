@@ -298,6 +298,7 @@ public class ConfigExport implements Runnable {
             }
         } finally {
             networkTransaction.closeAll();
+            System.exit(0);
         }
     }
 

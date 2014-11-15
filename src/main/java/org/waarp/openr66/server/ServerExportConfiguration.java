@@ -111,6 +111,7 @@ public class ServerExportConfiguration {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();
             }
+            System.exit(0);
         }
     }
 

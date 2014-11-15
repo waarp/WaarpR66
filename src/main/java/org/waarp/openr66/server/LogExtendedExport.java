@@ -459,6 +459,7 @@ public class LogExtendedExport implements Runnable {
             }
         } finally {
             networkTransaction.closeAll();
+            System.exit(0);
         }
     }
 
