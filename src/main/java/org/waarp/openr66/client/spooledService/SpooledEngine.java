@@ -122,7 +122,7 @@ public class SpooledEngine extends EngineAbstract {
         }
         SpooledDirectoryTransfer.list.clear();
         logger.info("Shutdown network");
-        SpooledDirectoryTransfer.networkTransactionStatic.closeAll();
+        SpooledDirectoryTransfer.networkTransactionStatic.closeAll(false);
         logger.info("All");
         ChannelUtils.startShutdown();
         closeFuture.setSuccess();

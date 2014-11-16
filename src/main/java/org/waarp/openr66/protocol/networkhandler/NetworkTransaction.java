@@ -646,8 +646,8 @@ public class NetworkTransaction {
             throws OpenR66ProtocolRemoteShutdownException {
         SocketAddress socketAddress = channel.remoteAddress();
         WaarpLock socketLock = getChannelLock(socketAddress);
-        socketLock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
-        //socketLock.lock();
+        //socketLock.lock(Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+        socketLock.lock();
         try {
             NetworkChannelReference nc = null;
             try {
@@ -1191,14 +1191,24 @@ public class NetworkTransaction {
      * Close all Network Ttransaction
      */
     public void closeAll() {
+        closeAll(true);
+    }
+    /**
+     * Close all Network Ttransaction
+     */
+    public void closeAll(boolean quickShutdown) {
         logger.debug("close All Network Channels");
         if (!Configuration.configuration.isServer) {
             R66ShutdownHook.shutdownHook.launchFinalExit();
         }
         closeRetrieveExecutors();
         networkChannelGroup.close();
+        try {
+            Thread.sleep(Configuration.WAITFORNETOP);
+        } catch (InterruptedException e) {
+        }
         DbAdmin.closeAllConnection();
-        Configuration.configuration.clientStop();
+        Configuration.configuration.clientStop(quickShutdown);
         if (!Configuration.configuration.isServer) {
             logger.debug("Last action before exit");
             ChannelUtils.stopLogger();
