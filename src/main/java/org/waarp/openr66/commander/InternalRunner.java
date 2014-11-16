@@ -130,7 +130,7 @@ public class InternalRunner {
         scheduledFuture.cancel(false);
         scheduledExecutorService.shutdownNow();
         threadPoolExecutor.shutdownNow();
-        networkTransaction.closeAll();
+        networkTransaction.closeAll(false);
     }
 
     public int nbInternalRunner() {

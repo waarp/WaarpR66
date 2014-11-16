@@ -410,14 +410,14 @@ public class Configuration {
     protected final ExecutorService execOtherWorker = Executors.newCachedThreadPool(new WaarpThreadFactory(
             "OtherWorker"));
 
-    protected final EventLoopGroup bossGroup;
+    protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
     protected EventLoopGroup handlerGroup;
     protected EventLoopGroup subTaskGroup;
     protected EventLoopGroup localBossGroup;
     protected EventLoopGroup localWorkerGroup;
-    protected final EventLoopGroup httpBossGroup;
-    protected final EventLoopGroup httpWorkerGroup;
+    protected EventLoopGroup httpBossGroup;
+    protected EventLoopGroup httpWorkerGroup;
 
     /**
      * ExecutorService Scheduled tasks
@@ -573,14 +573,6 @@ public class Configuration {
         computeNbThreads();
         scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
                 "ScheduledTask"));
-        bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
-        //workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
-        //handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
-        //subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
-        //localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
-        //localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
-        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD * 3, new WaarpThreadFactory("HttpBoss"));
-        httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
         // Init FiniteStates
         R66FiniteDualStates.initR66FiniteStates();
         if (!SystemPropertyUtil.isFileEncodingCorrect()) {
@@ -652,7 +644,6 @@ public class Configuration {
         localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
         localTransaction = new LocalTransaction();
         WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
-        httpPipelineInit();
         if (warnOnStartup) {
             logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
                     + " Runner Thread: " + RUNNER_THREAD);
@@ -667,7 +658,10 @@ public class Configuration {
         configured = true;
     }
 
-    public void httpPipelineInit() {
+    public void serverPipelineInit() {
+        bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
+        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD * 3, new WaarpThreadFactory("HttpBoss"));
+        httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
     }
 
     /**
@@ -694,6 +688,7 @@ public class Configuration {
             System.exit(-1);
         }
         pipelineInit();
+        serverPipelineInit();
         r66Startup();
         startHttpSupport();
         startMonitoring();
@@ -897,6 +892,36 @@ public class Configuration {
         }
     }
 
+    public void shutdownQuickly() {
+        if (bossGroup != null && !bossGroup.isShuttingDown()) {
+            bossGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (workerGroup != null && !workerGroup.isShuttingDown()) {
+            workerGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (handlerGroup != null && !handlerGroup.isShuttingDown()) {
+            handlerGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (httpBossGroup != null && !httpBossGroup.isShuttingDown()) {
+            httpBossGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (httpWorkerGroup != null && !httpWorkerGroup.isShuttingDown()) {
+            httpWorkerGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (handlerGroup != null && !handlerGroup.isShuttingDown()) {
+            handlerGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (subTaskGroup != null && !subTaskGroup.isShuttingDown()) {
+            subTaskGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (localBossGroup != null && !localBossGroup.isShuttingDown()) {
+            localBossGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+        if (localWorkerGroup != null && !localWorkerGroup.isShuttingDown()) {
+            localWorkerGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS);
+        }
+    }
+
     /**
      * Stops the server
      * 
@@ -929,6 +954,13 @@ public class Configuration {
      * To be called after all other stuff are closed for Client
      */
     public void clientStop() {
+        clientStop(true);
+    }
+    /**
+     * To be called after all other stuff are closed for Client
+     * @param shutdownQuickly For client only, shall be true to speedup the end of the process
+     */
+    public void clientStop(boolean shutdownQuickly) {
         WaarpSslUtility.forceCloseAllSslChannels();
         if (!Configuration.configuration.isServer) {
             ChannelUtils.stopLogger();
@@ -940,7 +972,11 @@ public class Configuration {
             localTransaction.closeAll();
             localTransaction = null;
         }
-        //shutdownGracefully();
+        if (shutdownQuickly) {
+            
+        } else {
+            shutdownGracefully();
+        }
         if (useLocalExec) {
             LocalExecClient.releaseResources();
         }

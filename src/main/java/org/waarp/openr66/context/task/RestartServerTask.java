@@ -83,7 +83,7 @@ public class RestartServerTask extends AbstractTask {
         Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
         thread.setDaemon(true);
         // give time for the task to finish correctly
-        Configuration.configuration.launchInFixedDelay(thread, Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+        Configuration.configuration.launchInFixedDelay(thread, 1000, TimeUnit.MILLISECONDS);
     }
 
 }
