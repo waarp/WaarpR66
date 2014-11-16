@@ -1225,7 +1225,7 @@ public class NetworkTransaction {
         clientSslBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
         try {
-            Thread.sleep(Configuration.WAITFORNETOP);
+            Thread.sleep(Configuration.WAITFORNETOP * 2);
         } catch (InterruptedException e) {}
         DbAdmin.closeAllConnection();
         Configuration.configuration.clientStop();

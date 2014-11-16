@@ -61,7 +61,7 @@ public class ChannelCloseTimer implements TimerTask {
     public static void closeFutureChannel(Channel channel) {
         Configuration.configuration.getTimerClose().newTimeout(
                 new ChannelCloseTimer(channel),
-                Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+                Configuration.WAITFORNETOP * 2, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -74,6 +74,6 @@ public class ChannelCloseTimer implements TimerTask {
     public static void closeFutureChannel(Channel channel, ChannelFuture future) {
         Configuration.configuration.getTimerClose().newTimeout(
                 new ChannelCloseTimer(channel, future),
-                Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+                Configuration.WAITFORNETOP * 2, TimeUnit.MILLISECONDS);
     }
 }

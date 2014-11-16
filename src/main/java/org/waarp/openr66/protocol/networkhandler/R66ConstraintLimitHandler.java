@@ -59,7 +59,7 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
             double lowcpuLimit, double highcpuLimit, double percentageDecrease,
             GlobalTrafficShapingHandler handler, long delay,
             long limitLowBandwidth) {
-        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+        super(1000, Configuration.configuration != null ?
                 Configuration.configuration.TIMEOUTCON : 30000,
                 useJdKCpuLimit,
                 lowcpuLimit, highcpuLimit,
@@ -78,7 +78,7 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
      */
     public R66ConstraintLimitHandler(boolean useCpuLimit,
             boolean useJdKCpuLimit, double cpulimit, int channellimit) {
-        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+        super(1000, Configuration.configuration != null ?
                 Configuration.configuration.TIMEOUTCON : 30000,
                 useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
     }
@@ -114,7 +114,7 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
             int channellimit, double lowcpuLimit, double highcpuLimit,
             double percentageDecrease, GlobalTrafficShapingHandler handler,
             long delay, long limitLowBandwidth) {
-        super(Configuration.WAITFORNETOP, Configuration.configuration != null ?
+        super(1000, Configuration.configuration != null ?
                 Configuration.configuration.TIMEOUTCON : 30000,
                 useCpuLimit, useJdKCpuLimit,
                 cpulimit, channellimit, lowcpuLimit, highcpuLimit,
