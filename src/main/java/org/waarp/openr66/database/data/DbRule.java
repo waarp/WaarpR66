@@ -797,16 +797,16 @@ public class DbRule extends AbstractDbData {
             }
             setFromArrayClone(rule);
             if (recvPath == null || recvPath.trim().isEmpty()) {
-                recvPath = Configuration.configuration.inPath;
+                recvPath = "";
             }
             if (sendPath == null || sendPath.trim().isEmpty()) {
-                sendPath = Configuration.configuration.outPath;
+                sendPath = "";
             }
             if (archivePath == null || archivePath.trim().isEmpty()) {
-                archivePath = Configuration.configuration.archivePath;
+                archivePath = "";
             }
             if (workPath == null || workPath.trim().isEmpty()) {
-                workPath = Configuration.configuration.workingPath;
+                workPath = "";
             }
             isSaved = true;
             return;
@@ -818,16 +818,16 @@ public class DbRule extends AbstractDbData {
         }
         super.select();
         if (recvPath == null || recvPath.trim().isEmpty()) {
-            recvPath = Configuration.configuration.inPath;
+            recvPath = "";
         }
         if (sendPath == null || sendPath.trim().isEmpty()) {
-            sendPath = Configuration.configuration.outPath;
+            sendPath = "";
         }
         if (archivePath == null || archivePath.trim().isEmpty()) {
-            archivePath = Configuration.configuration.archivePath;
+            archivePath = "";
         }
         if (workPath == null || workPath.trim().isEmpty()) {
-            workPath = Configuration.configuration.workingPath;
+            workPath = "";
         }
         setFromArray();
         dbR66RuleHashMap.put(this.idRule, this);
