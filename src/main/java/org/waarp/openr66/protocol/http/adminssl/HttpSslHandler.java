@@ -1115,7 +1115,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                         Configuration.configuration.getInternalRunner().getNetworkTransaction(),
                         result, dbhost, packet);
                 transaction.run();
-                result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+                result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON / 2);
                 head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
                 body = REQUEST.Hosts.readBody();
                 if (result.isSuccess()) {
