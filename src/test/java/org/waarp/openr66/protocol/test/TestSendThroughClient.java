@@ -90,14 +90,14 @@ public class TestSendThroughClient extends SendThroughClient {
                     // Wait for last write
                     retrieveDone = true;
                     try {
-                        future1.await(Configuration.configuration.TIMEOUTCON);
+                        future1.await();
                     } catch (InterruptedException e1) {
                     }
                     return future1.isSuccess();
                 }
                 future2 = this.writeWhenPossible(block);
                 try {
-                    future1.await(Configuration.configuration.TIMEOUTCON);
+                    future1.await();
                 } catch (InterruptedException e) {
                 }
                 if (!future1.isSuccess()) {
@@ -108,7 +108,7 @@ public class TestSendThroughClient extends SendThroughClient {
             // Wait for last write
             if (future1 != null) {
                 try {
-                    future1.await(Configuration.configuration.TIMEOUTCON);
+                    future1.await();
                 } catch (InterruptedException e) {
                 }
                 return future1.isSuccess();

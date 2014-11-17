@@ -334,11 +334,14 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                         // ignore
                         return;
                     }
-                    logger.debug("Cannot get LocalChannel: " + packet + " due to " +
+                    // try to send later
+                    Configuration.configuration.getLocalTransaction()
+                        .sendLaterToClient(channel, packet.getRemoteId(), packet.getLocalId(), packet);
+                    /*logger.debug("Cannot get LocalChannel: " + packet + " due to " +
                             e1.getMessage());
                     final ConnectionErrorPacket error = new ConnectionErrorPacket(
                             "Cannot get localChannel since localId is not found anymore", "" + packet.getLocalId());
-                    writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);
+                    writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);*/
                     return;
                 }
             }
@@ -414,7 +417,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
      * @param localId
      * @param error
      */
-    static void writeError(Channel channel, Integer remoteId, Integer localId, AbstractLocalPacket error) {
+    public static void writeError(Channel channel, Integer remoteId, Integer localId, AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;
         try {
             networkPacket = new NetworkPacket(localId, remoteId, error, null);

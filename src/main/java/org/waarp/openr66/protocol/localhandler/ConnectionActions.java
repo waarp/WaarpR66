@@ -307,7 +307,7 @@ public abstract class ConnectionActions {
         }
         DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
                 packet.getHostId());
-        if (!auth.isActive()) {
+        if (auth != null && !auth.isActive()) {
             e1 = new Reply530Exception("Host is Inactive therefore connection is refused");
         }
         R66Result result = new R66Result(
