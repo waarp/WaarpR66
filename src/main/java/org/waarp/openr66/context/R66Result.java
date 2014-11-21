@@ -28,84 +28,84 @@ import org.waarp.openr66.protocol.exception.OpenR66Exception;
  * 
  */
 public class R66Result {
-	/**
-	 * The exception associated in case of error (if any exception)
-	 */
-	public OpenR66Exception exception = null;
-	/**
-	 * The file if any
-	 */
-	public R66File file = null;
-	/**
-	 * The runner if any
-	 */
-	public DbTaskRunner runner = null;
-	/**
-	 * Does this result already have been transfered to the remote server
-	 */
-	public boolean isAnswered = false;
-	/**
-	 * The code (error or not)
-	 */
-	public ErrorCode code;
-	/**
-	 * Any other object for special operations (test or shutdown for instance)
-	 */
-	public Object other = null;
+    /**
+     * The exception associated in case of error (if any exception)
+     */
+    public OpenR66Exception exception = null;
+    /**
+     * The file if any
+     */
+    public R66File file = null;
+    /**
+     * The runner if any
+     */
+    public DbTaskRunner runner = null;
+    /**
+     * Does this result already have been transfered to the remote server
+     */
+    public boolean isAnswered = false;
+    /**
+     * The code (error or not)
+     */
+    public ErrorCode code;
+    /**
+     * Any other object for special operations (test or shutdown for instance)
+     */
+    public Object other = null;
 
-	/**
-	 * @param exception
-	 * @param session
-	 * @param isAnswered
-	 * @param code
-	 * @param runner
-	 */
-	public R66Result(OpenR66Exception exception, R66Session session,
-			boolean isAnswered, ErrorCode code, DbTaskRunner runner) {
-		this.exception = exception;
-		this.runner = runner;
-		if (session != null) {
-			file = session.getFile();
-			this.runner = session.getRunner();
-		}
-		this.isAnswered = isAnswered;
-		this.code = code;
-	}
+    /**
+     * @param exception
+     * @param session
+     * @param isAnswered
+     * @param code
+     * @param runner
+     */
+    public R66Result(OpenR66Exception exception, R66Session session,
+            boolean isAnswered, ErrorCode code, DbTaskRunner runner) {
+        this.exception = exception;
+        this.runner = runner;
+        if (session != null) {
+            file = session.getFile();
+            this.runner = session.getRunner();
+        }
+        this.isAnswered = isAnswered;
+        this.code = code;
+    }
 
-	/**
-	 * @param session
-	 * @param isAnswered
-	 * @param code
-	 * @param runner
-	 */
-	public R66Result(R66Session session, boolean isAnswered, ErrorCode code,
-			DbTaskRunner runner) {
-		this.runner = runner;
-		if (session != null) {
-			file = session.getFile();
-			this.runner = session.getRunner();
-		}
-		this.isAnswered = isAnswered;
-		this.code = code;
-	}
+    /**
+     * @param session
+     * @param isAnswered
+     * @param code
+     * @param runner
+     */
+    public R66Result(R66Session session, boolean isAnswered, ErrorCode code,
+            DbTaskRunner runner) {
+        this.runner = runner;
+        if (session != null) {
+            file = session.getFile();
+            this.runner = session.getRunner();
+        }
+        this.isAnswered = isAnswered;
+        this.code = code;
+    }
 
-	@Override
-	public String toString() {
-		return (exception != null ? "Exception: " + exception.toString() : "") +
-				(file != null ? file.toString() : " no file") + "     " +
-				(runner != null ? runner.toShortString() : " no runner") +
-				" isAnswered: " + isAnswered + " Code: " + code.mesg;
-	}
+    @Override
+    public String toString() {
+        return (exception != null ? "Exception: " + exception.toString() : "") +
+                (file != null ? file.toString() : " no file") + "     " +
+                (runner != null ? runner.toShortString() : " no runner") +
+                " isAnswered: " + isAnswered + " Code: " + code.mesg;
+    }
 
-	/**
-	 * 
-	 * @return the associated message with this Result
-	 */
-	public String getMessage() {
-		if (exception != null) {
-			return exception.getMessage();
-		} else {
-			return code.mesg;
-		}
-	}
+    /**
+     * 
+     * @return the associated message with this Result
+     */
+    public String getMessage() {
+        if (exception != null) {
+            return exception.getMessage();
+        } else {
+            return code.mesg;
+        }
+    }
 }

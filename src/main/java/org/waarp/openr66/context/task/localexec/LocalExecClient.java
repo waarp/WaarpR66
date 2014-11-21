@@ -39,128 +39,126 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class LocalExecClient {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(LocalExecClient.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(LocalExecClient.class);
 
-	static public InetSocketAddress address;
-	// Configure the client.
-	static private ClientBootstrap bootstrapLocalExec;
-	// Configure the pipeline factory.
-	static private LocalExecClientPipelineFactory localExecClientPipelineFactory;
+    static public InetSocketAddress address;
+    // Configure the client.
+    static private ClientBootstrap bootstrapLocalExec;
+    // Configure the pipeline factory.
+    static private LocalExecClientPipelineFactory localExecClientPipelineFactory;
 
-	/**
-	 * Initialize the LocalExec Client context
-	 */
-	public static void initialize() {
-		// Configure the client.
-		bootstrapLocalExec = new ClientBootstrap(
-				new NioClientSocketChannelFactory(
-						Configuration.configuration.getLocalPipelineExecutor(),
-						Configuration.configuration.getLocalPipelineExecutor()));
-		// Configure the pipeline factory.
-		localExecClientPipelineFactory =
-				new LocalExecClientPipelineFactory();
-		bootstrapLocalExec.setPipelineFactory(localExecClientPipelineFactory);
-	}
+    /**
+     * Initialize the LocalExec Client context
+     */
+    public static void initialize() {
+        // Configure the client.
+        bootstrapLocalExec = new ClientBootstrap(
+                new NioClientSocketChannelFactory(
+                        Configuration.configuration.getLocalPipelineExecutor(),
+                        Configuration.configuration.getLocalPipelineExecutor()));
+        // Configure the pipeline factory.
+        localExecClientPipelineFactory =
+                new LocalExecClientPipelineFactory();
+        bootstrapLocalExec.setPipelineFactory(localExecClientPipelineFactory);
+    }
 
-	/**
-	 * To be called when the server is shutting down to release the resources
-	 */
-	public static void releaseResources() {
-		if (bootstrapLocalExec == null) {
-			return;
-		}
-		// Shut down all thread pools to exit.
-		bootstrapLocalExec.releaseExternalResources();
-		localExecClientPipelineFactory.releaseResources();
-	}
+    /**
+     * To be called when the server is shutting down to release the resources
+     */
+    public static void releaseResources() {
+        if (bootstrapLocalExec == null) {
+            return;
+        }
+        // Shut down all thread pools to exit.
+        bootstrapLocalExec.releaseExternalResources();
+        localExecClientPipelineFactory.releaseResources();
+    }
 
-	private Channel channel;
-	private LocalExecResult result;
+    private Channel channel;
+    private LocalExecResult result;
 
-	public LocalExecClient() {
+    public LocalExecClient() {
 
-	}
+    }
 
-	public LocalExecResult getLocalExecResult() {
-		return result;
-	}
+    public LocalExecResult getLocalExecResult() {
+        return result;
+    }
 
-	/**
-	 * Run one command with a specific allowed delay for execution. The connection must be ready
-	 * (done with connect()).
-	 * 
-	 * @param command
-	 * @param delay
-	 * @param futureCompletion
-	 */
-	public void runOneCommand(String command, long delay, boolean waitFor,
-			WaarpFuture futureCompletion) {
-		// Initialize the command context
-		LocalExecClientHandler clientHandler =
-				(LocalExecClientHandler) channel.getPipeline().getLast();
-		// Command to execute
-		clientHandler.initExecClient(delay, command);
-		if (!waitFor) {
-			futureCompletion.setSuccess();
-			logger.info("Exec OK with {}", command);
-		}
-		// Wait for the end of the exec command
-		LocalExecResult localExecResult = clientHandler.waitFor(delay * 2);
-		result = localExecResult;
-		if (futureCompletion == null) {
-			return;
-		}
-		if (result.status == 0) {
-			if (waitFor) {
-				futureCompletion.setSuccess();
-			}
-			logger.info("Exec OK with {}", command);
-		} else if (result.status == 1) {
-			logger.warn("Exec in warning with {}", command);
-			if (waitFor) {
-				futureCompletion.setSuccess();
-			}
-		} else {
-			logger.error("Status: " + result.status + " Exec in error with " +
-					command + " " + result.result);
-			if (waitFor) {
-				futureCompletion.cancel();
-			}
-		}
-	}
+    /**
+     * Run one command with a specific allowed delay for execution. The connection must be ready
+     * (done with connect()).
+     * 
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
+    public void runOneCommand(String command, long delay, boolean waitFor,
+            WaarpFuture futureCompletion) {
+        // Initialize the command context
+        LocalExecClientHandler clientHandler =
+                (LocalExecClientHandler) channel.getPipeline().getLast();
+        // Command to execute
+        clientHandler.initExecClient(delay, command);
+        if (!waitFor) {
+            futureCompletion.setSuccess();
+            logger.info("Exec OK with {}", command);
+        }
+        // Wait for the end of the exec command
+        LocalExecResult localExecResult = clientHandler.waitFor(delay * 2);
+        result = localExecResult;
+        if (futureCompletion == null) {
+            return;
+        }
+        if (result.status == 0) {
+            if (waitFor) {
+                futureCompletion.setSuccess();
+            }
+            logger.info("Exec OK with {}", command);
+        } else if (result.status == 1) {
+            logger.warn("Exec in warning with {}", command);
+            if (waitFor) {
+                futureCompletion.setSuccess();
+            }
+        } else {
+            logger.error("Status: " + result.status + " Exec in error with " +
+                    command + " " + result.result);
+            if (waitFor) {
+                futureCompletion.cancel();
+            }
+        }
+    }
 
-	/**
-	 * Connect to the Server
-	 */
-	public boolean connect() {
-		// Start the connection attempt.
-		ChannelFuture future = bootstrapLocalExec.connect(address);
+    /**
+     * Connect to the Server
+     */
+    public boolean connect() {
+        // Start the connection attempt.
+        ChannelFuture future = bootstrapLocalExec.connect(address);
 
-		// Wait until the connection attempt succeeds or fails.
-		try {
-			channel = future.await().getChannel();
-		} catch (InterruptedException e) {
-		}
-		if (!future.isSuccess()) {
-			logger.error("Client Not Connected", future.getCause());
-			return false;
-		}
-		return true;
-	}
+        // Wait until the connection attempt succeeds or fails.
+        try {
+            channel = future.await().getChannel();
+        } catch (InterruptedException e) {}
+        if (!future.isSuccess()) {
+            logger.error("Client Not Connected", future.getCause());
+            return false;
+        }
+        return true;
+    }
 
-	/**
-	 * Disconnect from the server
-	 */
-	public void disconnect() {
-		// Close the connection. Make sure the close operation ends because
-		// all I/O operations are asynchronous in Netty.
-		try {
-			WaarpSslUtility.closingSslChannel(channel).await();
-		} catch (InterruptedException e) {
-		}
-	}
+    /**
+     * Disconnect from the server
+     */
+    public void disconnect() {
+        // Close the connection. Make sure the close operation ends because
+        // all I/O operations are asynchronous in Netty.
+        try {
+            WaarpSslUtility.closingSslChannel(channel).await();
+        } catch (InterruptedException e) {}
+    }
 }

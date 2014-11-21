@@ -33,57 +33,57 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * @author Frederic Bregier
  */
 public class R66Server {
-	private static WaarpInternalLogger logger;
+    private static WaarpInternalLogger logger;
 
-	/**
-	 * @param args
-	 *            as first argument the configuration file
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static void main(String[] args)
-			throws OpenR66ProtocolPacketException {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		logger = WaarpInternalLoggerFactory
-				.getLogger(R66Server.class);
-		if (args.length < 1) {
-			logger
-					.error(Messages.getString("Configuration.NeedConfig")); //$NON-NLS-1$
-			return;
-		}
-		try {
-			R66ShutdownHook.registerMain(R66Server.class, args);
-			if (initialize(args[0])) {
-				logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID + " : " + Configuration.configuration.toString()); //$NON-NLS-1$
-				System.err.println(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-			} else {
-				logger.error(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-				System.err.println(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-				System.exit(1);
-			}
-		} catch (Throwable e) {
-			logger.error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
-		}
-	}
+    /**
+     * @param args
+     *            as first argument the configuration file
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static void main(String[] args)
+            throws OpenR66ProtocolPacketException {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        logger = WaarpInternalLoggerFactory
+                .getLogger(R66Server.class);
+        if (args.length < 1) {
+            logger
+                    .error(Messages.getString("Configuration.NeedConfig")); //$NON-NLS-1$
+            return;
+        }
+        try {
+            R66ShutdownHook.registerMain(R66Server.class, args);
+            if (initialize(args[0])) {
+                logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID + " : " + Configuration.configuration.toString()); //$NON-NLS-1$
+                System.err.println(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+            } else {
+                logger.error(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+                System.err.println(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+                System.exit(1);
+            }
+        } catch (Throwable e) {
+            logger.error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
+        }
+    }
 
-	public static boolean initialize(String config) {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory
-					.getLogger(R66Server.class);
-		}
-		if (!FileBasedConfiguration
-				.setConfigurationServerFromXml(Configuration.configuration, config)) {
-			logger
-					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-			return false;
-		}
-		try {
-			Configuration.configuration.serverStartup();
-		} catch (Throwable e) {
-			logger
-					.error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
-			R66ShutdownHook.terminate(false);
-			return false;
-		}
-		return true;
-	}
+    public static boolean initialize(String config) {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory
+                    .getLogger(R66Server.class);
+        }
+        if (!FileBasedConfiguration
+                .setConfigurationServerFromXml(Configuration.configuration, config)) {
+            logger
+                    .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+            return false;
+        }
+        try {
+            Configuration.configuration.serverStartup();
+        } catch (Throwable e) {
+            logger
+                    .error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
+            R66ShutdownHook.terminate(false);
+            return false;
+        }
+        return true;
+    }
 }

@@ -41,11 +41,12 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
  * 
  */
 public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
-	private final boolean useHttpCompression;
+    private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
     private final RestConfiguration restConfiguration;
-    
-    public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory, RestConfiguration configuration) {
+
+    public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory,
+            RestConfiguration configuration) {
         this.waarpSslContextFactory = waarpSslContextFactory;
         this.useHttpCompression = useHttpCompression;
         this.restConfiguration = configuration;
@@ -57,12 +58,12 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
 
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
-        	SslHandler handler = waarpSslContextFactory.initPipelineFactory(true,
+            SslHandler handler = waarpSslContextFactory.initPipelineFactory(true,
                     false, false);
-        	handler.setIssueHandshake(true);
-        	pipeline.addLast("ssl", handler);
+            handler.setIssueHandshake(true);
+            pipeline.addLast("ssl", handler);
         }
-        
+
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("encoder", new HttpResponseEncoder());
         /*

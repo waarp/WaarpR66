@@ -10,14 +10,14 @@ import java.io.FilenameFilter;
  * 
  */
 public class ExtensionFilter implements FilenameFilter {
-	String filter = RuleFileBasedConfiguration.EXT_RULE;
+    String filter = RuleFileBasedConfiguration.EXT_RULE;
 
-	public ExtensionFilter(String filter) {
-		this.filter = filter;
-	}
+    public ExtensionFilter(String filter) {
+        this.filter = filter;
+    }
 
-	public boolean accept(File arg0, String arg1) {
-		return arg1.endsWith(filter);
-	}
+    public boolean accept(File arg0, String arg1) {
+        return arg1.endsWith(filter);
+    }
 
 }

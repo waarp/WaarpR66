@@ -27,20 +27,20 @@ import org.jboss.netty.util.ObjectSizeEstimator;
  * 
  */
 public class LocalPacketSizeEstimator implements ObjectSizeEstimator {
-	private DefaultObjectSizeEstimator internal = new DefaultObjectSizeEstimator();
+    private DefaultObjectSizeEstimator internal = new DefaultObjectSizeEstimator();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.handler.execution.ObjectSizeEstimator#estimateSize(java .lang.Object)
-	 */
-	public int estimateSize(Object o) {
-		if (!(o instanceof AbstractLocalPacket)) {
-			// Type unimplemented
-			return internal.estimateSize(o);
-		}
-		AbstractLocalPacket packet = (AbstractLocalPacket) o;
-		int size = packet.header.readableBytes() + packet.middle.readableBytes() +
-				packet.end.readableBytes();
-		return size;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.jboss.netty.handler.execution.ObjectSizeEstimator#estimateSize(java .lang.Object)
+     */
+    public int estimateSize(Object o) {
+        if (!(o instanceof AbstractLocalPacket)) {
+            // Type unimplemented
+            return internal.estimateSize(o);
+        }
+        AbstractLocalPacket packet = (AbstractLocalPacket) o;
+        int size = packet.header.readableBytes() + packet.middle.readableBytes() +
+                packet.end.readableBytes();
+        return size;
+    }
 }

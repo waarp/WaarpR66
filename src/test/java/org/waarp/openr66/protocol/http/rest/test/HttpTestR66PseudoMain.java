@@ -35,64 +35,66 @@ import org.waarp.openr66.server.R66Server;
 
 /**
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class HttpTestR66PseudoMain {
 
-	public static RestConfiguration config;
-	
-	public static RestConfiguration getTestConfiguration() throws CryptoException, IOException {
-		RestConfiguration configuration = new RestConfiguration();
+    public static RestConfiguration config;
+
+    public static RestConfiguration getTestConfiguration() throws CryptoException, IOException {
+        RestConfiguration configuration = new RestConfiguration();
         configuration.REST_PORT = 8088;
         configuration.REST_SSL = false;
         configuration.RESTHANDLERS_CRUD = new byte[RESTHANDLERS.values().length];
-    	for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
-    		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
-		}
+        for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
+            configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
+        }
         configuration.REST_AUTHENTICATED = true;
         configuration.initializeKey(new File("J:/GG/R66/conf/key.sha256"));
         configuration.REST_TIME_LIMIT = 10000;
         configuration.REST_SIGNATURE = true;
         configuration.REST_ADDRESS = "127.0.0.1";
         return configuration;
-	}
-	public static RestConfiguration getTestConfiguration2() throws CryptoException, IOException {
-		RestConfiguration configuration = new RestConfiguration();
+    }
+
+    public static RestConfiguration getTestConfiguration2() throws CryptoException, IOException {
+        RestConfiguration configuration = new RestConfiguration();
         configuration.REST_PORT = 8089;
         configuration.REST_SSL = false;
         configuration.RESTHANDLERS_CRUD = new byte[RESTHANDLERS.values().length];
-    	for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
-    		configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.READ.mask;
-		}
+        for (int i = 0; i < configuration.RESTHANDLERS_CRUD.length; i++) {
+            configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.READ.mask;
+        }
         configuration.REST_AUTHENTICATED = false;
         configuration.REST_TIME_LIMIT = 100000;
         configuration.REST_SIGNATURE = false;
         configuration.REST_ADDRESS = "127.0.0.1";
         return configuration;
-	}
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-	public static void main(String[] args) throws Exception {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+    }
+
+    /**
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpInternalLogger logger = WaarpInternalLoggerFactory
                 .getLogger(HttpTestR66PseudoMain.class);
         String pathTemp = "J:/Temp/temp";
         if (!R66Server.initialize(args[0])) {
-        	System.err.println("Error during startup");
-        	System.exit(1);
+            System.err.println("Error during startup");
+            System.exit(1);
         }
 
         config = getTestConfiguration();
         HttpRestR66Handler.initialize(pathTemp);
         HttpRestR66Handler.initializeService(config);
-        
-		logger.warn("Server RestOpenR66 starts");
-		/* HmacSha256 sha = new HmacSha256();
-		sha.generateKey();
-		sha.saveSecretKey(new File("J:/Temp/temp/key.sha256"));
-		*/
-	}
+
+        logger.warn("Server RestOpenR66 starts");
+        /* HmacSha256 sha = new HmacSha256();
+        sha.generateKey();
+        sha.saveSecretKey(new File("J:/Temp/temp/key.sha256"));
+        */
+    }
 
 }

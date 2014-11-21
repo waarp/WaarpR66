@@ -38,57 +38,58 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * 
  */
 public class LogImport {
-	/**
-	 * Internal Logger
-	 */
-	private static WaarpInternalLogger logger;
+    /**
+     * Internal Logger
+     */
+    private static WaarpInternalLogger logger;
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogImport.class);
-		}
-		if (args.length < 2) {
-			System.err
-					.println("Need configuration file and the logfile to import");
-			System.exit(1);
-		}
-		try {
-			if (!FileBasedConfiguration
-					.setConfigurationServerMinimalFromXml(Configuration.configuration, args[0])) {
-				logger
-						.error("Needs a correct configuration file as first argument");
-				if (DbConstant.admin != null) {
-					DbConstant.admin.close();
-				}
-				ChannelUtils.stopLogger();
-				System.exit(1);
-				return;
-			}
-			long time1 = System.currentTimeMillis();
-			File logsFile = new File(args[1]);
-			try {
-				DbTaskRunner.loadXml(logsFile);
-			} catch (OpenR66ProtocolBusinessException e) {
-				logger.error("Cannot load the logs from " + logsFile.getAbsolutePath()
-						+ " since: " + e.getMessage(), e);
-				if (DbConstant.admin != null) {
-					DbConstant.admin.close();
-				}
-				ChannelUtils.stopLogger();
-				System.exit(1);
-				return;
-			}
-			long time2 = System.currentTimeMillis();
-			long delay = time2 - time1;
-			logger.warn("LogFile imported in "+delay+" ms");
-		} finally {
-			if (DbConstant.admin != null) {
-				DbConstant.admin.close();
-			}
-		}
-	}
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(LogImport.class);
+        }
+        if (args.length < 2) {
+            System.err
+                    .println("Need configuration file and the logfile to import");
+            System.exit(1);
+        }
+        try {
+            if (!FileBasedConfiguration
+                    .setConfigurationServerMinimalFromXml(Configuration.configuration, args[0])) {
+                logger
+                        .error("Needs a correct configuration file as first argument");
+                if (DbConstant.admin != null) {
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            long time1 = System.currentTimeMillis();
+            File logsFile = new File(args[1]);
+            try {
+                DbTaskRunner.loadXml(logsFile);
+            } catch (OpenR66ProtocolBusinessException e) {
+                logger.error("Cannot load the logs from " + logsFile.getAbsolutePath()
+                        + " since: " + e.getMessage(), e);
+                if (DbConstant.admin != null) {
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            long time2 = System.currentTimeMillis();
+            long delay = time2 - time1;
+            logger.warn("LogFile imported in " + delay + " ms");
+        } finally {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
+            }
+            System.exit(0);
+        }
+    }
 }

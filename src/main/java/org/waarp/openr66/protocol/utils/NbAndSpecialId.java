@@ -26,7 +26,7 @@ import org.waarp.openr66.database.DbConstant;
  * 
  */
 public class NbAndSpecialId {
-	public int nb = 0;
-	public long higherSpecialId = DbConstant.ILLEGALVALUE;
+    public int nb = 0;
+    public long higherSpecialId = DbConstant.ILLEGALVALUE;
 
 }

@@ -30,95 +30,95 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
-	private final byte[] key;
-	private byte restart = 0;
-	
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ShutdownPacket from buffer
-	 * @throws OpenR66ProtocolPacketException
-	 */
-	public static ShutdownPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf)
-			throws OpenR66ProtocolPacketException {
-		if (headerLength - 1 <= 0) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
-		}
-		final byte[] bpassword = new byte[headerLength - 1];
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bpassword);
-		}
-		byte torestart = 0;
-		if (middleLength > 0) {
-			torestart = buf.readByte();
-		}
-		return new ShutdownPacket(bpassword, torestart);
-	}
+    private final byte[] key;
+    private byte restart = 0;
 
-	/**
-	 * @param spassword
-	 */
-	public ShutdownPacket(byte[] spassword) {
-		key = spassword;
-		restart = 0;
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ShutdownPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static ShutdownPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        final byte[] bpassword = new byte[headerLength - 1];
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bpassword);
+        }
+        byte torestart = 0;
+        if (middleLength > 0) {
+            torestart = buf.readByte();
+        }
+        return new ShutdownPacket(bpassword, torestart);
+    }
 
-	/**
-	 * @param spassword
-	 * @param restart
-	 */
-	public ShutdownPacket(byte[] spassword, byte restart) {
-		key = spassword;
-		this.restart = restart;
-	}
+    /**
+     * @param spassword
+     */
+    public ShutdownPacket(byte[] spassword) {
+        key = spassword;
+        restart = 0;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
-	}
+    /**
+     * @param spassword
+     * @param restart
+     */
+    public ShutdownPacket(byte[] spassword, byte restart) {
+        key = spassword;
+        this.restart = restart;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (key != null) {
-			header = ChannelBuffers.wrappedBuffer(key);
-		}
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (restart != 0) {
-			byte [] array = {restart};
-			middle = ChannelBuffers.wrappedBuffer(array);
-		} else {
-			middle = ChannelBuffers.EMPTY_BUFFER;
-		}
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (key != null) {
+            header = ChannelBuffers.wrappedBuffer(key);
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "ShutdownPacket"+ (restart != 0 ? " and restart" : "");
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (restart != 0) {
+            byte[] array = { restart };
+            middle = ChannelBuffers.wrappedBuffer(array);
+        } else {
+            middle = ChannelBuffers.EMPTY_BUFFER;
+        }
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.SHUTDOWNPACKET;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "ShutdownPacket" + (restart != 0 ? " and restart" : "");
+    }
 
-	/**
-	 * @return the key
-	 */
-	public byte[] getKey() {
-		return key;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.SHUTDOWNPACKET;
+    }
 
-	public boolean isRestart() {
-		return restart != 0;
-	}
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        return key;
+    }
+
+    public boolean isRestart() {
+        return restart != 0;
+    }
 }

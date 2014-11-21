@@ -35,73 +35,73 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class TarTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(TarTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(TarTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public TarTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.TAR, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public TarTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.TAR, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("TAR with " + argRule + ":" + argTransfer + ":" + delay + " and {}",
-				session);
-		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" "));
-		boolean tar = false;
-		switch (delay) {
-			case 2: {
-				// directory: tar finalname where finalname="target directory"
-				String[] args = finalname.split(" ");
-				tar = TarUtility.createTarFromDirectory(args[1], args[0], true);
-				break;
-			}
-			case 3: {
-				// list of files: tar finalname where finalname="target file1 file2..."
-				String[] args = finalname.split(" ");
-				List<File> files = new ArrayList<File>(args.length - 1);
-				for (int i = 1; i < args.length; i++) {
-					files.add(new File(args[i]));
-				}
-				tar = TarUtility.createTarFromFiles(files, args[0]);
-				break;
-			}
-			default:
-				// untar
-				// directory: untar finalname where finalname="source directory"
-				String[] args = finalname.split(" ");
-				File tarFile = new File(args[0]);
-				File directory = new File(args[1]);
-				try {
-					TarUtility.unTar(tarFile, directory);
-					tar = true;
-				} catch (IOException e) {
-					logger.warn("Error while untar", e);
-					tar = false;
-				}
-				break;
-		}
-		if (!tar) {
-			logger.error("Tar error with " + argRule + ":" + argTransfer + ":" + delay + " and " +
-					session);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Tar error"));
-			return;
-		}
-		futureCompletion.setSuccess();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("TAR with " + argRule + ":" + argTransfer + ":" + delay + " and {}",
+                session);
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        boolean tar = false;
+        switch (delay) {
+            case 2: {
+                // directory: tar finalname where finalname="target directory"
+                String[] args = finalname.split(" ");
+                tar = TarUtility.createTarFromDirectory(args[1], args[0], true);
+                break;
+            }
+            case 3: {
+                // list of files: tar finalname where finalname="target file1 file2..."
+                String[] args = finalname.split(" ");
+                List<File> files = new ArrayList<File>(args.length - 1);
+                for (int i = 1; i < args.length; i++) {
+                    files.add(new File(args[i]));
+                }
+                tar = TarUtility.createTarFromFiles(files, args[0]);
+                break;
+            }
+            default:
+                // untar
+                // directory: untar finalname where finalname="source directory"
+                String[] args = finalname.split(" ");
+                File tarFile = new File(args[0]);
+                File directory = new File(args[1]);
+                try {
+                    TarUtility.unTar(tarFile, directory);
+                    tar = true;
+                } catch (IOException e) {
+                    logger.warn("Error while untar", e);
+                    tar = false;
+                }
+                break;
+        }
+        if (!tar) {
+            logger.error("Tar error with " + argRule + ":" + argTransfer + ":" + delay + " and " +
+                    session);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException("Tar error"));
+            return;
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

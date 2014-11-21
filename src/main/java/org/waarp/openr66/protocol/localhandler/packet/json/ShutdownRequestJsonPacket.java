@@ -22,28 +22,32 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Shutdown current request JSON packet
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class ShutdownRequestJsonPacket extends JsonPacket {
 
-	protected int rank = -1;
-	/**
-	 * @return the rank
-	 */
-	public int getRank() {
-		return rank;
-	}
-	/**
-	 * @param rank the rank to set
-	 */
-	public void setRank(int rank) {
-		this.rank = rank;
-	}
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.SHUTDOWNPACKET);
-	}
+    protected int rank = -1;
+
+    /**
+     * @return the rank
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * @param rank
+     *            the rank to set
+     */
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.SHUTDOWNPACKET);
+    }
 }

@@ -32,42 +32,42 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * 
  */
 public class CopyTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(CopyTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(CopyTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public CopyTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.COPY, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public CopyTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.COPY, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",
-				session);
-		File from = session.getFile().getTrueFile();
-		File to = new File(argRule.replace('\\', '/') + session.getFile().getBasename());
-		try {
-			FileUtils.copy(from, to, false, false);
-		} catch (OpenR66ProtocolSystemException e1) {
-			logger.error("Copy with " + argRule + ":" + argTransfer + " and " +
-					session, e1);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
-			return;
-		}
-		futureCompletion.setSuccess();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",
+                session);
+        File from = session.getFile().getTrueFile();
+        File to = new File(argRule.replace('\\', '/') + session.getFile().getBasename());
+        try {
+            FileUtils.copy(from, to, false, false);
+        } catch (OpenR66ProtocolSystemException e1) {
+            logger.error("Copy with " + argRule + ":" + argTransfer + " and " +
+                    session, e1);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
+            return;
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

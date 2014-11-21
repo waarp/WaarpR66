@@ -30,108 +30,108 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class ValidPacket extends AbstractLocalPacket {
-	private final String sheader;
+    private final String sheader;
 
-	private String smiddle;
+    private String smiddle;
 
-	private final byte send;
+    private final byte send;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ValidPacket from buffer
-	 */
-	public static ValidPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
-		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bmiddle = new byte[middleLength];
-		final byte bend;
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		if (middleLength > 0) {
-			buf.readBytes(bmiddle);
-		}
-		bend = buf.readByte();
-		return new ValidPacket(new String(bheader), 
-				new String(bmiddle), bend);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ValidPacket from buffer
+     */
+    public static ValidPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) {
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bmiddle = new byte[middleLength];
+        final byte bend;
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        if (middleLength > 0) {
+            buf.readBytes(bmiddle);
+        }
+        bend = buf.readByte();
+        return new ValidPacket(new String(bheader),
+                new String(bmiddle), bend);
+    }
 
-	/**
-	 * @param header
-	 * @param middle
-	 * @param end
-	 */
-	public ValidPacket(String header, String middle, byte end) {
-		sheader = header;
-		smiddle = middle;
-		send = end;
-	}
+    /**
+     * @param header
+     * @param middle
+     * @param end
+     */
+    public ValidPacket(String header, String middle, byte end) {
+        sheader = header;
+        smiddle = middle;
+        send = end;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(1);
-		end.writeByte(send);
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.buffer(1);
+        end.writeByte(send);
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (sheader != null) {
-			header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
-		}
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (sheader != null) {
+            header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+        }
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (smiddle != null) {
-			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
-		}
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (smiddle != null) {
+            middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "ValidPacket: " + sheader + ":" + smiddle + ":" + send;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "ValidPacket: " + sheader + ":" + smiddle + ":" + send;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.VALIDPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.VALIDPACKET;
+    }
 
-	/**
-	 * @return the sheader
-	 */
-	public String getSheader() {
-		return sheader;
-	}
+    /**
+     * @return the sheader
+     */
+    public String getSheader() {
+        return sheader;
+    }
 
-	/**
-	 * @return the smiddle
-	 */
-	public String getSmiddle() {
-		return smiddle;
-	}
+    /**
+     * @return the smiddle
+     */
+    public String getSmiddle() {
+        return smiddle;
+    }
 
-	/**
-	 * 
-	 * @param smiddle
-	 */
-	public void setSmiddle(String smiddle) {
-		this.smiddle = smiddle;
-		middle = null;
-	}
+    /**
+     * 
+     * @param smiddle
+     */
+    public void setSmiddle(String smiddle) {
+        this.smiddle = smiddle;
+        middle = null;
+    }
 
-	/**
-	 * @return the type
-	 */
-	public byte getTypeValid() {
-		return send;
-	}
+    /**
+     * @return the type
+     */
+    public byte getTypeValid() {
+        return send;
+    }
 
 }

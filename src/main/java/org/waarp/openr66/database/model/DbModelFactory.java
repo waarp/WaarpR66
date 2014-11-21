@@ -29,42 +29,42 @@ import org.waarp.common.database.model.DbType;
  */
 public class DbModelFactory extends org.waarp.common.database.model.DbModelFactory {
 
-	/**
-	 * Initialize the Database Model according to arguments.
-	 * 
-	 * @param dbdriver
-	 * @param dbserver
-	 * @param dbuser
-	 * @param dbpasswd
-	 * @param write
-	 * @throws WaarpDatabaseNoConnectionException
-	 */
-	public static DbAdmin initialize(String dbdriver, String dbserver,
-			String dbuser, String dbpasswd, boolean write)
-			throws WaarpDatabaseNoConnectionException {
-		DbType type = DbType.getFromDriver(dbdriver);
-		switch (type) {
-			case H2:
-				dbModel = new DbModelH2(dbserver, dbuser, dbpasswd);
-				break;
-			case Oracle:
-				dbModel = new DbModelOracle(dbserver, dbuser, dbpasswd);
-				break;
-			case PostGreSQL:
-				dbModel = new DbModelPostgresql();
-				break;
-			case MySQL:
-				dbModel = new DbModelMysql(dbserver, dbuser, dbpasswd);
-				break;
-			case MariaDB:
-				dbModel = new DbModelMariadb(dbserver, dbuser, dbpasswd);
-				break;
-			default:
-				throw new WaarpDatabaseNoConnectionException(
-						"TypeDriver unknown: " + type);
-		}
-		return new DbAdmin(type, dbserver, dbuser, dbpasswd,
-				write);
-	}
-	
+    /**
+     * Initialize the Database Model according to arguments.
+     * 
+     * @param dbdriver
+     * @param dbserver
+     * @param dbuser
+     * @param dbpasswd
+     * @param write
+     * @throws WaarpDatabaseNoConnectionException
+     */
+    public static DbAdmin initialize(String dbdriver, String dbserver,
+            String dbuser, String dbpasswd, boolean write)
+            throws WaarpDatabaseNoConnectionException {
+        DbType type = DbType.getFromDriver(dbdriver);
+        switch (type) {
+            case H2:
+                dbModel = new DbModelH2(dbserver, dbuser, dbpasswd);
+                break;
+            case Oracle:
+                dbModel = new DbModelOracle(dbserver, dbuser, dbpasswd);
+                break;
+            case PostGreSQL:
+                dbModel = new DbModelPostgresql();
+                break;
+            case MySQL:
+                dbModel = new DbModelMysql(dbserver, dbuser, dbpasswd);
+                break;
+            case MariaDB:
+                dbModel = new DbModelMariadb(dbserver, dbuser, dbpasswd);
+                break;
+            default:
+                throw new WaarpDatabaseNoConnectionException(
+                        "TypeDriver unknown: " + type);
+        }
+        return new DbAdmin(type, dbserver, dbuser, dbpasswd,
+                write);
+    }
+
 }

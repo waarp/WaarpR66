@@ -24,32 +24,32 @@ package org.waarp.gateway.kernel.exec;
  */
 public class ExecutorException extends Exception {
 
-	/**
+    /**
      *
      */
-	private static final long serialVersionUID = -1135310829859133116L;
+    private static final long serialVersionUID = -1135310829859133116L;
 
-	/**
-	 * @param arg0
-	 */
-	public ExecutorException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public ExecutorException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public ExecutorException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public ExecutorException(Throwable arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public ExecutorException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-		// TODO Auto-generated constructor stub
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public ExecutorException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+        // TODO Auto-generated constructor stub
+    }
 
 }

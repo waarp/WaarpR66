@@ -20,7 +20,6 @@
  */
 package org.waarp.openr66.protocol.http.rest.handler;
 
-
 import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 
 import java.io.IOException;
@@ -52,127 +51,128 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Common method implementation for Action Rest R66 handlers
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
-	
-	/**
+
+    /**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestAbstractR66Handler.class);
-   
+
     public static enum ACTIONS_TYPE {
-    	OPTIONS, GetBandwidth, SetBandwidth,
-    	ExecuteBusiness,
-    	ExportConfig, ImportConfig,
-    	GetInformation, GetTransferInformation,
-    	GetLog,
-    	ShutdownOrBlock, GetStatus,
-    	RestartTransfer, StopOrCancelTransfer, CreateTransfer
+        OPTIONS, GetBandwidth, SetBandwidth,
+        ExecuteBusiness,
+        ExportConfig, ImportConfig,
+        GetInformation, GetTransferInformation,
+        GetLog,
+        ShutdownOrBlock, GetStatus,
+        RestartTransfer, StopOrCancelTransfer, CreateTransfer
     }
-	/**
-	 * @param path
-	 * @param method
-	 */
-	public HttpRestAbstractR66Handler(String path, RestConfiguration config, METHOD ...method) {
-		super(path, path, true, config, method);
-	}
-	
-	@Override
-	public void checkHandlerSessionCorrectness(HttpRestHandler handler, 
-			RestArgument arguments, RestArgument result) {
-		// no check to do here ?
-		logger.debug("debug");
-	}
 
-	@Override
-	public void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments,
-			RestArgument result) throws HttpIncorrectRequestException {
-		// should not be
-		logger.debug("debug: "+data.getName()+":"+data.getHttpDataType().name());
-	}
+    /**
+     * @param path
+     * @param method
+     */
+    public HttpRestAbstractR66Handler(String path, RestConfiguration config, METHOD... method) {
+        super(path, path, true, config, method);
+    }
 
-	protected void setError(HttpRestHandler handler, RestArgument result, HttpResponseStatus code) {
-		handler.setStatus(HttpResponseStatus.BAD_REQUEST);
-		handler.setWillClose(true);
-		result.setResult(code);
-	}
+    @Override
+    public void checkHandlerSessionCorrectness(HttpRestHandler handler,
+            RestArgument arguments, RestArgument result) {
+        // no check to do here ?
+        logger.debug("debug");
+    }
 
-	protected void setError(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
-		handler.setStatus(HttpResponseStatus.BAD_REQUEST);
-		result.setResult(code);
-		if (packet != null) {
-			try {
-				result.addResult(packet.createObjectNode());
-			} catch (OpenR66ProtocolPacketException e) {
-			}
-		}
-	}
+    @Override
+    public void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException {
+        // should not be
+        logger.debug("debug: " + data.getName() + ":" + data.getHttpDataType().name());
+    }
 
-	protected void setOk(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
-		handler.setStatus(HttpResponseStatus.OK);
-		result.setResult(code);
-		if (packet != null) {
-			try {
-				result.addResult(packet.createObjectNode());
-			} catch (OpenR66ProtocolPacketException e) {
-				result.setDetail("serialization impossible");
-			}
-		}
-	}
+    protected void setError(HttpRestHandler handler, RestArgument result, HttpResponseStatus code) {
+        handler.setStatus(HttpResponseStatus.BAD_REQUEST);
+        handler.setWillClose(true);
+        result.setResult(code);
+    }
 
-	@Override
-	public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body, Exception exception) {
-		((HttpRestR66Handler) handler).serverHandler.getSession().newState(ERROR);
-		return super.handleException(handler, arguments, result, body, exception);
-	}
+    protected void setError(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
+        handler.setStatus(HttpResponseStatus.BAD_REQUEST);
+        result.setResult(code);
+        if (packet != null) {
+            try {
+                result.addResult(packet.createObjectNode());
+            } catch (OpenR66ProtocolPacketException e) {}
+        }
+    }
 
-	@Override
-	public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments,
-			RestArgument result, Object body, HttpResponseStatus status) {
-		HttpResponse response = handler.getResponse();
-		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.write(response);
-			return future;
-		}
-		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
-		String answer = result.toString();
-		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
-		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-		response.setContent(buffer);
-		logger.debug("Will write: {}", body);
-		ChannelFuture future = channel.write(response);
-		if (handler.isWillClose()) {
-			System.err.println("Will close session in HttpRestAbstractR66Handler");
-			return future;
-		}
-		return null;
-	}
+    protected void setOk(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
+        handler.setStatus(HttpResponseStatus.OK);
+        result.setResult(code);
+        if (packet != null) {
+            try {
+                result.addResult(packet.createObjectNode());
+            } catch (OpenR66ProtocolPacketException e) {
+                result.setDetail("serialization impossible");
+            }
+        }
+    }
 
-	@Override
-	public Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
-			RestArgument result) throws HttpIncorrectRequestException {
-		JsonPacket packet = null;
-		try {
-			String json = body.toString(WaarpStringUtils.UTF8);
-			packet = JsonPacket.createFromBuffer(json);
-		} catch (JsonParseException e) {
-			logger.warn("Error: "+body.toString(WaarpStringUtils.UTF8), e);
-			throw new HttpIncorrectRequestException(e);
-		} catch (JsonMappingException e) {
-			logger.warn("Error", e);
-			throw new HttpIncorrectRequestException(e);
-		} catch (IOException e) {
-			logger.warn("Error", e);
-			throw new HttpIncorrectRequestException(e);
-		} catch (UnsupportedCharsetException e) {
-			logger.warn("Error", e);
-			throw new HttpIncorrectRequestException(e);
-		}
-		return packet;
-	}
+    @Override
+    public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body, Exception exception) {
+        ((HttpRestR66Handler) handler).serverHandler.getSession().newState(ERROR);
+        return super.handleException(handler, arguments, result, body, exception);
+    }
+
+    @Override
+    public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments,
+            RestArgument result, Object body, HttpResponseStatus status) {
+        HttpResponse response = handler.getResponse();
+        if (status == HttpResponseStatus.UNAUTHORIZED) {
+            ChannelFuture future = channel.write(response);
+            return future;
+        }
+        response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+        response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
+        String answer = result.toString();
+        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        response.setContent(buffer);
+        logger.debug("Will write: {}", body);
+        ChannelFuture future = channel.write(response);
+        if (handler.isWillClose()) {
+            System.err.println("Will close session in HttpRestAbstractR66Handler");
+            return future;
+        }
+        return null;
+    }
+
+    @Override
+    public Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException {
+        JsonPacket packet = null;
+        try {
+            String json = body.toString(WaarpStringUtils.UTF8);
+            packet = JsonPacket.createFromBuffer(json);
+        } catch (JsonParseException e) {
+            logger.warn("Error: " + body.toString(WaarpStringUtils.UTF8), e);
+            throw new HttpIncorrectRequestException(e);
+        } catch (JsonMappingException e) {
+            logger.warn("Error", e);
+            throw new HttpIncorrectRequestException(e);
+        } catch (IOException e) {
+            logger.warn("Error", e);
+            throw new HttpIncorrectRequestException(e);
+        } catch (UnsupportedCharsetException e) {
+            logger.warn("Error", e);
+            throw new HttpIncorrectRequestException(e);
+        }
+        return packet;
+    }
 }

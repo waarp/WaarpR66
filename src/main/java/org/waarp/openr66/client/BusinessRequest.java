@@ -17,7 +17,6 @@
  */
 package org.waarp.openr66.client;
 
-
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -40,82 +39,85 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class BusinessRequest extends AbstractBusinessRequest {
-	/**
-	 * Internal Logger
-	 */
-	private static WaarpInternalLogger logger;
-	/**
-	 * Default class
-	 */
-	public static final String DEFAULT_CLASS = "org.waarp.openr66.context.task.ExecBusinessTask";
+    /**
+     * Internal Logger
+     */
+    private static WaarpInternalLogger logger;
+    /**
+     * Default class
+     */
+    public static final String DEFAULT_CLASS = "org.waarp.openr66.context.task.ExecBusinessTask";
 
-	public BusinessRequest(NetworkTransaction networkTransaction,
-			R66Future future, String remoteHost, BusinessRequestPacket packet) {
-		super(BusinessRequest.class, future, remoteHost, networkTransaction, packet);
-	}
+    public BusinessRequest(NetworkTransaction networkTransaction,
+            R66Future future, String remoteHost, BusinessRequestPacket packet) {
+        super(BusinessRequest.class, future, remoteHost, networkTransaction, packet);
+    }
 
-	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-				null));
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(BusinessRequest.class);
-		}
-		if (args.length < 5) {
-			logger
-					.error(Messages.getString("BusinessRequest.1")+ //$NON-NLS-1$
-							_INFO_ARGS);
-			return;
-		}
-		classname = DEFAULT_CLASS;
-		if (!getParams(args) || classarg == null) {
-			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-				DbConstant.admin.close();
-			}
-			ChannelUtils.stopLogger();
-			System.exit(2);
-		}
-		Configuration.configuration.pipelineInit();
-		NetworkTransaction networkTransaction = new NetworkTransaction();
-		R66Future future = new R66Future(true);
+    public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+                null));
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(BusinessRequest.class);
+        }
+        if (args.length < 5) {
+            logger
+                    .error(Messages.getString("BusinessRequest.1") + //$NON-NLS-1$
+                            _INFO_ARGS);
+            return;
+        }
+        classname = DEFAULT_CLASS;
+        if (!getParams(args) || classarg == null) {
+            logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+                DbConstant.admin.close();
+            }
+            ChannelUtils.stopLogger();
+            System.exit(2);
+        }
+        Configuration.configuration.pipelineInit();
+        NetworkTransaction networkTransaction = new NetworkTransaction();
+        R66Future future = new R66Future(true);
 
-		logger.info("Start Test of Transaction");
-		long time1 = System.currentTimeMillis();
+        logger.info("Start Test of Transaction");
+        long time1 = System.currentTimeMillis();
 
-		BusinessRequestPacket packet =
-				new BusinessRequestPacket(classname + " " + classarg, 0);
-		BusinessRequest transaction = new BusinessRequest(
-				networkTransaction, future, rhost, packet);
-		transaction.run();
-		future.awaitUninterruptibly();
+        BusinessRequestPacket packet =
+                new BusinessRequestPacket(classname + " " + classarg, 0);
+        BusinessRequest transaction = new BusinessRequest(
+                networkTransaction, future, rhost, packet);
+        transaction.run();
+        future.awaitUninterruptibly();
 
-		long time2 = System.currentTimeMillis();
-		logger.debug("Finish Business Request: " + future.isSuccess());
-		long delay = time2 - time1;
-		OutputFormat outputFormat = new OutputFormat(BusinessRequest.class.getSimpleName(), args);
-		if (future.isSuccess()) {
-			outputFormat.setValue(FIELDS.status.name(), 0);
-			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
-			outputFormat.setValue(FIELDS.remote.name(), rhost);
-			outputFormat.setValue("delay", delay);
-			logger.info(outputFormat.loggerOut());
-			if (! OutputFormat.isQuiet()) {
-				outputFormat.sysout();
-			}
-		} else {
-			outputFormat.setValue(FIELDS.status.name(), 2);
-			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
-			outputFormat.setValue(FIELDS.remote.name(), rhost);
-			outputFormat.setValue("delay", delay);
-			logger.error(outputFormat.loggerOut(), future.getCause());
-			outputFormat.setValue(FIELDS.error.name(), future.getCause().toString());
-			if (! OutputFormat.isQuiet()) {
-				outputFormat.sysout();
-			}
-			networkTransaction.closeAll();
-			System.exit(ErrorCode.Unknown.ordinal());
-		}
-		networkTransaction.closeAll();
-	}
+        long time2 = System.currentTimeMillis();
+        logger.debug("Finish Business Request: " + future.isSuccess());
+        long delay = time2 - time1;
+        OutputFormat outputFormat = new OutputFormat(BusinessRequest.class.getSimpleName(), args);
+        if (future.isSuccess()) {
+            outputFormat.setValue(FIELDS.status.name(), 0);
+            outputFormat.setValue(FIELDS.statusTxt.name(),
+                    Messages.getString("BusinessRequest.6") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+            outputFormat.setValue(FIELDS.remote.name(), rhost);
+            outputFormat.setValue("delay", delay);
+            logger.info(outputFormat.loggerOut());
+            if (!OutputFormat.isQuiet()) {
+                outputFormat.sysout();
+            }
+        } else {
+            outputFormat.setValue(FIELDS.status.name(), 2);
+            outputFormat.setValue(FIELDS.statusTxt.name(),
+                    Messages.getString("BusinessRequest.6") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+            outputFormat.setValue(FIELDS.remote.name(), rhost);
+            outputFormat.setValue("delay", delay);
+            logger.error(outputFormat.loggerOut(), future.getCause());
+            outputFormat.setValue(FIELDS.error.name(), future.getCause().toString());
+            if (!OutputFormat.isQuiet()) {
+                outputFormat.sysout();
+            }
+            networkTransaction.closeAll();
+            System.exit(ErrorCode.Unknown.ordinal());
+        }
+        networkTransaction.closeAll();
+        System.exit(0);
+    }
 
 }

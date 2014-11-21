@@ -32,43 +32,44 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class SnmpTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(SnmpTask.class);
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public SnmpTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.SNMP, delay, argRule, argTransfer, session);
-	}
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(SnmpTask.class);
 
-	@Override
-	public void run() {
-		if (Configuration.configuration.r66Mib == null) {
-			logger.warn("SNMP support is not active");
-			futureCompletion.setSuccess();
-			return;
-		}
-		String finalValue = argRule;
-		finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
-		switch (delay) {
-			case 0:
-				Configuration.configuration.r66Mib.notifyWarning(
-						finalValue, "TransferId:" + this.session.getRunner().getSpecialId());
-				break;
-			case 1:
-				Configuration.configuration.r66Mib.notifyInternalTask(
-						finalValue, this.session.getRunner());
-				break;
-			default:
-		}
-		futureCompletion.setSuccess();
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public SnmpTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.SNMP, delay, argRule, argTransfer, session);
+    }
+
+    @Override
+    public void run() {
+        if (Configuration.configuration.r66Mib == null) {
+            logger.warn("SNMP support is not active");
+            futureCompletion.setSuccess();
+            return;
+        }
+        String finalValue = argRule;
+        finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
+        switch (delay) {
+            case 0:
+                Configuration.configuration.r66Mib.notifyWarning(
+                        finalValue, "TransferId:" + this.session.getRunner().getSpecialId());
+                break;
+            case 1:
+                Configuration.configuration.r66Mib.notifyInternalTask(
+                        finalValue, this.session.getRunner());
+                break;
+            default:
+        }
+        futureCompletion.setSuccess();
+    }
 
 }

@@ -25,32 +25,36 @@ import org.waarp.common.service.ServiceLauncher;
 
 /**
  * @author Frederic Bregier
- *
+ * 
  */
 public class SpooledServiceLauncher extends ServiceLauncher {
 
-	public static void main(String[] args) {
-		_main(args);
-	}
-	public static void windowsService(String args[]) throws Exception {
-		_windowsService(args);
-	}
-	public static void windowsStart(String args[]) throws Exception {
-		_windowsStart(args);
-	}
-	public static void windowsStop(String args[]) {
-		_windowsStop(args);
-	}
-	/**
+    public static void main(String[] args) {
+        _main(args);
+    }
+
+    public static void windowsService(String args[]) throws Exception {
+        _windowsService(args);
+    }
+
+    public static void windowsStart(String args[]) throws Exception {
+        _windowsStart(args);
+    }
+
+    public static void windowsStop(String args[]) {
+        _windowsStop(args);
+    }
+
+    /**
 	 * 
 	 */
-	public SpooledServiceLauncher() {
-		super();
-	}
+    public SpooledServiceLauncher() {
+        super();
+    }
 
-	@Override
-	protected EngineAbstract getNewEngineAbstract() {
-		return new SpooledEngine();
-	}
+    @Override
+    protected EngineAbstract getNewEngineAbstract() {
+        return new SpooledEngine();
+    }
 
 }

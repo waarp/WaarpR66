@@ -52,275 +52,272 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public abstract class AbstractTransfer implements Runnable {
-	/**
-	 * Internal Logger
-	 */
-	static protected volatile WaarpInternalLogger logger;
-	
-	protected static String _INFO_ARGS = 
-			Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
-	
-	protected static final String NO_INFO_ARGS = "noinfo";
-	
-	protected final R66Future future;
+    /**
+     * Internal Logger
+     */
+    static protected volatile WaarpInternalLogger logger;
 
-	protected final String filename;
+    protected static String _INFO_ARGS =
+            Messages.getString("AbstractTransfer.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
-	protected final String rulename;
+    protected static final String NO_INFO_ARGS = "noinfo";
 
-	protected final String fileinfo;
+    protected final R66Future future;
 
-	protected final boolean isMD5;
+    protected final String filename;
 
-	protected final String remoteHost;
+    protected final String rulename;
 
-	protected final int blocksize;
+    protected final String fileinfo;
 
-	protected final long id;
+    protected final boolean isMD5;
 
-	protected final Timestamp startTime;
-	
-	protected boolean normalInfoAsWarn = true;
+    protected final String remoteHost;
 
-	/**
-	 * @param clasz
-	 *            Class of Client Transfer
-	 * @param future
-	 * @param filename
-	 * @param rulename
-	 * @param fileinfo
-	 * @param isMD5
-	 * @param remoteHost
-	 * @param blocksize
-	 * @param id
-	 */
-	public AbstractTransfer(Class<?> clasz, R66Future future, String filename,
-			String rulename, String fileinfo,
-			boolean isMD5, String remoteHost, int blocksize, long id, Timestamp timestart) {
-		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(clasz);
-		}
-		this.future = future;
-		this.filename = filename;
-		this.rulename = rulename;
-		this.fileinfo = fileinfo;
-		this.isMD5 = isMD5;
-		if (Configuration.configuration.aliases.containsKey(remoteHost)) {
-			this.remoteHost = Configuration.configuration.aliases.get(remoteHost);
-		} else {
-			this.remoteHost = remoteHost;
-		}
-		this.blocksize = blocksize;
-		this.id = id;
-		this.startTime = timestart;
-	}
+    protected final int blocksize;
 
-	/**
-	 * Initiate the Request and return a potential DbTaskRunner
-	 * 
-	 * @return null if an error occurs or a DbTaskRunner
-	 */
-	protected DbTaskRunner initRequest() {
-		DbRule rule;
-		try {
-			rule = new DbRule(DbConstant.admin.session, rulename);
-		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot get Rule: " + rulename, e);
-			future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-					ErrorCode.Internal, null));
-			future.setFailure(e);
-			return null;
-		}
-		int mode = rule.mode;
-		if (isMD5) {
-			mode = RequestPacket.getModeMD5(mode);
-		}
-		DbTaskRunner taskRunner = null;
-		if (id != DbConstant.ILLEGALVALUE) {
-			try {
-				taskRunner = new DbTaskRunner(DbConstant.admin.session, id,
-						remoteHost);
-			} catch (WaarpDatabaseException e) {
-				logger.error("Cannot get task", e);
-				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-						ErrorCode.QueryRemotelyUnknown, null));
-				future.setFailure(e);
-				return null;
-			}
-			// requested
-			taskRunner.setSenderByRequestToValidate(true);
-			if (fileinfo != null && !fileinfo.equals(NO_INFO_ARGS)) {
-				taskRunner.setFileInformation(fileinfo);
-			}
-			if (startTime != null) {
-				taskRunner.setStart(startTime);
-			}
-		} else {
-			long originalSize = -1;
-			if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
-				File file = new File(filename);
-				// Change dir
-				try {
-					R66Session session = new R66Session();
-					session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
-					session.getDir().changeDirectory(rule.getSendPath());
-					R66File filer66 = FileUtils.getFile(logger, session, filename, true, true, false, null);
-					file = filer66.getTrueFile();
-				} catch (CommandAbstractException e) {
-				} catch (OpenR66RunnerErrorException e) {
-				}
-				if (file.canRead()) {
-					originalSize = file.length();
-					if (originalSize == 0) {
-						originalSize = -1;
-					}
-				}
-			}
-			logger.debug("Filesize: "+originalSize);
-			String sep = PartnerConfiguration.getSeparator(remoteHost);
-			RequestPacket request = new RequestPacket(rulename,
-					mode, filename, blocksize, 0,
-					id, fileinfo, originalSize, sep);
-			// Not isRecv since it is the requester, so send => isRetrieve is true
-			boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
-			try {
-				taskRunner =
-						new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, request,
-								remoteHost, startTime);
-			} catch (WaarpDatabaseException e) {
-				logger.error("Cannot get task", e);
-				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-						ErrorCode.Internal, null));
-				future.setFailure(e);
-				return null;
-			}
-		}
-		return taskRunner;
-	}
+    protected final long id;
 
-	static protected String rhost = null;
-	static protected String localFilename = null;
-	static protected String rule = null;
-	static protected String fileInfo = null;
-	static protected boolean ismd5 = false;
-	static protected int block = 0x10000; // 64K
-											// as
-											// default
-	static protected boolean nolog = false;
-	static protected long idt = DbConstant.ILLEGALVALUE;
-	static protected Timestamp ttimestart = null;
-	static protected boolean snormalInfoAsWarn = true;
+    protected final Timestamp startTime;
 
-	/**
-	 * Parse the parameter and set current values
-	 * 
-	 * @param args
-	 * @param submitOnly
-	 *            True if the client is only a submitter (through database)
-	 * @return True if all parameters were found and correct
-	 */
-	protected static boolean getParams(String[] args, boolean submitOnly) {
-		_INFO_ARGS = Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
-		if (args.length < 2) {
-			logger
-					.error(_INFO_ARGS);
-			return false;
-		}
-		if (submitOnly) {
-			if (!FileBasedConfiguration
-					.setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
-				logger
-						.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-				return false;
-			}
-		} else if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger
-					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
-			return false;
-		}
-		// Now set default values from configuration
-		block = Configuration.configuration.BLOCKSIZE;
-		int i = 1;
-		try {
-			for (i = 1; i < args.length; i++) {
-				if (args[i].equalsIgnoreCase("-to")) {
-					i++;
-					rhost = args[i];
-				} else if (args[i].equalsIgnoreCase("-file")) {
-					i++;
-					localFilename = args[i];
-					localFilename = localFilename.replace('§', '*');
-				} else if (args[i].equalsIgnoreCase("-rule")) {
-					i++;
-					rule = args[i];
-				} else if (args[i].equalsIgnoreCase("-info")) {
-					i++;
-					fileInfo = args[i];
-				} else if (args[i].equalsIgnoreCase("-md5")) {
-					ismd5 = true;
-				} else if (args[i].equalsIgnoreCase("-logWarn")) {
-					snormalInfoAsWarn = true;
-				} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
-					snormalInfoAsWarn = false;
-				} else if (args[i].equalsIgnoreCase("-block")) {
-					i++;
-					block = Integer.parseInt(args[i]);
-					if (block < 100) {
-						logger.error(Messages.getString("AbstractTransfer.1") + block); //$NON-NLS-1$
-						return false;
-					}
-				} else if (args[i].equalsIgnoreCase("-nolog")) {
-					nolog = true;
-				} else if (args[i].equalsIgnoreCase("-id")) {
-					i++;
-					idt = Long.parseLong(args[i]);
-				} else if (args[i].equalsIgnoreCase("-start")) {
-					i++;
-					Date date;
-					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-					try {
-						date = dateFormat.parse(args[i]);
-						ttimestart = new Timestamp(date.getTime());
-					} catch (ParseException e) {
-					}
-				} else if (args[i].equalsIgnoreCase("-delay")) {
-					i++;
-					if (args[i].charAt(0) == '+') {
-						ttimestart = new Timestamp(System.currentTimeMillis() +
-								Long.parseLong(args[i].substring(1)));
-					} else {
-						ttimestart = new Timestamp(Long.parseLong(args[i]));
-					}
-				}
-			}
-			OutputFormat.getParams(args);
-		} catch (NumberFormatException e) {
-			logger.error(Messages.getString("AbstractTransfer.20")+i); //$NON-NLS-1$
-			return false;
-		}
-		if (fileInfo == null) {
-			fileInfo = NO_INFO_ARGS;
-		}
-		if (rhost != null && rule != null && localFilename != null) {
-			return true;
-		} else if (idt != DbConstant.ILLEGALVALUE && rhost != null) {
-			try {
-				DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.session, idt,
-						rhost);
-				rule = runner.getRuleId();
-				localFilename = runner.getOriginalFilename();
-				return true;
-			} catch (WaarpDatabaseException e) {
-				logger.error(
-						Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") //$NON-NLS-1$
-								, e);
-				return false;
-			}
+    protected boolean normalInfoAsWarn = true;
 
-		}
-		logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") + //$NON-NLS-1$
-				_INFO_ARGS);
-		return false;
-	}
+    /**
+     * @param clasz
+     *            Class of Client Transfer
+     * @param future
+     * @param filename
+     * @param rulename
+     * @param fileinfo
+     * @param isMD5
+     * @param remoteHost
+     * @param blocksize
+     * @param id
+     */
+    public AbstractTransfer(Class<?> clasz, R66Future future, String filename,
+            String rulename, String fileinfo,
+            boolean isMD5, String remoteHost, int blocksize, long id, Timestamp timestart) {
+        if (logger == null) {
+            logger = WaarpInternalLoggerFactory.getLogger(clasz);
+        }
+        this.future = future;
+        this.filename = filename;
+        this.rulename = rulename;
+        this.fileinfo = fileinfo;
+        this.isMD5 = isMD5;
+        if (Configuration.configuration.aliases.containsKey(remoteHost)) {
+            this.remoteHost = Configuration.configuration.aliases.get(remoteHost);
+        } else {
+            this.remoteHost = remoteHost;
+        }
+        this.blocksize = blocksize;
+        this.id = id;
+        this.startTime = timestart;
+    }
+
+    /**
+     * Initiate the Request and return a potential DbTaskRunner
+     * 
+     * @return null if an error occurs or a DbTaskRunner
+     */
+    protected DbTaskRunner initRequest() {
+        DbRule rule;
+        try {
+            rule = new DbRule(DbConstant.admin.session, rulename);
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot get Rule: " + rulename, e);
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                    ErrorCode.Internal, null));
+            future.setFailure(e);
+            return null;
+        }
+        int mode = rule.mode;
+        if (isMD5) {
+            mode = RequestPacket.getModeMD5(mode);
+        }
+        DbTaskRunner taskRunner = null;
+        if (id != DbConstant.ILLEGALVALUE) {
+            try {
+                taskRunner = new DbTaskRunner(DbConstant.admin.session, id,
+                        remoteHost);
+            } catch (WaarpDatabaseException e) {
+                logger.error("Cannot get task", e);
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        ErrorCode.QueryRemotelyUnknown, null));
+                future.setFailure(e);
+                return null;
+            }
+            // requested
+            taskRunner.setSenderByRequestToValidate(true);
+            if (fileinfo != null && !fileinfo.equals(NO_INFO_ARGS)) {
+                taskRunner.setFileInformation(fileinfo);
+            }
+            if (startTime != null) {
+                taskRunner.setStart(startTime);
+            }
+        } else {
+            long originalSize = -1;
+            if (RequestPacket.isSendMode(mode) && !RequestPacket.isThroughMode(mode)) {
+                File file = new File(filename);
+                // Change dir
+                try {
+                    R66Session session = new R66Session();
+                    session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+                    session.getDir().changeDirectory(rule.getSendPath());
+                    R66File filer66 = FileUtils.getFile(logger, session, filename, true, true, false, null);
+                    file = filer66.getTrueFile();
+                } catch (CommandAbstractException e) {} catch (OpenR66RunnerErrorException e) {}
+                if (file.canRead()) {
+                    originalSize = file.length();
+                    if (originalSize == 0) {
+                        originalSize = -1;
+                    }
+                }
+            }
+            logger.debug("Filesize: " + originalSize);
+            String sep = PartnerConfiguration.getSeparator(remoteHost);
+            RequestPacket request = new RequestPacket(rulename,
+                    mode, filename, blocksize, 0,
+                    id, fileinfo, originalSize, sep);
+            // Not isRecv since it is the requester, so send => isRetrieve is true
+            boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
+            try {
+                taskRunner =
+                        new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, request,
+                                remoteHost, startTime);
+            } catch (WaarpDatabaseException e) {
+                logger.error("Cannot get task", e);
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        ErrorCode.Internal, null));
+                future.setFailure(e);
+                return null;
+            }
+        }
+        return taskRunner;
+    }
+
+    static protected String rhost = null;
+    static protected String localFilename = null;
+    static protected String rule = null;
+    static protected String fileInfo = null;
+    static protected boolean ismd5 = false;
+    static protected int block = 0x10000; // 64K
+                                          // as
+                                          // default
+    static protected boolean nolog = false;
+    static protected long idt = DbConstant.ILLEGALVALUE;
+    static protected Timestamp ttimestart = null;
+    static protected boolean snormalInfoAsWarn = true;
+
+    /**
+     * Parse the parameter and set current values
+     * 
+     * @param args
+     * @param submitOnly
+     *            True if the client is only a submitter (through database)
+     * @return True if all parameters were found and correct
+     */
+    protected static boolean getParams(String[] args, boolean submitOnly) {
+        _INFO_ARGS = Messages.getString("AbstractTransfer.0") + Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
+        if (args.length < 2) {
+            logger
+                    .error(_INFO_ARGS);
+            return false;
+        }
+        if (submitOnly) {
+            if (!FileBasedConfiguration
+                    .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
+                logger
+                        .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+                return false;
+            }
+        } else if (!FileBasedConfiguration
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+            logger
+                    .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
+            return false;
+        }
+        // Now set default values from configuration
+        block = Configuration.configuration.BLOCKSIZE;
+        int i = 1;
+        try {
+            for (i = 1; i < args.length; i++) {
+                if (args[i].equalsIgnoreCase("-to")) {
+                    i++;
+                    rhost = args[i];
+                } else if (args[i].equalsIgnoreCase("-file")) {
+                    i++;
+                    localFilename = args[i];
+                    localFilename = localFilename.replace('§', '*');
+                } else if (args[i].equalsIgnoreCase("-rule")) {
+                    i++;
+                    rule = args[i];
+                } else if (args[i].equalsIgnoreCase("-info")) {
+                    i++;
+                    fileInfo = args[i];
+                } else if (args[i].equalsIgnoreCase("-md5")) {
+                    ismd5 = true;
+                } else if (args[i].equalsIgnoreCase("-logWarn")) {
+                    snormalInfoAsWarn = true;
+                } else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+                    snormalInfoAsWarn = false;
+                } else if (args[i].equalsIgnoreCase("-block")) {
+                    i++;
+                    block = Integer.parseInt(args[i]);
+                    if (block < 100) {
+                        logger.error(Messages.getString("AbstractTransfer.1") + block); //$NON-NLS-1$
+                        return false;
+                    }
+                } else if (args[i].equalsIgnoreCase("-nolog")) {
+                    nolog = true;
+                } else if (args[i].equalsIgnoreCase("-id")) {
+                    i++;
+                    idt = Long.parseLong(args[i]);
+                } else if (args[i].equalsIgnoreCase("-start")) {
+                    i++;
+                    Date date;
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                    try {
+                        date = dateFormat.parse(args[i]);
+                        ttimestart = new Timestamp(date.getTime());
+                    } catch (ParseException e) {}
+                } else if (args[i].equalsIgnoreCase("-delay")) {
+                    i++;
+                    if (args[i].charAt(0) == '+') {
+                        ttimestart = new Timestamp(System.currentTimeMillis() +
+                                Long.parseLong(args[i].substring(1)));
+                    } else {
+                        ttimestart = new Timestamp(Long.parseLong(args[i]));
+                    }
+                }
+            }
+            OutputFormat.getParams(args);
+        } catch (NumberFormatException e) {
+            logger.error(Messages.getString("AbstractTransfer.20") + i); //$NON-NLS-1$
+            return false;
+        }
+        if (fileInfo == null) {
+            fileInfo = NO_INFO_ARGS;
+        }
+        if (rhost != null && rule != null && localFilename != null) {
+            return true;
+        } else if (idt != DbConstant.ILLEGALVALUE && rhost != null) {
+            try {
+                DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.session, idt,
+                        rhost);
+                rule = runner.getRuleId();
+                localFilename = runner.getOriginalFilename();
+                return true;
+            } catch (WaarpDatabaseException e) {
+                logger.error(
+                        Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") //$NON-NLS-1$
+                        , e);
+                return false;
+            }
+
+        }
+        logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") + //$NON-NLS-1$
+                _INFO_ARGS);
+        return false;
+    }
 }

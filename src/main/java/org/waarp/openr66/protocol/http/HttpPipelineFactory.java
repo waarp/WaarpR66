@@ -36,26 +36,26 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpPipelineFactory implements ChannelPipelineFactory {
-	public boolean useHttpCompression = false;
+    public boolean useHttpCompression = false;
 
-	public HttpPipelineFactory(boolean useHttpCompression) {
-		this.useHttpCompression = useHttpCompression;
-	}
+    public HttpPipelineFactory(boolean useHttpCompression) {
+        this.useHttpCompression = useHttpCompression;
+    }
 
-	public ChannelPipeline getPipeline() throws Exception {
-		// Create a default pipeline implementation.
-		ChannelPipeline pipeline = pipeline();
+    public ChannelPipeline getPipeline() throws Exception {
+        // Create a default pipeline implementation.
+        ChannelPipeline pipeline = pipeline();
 
-		pipeline.addLast("decoder", new HttpRequestDecoder());
-		pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
-		pipeline.addLast("encoder", new HttpResponseEncoder());
-		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-				Configuration.configuration.getHttpPipelineExecutor()));
-		pipeline.addLast("streamer", new ChunkedWriteHandler());
-		if (useHttpCompression) {
-			pipeline.addLast("deflater", new HttpContentCompressor());
-		}
-		pipeline.addLast("handler", new HttpFormattedHandler());
-		return pipeline;
-	}
+        pipeline.addLast("decoder", new HttpRequestDecoder());
+        pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
+        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast("pipelineExecutor", new ExecutionHandler(
+                Configuration.configuration.getHttpPipelineExecutor()));
+        pipeline.addLast("streamer", new ChunkedWriteHandler());
+        if (useHttpCompression) {
+            pipeline.addLast("deflater", new HttpContentCompressor());
+        }
+        pipeline.addLast("handler", new HttpFormattedHandler());
+        return pipeline;
+    }
 }

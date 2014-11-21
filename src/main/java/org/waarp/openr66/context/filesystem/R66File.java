@@ -56,589 +56,582 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * 
  */
 public class R66File extends FilesystemBasedFileImpl {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(R66File.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(R66File.class);
 
-	/**
-	 * Does the current file is external (i.e. out of R66 base directory)
-	 */
-	private boolean isExternal = false;
+    /**
+     * Does the current file is external (i.e. out of R66 base directory)
+     */
+    private boolean isExternal = false;
 
-	/**
-	 * @param session
-	 * @param dir
-	 * @param path
-	 * @param append
-	 * @throws CommandAbstractException
-	 */
-	public R66File(R66Session session, R66Dir dir, String path, boolean append)
-			throws CommandAbstractException {
-		super(session, dir, path, append);
-	}
+    /**
+     * @param session
+     * @param dir
+     * @param path
+     * @param append
+     * @throws CommandAbstractException
+     */
+    public R66File(R66Session session, R66Dir dir, String path, boolean append)
+            throws CommandAbstractException {
+        super(session, dir, path, append);
+    }
 
-	/**
-	 * This constructor is for External file
-	 * 
-	 * @param session
-	 * @param dir
-	 * @param path
-	 */
-	public R66File(R66Session session, R66Dir dir, String path) {
-		super(session, dir, path);
-		isExternal = true;
-	}
+    /**
+     * This constructor is for External file
+     * 
+     * @param session
+     * @param dir
+     * @param path
+     */
+    public R66File(R66Session session, R66Dir dir, String path) {
+        super(session, dir, path);
+        isExternal = true;
+    }
 
-	/**
-	 * Start the retrieve (send to the remote host the local file)
-	 * 
-	 * @param running
-	 *            When false, should stop the runner
-	 * @throws OpenR66RunnerErrorException
-	 * @throws OpenR66ProtocolSystemException
-	 */
-	public void retrieveBlocking(AtomicBoolean running) throws OpenR66RunnerErrorException,
-			OpenR66ProtocolSystemException {
-		boolean retrieveDone = false;
-		LocalChannelReference localChannelReference = getSession()
-				.getLocalChannelReference();
-		FilesystemBasedDigest digest = null;
-		logger.debug("File to retrieve: " + this.toString());
-		try {
-			if (!isReady) {
-				return;
-			}
-			DataBlock block = null;
-			try {
-				block = readDataBlock();
-			} catch (FileEndOfTransferException e) {
-				// Last block (in fact, no data to read)
-				retrieveDone = true;
-				return;
-			}
-			if (block == null) {
-				// Last block (in fact, no data to read)
-				retrieveDone = true;
-				return;
-			}
-			if (Configuration.configuration.globalDigest) {
-				try {
-					digest = new FilesystemBasedDigest(Configuration.configuration.digest);
-				} catch (NoSuchAlgorithmException e2) {
-					// ignore
-				}
-			}
-			ChannelFuture future1 = null, future2 = null;
-			if ((block != null && (running.get()))) {
-				future1 = RetrieveRunner.writeWhenPossible(
-						block, localChannelReference);
-				if (Configuration.configuration.globalDigest) {
-					FileUtils.computeGlobalHash(digest, block.getBlock());
-				}
-			}
-			// While not last block
-			while (block != null && (!block.isEOF()) && (running.get())) {
-				try {
-					block = readDataBlock();
-				} catch (FileEndOfTransferException e) {
-					// Wait for last write
-					try {
-						future1.await();
-					} catch (InterruptedException e1) {
-					}
-					if (future1.isSuccess()) {
-						retrieveDone = true;
-					}
-					return;
-				}
-				future2 = RetrieveRunner.writeWhenPossible(
-						block, localChannelReference);
-				if (Configuration.configuration.globalDigest) {
-					FileUtils.computeGlobalHash(digest, block.getBlock());
-				}
-				try {
-					future1.await();
-				} catch (InterruptedException e) {
-				}
-				if (!future1.isSuccess()) {
-					return;
-				}
-				future1 = future2;
-			}
-			if (!running.get()) {
-				// stopped
-				return;
-			}
-			// Wait for last write
-			if (future1 != null) {
-				try {
-					future1.await();
-				} catch (InterruptedException e) {
-				}
-				if (!future1.isSuccess()) {
-					return;
-				}
-			}
-			retrieveDone = true;
-			return;
-		} catch (FileTransferException e) {
-			// An error occurs!
-			getSession()
-					.setFinalizeTransfer(
-							false,
-							new R66Result(new OpenR66ProtocolSystemException(e),
-									getSession(), false, ErrorCode.TransferError, getSession()
-											.getRunner()));
-		} catch (OpenR66ProtocolPacketException e) {
-			// An error occurs!
-			getSession()
-					.setFinalizeTransfer(
-							false,
-							new R66Result(e, getSession(), false,
-									ErrorCode.Internal, getSession().getRunner()));
-		} finally {
-			if (retrieveDone) {
-				String hash = null;
-				if (digest != null) {
-					hash = FilesystemBasedDigest.getHex(digest.Final());
-				}
-				try {
-					if (hash == null) {
-						ChannelUtils.writeEndTransfer(localChannelReference);
-					} else {
-						ChannelUtils.writeEndTransfer(localChannelReference, hash);
-					}
-				} catch (OpenR66ProtocolPacketException e) {
-					// An error occurs!
-					getSession().setFinalizeTransfer(
-							false,
-							new R66Result(e, getSession(), false,
-									ErrorCode.Internal, getSession().getRunner()));
-				}
-			} else {
-				// An error occurs!
-				getSession().setFinalizeTransfer(
-						false,
-						new R66Result(new OpenR66ProtocolSystemException("Transfer in error"),
-								getSession(), false, ErrorCode.TransferError, getSession()
-										.getRunner()));
-			}
-		}
-	}
+    /**
+     * Start the retrieve (send to the remote host the local file)
+     * 
+     * @param running
+     *            When false, should stop the runner
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
+    public void retrieveBlocking(AtomicBoolean running) throws OpenR66RunnerErrorException,
+            OpenR66ProtocolSystemException {
+        boolean retrieveDone = false;
+        LocalChannelReference localChannelReference = getSession()
+                .getLocalChannelReference();
+        FilesystemBasedDigest digest = null;
+        logger.debug("File to retrieve: " + this.toString());
+        try {
+            if (!isReady) {
+                return;
+            }
+            DataBlock block = null;
+            try {
+                block = readDataBlock();
+            } catch (FileEndOfTransferException e) {
+                // Last block (in fact, no data to read)
+                retrieveDone = true;
+                return;
+            }
+            if (block == null) {
+                // Last block (in fact, no data to read)
+                retrieveDone = true;
+                return;
+            }
+            if (Configuration.configuration.globalDigest) {
+                try {
+                    digest = new FilesystemBasedDigest(Configuration.configuration.digest);
+                } catch (NoSuchAlgorithmException e2) {
+                    // ignore
+                }
+            }
+            ChannelFuture future1 = null, future2 = null;
+            if ((block != null && (running.get()))) {
+                future1 = RetrieveRunner.writeWhenPossible(
+                        block, localChannelReference);
+                if (Configuration.configuration.globalDigest) {
+                    FileUtils.computeGlobalHash(digest, block.getBlock());
+                }
+            }
+            // While not last block
+            while (block != null && (!block.isEOF()) && (running.get())) {
+                try {
+                    block = readDataBlock();
+                } catch (FileEndOfTransferException e) {
+                    // Wait for last write
+                    try {
+                        future1.await();
+                    } catch (InterruptedException e1) {}
+                    if (future1.isSuccess()) {
+                        retrieveDone = true;
+                    }
+                    return;
+                }
+                future2 = RetrieveRunner.writeWhenPossible(
+                        block, localChannelReference);
+                if (Configuration.configuration.globalDigest) {
+                    FileUtils.computeGlobalHash(digest, block.getBlock());
+                }
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {}
+                if (!future1.isSuccess()) {
+                    return;
+                }
+                future1 = future2;
+            }
+            if (!running.get()) {
+                // stopped
+                return;
+            }
+            // Wait for last write
+            if (future1 != null) {
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {}
+                if (!future1.isSuccess()) {
+                    return;
+                }
+            }
+            retrieveDone = true;
+            return;
+        } catch (FileTransferException e) {
+            // An error occurs!
+            getSession()
+                    .setFinalizeTransfer(
+                            false,
+                            new R66Result(new OpenR66ProtocolSystemException(e),
+                                    getSession(), false, ErrorCode.TransferError, getSession()
+                                            .getRunner()));
+        } catch (OpenR66ProtocolPacketException e) {
+            // An error occurs!
+            getSession()
+                    .setFinalizeTransfer(
+                            false,
+                            new R66Result(e, getSession(), false,
+                                    ErrorCode.Internal, getSession().getRunner()));
+        } finally {
+            if (retrieveDone) {
+                String hash = null;
+                if (digest != null) {
+                    hash = FilesystemBasedDigest.getHex(digest.Final());
+                }
+                try {
+                    if (hash == null) {
+                        ChannelUtils.writeEndTransfer(localChannelReference);
+                    } else {
+                        ChannelUtils.writeEndTransfer(localChannelReference, hash);
+                    }
+                } catch (OpenR66ProtocolPacketException e) {
+                    // An error occurs!
+                    getSession().setFinalizeTransfer(
+                            false,
+                            new R66Result(e, getSession(), false,
+                                    ErrorCode.Internal, getSession().getRunner()));
+                }
+            } else {
+                // An error occurs!
+                getSession().setFinalizeTransfer(
+                        false,
+                        new R66Result(new OpenR66ProtocolSystemException("Transfer in error"),
+                                getSession(), false, ErrorCode.TransferError, getSession()
+                                        .getRunner()));
+            }
+        }
+    }
 
-	/**
-	 * This method is a good to have in a true FileInterface implementation.
-	 * 
-	 * @return the File associated with the current FileInterface operation
-	 */
-	public File getTrueFile() {
-		if (isExternal) {
-			return new File(currentFile);
-		}
-		try {
-			return getFileFromPath(getFile());
-		} catch (CommandAbstractException e) {
-			logger.warn("Exception while getting file: "+this, e);
-			return null;
-		}
-	}
+    /**
+     * This method is a good to have in a true FileInterface implementation.
+     * 
+     * @return the File associated with the current FileInterface operation
+     */
+    public File getTrueFile() {
+        if (isExternal) {
+            return new File(currentFile);
+        }
+        try {
+            return getFileFromPath(getFile());
+        } catch (CommandAbstractException e) {
+            logger.warn("Exception while getting file: " + this, e);
+            return null;
+        }
+    }
 
-	/**
-	 * 
-	 * @return the basename of the current file
-	 */
-	public String getBasename() {
-		return getBasename(currentFile);
-	}
+    /**
+     * 
+     * @return the basename of the current file
+     */
+    public String getBasename() {
+        return getBasename(currentFile);
+    }
 
-	/**
-	 * 
-	 * @param path
-	 * @return the basename from the given path
-	 */
-	public static String getBasename(String path) {
-		int pos = path.lastIndexOf('/');
-		int pos2 = path.lastIndexOf('\\');
-		if (pos2 > pos) {
-			pos = pos2;
-		}
-		if (pos > 0) {
-			return path.substring(pos+1);
-		}
-		return path;
-	}
+    /**
+     * 
+     * @param path
+     * @return the basename from the given path
+     */
+    public static String getBasename(String path) {
+        int pos = path.lastIndexOf('/');
+        int pos2 = path.lastIndexOf('\\');
+        if (pos2 > pos) {
+            pos = pos2;
+        }
+        if (pos > 0) {
+            return path.substring(pos + 1);
+        }
+        return path;
+    }
 
-	@Override
-	public R66Session getSession() {
-		return (R66Session) session;
-	}
+    @Override
+    public R66Session getSession() {
+        return (R66Session) session;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
-	 */
-	@Override
-	public boolean canRead() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			logger.debug("Final File: "+file+" CanRead: "+file.canRead());
-			return file.canRead();
-		}
-		return super.canRead();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
+     */
+    @Override
+    public boolean canRead() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            logger.debug("Final File: " + file + " CanRead: " + file.canRead());
+            return file.canRead();
+        }
+        return super.canRead();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
-	 */
-	@Override
-	public boolean canWrite() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			if (file.exists()) {
-				return file.canWrite();
-			}
-			return file.getParentFile().canWrite();
-		}
-		return super.canWrite();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
+     */
+    @Override
+    public boolean canWrite() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            if (file.exists()) {
+                return file.canWrite();
+            }
+            return file.getParentFile().canWrite();
+        }
+        return super.canWrite();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#delete()
-	 */
-	@Override
-	public boolean delete() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			checkIdentify();
-			if (!isReady) {
-				return false;
-			}
-			if (!file.exists()) {
-				return true;
-			}
-			closeFile();
-			return file.delete();
-		}
-		return super.delete();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#delete()
+     */
+    @Override
+    public boolean delete() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            checkIdentify();
+            if (!isReady) {
+                return false;
+            }
+            if (!file.exists()) {
+                return true;
+            }
+            closeFile();
+            return file.delete();
+        }
+        return super.delete();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#exists()
-	 */
-	@Override
-	public boolean exists() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			return file.exists();
-		}
-		return super.exists();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#exists()
+     */
+    @Override
+    public boolean exists() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            return file.exists();
+        }
+        return super.exists();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel ()
-	 */
-	@Override
-	protected FileChannel getFileChannel() {
-		if (!isExternal) {
-			return super.getFileChannel();
-		}
-		if (!isReady) {
-			return null;
-		}
-		File trueFile = getTrueFile();
-		FileChannel fileChannel;
-		try {
-			@SuppressWarnings("resource")
-			FileInputStream fileInputStream = new FileInputStream(trueFile);
-			fileChannel = fileInputStream.getChannel();
-			if (getPosition() > 0) {
-				fileChannel = fileChannel.position(getPosition());
-			}
-		} catch (FileNotFoundException e) {
-			logger.error("FileInterface not found in getFileChannel:", e);
-			return null;
-		} catch (IOException e) {
-			logger.error("Change position in getFileChannel:", e);
-			return null;
-		}
-		return fileChannel;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel ()
+     */
+    @Override
+    protected FileChannel getFileChannel() {
+        if (!isExternal) {
+            return super.getFileChannel();
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        FileChannel fileChannel;
+        try {
+            @SuppressWarnings("resource")
+            FileInputStream fileInputStream = new FileInputStream(trueFile);
+            fileChannel = fileInputStream.getChannel();
+            if (getPosition() > 0) {
+                fileChannel = fileChannel.position(getPosition());
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("FileInterface not found in getFileChannel:", e);
+            return null;
+        } catch (IOException e) {
+            logger.error("Change position in getFileChannel:", e);
+            return null;
+        }
+        return fileChannel;
+    }
 
-	@Override
-	protected RandomAccessFile getRandomFile() {
-		if (!isExternal) {
-			return super.getRandomFile();
-		}
-		if (!isReady) {
-			return null;
-		}
-		File trueFile = getTrueFile();
-		RandomAccessFile raf = null;
-		try {
-			raf = new RandomAccessFile(trueFile, "rw");
-			raf.seek(getPosition());
-		} catch (FileNotFoundException e) {
-			logger.error("File not found in getRandomFile:", e);
-			return null;
-		} catch (IOException e) {
-			logger.error("Change position in getRandomFile:", e);
-			return null;
-		}
-		return raf;
-	}
+    @Override
+    protected RandomAccessFile getRandomFile() {
+        if (!isExternal) {
+            return super.getRandomFile();
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(trueFile, "rw");
+            raf.seek(getPosition());
+        } catch (FileNotFoundException e) {
+            logger.error("File not found in getRandomFile:", e);
+            return null;
+        } catch (IOException e) {
+            logger.error("Change position in getRandomFile:", e);
+            return null;
+        }
+        return raf;
+    }
 
-	/**
-	 * Returns the FileOutputStream in Out mode associated with the current file.
-	 * 
-	 * @param append
-	 *            True if the FileOutputStream should be in append mode
-	 * @return the FileOutputStream (OUT)
-	 */
-	protected FileOutputStream getFileOutputStream(boolean append) {
-		if (!isExternal) {
-			return super.getFileOutputStream(append);
-		}
-		if (!isReady) {
-			return null;
-		}
-		File trueFile = getTrueFile();
-		if (getPosition() > 0) {
-			if (trueFile.length() < getPosition()) {
-				logger.error("Cannot Change position in getFileOutputStream: file is smaller than required position");
-				return null;
-			}
-			RandomAccessFile raf = getRandomFile();
-			try {
-				raf.setLength(getPosition());
-				raf.close();
-			} catch (IOException e) {
-				logger.error("Change position in getFileOutputStream:", e);
-				return null;
-			}
-		}
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(trueFile, append);
-		} catch (FileNotFoundException e) {
-			logger.error("File not found in getRandomFile:", e);
-			return null;
-		}
-		return fos;
-	}
+    /**
+     * Returns the FileOutputStream in Out mode associated with the current file.
+     * 
+     * @param append
+     *            True if the FileOutputStream should be in append mode
+     * @return the FileOutputStream (OUT)
+     */
+    protected FileOutputStream getFileOutputStream(boolean append) {
+        if (!isExternal) {
+            return super.getFileOutputStream(append);
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        if (getPosition() > 0) {
+            if (trueFile.length() < getPosition()) {
+                logger.error("Cannot Change position in getFileOutputStream: file is smaller than required position");
+                return null;
+            }
+            RandomAccessFile raf = getRandomFile();
+            try {
+                raf.setLength(getPosition());
+                raf.close();
+            } catch (IOException e) {
+                logger.error("Change position in getFileOutputStream:", e);
+                return null;
+            }
+        }
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(trueFile, append);
+        } catch (FileNotFoundException e) {
+            logger.error("File not found in getRandomFile:", e);
+            return null;
+        }
+        return fos;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory ()
-	 */
-	@Override
-	public boolean isDirectory() throws CommandAbstractException {
-		if (isExternal) {
-			File dir = new File(currentFile);
-			return dir.isDirectory();
-		}
-		return super.isDirectory();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory ()
+     */
+    @Override
+    public boolean isDirectory() throws CommandAbstractException {
+        if (isExternal) {
+            File dir = new File(currentFile);
+            return dir.isDirectory();
+        }
+        return super.isDirectory();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
-	 */
-	@Override
-	public boolean isFile() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			return file.isFile();
-		}
-		return super.isFile();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
+     */
+    @Override
+    public boolean isFile() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            return file.isFile();
+        }
+        return super.isFile();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#length()
-	 */
-	@Override
-	public long length() throws CommandAbstractException {
-		if (isExternal) {
-			File file = new File(currentFile);
-			if (file.canRead()) {
-				return file.length();
-			} else {
-				return -1;
-			}
-		}
-		return super.length();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#length()
+     */
+    @Override
+    public long length() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(currentFile);
+            if (file.canRead()) {
+                return file.length();
+            } else {
+                return -1;
+            }
+        }
+        return super.length();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#renameTo
-	 * (java.lang.String)
-	 */
-	@Override
-	public boolean renameTo(String path) throws CommandAbstractException {
-		if (!isExternal) {
-			return super.renameTo(path);
-		}
-		checkIdentify();
-		if (!isReady) {
-			logger.warn("File not ready: {}", this);
-			return false;
-		}
-		File file = getTrueFile();
-		if (file.canRead()) {
-			File newFile = getFileFromPath(path);
-			if (newFile.getParentFile().canWrite()) {
-				if (!file.renameTo(newFile)) {
-					FileOutputStream fileOutputStream = null;
-					try {
-						try {
-							fileOutputStream = new FileOutputStream(newFile);
-						} catch (FileNotFoundException e) {
-							logger
-									.warn("Cannot find file: " + newFile.getName(),
-											e);
-							return false;
-						}
-						FileChannel fileChannelOut = fileOutputStream.getChannel();
-						if (get(fileChannelOut)) {
-							delete();
-						} else {
-							try {
-								fileChannelOut.close();
-							} catch (IOException e) {
-							}
-							logger.error("Cannot write file: {}", newFile);
-							return false;
-						}
-					} finally {
-						if (fileOutputStream != null) {
-							try {
-								fileOutputStream.close();
-							} catch (IOException e) {
-							}
-						}
-					}
-				}
-				currentFile = getRelativePath(newFile);
-				isExternal = false;
-				isReady = true;
-				logger.debug("File renamed to: {} and real position: {}", this, newFile);
-				return true;
-			}
-		}
-		logger.warn("Cannot read file: {}", file);
-		return false;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#renameTo
+     * (java.lang.String)
+     */
+    @Override
+    public boolean renameTo(String path) throws CommandAbstractException {
+        if (!isExternal) {
+            return super.renameTo(path);
+        }
+        checkIdentify();
+        if (!isReady) {
+            logger.warn("File not ready: {}", this);
+            return false;
+        }
+        File file = getTrueFile();
+        if (file.canRead()) {
+            File newFile = getFileFromPath(path);
+            if (newFile.getParentFile().canWrite()) {
+                if (!file.renameTo(newFile)) {
+                    FileOutputStream fileOutputStream = null;
+                    try {
+                        try {
+                            fileOutputStream = new FileOutputStream(newFile);
+                        } catch (FileNotFoundException e) {
+                            logger
+                                    .warn("Cannot find file: " + newFile.getName(),
+                                            e);
+                            return false;
+                        }
+                        FileChannel fileChannelOut = fileOutputStream.getChannel();
+                        if (get(fileChannelOut)) {
+                            delete();
+                        } else {
+                            try {
+                                fileChannelOut.close();
+                            } catch (IOException e) {}
+                            logger.error("Cannot write file: {}", newFile);
+                            return false;
+                        }
+                    } finally {
+                        if (fileOutputStream != null) {
+                            try {
+                                fileOutputStream.close();
+                            } catch (IOException e) {}
+                        }
+                    }
+                }
+                currentFile = getRelativePath(newFile);
+                isExternal = false;
+                isReady = true;
+                logger.debug("File renamed to: {} and real position: {}", this, newFile);
+                return true;
+            }
+        }
+        logger.warn("Cannot read file: {}", file);
+        return false;
+    }
 
-	/**
-	 * Move the current file to the path as destination
-	 * 
-	 * @param path
-	 * @param external
-	 *            if True, the path is outside authentication control
-	 * @return True if the operation is done
-	 * @throws CommandAbstractException
-	 */
-	public boolean renameTo(String path, boolean external)
-			throws CommandAbstractException {
-		if (!external) {
-			return renameTo(path);
-		}
-		checkIdentify();
-		if (!isReady) {
-			return false;
-		}
-		File file = getTrueFile();
-		if (file.canRead()) {
-			File newFile = new File(path);
-			if (newFile.getParentFile().canWrite()) {
-				if (!file.renameTo(newFile)) {
-					FileOutputStream fileOutputStream = null;
-					try {
-						try {
-							fileOutputStream = new FileOutputStream(newFile);
-						} catch (FileNotFoundException e) {
-							logger
-									.warn("Cannot find file: " + newFile.getName(),
-											e);
-							return false;
-						}
-						FileChannel fileChannelOut = fileOutputStream.getChannel();
-						if (get(fileChannelOut)) {
-							delete();
-						} else {
-							try {
-								fileChannelOut.close();
-							} catch (IOException e) {
-							}
-							logger.error("Cannot write file: {}", newFile);
-							return false;
-						}
-					} finally {
-						if (fileOutputStream != null) {
-							try {
-								fileOutputStream.close();
-							} catch (IOException e) {
-							}
-						}
-					}
-				}
-				currentFile = FilesystemBasedDirImpl.normalizePath(newFile
-						.getAbsolutePath());
-				isExternal = true;
-				isReady = true;
-				return true;
-			}
-			logger.error("Cannot write to parent directory: {}", newFile.getParent());
-		}
-		logger.error("Cannot read file: {}", file);
-		return false;
-	}
+    /**
+     * Move the current file to the path as destination
+     * 
+     * @param path
+     * @param external
+     *            if True, the path is outside authentication control
+     * @return True if the operation is done
+     * @throws CommandAbstractException
+     */
+    public boolean renameTo(String path, boolean external)
+            throws CommandAbstractException {
+        if (!external) {
+            return renameTo(path);
+        }
+        checkIdentify();
+        if (!isReady) {
+            return false;
+        }
+        File file = getTrueFile();
+        if (file.canRead()) {
+            File newFile = new File(path);
+            if (newFile.getParentFile().canWrite()) {
+                if (!file.renameTo(newFile)) {
+                    FileOutputStream fileOutputStream = null;
+                    try {
+                        try {
+                            fileOutputStream = new FileOutputStream(newFile);
+                        } catch (FileNotFoundException e) {
+                            logger
+                                    .warn("Cannot find file: " + newFile.getName(),
+                                            e);
+                            return false;
+                        }
+                        FileChannel fileChannelOut = fileOutputStream.getChannel();
+                        if (get(fileChannelOut)) {
+                            delete();
+                        } else {
+                            try {
+                                fileChannelOut.close();
+                            } catch (IOException e) {}
+                            logger.error("Cannot write file: {}", newFile);
+                            return false;
+                        }
+                    } finally {
+                        if (fileOutputStream != null) {
+                            try {
+                                fileOutputStream.close();
+                            } catch (IOException e) {}
+                        }
+                    }
+                }
+                currentFile = FilesystemBasedDirImpl.normalizePath(newFile
+                        .getAbsolutePath());
+                isExternal = true;
+                isReady = true;
+                return true;
+            }
+            logger.error("Cannot write to parent directory: {}", newFile.getParent());
+        }
+        logger.error("Cannot read file: {}", file);
+        return false;
+    }
 
-	/**
-	 * Replace the current file with the new filename after closing the previous one.
-	 * 
-	 * @param filename
-	 * @param isExternal
-	 * @throws CommandAbstractException
-	 */
-	public void replaceFilename(String filename, boolean isExternal)
-			throws CommandAbstractException {
-		closeFile();
-		currentFile = filename;
-		this.isExternal = isExternal;
-		isReady = true;
-	}
+    /**
+     * Replace the current file with the new filename after closing the previous one.
+     * 
+     * @param filename
+     * @param isExternal
+     * @throws CommandAbstractException
+     */
+    public void replaceFilename(String filename, boolean isExternal)
+            throws CommandAbstractException {
+        closeFile();
+        currentFile = filename;
+        this.isExternal = isExternal;
+        isReady = true;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#closeFile ()
-	 */
-	@Override
-	public boolean closeFile() throws CommandAbstractException {
-		boolean status = super.closeFile();
-		// FORCE re-open file
-		isReady = true;
-		return status;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#closeFile ()
+     */
+    @Override
+    public boolean closeFile() throws CommandAbstractException {
+        boolean status = super.closeFile();
+        // FORCE re-open file
+        isReady = true;
+        return status;
+    }
 
-	/**
-	 * 
-	 * @return True if this file is outside OpenR66 Base directory
-	 */
-	public boolean isExternal() {
-		return isExternal;
-	}
+    /**
+     * 
+     * @return True if this file is outside OpenR66 Base directory
+     */
+    public boolean isExternal() {
+        return isExternal;
+    }
 
-	@Override
-	public String toString() {
-		return "File: " + currentFile + " Ready " + isReady + " isExternal " + isExternal + " "+
-				getPosition();
-	}
+    @Override
+    public String toString() {
+        return "File: " + currentFile + " Ready " + isReady + " isExternal " + isExternal + " " +
+                getPosition();
+    }
 }
