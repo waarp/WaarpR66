@@ -22,92 +22,107 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
-
 /**
  * Bandwidth setting or getting JSON packet
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class BandwidthJsonPacket extends JsonPacket {
 
-	protected boolean setter;
-	protected long writeglobal = -10, readglobal = -10, writesession = -10, readsession = -10;
-	/**
-	 * @return the setter
-	 */
-	public boolean isSetter() {
-		return setter;
-	}
-	/**
-	 * @param setter the setter to set
-	 */
-	public void setSetter(boolean setter) {
-		this.setter = setter;
-	}
-	/**
-	 * @return the writeglobal
-	 */
-	public long getWriteglobal() {
-		return writeglobal;
-	}
-	/**
-	 * @param writeglobal the writeglobal to set
-	 */
-	public void setWriteglobal(long writeglobal) {
-		this.writeglobal = writeglobal;
-	}
-	/**
-	 * @return the readglobal
-	 */
-	public long getReadglobal() {
-		return readglobal;
-	}
-	/**
-	 * @param readglobal the readglobal to set
-	 */
-	public void setReadglobal(long readglobal) {
-		this.readglobal = readglobal;
-	}
-	/**
-	 * @return the writesession
-	 */
-	public long getWritesession() {
-		return writesession;
-	}
-	/**
-	 * @param writesession the writesession to set
-	 */
-	public void setWritesession(long writesession) {
-		this.writesession = writesession;
-	}
-	/**
-	 * @return the readsession
-	 */
-	public long getReadsession() {
-		return readsession;
-	}
-	/**
-	 * @param readsession the readsession to set
-	 */
-	public void setReadsession(long readsession) {
-		this.readsession = readsession;
-	}
-	
-	@Override
-	public void fromJson(JsonPacket other) {
-		super.fromJson(other);
-		if (other instanceof BandwidthJsonPacket) {
-			BandwidthJsonPacket other2 = (BandwidthJsonPacket) other;
-			this.setter = other2.setter;
-			this.writeglobal = other2.writeglobal;
-			this.readglobal = other2.readglobal;
-			this.writesession = other2.writeglobal;
-			this.readsession = other2.readsession;
-		}
-	}
+    protected boolean setter;
+    protected long writeglobal = -10, readglobal = -10, writesession = -10, readsession = -10;
 
-	public void setRequestUserPacket() {
-		super.setRequestUserPacket(LocalPacketFactory.BANDWIDTHPACKET);
-	}
-	
+    /**
+     * @return the setter
+     */
+    public boolean isSetter() {
+        return setter;
+    }
+
+    /**
+     * @param setter
+     *            the setter to set
+     */
+    public void setSetter(boolean setter) {
+        this.setter = setter;
+    }
+
+    /**
+     * @return the writeglobal
+     */
+    public long getWriteglobal() {
+        return writeglobal;
+    }
+
+    /**
+     * @param writeglobal
+     *            the writeglobal to set
+     */
+    public void setWriteglobal(long writeglobal) {
+        this.writeglobal = writeglobal;
+    }
+
+    /**
+     * @return the readglobal
+     */
+    public long getReadglobal() {
+        return readglobal;
+    }
+
+    /**
+     * @param readglobal
+     *            the readglobal to set
+     */
+    public void setReadglobal(long readglobal) {
+        this.readglobal = readglobal;
+    }
+
+    /**
+     * @return the writesession
+     */
+    public long getWritesession() {
+        return writesession;
+    }
+
+    /**
+     * @param writesession
+     *            the writesession to set
+     */
+    public void setWritesession(long writesession) {
+        this.writesession = writesession;
+    }
+
+    /**
+     * @return the readsession
+     */
+    public long getReadsession() {
+        return readsession;
+    }
+
+    /**
+     * @param readsession
+     *            the readsession to set
+     */
+    public void setReadsession(long readsession) {
+        this.readsession = readsession;
+    }
+
+    @Override
+    public void fromJson(JsonPacket other) {
+        super.fromJson(other);
+        if (other instanceof BandwidthJsonPacket) {
+            BandwidthJsonPacket other2 = (BandwidthJsonPacket) other;
+            this.setter = other2.setter;
+            this.writeglobal = other2.writeglobal;
+            this.readglobal = other2.readglobal;
+            this.writesession = other2.writeglobal;
+            this.readsession = other2.readsession;
+        }
+    }
+
+    public void setRequestUserPacket() {
+        super.setRequestUserPacket(LocalPacketFactory.BANDWIDTHPACKET);
+    }
+
 }

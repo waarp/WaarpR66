@@ -20,57 +20,66 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
-
 /**
  * Shutdown or Block JSON packet
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class ShutdownOrBlockJsonPacket extends JsonPacket {
 
-	protected byte[] key;
-	/**
-	 * Shutdown: isRestart, Block: block/unblock
-	 */
-	protected boolean isRestartOrBlock;
-	/**
-	 * True: Shutdown, False: Block
-	 */
-	protected boolean isShutdownOrBlock;
-	/**
-	 * @return the key
-	 */
-	public byte[] getKey() {
-		return key;
-	}
-	/**
-	 * @param key the key to set
-	 */
-	public void setKey(byte[] key) {
-		this.key = key;
-	}
-	/**
-	 * @return True if isRestart Or False for Block
-	 */
-	public boolean isRestartOrBlock() {
-		return isRestartOrBlock;
-	}
-	/**
-	 * @param isRestart the isRestart to set
-	 */
-	public void setRestartOrBlock(boolean isRestart) {
-		this.isRestartOrBlock = isRestart;
-	}
-	/**
-	 * @return True if isShutdown Or False for Block
-	 */
-	public boolean isShutdownOrBlock() {
-		return isShutdownOrBlock;
-	}
-	/**
-	 * @param isShutdown the isShutdown to set
-	 */
-	public void setShutdownOrBlock(boolean isShutdown) {
-		this.isShutdownOrBlock = isShutdown;
-	}
+    protected byte[] key;
+    /**
+     * Shutdown: isRestart, Block: block/unblock
+     */
+    protected boolean isRestartOrBlock;
+    /**
+     * True: Shutdown, False: Block
+     */
+    protected boolean isShutdownOrBlock;
+
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        return key;
+    }
+
+    /**
+     * @param key
+     *            the key to set
+     */
+    public void setKey(byte[] key) {
+        this.key = key;
+    }
+
+    /**
+     * @return True if isRestart Or False for Block
+     */
+    public boolean isRestartOrBlock() {
+        return isRestartOrBlock;
+    }
+
+    /**
+     * @param isRestart
+     *            the isRestart to set
+     */
+    public void setRestartOrBlock(boolean isRestart) {
+        this.isRestartOrBlock = isRestart;
+    }
+
+    /**
+     * @return True if isShutdown Or False for Block
+     */
+    public boolean isShutdownOrBlock() {
+        return isShutdownOrBlock;
+    }
+
+    /**
+     * @param isShutdown
+     *            the isShutdown to set
+     */
+    public void setShutdownOrBlock(boolean isShutdown) {
+        this.isShutdownOrBlock = isShutdown;
+    }
 }

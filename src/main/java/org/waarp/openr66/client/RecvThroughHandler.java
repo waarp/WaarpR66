@@ -27,26 +27,26 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
  * 
  */
 public abstract class RecvThroughHandler {
-	/**
-	 * This method will be called for each valid packet received to be written
-	 * 
-	 * @param buffer
-	 * @exception OpenR66ProtocolBusinessException
-	 *                This exception has to be throw if any error occurs during write in business
-	 *                process.
-	 */
-	abstract public void writeChannelBuffer(ChannelBuffer buffer)
-			throws OpenR66ProtocolBusinessException;
+    /**
+     * This method will be called for each valid packet received to be written
+     * 
+     * @param buffer
+     * @exception OpenR66ProtocolBusinessException
+     *                This exception has to be throw if any error occurs during write in business
+     *                process.
+     */
+    abstract public void writeChannelBuffer(ChannelBuffer buffer)
+            throws OpenR66ProtocolBusinessException;
 
-	/**
-	 * Facility function to read from buffer and transfer to an array of bytes
-	 * 
-	 * @param buffer
-	 * @return the array of bytes
-	 */
-	protected byte[] getByte(ChannelBuffer buffer) {
-		byte[] dst = new byte[buffer.readableBytes()];
-		buffer.readBytes(dst, 0, dst.length);
-		return dst;
-	}
+    /**
+     * Facility function to read from buffer and transfer to an array of bytes
+     * 
+     * @param buffer
+     * @return the array of bytes
+     */
+    protected byte[] getByte(ChannelBuffer buffer) {
+        byte[] dst = new byte[buffer.readableBytes()];
+        buffer.readBytes(dst, 0, dst.length);
+        return dst;
+    }
 }

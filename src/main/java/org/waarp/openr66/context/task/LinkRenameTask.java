@@ -35,47 +35,47 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * 
  */
 public class LinkRenameTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(LinkRenameTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(LinkRenameTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public LinkRenameTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.LINKRENAME, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public LinkRenameTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.LINKRENAME, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" "));
-		logger.info("Move and Rename to " + finalname + " with " + argRule +
-				":" + argTransfer + " and {}", session);
-		// First try hard link
-		// FIXME wait for NIO.2 in JDK7 to have such functions, in the meantime only move...
-		File from = session.getFile().getTrueFile();
-		File to = new File(finalname);
-		try {
-			FileUtils.copy(from, to, false, false);
-		} catch (OpenR66ProtocolSystemException e1) {
-			logger.error("Copy and Rename to " + finalname + " with " +
-					argRule + ":" + argTransfer + " and " + session, e1);
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
-			return;
-		}
-		session.getRunner().setFileMoved(finalname, true);
-		futureCompletion.setSuccess();
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        logger.info("Move and Rename to " + finalname + " with " + argRule +
+                ":" + argTransfer + " and {}", session);
+        // First try hard link
+        // FIXME wait for NIO.2 in JDK7 to have such functions, in the meantime only move...
+        File from = session.getFile().getTrueFile();
+        File to = new File(finalname);
+        try {
+            FileUtils.copy(from, to, false, false);
+        } catch (OpenR66ProtocolSystemException e1) {
+            logger.error("Copy and Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session, e1);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
+            return;
+        }
+        session.getRunner().setFileMoved(finalname, true);
+        futureCompletion.setSuccess();
+    }
 
 }

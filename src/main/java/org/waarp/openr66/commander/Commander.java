@@ -45,499 +45,478 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * 
  */
 public class Commander implements CommanderInterface {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(Commander.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(Commander.class);
 
-	private static final int LIMITSUBMIT = 100;
+    private static final int LIMITSUBMIT = 100;
 
-	private InternalRunner internalRunner = null;
-	private DbPreparedStatement preparedStatementLock = null;
-	private DbPreparedStatement preparedStatementConfig = null;
-	private DbPreparedStatement preparedStatementHostConfig = null;
-	private DbPreparedStatement preparedStatementHost = null;
-	private DbPreparedStatement preparedStatementRule = null;
-	private DbPreparedStatement preparedStatementRunner = null;
+    private InternalRunner internalRunner = null;
+    private DbPreparedStatement preparedStatementLock = null;
+    private DbPreparedStatement preparedStatementConfig = null;
+    private DbPreparedStatement preparedStatementHostConfig = null;
+    private DbPreparedStatement preparedStatementHost = null;
+    private DbPreparedStatement preparedStatementRule = null;
+    private DbPreparedStatement preparedStatementRunner = null;
 
-	/**
-	 * Prepare requests that will be executed from time to time
-	 * 
-	 * @param runner
-	 * @throws WaarpDatabaseNoConnectionException
-	 * @throws WaarpDatabaseSqlException
-	 */
-	public Commander(InternalRunner runner)
-			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		this.internalConstructor(runner);
-	}
+    /**
+     * Prepare requests that will be executed from time to time
+     * 
+     * @param runner
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     */
+    public Commander(InternalRunner runner)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        this.internalConstructor(runner);
+    }
 
-	/**
-	 * Prepare requests that will be executed from time to time
-	 * 
-	 * @param runner
-	 * @param fromStartup
-	 *            True if call from startup of the server
-	 * @throws WaarpDatabaseNoConnectionException
-	 * @throws WaarpDatabaseSqlException
-	 */
-	public Commander(InternalRunner runner, boolean fromStartup)
-			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		this.internalConstructor(runner);
-		if (fromStartup) {
-			// Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
-			DbTaskRunner.resetToSubmit(DbConstant.admin.session);
-		}
-	}
+    /**
+     * Prepare requests that will be executed from time to time
+     * 
+     * @param runner
+     * @param fromStartup
+     *            True if call from startup of the server
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     */
+    public Commander(InternalRunner runner, boolean fromStartup)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        this.internalConstructor(runner);
+        if (fromStartup) {
+            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
+            DbTaskRunner.resetToSubmit(DbConstant.admin.session);
+        }
+    }
 
-	private void internalConstructor(InternalRunner runner)
-			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		try {
-			if (Configuration.configuration.multipleMonitors > 1) {
-				preparedStatementLock =
-						DbMultipleMonitor
-								.getUpdatedPrepareStament(DbConstant.noCommitAdmin.session);
-			} else {
-				preparedStatementLock = null;
-			}
-			preparedStatementConfig =
-					DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
-			preparedStatementHostConfig =
-					DbHostConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
-			preparedStatementHost =
-					DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.session);
-			preparedStatementRule =
-					DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
-			preparedStatementRunner =
-					DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.session,
-							UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
+    private void internalConstructor(InternalRunner runner)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        try {
+            if (Configuration.configuration.multipleMonitors > 1) {
+                preparedStatementLock =
+                        DbMultipleMonitor
+                                .getUpdatedPrepareStament(DbConstant.noCommitAdmin.session);
+            } else {
+                preparedStatementLock = null;
+            }
+            preparedStatementConfig =
+                    DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementHostConfig =
+                    DbHostConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementHost =
+                    DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementRule =
+                    DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementRunner =
+                    DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.session,
+                            UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
 
-			// Clean tasks (CompleteOK and ALLDONE => DONE)
-			DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
-			internalRunner = runner;
-		} finally {
-			if (internalRunner == null) {
-				// An error occurs
-				if (preparedStatementLock != null) {
-					preparedStatementLock.realClose();
-				}
-				if (preparedStatementConfig != null) {
-					preparedStatementConfig.realClose();
-				}
-				if (preparedStatementHostConfig != null) {
-					preparedStatementHostConfig.realClose();
-				}
-				if (preparedStatementHost != null) {
-					preparedStatementHost.realClose();
-				}
-				if (preparedStatementRule != null) {
-					preparedStatementRule.realClose();
-				}
-				if (preparedStatementRunner != null) {
-					preparedStatementRunner.realClose();
-				}
-			} else {
-				if (preparedStatementLock != null) {
-					DbConstant.noCommitAdmin.session
-							.addLongTermPreparedStatement(preparedStatementLock);
-				}
-				if (preparedStatementConfig != null) {
-					DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementConfig);
-				}
-				if (preparedStatementHostConfig != null) {
-					DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHostConfig);
-				}
-				if (preparedStatementHost != null) {
-					DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHost);
-				}
-				if (preparedStatementRule != null) {
-					DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRule);
-				}
-				if (preparedStatementRunner != null) {
-					DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRunner);
-				}
-			}
-		}
-	}
+            // Clean tasks (CompleteOK and ALLDONE => DONE)
+            DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+            internalRunner = runner;
+        } finally {
+            if (internalRunner == null) {
+                // An error occurs
+                if (preparedStatementLock != null) {
+                    preparedStatementLock.realClose();
+                }
+                if (preparedStatementConfig != null) {
+                    preparedStatementConfig.realClose();
+                }
+                if (preparedStatementHostConfig != null) {
+                    preparedStatementHostConfig.realClose();
+                }
+                if (preparedStatementHost != null) {
+                    preparedStatementHost.realClose();
+                }
+                if (preparedStatementRule != null) {
+                    preparedStatementRule.realClose();
+                }
+                if (preparedStatementRunner != null) {
+                    preparedStatementRunner.realClose();
+                }
+            } else {
+                if (preparedStatementLock != null) {
+                    DbConstant.noCommitAdmin.session
+                            .addLongTermPreparedStatement(preparedStatementLock);
+                }
+                if (preparedStatementConfig != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementConfig);
+                }
+                if (preparedStatementHostConfig != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHostConfig);
+                }
+                if (preparedStatementHost != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHost);
+                }
+                if (preparedStatementRule != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRule);
+                }
+                if (preparedStatementRunner != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRunner);
+                }
+            }
+        }
+    }
 
-	/**
-	 * Finalize internal data
-	 */
-	public void finalize() {
-		if (preparedStatementLock != null) {
-			try {
-				DbConstant.noCommitAdmin.session.commit();
-			} catch (WaarpDatabaseSqlException e) {
-			} catch (WaarpDatabaseNoConnectionException e) {
-			}
-			preparedStatementLock.realClose();
-			DbConstant.noCommitAdmin.session
-					.removeLongTermPreparedStatements(preparedStatementLock);
-			// DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
-		}
-		if (preparedStatementConfig != null) {
-			preparedStatementConfig.realClose();
-			DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementConfig);
-		}
-		if (preparedStatementHostConfig != null) {
-			preparedStatementHostConfig.realClose();
-			DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHostConfig);
-		}
-		if (preparedStatementHost != null) {
-			preparedStatementHost.realClose();
-			DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHost);
-		}
-		if (preparedStatementRule != null) {
-			preparedStatementRule.realClose();
-			DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRule);
-		}
-		if (preparedStatementRunner != null) {
-			preparedStatementRunner.realClose();
-			DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRunner);
-		}
-		// DbConstant.admin.session.removeLongTermPreparedStatements();
-	}
+    /**
+     * Finalize internal data
+     */
+    public void finalize() {
+        if (preparedStatementLock != null) {
+            try {
+                DbConstant.noCommitAdmin.session.commit();
+            } catch (WaarpDatabaseSqlException e) {} catch (WaarpDatabaseNoConnectionException e) {}
+            preparedStatementLock.realClose();
+            DbConstant.noCommitAdmin.session
+                    .removeLongTermPreparedStatements(preparedStatementLock);
+            // DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
+        }
+        if (preparedStatementConfig != null) {
+            preparedStatementConfig.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementConfig);
+        }
+        if (preparedStatementHostConfig != null) {
+            preparedStatementHostConfig.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHostConfig);
+        }
+        if (preparedStatementHost != null) {
+            preparedStatementHost.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHost);
+        }
+        if (preparedStatementRule != null) {
+            preparedStatementRule.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRule);
+        }
+        if (preparedStatementRunner != null) {
+            preparedStatementRunner.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRunner);
+        }
+        // DbConstant.admin.session.removeLongTermPreparedStatements();
+    }
 
-	public void run() {
-		Thread.currentThread().setName("OpenR66Commander");
-		if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
-			DbConstant.admin.session.checkConnectionNoException();
-		}
-		// each time it is runned, it parses all database for updates
-		DbMultipleMonitor multipleMonitor = null;
-		// Open a lock to prevent other "HA" monitors to retrieve access as Commander
-		try {
-			try {
-				if (preparedStatementLock != null) {
-					preparedStatementLock.executeQuery();
-					preparedStatementLock.getNext();
-					multipleMonitor =
-							DbMultipleMonitor.getFromStatement(preparedStatementLock);
-				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				return;
-			}
-			logger.debug("Before " + multipleMonitor);
-			// First check Configuration
-			try {
-				preparedStatementConfig.executeQuery();
-				while (preparedStatementConfig.getNext()) {
-					// should be only one...
-					DbConfiguration configuration = DbConfiguration
-							.getFromStatement(preparedStatementConfig);
-					if (configuration.isOwnConfiguration()) {
-						configuration.updateConfiguration();
-					}
-					if (multipleMonitor != null) {
-						// update the configuration in HA mode
-						if (multipleMonitor.checkUpdateConfig()) {
-							configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-							configuration.update();
-							logger.debug("Config " + multipleMonitor);
-						} else {
-							configuration.update();
-							logger.debug("Config " + multipleMonitor);
-						}
-					} else {
-						configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-						configuration.update();
-					}
-					configuration = null;
-				}
-				preparedStatementConfig.close();
-			} catch (WaarpDatabaseNoConnectionException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				return;
-			} finally {
-				preparedStatementConfig.close();
-			}
-			// check HostConfiguration
-			try {
-				preparedStatementHostConfig.executeQuery();
-				while (preparedStatementHostConfig.getNext()) {
-					// should be only one...
-					DbHostConfiguration configuration = DbHostConfiguration
-							.getFromStatement(preparedStatementHostConfig);
-					if (configuration.isOwnConfiguration()) {
-						configuration.updateConfiguration();
-					}
-					if (multipleMonitor != null) {
-						// update the configuration in HA mode
-						if (multipleMonitor.checkUpdateConfig()) {
-							configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-							configuration.update();
-							logger.debug("Config " + multipleMonitor);
-						} else {
-							configuration.update();
-							logger.debug("Config " + multipleMonitor);
-						}
-					} else {
-						configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-						configuration.update();
-					}
-					configuration = null;
-				}
-				preparedStatementHostConfig.close();
-			} catch (WaarpDatabaseNoConnectionException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				// XXX no return since table might not be initialized return;
-			} catch (WaarpDatabaseException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				// XXX no return since table might not be initialized return;
-			} finally {
-				preparedStatementHostConfig.close();
-			}
-			// Check HostAuthent
-			try {
-				preparedStatementHost.executeQuery();
-				boolean mm = false;
-				boolean lastUpdate = false;
-				while (preparedStatementHost.getNext()) {
-					// Maybe multiple
-					DbHostAuth hostAuth = DbHostAuth.getFromStatement(preparedStatementHost);
-					if (multipleMonitor != null) {
-						if (!mm) {
-							// not already set from a previous hostAuth
-							mm = true;
-							lastUpdate = multipleMonitor.checkUpdateHost();
-						} // else already set so no action on multipleMonitor
+    public void run() {
+        Thread.currentThread().setName("OpenR66Commander");
+        if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+            DbConstant.admin.session.checkConnectionNoException();
+        }
+        // each time it is runned, it parses all database for updates
+        DbMultipleMonitor multipleMonitor = null;
+        // Open a lock to prevent other "HA" monitors to retrieve access as Commander
+        try {
+            try {
+                if (preparedStatementLock != null) {
+                    preparedStatementLock.executeQuery();
+                    preparedStatementLock.getNext();
+                    multipleMonitor =
+                            DbMultipleMonitor.getFromStatement(preparedStatementLock);
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                return;
+            }
+            logger.debug("Before " + multipleMonitor);
+            // First check Configuration
+            try {
+                preparedStatementConfig.executeQuery();
+                while (preparedStatementConfig.getNext()) {
+                    // should be only one...
+                    DbConfiguration configuration = DbConfiguration
+                            .getFromStatement(preparedStatementConfig);
+                    if (configuration.isOwnConfiguration()) {
+                        configuration.updateConfiguration();
+                    }
+                    if (multipleMonitor != null) {
+                        // update the configuration in HA mode
+                        if (multipleMonitor.checkUpdateConfig()) {
+                            configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                            configuration.update();
+                            logger.debug("Config " + multipleMonitor);
+                        } else {
+                            configuration.update();
+                            logger.debug("Config " + multipleMonitor);
+                        }
+                    } else {
+                        configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                        configuration.update();
+                    }
+                    configuration = null;
+                }
+                preparedStatementConfig.close();
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+                preparedStatementConfig.close();
+            }
+            // check HostConfiguration
+            try {
+                preparedStatementHostConfig.executeQuery();
+                while (preparedStatementHostConfig.getNext()) {
+                    // should be only one...
+                    DbHostConfiguration configuration = DbHostConfiguration
+                            .getFromStatement(preparedStatementHostConfig);
+                    if (configuration.isOwnConfiguration()) {
+                        configuration.updateConfiguration();
+                    }
+                    if (multipleMonitor != null) {
+                        // update the configuration in HA mode
+                        if (multipleMonitor.checkUpdateConfig()) {
+                            configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                            configuration.update();
+                            logger.debug("Config " + multipleMonitor);
+                        } else {
+                            configuration.update();
+                            logger.debug("Config " + multipleMonitor);
+                        }
+                    } else {
+                        configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                        configuration.update();
+                    }
+                    configuration = null;
+                }
+                preparedStatementHostConfig.close();
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                // XXX no return since table might not be initialized return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                // XXX no return since table might not be initialized return;
+            } finally {
+                preparedStatementHostConfig.close();
+            }
+            // Check HostAuthent
+            try {
+                preparedStatementHost.executeQuery();
+                boolean mm = false;
+                boolean lastUpdate = false;
+                while (preparedStatementHost.getNext()) {
+                    // Maybe multiple
+                    DbHostAuth hostAuth = DbHostAuth.getFromStatement(preparedStatementHost);
+                    if (multipleMonitor != null) {
+                        if (!mm) {
+                            // not already set from a previous hostAuth
+                            mm = true;
+                            lastUpdate = multipleMonitor.checkUpdateHost();
+                        } // else already set so no action on multipleMonitor
 
-						// Update the Host configuration in HA mode
-						if (lastUpdate) {
-							hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-							hostAuth.update();
-							logger.debug("Host " + multipleMonitor);
-						} else {
-							// Nothing to do except validate
-							hostAuth.update();
-							logger.debug("Host " + multipleMonitor);
-						}
-					} else {
-						// Nothing to do except validate
-						hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-						hostAuth.update();
-					}
-					hostAuth = null;
-				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				return;
-			} finally {
-				preparedStatementHost.close();
-			}
-			// Check Rules
-			try {
-				preparedStatementRule.executeQuery();
-				boolean mm = false;
-				boolean lastUpdate = false;
-				while (preparedStatementRule.getNext()) {
-					DbRule rule = DbRule.getFromStatement(preparedStatementRule);
-					if (multipleMonitor != null) {
-						if (!mm) {
-							// not already set from a previous hostAuth
-							mm = true;
-							lastUpdate = multipleMonitor.checkUpdateRule();
-						} // else already set so no action on multipleMonitor
-							// Update the Rules in HA mode
-						if (lastUpdate) {
-							rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-							rule.update();
-							logger.debug("Rule " + multipleMonitor);
-						} else {
-							// Nothing to do except validate
-							rule.update();
-							logger.debug("Rule " + multipleMonitor);
-						}
-					} else {
-						// Nothing to do except validate
-						rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
-						rule.update();
-					}
-					rule = null;
-				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseNoDataException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				return;
-			} finally {
-				preparedStatementRule.close();
-			}
-			if (R66ShutdownHook.isShutdownStarting()) {
-				// no more task to submit
-				return;
-			}
-			logger.debug("start runner");
-			// Check TaskRunner
-			try {
-				DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
-				// No specific HA mode since the other servers will wait for the commit on Lock
-				preparedStatementRunner.executeQuery();
-				while (preparedStatementRunner.getNext()) {
-					if (R66ShutdownHook.isShutdownStarting()) {
-						// no more task to submit
-						return;
-					}
-					DbTaskRunner taskRunner = null;
-					try {
-						taskRunner = DbTaskRunner
-								.getFromStatement(preparedStatementRunner);
-					} catch (WaarpDatabaseSqlException e) {
-						// ignore and continue if NoData
-						if (e.getCause() instanceof WaarpDatabaseNoDataException) {
-							logger.warn("DbTaskRunner cannot be loaded: "+e.getMessage());
-							continue;
-						}
-						throw e;
-					}
-					logger.debug("get a task: {}", taskRunner);
-					// Launch if possible this task
-					String key = taskRunner.getRequested() + " " + taskRunner.getRequester() +
-							" " + taskRunner.getSpecialId();
-					if (Configuration.configuration.getLocalTransaction().
-							getFromRequest(key) != null) {
-						// already running
-						continue;
-					}
-					if (taskRunner.isSelfRequested()) {
-						// cannot schedule a request where the host is the requested host
-						taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-						taskRunner.update();
-						continue;
-					}
-					taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
-					taskRunner.forceSaveStatus();
-					internalRunner.submitTaskRunner(taskRunner);
-					taskRunner = null;
-				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database No Connection Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseSqlException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database SQL Error: Cannot execute Commander", e);
-				return;
-			} catch (WaarpDatabaseException e) {
-				try {
-					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-				}
-				logger.error("Database Error: Cannot execute Commander", e);
-				return;
-			} finally {
-				preparedStatementRunner.close();
-			}
-			logger.debug("end commander");
-		} finally {
-			if (multipleMonitor != null) {
-				try {
-					// Now update and Commit so releasing the lock
-					logger.debug("Update " + multipleMonitor);
-					multipleMonitor.update();
-					DbConstant.noCommitAdmin.session.commit();
-				} catch (WaarpDatabaseException e) {
-					try {
-						DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
-					} catch (WaarpDatabaseNoConnectionException e1) {
-					}
-				}
-				multipleMonitor = null;
-			}
-		}
-	}
+                        // Update the Host configuration in HA mode
+                        if (lastUpdate) {
+                            hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                            hostAuth.update();
+                            logger.debug("Host " + multipleMonitor);
+                        } else {
+                            // Nothing to do except validate
+                            hostAuth.update();
+                            logger.debug("Host " + multipleMonitor);
+                        }
+                    } else {
+                        // Nothing to do except validate
+                        hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                        hostAuth.update();
+                    }
+                    hostAuth = null;
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+                preparedStatementHost.close();
+            }
+            // Check Rules
+            try {
+                preparedStatementRule.executeQuery();
+                boolean mm = false;
+                boolean lastUpdate = false;
+                while (preparedStatementRule.getNext()) {
+                    DbRule rule = DbRule.getFromStatement(preparedStatementRule);
+                    if (multipleMonitor != null) {
+                        if (!mm) {
+                            // not already set from a previous hostAuth
+                            mm = true;
+                            lastUpdate = multipleMonitor.checkUpdateRule();
+                        } // else already set so no action on multipleMonitor
+                          // Update the Rules in HA mode
+                        if (lastUpdate) {
+                            rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                            rule.update();
+                            logger.debug("Rule " + multipleMonitor);
+                        } else {
+                            // Nothing to do except validate
+                            rule.update();
+                            logger.debug("Rule " + multipleMonitor);
+                        }
+                    } else {
+                        // Nothing to do except validate
+                        rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+                        rule.update();
+                    }
+                    rule = null;
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseNoDataException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+                preparedStatementRule.close();
+            }
+            if (R66ShutdownHook.isShutdownStarting()) {
+                // no more task to submit
+                return;
+            }
+            logger.debug("start runner");
+            // Check TaskRunner
+            try {
+                DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
+                // No specific HA mode since the other servers will wait for the commit on Lock
+                preparedStatementRunner.executeQuery();
+                while (preparedStatementRunner.getNext()) {
+                    if (R66ShutdownHook.isShutdownStarting()) {
+                        // no more task to submit
+                        return;
+                    }
+                    DbTaskRunner taskRunner = null;
+                    try {
+                        taskRunner = DbTaskRunner
+                                .getFromStatement(preparedStatementRunner);
+                    } catch (WaarpDatabaseSqlException e) {
+                        // ignore and continue if NoData
+                        if (e.getCause() instanceof WaarpDatabaseNoDataException) {
+                            logger.warn("DbTaskRunner cannot be loaded: " + e.getMessage());
+                            continue;
+                        }
+                        throw e;
+                    }
+                    logger.debug("get a task: {}", taskRunner);
+                    // Launch if possible this task
+                    String key = taskRunner.getRequested() + " " + taskRunner.getRequester() +
+                            " " + taskRunner.getSpecialId();
+                    if (Configuration.configuration.getLocalTransaction().
+                            getFromRequest(key) != null) {
+                        // already running
+                        continue;
+                    }
+                    if (taskRunner.isSelfRequested()) {
+                        // cannot schedule a request where the host is the requested host
+                        taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+                        taskRunner.update();
+                        continue;
+                    }
+                    taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+                    taskRunner.forceSaveStatus();
+                    internalRunner.submitTaskRunner(taskRunner);
+                    taskRunner = null;
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {}
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+                preparedStatementRunner.close();
+            }
+            logger.debug("end commander");
+        } finally {
+            if (multipleMonitor != null) {
+                try {
+                    // Now update and Commit so releasing the lock
+                    logger.debug("Update " + multipleMonitor);
+                    multipleMonitor.update();
+                    DbConstant.noCommitAdmin.session.commit();
+                } catch (WaarpDatabaseException e) {
+                    try {
+                        DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                    } catch (WaarpDatabaseNoConnectionException e1) {}
+                }
+                multipleMonitor = null;
+            }
+        }
+    }
 
 }

@@ -24,38 +24,38 @@ package org.waarp.openr66.protocol.exception;
  */
 public class OpenR66ProtocolShutdownException extends OpenR66Exception {
 
-	/**
+    /**
      *
      */
-	private static final long serialVersionUID = 9047867109141561841L;
+    private static final long serialVersionUID = 9047867109141561841L;
 
-	/**
+    /**
 	 *
 	 */
-	public OpenR66ProtocolShutdownException() {
-		super();
-	}
+    public OpenR66ProtocolShutdownException() {
+        super();
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public OpenR66ProtocolShutdownException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public OpenR66ProtocolShutdownException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolShutdownException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolShutdownException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolShutdownException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolShutdownException(Throwable arg0) {
+        super(arg0);
+    }
 
 }

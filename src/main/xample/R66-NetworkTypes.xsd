@@ -46,10 +46,10 @@ Port used in SSL mode
                 type="nonNulInteger" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Port used for monitoring in HTTP mode" />
+                        <fg:node-info message="Port used for monitoring in HTTP mode, 0 for desactivation" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Port used for monitoring in HTTP mode
+Port used for monitoring in HTTP mode, 0 for desactivation
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -59,10 +59,10 @@ Port used for monitoring in HTTP mode
                 type="nonNulInteger" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Port used for Administrator access in HTTPS mode" />
+                        <fg:node-info message="Port used for Administrator access in HTTPS mode, 0 for desactivation" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Port used for Administrator access in HTTPS mode
+Port used for Administrator access in HTTPS mode, 0 for desactivation
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

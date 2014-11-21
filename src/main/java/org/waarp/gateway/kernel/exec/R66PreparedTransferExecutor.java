@@ -67,157 +67,156 @@ import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
  * 
  */
 public class R66PreparedTransferExecutor extends AbstractExecutor {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(R66PreparedTransferExecutor.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(R66PreparedTransferExecutor.class);
 
-	protected final WaarpFuture future;
+    protected final WaarpFuture future;
 
-	protected String filename = null;
+    protected String filename = null;
 
-	protected String rulename = null;
+    protected String rulename = null;
 
-	protected String fileinfo = null;
+    protected String fileinfo = null;
 
-	protected boolean isMD5 = false;
+    protected boolean isMD5 = false;
 
-	protected boolean nolog = false;
+    protected boolean nolog = false;
 
-	protected Timestamp timestart = null;
+    protected Timestamp timestart = null;
 
-	protected String remoteHost = null;
+    protected String remoteHost = null;
 
-	protected int blocksize = Configuration.configuration.BLOCKSIZE;;
+    protected int blocksize = Configuration.configuration.BLOCKSIZE;;
 
-	protected DbSession dbsession;
+    protected DbSession dbsession;
 
-	/**
-	 * 
-	 * @param command
-	 * @param delay
-	 * @param futureCompletion
-	 */
-	public R66PreparedTransferExecutor(String command, long delay,
-			WaarpFuture futureCompletion) {
-		String args[] = command.split(" ");
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-to")) {
-				i++;
-				remoteHost = args[i];
-			} else if (args[i].equalsIgnoreCase("-file")) {
-				i++;
-				filename = args[i];
-			} else if (args[i].equalsIgnoreCase("-rule")) {
-				i++;
-				rulename = args[i];
-			} else if (args[i].equalsIgnoreCase("-info")) {
-				i++;
-				fileinfo = args[i];
-				i++;
-				while (i < args.length) {
-					fileinfo += " " + args[i];
-					i++;
-				}
-			} else if (args[i].equalsIgnoreCase("-md5")) {
-				isMD5 = true;
-			} else if (args[i].equalsIgnoreCase("-block")) {
-				i++;
-				blocksize = Integer.parseInt(args[i]);
-				if (blocksize < 100) {
-					logger.warn("Block size is too small: " + blocksize);
-					blocksize = Configuration.configuration.BLOCKSIZE;
-				}
-			} else if (args[i].equalsIgnoreCase("-nolog")) {
-				nolog = true;
-				i++;
-			} else if (args[i].equalsIgnoreCase("-start")) {
-				i++;
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-				Date date;
-				try {
-					date = dateFormat.parse(args[i]);
-					timestart = new Timestamp(date.getTime());
-				} catch (ParseException e) {
-				}
-			} else if (args[i].equalsIgnoreCase("-delay")) {
-				i++;
-				if (args[i].charAt(0) == '+') {
-					timestart = new Timestamp(System.currentTimeMillis() +
-							Long.parseLong(args[i].substring(1)));
-				} else {
-					timestart = new Timestamp(Long.parseLong(args[i]));
-				}
-			}
-		}
-		if (fileinfo == null) {
-			fileinfo = "noinfo";
-		}
-		this.future = futureCompletion;
-	}
+    /**
+     * 
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
+    public R66PreparedTransferExecutor(String command, long delay,
+            WaarpFuture futureCompletion) {
+        String args[] = command.split(" ");
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-to")) {
+                i++;
+                remoteHost = args[i];
+            } else if (args[i].equalsIgnoreCase("-file")) {
+                i++;
+                filename = args[i];
+            } else if (args[i].equalsIgnoreCase("-rule")) {
+                i++;
+                rulename = args[i];
+            } else if (args[i].equalsIgnoreCase("-info")) {
+                i++;
+                fileinfo = args[i];
+                i++;
+                while (i < args.length) {
+                    fileinfo += " " + args[i];
+                    i++;
+                }
+            } else if (args[i].equalsIgnoreCase("-md5")) {
+                isMD5 = true;
+            } else if (args[i].equalsIgnoreCase("-block")) {
+                i++;
+                blocksize = Integer.parseInt(args[i]);
+                if (blocksize < 100) {
+                    logger.warn("Block size is too small: " + blocksize);
+                    blocksize = Configuration.configuration.BLOCKSIZE;
+                }
+            } else if (args[i].equalsIgnoreCase("-nolog")) {
+                nolog = true;
+                i++;
+            } else if (args[i].equalsIgnoreCase("-start")) {
+                i++;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                Date date;
+                try {
+                    date = dateFormat.parse(args[i]);
+                    timestart = new Timestamp(date.getTime());
+                } catch (ParseException e) {}
+            } else if (args[i].equalsIgnoreCase("-delay")) {
+                i++;
+                if (args[i].charAt(0) == '+') {
+                    timestart = new Timestamp(System.currentTimeMillis() +
+                            Long.parseLong(args[i].substring(1)));
+                } else {
+                    timestart = new Timestamp(Long.parseLong(args[i]));
+                }
+            }
+        }
+        if (fileinfo == null) {
+            fileinfo = "noinfo";
+        }
+        this.future = futureCompletion;
+    }
 
-	/**
-	 * @param dbsession
-	 *            the dbsession to set
-	 */
-	public void setDbsession(DbSession dbsession) {
-		this.dbsession = dbsession;
-	}
+    /**
+     * @param dbsession
+     *            the dbsession to set
+     */
+    public void setDbsession(DbSession dbsession) {
+        this.dbsession = dbsession;
+    }
 
-	public void run() throws CommandAbstractException {
-		String message = "R66Prepared with -to " + remoteHost + " -rule " +
-				rulename + " -file " + filename + " -nolog: " + nolog +
-				" -isMD5: " + isMD5 + " -info " + fileinfo;
-		if (remoteHost == null || rulename == null || filename == null) {
-			logger.error("Mandatory argument is missing: -to " + remoteHost +
-					" -rule " + rulename + " -file " + filename);
-			throw new Reply421Exception("Mandatory argument is missing\n    " + message);
-		}
-		logger.debug(message);
-		DbRule rule;
-		try {
-			rule = new DbRule(dbsession, rulename);
-		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot get Rule: " + rulename + " since {}\n    " +
-					message, e.getMessage());
-			throw new Reply421Exception("Cannot get Rule: " +
-					rulename + "\n    " + message);
-		}
-		int mode = rule.mode;
-		if (isMD5) {
-			mode = RequestPacket.getModeMD5(mode);
-		}
-		String sep = PartnerConfiguration.getSeparator(remoteHost);
-		long originalSize = -1;
-		if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
-			File file = new File(filename);
-			if (file.canRead()) {
-				originalSize = file.length();
-			}
-		}
-		RequestPacket request = new RequestPacket(rulename, mode, filename,
-				blocksize, 0, DbConstant.ILLEGALVALUE, fileinfo, originalSize, sep);
-		// Not isRecv since it is the requester, so send => isRetrieve is true
-		boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
-		logger.debug("Will prepared: " + request.toString());
-		DbTaskRunner taskRunner;
-		try {
-			taskRunner = new DbTaskRunner(dbsession, rule, isRetrieve, request,
-					remoteHost, timestart);
-		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot get new task since {}\n    " + message, e
-					.getMessage());
-			throw new Reply421Exception("Cannot get new task\n    " + message);
-		}
-		taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
-		try {
-			taskRunner.update();
-		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot prepare task since {}\n    " + message, e
-					.getMessage());
-			throw new Reply421Exception("Cannot prepare task\n    " + message);
-		}
-		future.setSuccess();
-	}
+    public void run() throws CommandAbstractException {
+        String message = "R66Prepared with -to " + remoteHost + " -rule " +
+                rulename + " -file " + filename + " -nolog: " + nolog +
+                " -isMD5: " + isMD5 + " -info " + fileinfo;
+        if (remoteHost == null || rulename == null || filename == null) {
+            logger.error("Mandatory argument is missing: -to " + remoteHost +
+                    " -rule " + rulename + " -file " + filename);
+            throw new Reply421Exception("Mandatory argument is missing\n    " + message);
+        }
+        logger.debug(message);
+        DbRule rule;
+        try {
+            rule = new DbRule(dbsession, rulename);
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot get Rule: " + rulename + " since {}\n    " +
+                    message, e.getMessage());
+            throw new Reply421Exception("Cannot get Rule: " +
+                    rulename + "\n    " + message);
+        }
+        int mode = rule.mode;
+        if (isMD5) {
+            mode = RequestPacket.getModeMD5(mode);
+        }
+        String sep = PartnerConfiguration.getSeparator(remoteHost);
+        long originalSize = -1;
+        if (RequestPacket.isSendMode(mode) && !RequestPacket.isThroughMode(mode)) {
+            File file = new File(filename);
+            if (file.canRead()) {
+                originalSize = file.length();
+            }
+        }
+        RequestPacket request = new RequestPacket(rulename, mode, filename,
+                blocksize, 0, DbConstant.ILLEGALVALUE, fileinfo, originalSize, sep);
+        // Not isRecv since it is the requester, so send => isRetrieve is true
+        boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
+        logger.debug("Will prepared: " + request.toString());
+        DbTaskRunner taskRunner;
+        try {
+            taskRunner = new DbTaskRunner(dbsession, rule, isRetrieve, request,
+                    remoteHost, timestart);
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot get new task since {}\n    " + message, e
+                    .getMessage());
+            throw new Reply421Exception("Cannot get new task\n    " + message);
+        }
+        taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+        try {
+            taskRunner.update();
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot prepare task since {}\n    " + message, e
+                    .getMessage());
+            throw new Reply421Exception("Cannot prepare task\n    " + message);
+        }
+        future.setSuccess();
+    }
 }

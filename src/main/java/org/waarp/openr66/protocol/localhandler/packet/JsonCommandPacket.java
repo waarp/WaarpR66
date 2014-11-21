@@ -36,144 +36,144 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  * @author frederic bregier
  */
 public class JsonCommandPacket extends AbstractLocalPacket {
-	private final String request;
+    private final String request;
 
-	private String result;
+    private String result;
 
-	private final byte send;
+    private final byte send;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ValidPacket from buffer
-	 */
-	public static JsonCommandPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
-		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bmiddle = new byte[middleLength];
-		final byte bend;
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		if (middleLength > 0) {
-			buf.readBytes(bmiddle);
-		}
-		bend = buf.readByte();
-		return new JsonCommandPacket(new String(bheader), 
-				new String(bmiddle), bend);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ValidPacket from buffer
+     */
+    public static JsonCommandPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) {
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bmiddle = new byte[middleLength];
+        final byte bend;
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        if (middleLength > 0) {
+            buf.readBytes(bmiddle);
+        }
+        bend = buf.readByte();
+        return new JsonCommandPacket(new String(bheader),
+                new String(bmiddle), bend);
+    }
 
-	/**
-	 * @param srequest
-	 * @param sresult
-	 * @param end
-	 */
-	public JsonCommandPacket(String srequest, String sresult, byte end) {
-		request = srequest;
-		result = sresult;
-		send = end;
-	}
-	
-	/**
-	 * @param jrequest
-	 * @param end
-	 */
-	public JsonCommandPacket(JsonPacket jrequest, byte end) {
-		request = jrequest.toString();
-		result = null;
-		send = end;
-	}
+    /**
+     * @param srequest
+     * @param sresult
+     * @param end
+     */
+    public JsonCommandPacket(String srequest, String sresult, byte end) {
+        request = srequest;
+        result = sresult;
+        send = end;
+    }
 
-	/**
-	 * @param jrequest
-	 * @param sresult
-	 * @param end
-	 */
-	public JsonCommandPacket(JsonPacket jrequest, String sresult, byte end) {
-		request = jrequest.toString();
-		result = sresult;
-		send = end;
-	}
+    /**
+     * @param jrequest
+     * @param end
+     */
+    public JsonCommandPacket(JsonPacket jrequest, byte end) {
+        request = jrequest.toString();
+        result = null;
+        send = end;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(1);
-		end.writeByte(send);
-	}
+    /**
+     * @param jrequest
+     * @param sresult
+     * @param end
+     */
+    public JsonCommandPacket(JsonPacket jrequest, String sresult, byte end) {
+        request = jrequest.toString();
+        result = sresult;
+        send = end;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (request != null) {
-			header = ChannelBuffers.wrappedBuffer(request.getBytes());
-		}
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.buffer(1);
+        end.writeByte(send);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		if (result != null) {
-			middle = ChannelBuffers.wrappedBuffer(result.getBytes());
-		}
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (request != null) {
+            header = ChannelBuffers.wrappedBuffer(request.getBytes());
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "JsonCommandPacket: " + request + ":" + result + ":" + send;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        if (result != null) {
+            middle = ChannelBuffers.wrappedBuffer(result.getBytes());
+        }
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.JSONREQUESTPACKET;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "JsonCommandPacket: " + request + ":" + result + ":" + send;
+    }
 
-	/**
-	 * @return the JsonPacket from request
-	 */
-	public JsonPacket getJsonRequest() {
-		try {
-			return JsonPacket.createFromBuffer(request);
-		} catch (JsonParseException e) {
-			return null;
-		} catch (JsonMappingException e) {
-			return null;
-		} catch (IOException e) {
-			return null;
-		}
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.JSONREQUESTPACKET;
+    }
 
-	/**
-	 * 
-	 * @param result
-	 */
-	public void setResult(String result) {
-		this.result = result;
-		middle = null;
-	}
+    /**
+     * @return the JsonPacket from request
+     */
+    public JsonPacket getJsonRequest() {
+        try {
+            return JsonPacket.createFromBuffer(request);
+        } catch (JsonParseException e) {
+            return null;
+        } catch (JsonMappingException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
 
-	/**
-	 * @return the request
-	 */
-	public String getRequest() {
-		return request;
-	}
+    /**
+     * 
+     * @param result
+     */
+    public void setResult(String result) {
+        this.result = result;
+        middle = null;
+    }
 
-	/**
-	 * @return the result
-	 */
-	public String getResult() {
-		return result;
-	}
+    /**
+     * @return the request
+     */
+    public String getRequest() {
+        return request;
+    }
 
-	/**
-	 * @return the type
-	 */
-	public byte getTypeValid() {
-		return send;
-	}
+    /**
+     * @return the result
+     */
+    public String getResult() {
+        return result;
+    }
+
+    /**
+     * @return the type
+     */
+    public byte getTypeValid() {
+        return send;
+    }
 
 }

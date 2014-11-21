@@ -43,113 +43,114 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
  * 
  */
 public class InternalRunner {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(InternalRunner.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(InternalRunner.class);
 
-	private final ScheduledExecutorService scheduledExecutorService;
-	private ScheduledFuture<?> scheduledFuture;
-	private CommanderInterface commander = null;
-	private volatile boolean isRunning = true;
-	private final ThreadPoolExecutor threadPoolExecutor;
-	private final NetworkTransaction networkTransaction;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private ScheduledFuture<?> scheduledFuture;
+    private CommanderInterface commander = null;
+    private volatile boolean isRunning = true;
+    private final ThreadPoolExecutor threadPoolExecutor;
+    private final NetworkTransaction networkTransaction;
 
-	/**
-	 * Create the structure to enable submission by database
-	 * 
-	 * @throws WaarpDatabaseNoConnectionException
-	 * @throws WaarpDatabaseSqlException
-	 */
-	public InternalRunner() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		if (DbConstant.admin.isConnected) {
-			commander = new Commander(this, true);
-		} else {
-			commander = new CommanderNoDb(this, true);
-		}
-		scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new WaarpThreadFactory("InternalRunner"));
-		isRunning = true;
-		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
-		threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
-				1000, TimeUnit.MILLISECONDS, workQueue);
-		scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-				Configuration.configuration.delayCommander,
-				Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
-		networkTransaction = new NetworkTransaction();
-	}
+    /**
+     * Create the structure to enable submission by database
+     * 
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     */
+    public InternalRunner() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        if (DbConstant.admin.isConnected) {
+            commander = new Commander(this, true);
+        } else {
+            commander = new CommanderNoDb(this, true);
+        }
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
+                new WaarpThreadFactory("InternalRunner", false));
+        isRunning = true;
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
+        threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
+                1000, TimeUnit.MILLISECONDS, workQueue);
+        scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
+                Configuration.configuration.delayCommander,
+                Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+        networkTransaction = new NetworkTransaction();
+    }
 
-	public NetworkTransaction getNetworkTransaction() {
-		return networkTransaction;
-	}
+    public NetworkTransaction getNetworkTransaction() {
+        return networkTransaction;
+    }
 
-	/**
-	 * Submit a task
-	 * 
-	 * @param taskRunner
-	 */
-	public void submitTaskRunner(DbTaskRunner taskRunner) {
-		if (isRunning || !Configuration.configuration.isShutdown) {
-			if (threadPoolExecutor.getActiveCount() + 5 > Configuration.configuration.RUNNER_THREAD) {
-				// too many current active threads
-				taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-				taskRunner.forceSaveStatus();
-				return;
-			}
-			logger.debug("Will run {}", taskRunner);
-			ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
-			if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()
-					|| taskRunner.isPreTaskStarting())) {
-				runner.setSendThroughMode();
-				taskRunner.checkThroughMode();
-			}
-			runner.setDaemon(true);
-			// create the client, connect and run
-			threadPoolExecutor.execute(runner);
-			runner = null;
-		}
-	}
+    /**
+     * Submit a task
+     * 
+     * @param taskRunner
+     */
+    public void submitTaskRunner(DbTaskRunner taskRunner) {
+        if (isRunning || !Configuration.configuration.isShutdown) {
+            if (threadPoolExecutor.getActiveCount() + 5 > Configuration.configuration.RUNNER_THREAD) {
+                // too many current active threads
+                taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                taskRunner.forceSaveStatus();
+                return;
+            }
+            logger.debug("Will run {}", taskRunner);
+            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
+            if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()
+                    || taskRunner.isPreTaskStarting())) {
+                runner.setSendThroughMode();
+                taskRunner.checkThroughMode();
+            }
+            runner.setDaemon(true);
+            // create the client, connect and run
+            threadPoolExecutor.execute(runner);
+            runner = null;
+        }
+    }
 
-	/**
-	 * First step while shutting down the service
-	 */
-	public void prepareStopInternalRunner() {
-		isRunning = false;
-		scheduledFuture.cancel(false);
-		scheduledExecutorService.shutdown();
-		threadPoolExecutor.shutdown();
-	}
+    /**
+     * First step while shutting down the service
+     */
+    public void prepareStopInternalRunner() {
+        isRunning = false;
+        scheduledFuture.cancel(false);
+        scheduledExecutorService.shutdown();
+        threadPoolExecutor.shutdown();
+    }
 
-	/**
-	 * This should be called when the server is shutting down, after stopping active requests if
-	 * possible.
-	 */
-	public void stopInternalRunner() {
-		isRunning = false;
-		logger.info("Stopping Commander and Runner Tasks");
-		scheduledFuture.cancel(false);
-		scheduledExecutorService.shutdownNow();
-		threadPoolExecutor.shutdownNow();
-		networkTransaction.closeAll();
-	}
+    /**
+     * This should be called when the server is shutting down, after stopping active requests if
+     * possible.
+     */
+    public void stopInternalRunner() {
+        isRunning = false;
+        logger.info("Stopping Commander and Runner Tasks");
+        scheduledFuture.cancel(false);
+        scheduledExecutorService.shutdownNow();
+        threadPoolExecutor.shutdownNow();
+        networkTransaction.closeAll();
+    }
 
-	public int nbInternalRunner() {
-		return threadPoolExecutor.getActiveCount();
-	}
+    public int nbInternalRunner() {
+        return threadPoolExecutor.getActiveCount();
+    }
 
-	public void reloadInternalRunner()
-			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		scheduledFuture.cancel(false);
-		if (commander != null) {
-			commander.finalize();
-		}
-		if (DbConstant.admin.isConnected) {
-			commander = new Commander(this);
-		} else {
-			commander = new CommanderNoDb(this);
-		}
-		scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-				Configuration.configuration.delayCommander,
-				Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
-	}
+    public void reloadInternalRunner()
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        scheduledFuture.cancel(false);
+        if (commander != null) {
+            commander.finalize();
+        }
+        if (DbConstant.admin.isConnected) {
+            commander = new Commander(this);
+        } else {
+            commander = new CommanderNoDb(this);
+        }
+        scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
+                Configuration.configuration.delayCommander,
+                Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+    }
 }

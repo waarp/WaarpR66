@@ -30,63 +30,63 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class StartupPacket extends AbstractLocalPacket {
-	private final Integer localId;
+    private final Integer localId;
 
-	/**
-	 * @param headerLength
-	 * @param middleLength
-	 * @param endLength
-	 * @param buf
-	 * @return the new ValidPacket from buffer
-	 */
-	public static StartupPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
-		Integer newId = buf.readInt();
-		return new StartupPacket(newId);
-	}
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ValidPacket from buffer
+     */
+    public static StartupPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) {
+        Integer newId = buf.readInt();
+        return new StartupPacket(newId);
+    }
 
-	/**
-	 * @param newId
-	 */
-	public StartupPacket(Integer newId) {
-		localId = newId;
-	}
+    /**
+     * @param newId
+     */
+    public StartupPacket(Integer newId) {
+        localId = newId;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.EMPTY_BUFFER;
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.buffer(4);
-		header.writeInt(localId);
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = ChannelBuffers.buffer(4);
+        header.writeInt(localId);
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.EMPTY_BUFFER;
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = ChannelBuffers.EMPTY_BUFFER;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "StartupPacket: " + localId;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "StartupPacket: " + localId;
+    }
 
-	@Override
-	public byte getType() {
-		return LocalPacketFactory.STARTUPPACKET;
-	}
+    @Override
+    public byte getType() {
+        return LocalPacketFactory.STARTUPPACKET;
+    }
 
-	/**
-	 * @return the localId
-	 */
-	public Integer getLocalId() {
-		return localId;
-	}
+    /**
+     * @return the localId
+     */
+    public Integer getLocalId() {
+        return localId;
+    }
 
 }

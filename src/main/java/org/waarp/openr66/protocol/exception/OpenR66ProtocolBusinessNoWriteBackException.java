@@ -23,41 +23,41 @@ package org.waarp.openr66.protocol.exception;
  * @author frederic bregier
  */
 public class OpenR66ProtocolBusinessNoWriteBackException extends
-		OpenR66ProtocolBusinessException {
+        OpenR66ProtocolBusinessException {
 
-	/**
+    /**
      *
      */
-	private static final long serialVersionUID = -9088521827450885700L;
+    private static final long serialVersionUID = -9088521827450885700L;
 
-	/**
+    /**
 	 *
 	 */
-	public OpenR66ProtocolBusinessNoWriteBackException() {
-		super();
-	}
+    public OpenR66ProtocolBusinessNoWriteBackException() {
+        super();
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public OpenR66ProtocolBusinessNoWriteBackException(String arg0,
-			Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public OpenR66ProtocolBusinessNoWriteBackException(String arg0,
+            Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolBusinessNoWriteBackException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolBusinessNoWriteBackException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public OpenR66ProtocolBusinessNoWriteBackException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public OpenR66ProtocolBusinessNoWriteBackException(Throwable arg0) {
+        super(arg0);
+    }
 
 }

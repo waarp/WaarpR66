@@ -30,69 +30,69 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  * @author frederic bregier
  */
 public class TestPacket extends AbstractLocalPacket {
-	public static final int pingpong = 100;
+    public static final int pingpong = 100;
 
-	private final String sheader;
+    private final String sheader;
 
-	private final String smiddle;
+    private final String smiddle;
 
-	private int code = 0;
+    private int code = 0;
 
-	public static TestPacket createFromBuffer(int headerLength,
-			int middleLength, int endLength, ChannelBuffer buf) {
-		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bmiddle = new byte[middleLength];
-		if (headerLength - 1 > 0) {
-			buf.readBytes(bheader);
-		}
-		if (middleLength > 0) {
-			buf.readBytes(bmiddle);
-		}
-		return new TestPacket(new String(bheader), 
-				new String(bmiddle), buf.readInt());
-	}
+    public static TestPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) {
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bmiddle = new byte[middleLength];
+        if (headerLength - 1 > 0) {
+            buf.readBytes(bheader);
+        }
+        if (middleLength > 0) {
+            buf.readBytes(bmiddle);
+        }
+        return new TestPacket(new String(bheader),
+                new String(bmiddle), buf.readInt());
+    }
 
-	public TestPacket(String header, String middle, int code) {
-		sheader = header;
-		smiddle = middle;
-		this.code = code;
-	}
+    public TestPacket(String header, String middle, int code) {
+        sheader = header;
+        smiddle = middle;
+        this.code = code;
+    }
 
-	@Override
-	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(4);
-		end.writeInt(code);
-	}
+    @Override
+    public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.buffer(4);
+        end.writeInt(code);
+    }
 
-	@Override
-	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
-	}
+    @Override
+    public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+    }
 
-	@Override
-	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
-	}
+    @Override
+    public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
+        middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+    }
 
-	@Override
-	public byte getType() {
-		if (code > pingpong) {
-			return LocalPacketFactory.VALIDPACKET;
-		}
-		return LocalPacketFactory.TESTPACKET;
-	}
+    @Override
+    public byte getType() {
+        if (code > pingpong) {
+            return LocalPacketFactory.VALIDPACKET;
+        }
+        return LocalPacketFactory.TESTPACKET;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-	 */
-	@Override
-	public String toString() {
-		return "TestPacket: " + sheader + ":" + smiddle + ":" + code;
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
+     */
+    @Override
+    public String toString() {
+        return "TestPacket: " + sheader + ":" + smiddle + ":" + code;
+    }
 
-	public void update() {
-		code++;
-		end = null;
-	}
+    public void update() {
+        code++;
+        end = null;
+    }
 }

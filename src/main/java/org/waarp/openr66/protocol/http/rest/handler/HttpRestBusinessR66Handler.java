@@ -20,7 +20,6 @@
  */
 package org.waarp.openr66.protocol.http.rest.handler;
 
-
 import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -52,100 +51,103 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Business Http REST interface: http://host/business?... + BusinessRequestJsonPacket as GET
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
-	
-	public static final String BASEURI = "business";
-	/**
+
+    public static final String BASEURI = "business";
+    /**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestBusinessR66Handler.class);
-   
-	public HttpRestBusinessR66Handler(RestConfiguration config, METHOD ... methods) {
-		super(BASEURI, config, METHOD.OPTIONS);
-		setIntersectionMethods(methods, METHOD.GET);
-	}
-	
-	@Override
-	public void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body)
-			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
-		logger.debug("debug: {} ### {}",arguments,result);
-		if (body != null) {
-			logger.debug("Obj: {}", body);
-		}
-		handler.setWillClose(false);
-		ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
-		R66Session session = serverHandler.getSession();
-		// now action according to body
-		JsonPacket json = (JsonPacket) body;
-		if (json == null) {
-			result.setDetail("not enough information");
-			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
-			return;
-		}
-		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Business.name());
-		try {
-			if (json instanceof BusinessRequestJsonPacket) {//
-				result.setCommand(ACTIONS_TYPE.ExecuteBusiness.name());
-				BusinessRequestJsonPacket node = (BusinessRequestJsonPacket) json;
-				R66Future future = serverHandler.businessRequest(node.isToApplied(), node.getClassName(), node.getArguments(), node.getExtraArguments(), node.getDelay());
-				if (future != null && ! future.isSuccess()) {
-					R66Result r66result = future.getResult();
-					if (r66result == null) {
-						r66result = new R66Result(session, false, ErrorCode.ExternalOp, null);
-					}
-					logger.info("Task in Error:" + node.getClassName() + " " + r66result);
-					if (!r66result.isAnswered) {
-						node.setValidated(false);
-						session.newState(ERROR);
-					}
-					result.setDetail("Task in Error:" + node.getClassName() + " " + r66result);
-					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
-				} else {
-					R66Result r66result = future.getResult();
-					if (r66result != null && r66result.other != null) {
-						result.setDetail(r66result.other.toString());
-						node.setArguments(r66result.other.toString());
-					}
-					setOk(handler, result, json, HttpResponseStatus.OK);
-				}
-			} else {
-				logger.info("Validation is ignored: " + json);
-				result.setDetail("Unknown command");
-				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
-			}
-		} catch (OpenR66ProtocolNotAuthenticatedException e) {
-			throw new HttpInvalidAuthenticationException(e);
-		} catch (OpenR66ProtocolPacketException e) {
-			throw new HttpIncorrectRequestException(e);
-		}
-	}
 
-	protected ArrayNode getDetailedAllow() {
-		ArrayNode node = JsonHandler.createArrayNode();
-		
-		if (this.methods.contains(METHOD.GET)) {
-			BusinessRequestJsonPacket node3 = new BusinessRequestJsonPacket();
-			node3.setRequestUserPacket();
-			node3.setComment("Business execution request (GET)");
-			node3.setClassName("Class name to execute");
-			node3.setArguments("Arguments of the execution");
-			node3.setExtraArguments("Extra arguments");
-			ObjectNode node2;
-			ArrayNode node1 = JsonHandler.createArrayNode();
-			try {
-				node1.add(node3.createObjectNode());
-				node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExecuteBusiness.name(), node3.createObjectNode(), node1);
-				node.add(node2);
-			} catch (OpenR66ProtocolPacketException e1) {
-			}
-		}
-		ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
-		node.add(node2);
-		
-		return node;
-	}
+    public HttpRestBusinessR66Handler(RestConfiguration config, METHOD... methods) {
+        super(BASEURI, config, METHOD.OPTIONS);
+        setIntersectionMethods(methods, METHOD.GET);
+    }
+
+    @Override
+    public void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body)
+            throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
+        logger.debug("debug: {} ### {}", arguments, result);
+        if (body != null) {
+            logger.debug("Obj: {}", body);
+        }
+        handler.setWillClose(false);
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        R66Session session = serverHandler.getSession();
+        // now action according to body
+        JsonPacket json = (JsonPacket) body;
+        if (json == null) {
+            result.setDetail("not enough information");
+            setError(handler, result, HttpResponseStatus.BAD_REQUEST);
+            return;
+        }
+        result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Business.name());
+        try {
+            if (json instanceof BusinessRequestJsonPacket) {//
+                result.setCommand(ACTIONS_TYPE.ExecuteBusiness.name());
+                BusinessRequestJsonPacket node = (BusinessRequestJsonPacket) json;
+                R66Future future = serverHandler.businessRequest(node.isToApplied(), node.getClassName(),
+                        node.getArguments(), node.getExtraArguments(), node.getDelay());
+                if (future != null && !future.isSuccess()) {
+                    R66Result r66result = future.getResult();
+                    if (r66result == null) {
+                        r66result = new R66Result(session, false, ErrorCode.ExternalOp, null);
+                    }
+                    logger.info("Task in Error:" + node.getClassName() + " " + r66result);
+                    if (!r66result.isAnswered) {
+                        node.setValidated(false);
+                        session.newState(ERROR);
+                    }
+                    result.setDetail("Task in Error:" + node.getClassName() + " " + r66result);
+                    setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
+                } else {
+                    R66Result r66result = future.getResult();
+                    if (r66result != null && r66result.other != null) {
+                        result.setDetail(r66result.other.toString());
+                        node.setArguments(r66result.other.toString());
+                    }
+                    setOk(handler, result, json, HttpResponseStatus.OK);
+                }
+            } else {
+                logger.info("Validation is ignored: " + json);
+                result.setDetail("Unknown command");
+                setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
+            }
+        } catch (OpenR66ProtocolNotAuthenticatedException e) {
+            throw new HttpInvalidAuthenticationException(e);
+        } catch (OpenR66ProtocolPacketException e) {
+            throw new HttpIncorrectRequestException(e);
+        }
+    }
+
+    protected ArrayNode getDetailedAllow() {
+        ArrayNode node = JsonHandler.createArrayNode();
+
+        if (this.methods.contains(METHOD.GET)) {
+            BusinessRequestJsonPacket node3 = new BusinessRequestJsonPacket();
+            node3.setRequestUserPacket();
+            node3.setComment("Business execution request (GET)");
+            node3.setClassName("Class name to execute");
+            node3.setArguments("Arguments of the execution");
+            node3.setExtraArguments("Extra arguments");
+            ObjectNode node2;
+            ArrayNode node1 = JsonHandler.createArrayNode();
+            try {
+                node1.add(node3.createObjectNode());
+                node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExecuteBusiness.name(),
+                        node3.createObjectNode(), node1);
+                node.add(node2);
+            } catch (OpenR66ProtocolPacketException e1) {}
+        }
+        ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null,
+                null);
+        node.add(node2);
+
+        return node;
+    }
 }

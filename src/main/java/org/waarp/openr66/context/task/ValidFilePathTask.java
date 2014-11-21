@@ -39,51 +39,51 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
  * 
  */
 public class ValidFilePathTask extends AbstractTask {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(ValidFilePathTask.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(ValidFilePathTask.class);
 
-	/**
-	 * @param argRule
-	 * @param delay
-	 * @param argTransfer
-	 * @param session
-	 */
-	public ValidFilePathTask(String argRule, int delay, String argTransfer,
-			R66Session session) {
-		super(TaskType.VALIDFILEPATH, delay, argRule, argTransfer, session);
-	}
+    /**
+     * @param argRule
+     * @param delay
+     * @param argTransfer
+     * @param session
+     */
+    public ValidFilePathTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
+        super(TaskType.VALIDFILEPATH, delay, argRule, argTransfer, session);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.task.AbstractTask#run()
-	 */
-	@Override
-	public void run() {
-		String finalname = argRule;
-		finalname = R66Dir.normalizePath(
-				getReplacedValue(finalname, argTransfer.split(" ")));
-		logger.info("Test Valid Path with " + finalname + " from {}", session);
-		File from = session.getFile().getTrueFile();
-		String curpath = R66Dir.normalizePath(from.getAbsolutePath());
-		String[] paths = finalname.split(" ");
-		for (String base : paths) {
-			if (curpath.startsWith(base)) {
-				if (delay > 0) {
-					logger.info("Validate File " + curpath + " from " + base + " and     " +
-							session.toString());
-				}
-				futureCompletion.setSuccess();
-				return;
-			}
-		}
-		if (delay > 0) {
-			logger.error("Unvalidate File: " + curpath + "     " +
-					session.toString());
-		}
-		futureCompletion.setFailure(new OpenR66RunnerException("File not Validated"));
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.waarp.openr66.context.task.AbstractTask#run()
+     */
+    @Override
+    public void run() {
+        String finalname = argRule;
+        finalname = R66Dir.normalizePath(
+                getReplacedValue(finalname, argTransfer.split(" ")));
+        logger.info("Test Valid Path with " + finalname + " from {}", session);
+        File from = session.getFile().getTrueFile();
+        String curpath = R66Dir.normalizePath(from.getAbsolutePath());
+        String[] paths = finalname.split(" ");
+        for (String base : paths) {
+            if (curpath.startsWith(base)) {
+                if (delay > 0) {
+                    logger.info("Validate File " + curpath + " from " + base + " and     " +
+                            session.toString());
+                }
+                futureCompletion.setSuccess();
+                return;
+            }
+        }
+        if (delay > 0) {
+            logger.error("Unvalidate File: " + curpath + "     " +
+                    session.toString());
+        }
+        futureCompletion.setFailure(new OpenR66RunnerException("File not Validated"));
+    }
 
 }
