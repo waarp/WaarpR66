@@ -121,9 +121,9 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
      */
     static final int GLOBAL_DEFAULT_USER_DEFINED_WRITABILITY_INDEX = 2;
 
-    private static final AttributeKey<Boolean> READ_SUSPENDED =
+    static final AttributeKey<Boolean> READ_SUSPENDED =
             AttributeKey.valueOf(AbstractTrafficShapingHandler.class, "READ_SUSPENDED");
-    private static final AttributeKey<Runnable> REOPEN_TASK =
+    static final AttributeKey<Runnable> REOPEN_TASK =
             AttributeKey.valueOf(AbstractTrafficShapingHandler.class, "REOPEN_TASK");
 
     /**
@@ -407,7 +407,7 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
     /**
      * Class to implement setReadable at fix time
      */
-    private static final class ReopenReadTimerTask implements Runnable {
+    static final class ReopenReadTimerTask implements Runnable {
         final ChannelHandlerContext ctx;
         ReopenReadTimerTask(ChannelHandlerContext ctx) {
             this.ctx = ctx;

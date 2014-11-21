@@ -173,8 +173,9 @@ a img {
 						    <input type="checkbox" name="done" value="ON" XXXDONEXXX><label data-i18n="menu2.filtre17">Done</label>
 						    <input type="checkbox" name="all" value="ON" XXXALLXXX><label data-i18n="menu2.filtre18">All</label>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     <label data-i18n="menu2.text16">Limit rows to</label>&nbsp;<input type="text" name="LIMITROW" size="4" value="XXXLIMITROWXXX"> <label data-i18n="menu2.text17">first results.</label><input type="submit" value="Filter" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						    <input type="reset" value="Clear" name="ACTION"></p>
+     <label data-i18n="menu2.text16">Limit rows to</label>&nbsp;<input type="text" name="LIMITROW" size="4" value="XXXLIMITROWXXX"> <label data-i18n="menu2.text17">first results.</label><input type="submit" value="Filter" name="ACTION" title="Filter uses results to limit Ids in future filtering requests">
+                        <input type="submit" value="Reload" name="ACTION" title="Reload keeps the current filter on Ids for next request - even empty -">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						    <input type="reset" value="Clear" name="ACTION" title="Resets the values to the ones at page load"></p>
 						    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						    <input type="submit" value="StopAll" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						    <!--  <input type="submit" value="StopCleanAll" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->

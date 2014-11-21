@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.protocol.networkhandler;
 
-import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 import io.netty.util.concurrent.EventExecutorGroup;
 
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
@@ -28,17 +28,20 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
  * @author Frederic Bregier
  * 
  */
-public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
+public class GlobalTrafficHandler extends GlobalChannelTrafficShapingHandler {
 
     /**
      * @param objectSizeEstimator
      * @param timer
      * @param writeLimit
      * @param readLimit
+     * @param writeChannelLimit
+     * @param readChannelLimit
      * @param checkInterval
      */
-    public GlobalTrafficHandler(EventExecutorGroup executor, long writeLimit, long readLimit, long checkInterval) {
-        super(executor, writeLimit, readLimit, checkInterval);
+    public GlobalTrafficHandler(EventExecutorGroup executor, long writeLimit, long readLimit,
+            long writeChannelLimit, long readChannelLimit, long checkInterval) {
+        super(executor, writeLimit, readLimit, writeChannelLimit, readChannelLimit, checkInterval);
     }
 
     @Override

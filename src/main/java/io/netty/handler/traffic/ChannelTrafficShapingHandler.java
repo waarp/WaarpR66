@@ -183,7 +183,7 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
         synchronized (this) {
             if (delay == 0 && messagesQueue.isEmpty()) {
                 trafficCounter.bytesRealWriteFlowControl(size);
-                ctx.write(msg, promise);
+                ctx.writeAndFlush(msg, promise);
                 return;
             }
             newToSend = new ToSend(delay + now, msg, promise);

@@ -25,13 +25,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.HashedWheelTimer;
 
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
@@ -78,7 +78,7 @@ public class NetworkSslServerInitializer extends ChannelInitializer<SocketChanne
         pipeline.addLast("codec", new NetworkPacketCodec());
         pipeline.addLast(NetworkServerInitializer.TIMEOUT,
                 new IdleStateHandler(0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
-        GlobalTrafficShapingHandler handler = Configuration.configuration
+        GlobalTrafficHandler handler = Configuration.configuration
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast(NetworkServerInitializer.LIMIT, handler);
