@@ -31,7 +31,6 @@ import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelGroupFutureListener;
 import io.netty.channel.local.LocalChannel;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.handler.traffic.TrafficCounter;
 
 import org.slf4j.LoggerFactory;
@@ -53,6 +52,7 @@ import org.waarp.openr66.protocol.localhandler.packet.DataPacket;
 import org.waarp.openr66.protocol.localhandler.packet.EndTransferPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
+import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 
@@ -337,7 +337,7 @@ public class ChannelUtils extends Thread {
             }
         }
         if (Configuration.configuration.serverGlobalWriteLimit > 0) {
-            GlobalTrafficShapingHandler gts = Configuration.configuration
+            GlobalTrafficHandler gts = Configuration.configuration
                     .getGlobalTrafficShapingHandler();
             if (gts != null) {
                 TrafficCounter tc = gts.trafficCounter();

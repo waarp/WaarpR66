@@ -40,7 +40,7 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.traffic.AbstractTrafficShapingHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 
@@ -751,7 +751,7 @@ public class Configuration {
 
         // Factory for TrafficShapingHandler
         globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, serverGlobalWriteLimit,
-                serverGlobalReadLimit, delayLimit);
+                serverGlobalReadLimit, serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
         this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
 
         // Now start the InternalRunner
@@ -1053,6 +1053,9 @@ public class Configuration {
         }
         serverChannelReadLimit = newReadLimit;
         serverChannelWriteLimit = newWriteLimit;
+        if (globalTrafficShapingHandler != null && globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
+            ((GlobalChannelTrafficShapingHandler) globalTrafficShapingHandler).configureChannel(serverChannelWriteLimit, serverChannelReadLimit);
+        }
         anyBandwidthLimitation = (serverGlobalReadLimit > 0 || serverGlobalWriteLimit > 0 ||
                 serverChannelReadLimit > 0 || serverChannelWriteLimit > 0);
     }
@@ -1084,6 +1087,9 @@ public class Configuration {
         if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
             throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
         }
+        if (globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
+            throw new OpenR66ProtocolNoDataException("Already included through GlobalChannelTSH");
+        }
         return new ChannelTrafficHandler(serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
     }
 
@@ -1102,7 +1108,7 @@ public class Configuration {
     /**
      * @return the globalTrafficShapingHandler
      */
-    public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
+    public GlobalTrafficHandler getGlobalTrafficShapingHandler() {
         return globalTrafficShapingHandler;
     }
 

@@ -270,8 +270,8 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
                         ctx.write(toSend.toSend, toSend.promise);
                     }
                 } else {
+                    queuesSize.addAndGet(-perChannel.queueSize);
                     for (ToSend toSend : perChannel.messagesQueue) {
-                        queuesSize.addAndGet(-calculateSize(toSend.toSend));
                         if (toSend.toSend instanceof ByteBuf) {
                             ((ByteBuf) toSend.toSend).release();
                         }
@@ -309,11 +309,13 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
     private static final class ToSend {
         final long relativeTimeAction;
         final Object toSend;
+        final long size;
         final ChannelPromise promise;
 
-        private ToSend(final long delay, final Object toSend, final ChannelPromise promise) {
+        private ToSend(final long delay, final Object toSend, final long size, final ChannelPromise promise) {
             this.relativeTimeAction = delay;
             this.toSend = toSend;
+            this.size = size;
             this.promise = promise;
         }
     }
@@ -337,14 +339,14 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
         synchronized (perChannel) {
             if (writedelay == 0 && perChannel.messagesQueue.isEmpty()) {
                 trafficCounter.bytesRealWriteFlowControl(size);
-                ctx.write(msg, promise);
+                ctx.writeAndFlush(msg, promise);
                 perChannel.lastWrite = now;
                 return;
             }
             if (delay > maxTime && now + delay - perChannel.lastWrite > maxTime) {
                 delay = maxTime;
             }
-            newToSend = new ToSend(delay + now, msg, promise);
+            newToSend = new ToSend(delay + now, msg, size, promise);
             perChannel.messagesQueue.addLast(newToSend);
             perChannel.queueSize += size;
             queuesSize.addAndGet(size);
@@ -375,7 +377,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
             ToSend newToSend = perChannel.messagesQueue.pollFirst();
             for (; newToSend != null; newToSend = perChannel.messagesQueue.pollFirst()) {
                 if (newToSend.relativeTimeAction <= now) {
-                    long size = calculateSize(newToSend.toSend);
+                    long size = newToSend.size;
                     trafficCounter.bytesRealWriteFlowControl(size);
                     perChannel.queueSize -= size;
                     queuesSize.addAndGet(-size);
