@@ -3693,9 +3693,19 @@ public class DbTaskRunner extends AbstractDbData {
         return freespace;
     }
 
+    @SuppressWarnings("unused")
     private String bandwidth() {
         double drank = (rank <= 0 ? 1 : rank);
         double dblocksize = blocksize * 8;
+        double size = drank * dblocksize;
+        double time = (stop.getTime() + 1 - start.getTime());
+        double result = size / time / ((double) 0x100000L) * ((double) 1000);
+        return String.format("%,.2f", result);
+    }
+
+    private String bandwidthMB() {
+        double drank = (rank <= 0 ? 1 : rank);
+        double dblocksize = blocksize;
         double size = drank * dblocksize;
         double time = (stop.getTime() + 1 - start.getTime());
         double result = size / time / ((double) 0x100000L) * ((double) 1000);
@@ -3804,7 +3814,7 @@ public class DbTaskRunner extends AbstractDbData {
                 "</td><td>" +
                 stop +
                 "</td><td>" +
-                bandwidth() + "</td>" + "<td>" +
+                bandwidthMB() + "</td>" + "<td>" +
                 freespace + "</td>";
     }
 
@@ -3841,7 +3851,7 @@ public class DbTaskRunner extends AbstractDbData {
         WaarpStringUtils.replaceAll(builder, "XXXReqdXXX", requestedHostId);
         WaarpStringUtils.replace(builder, "XXXStarXXX", start.toString());
         WaarpStringUtils.replace(builder, "XXXStopXXX", stop.toString());
-        WaarpStringUtils.replace(builder, "XXXBandXXX", bandwidth());
+        WaarpStringUtils.replace(builder, "XXXBandXXX", bandwidthMB());
         WaarpStringUtils.replace(builder, "XXXFreeXXX", Long.toString(freespace));
         return builder.toString();
     }

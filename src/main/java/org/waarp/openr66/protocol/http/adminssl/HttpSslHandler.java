@@ -281,9 +281,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         TrafficCounter trafficCounter =
                 Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-                Messages.getString("HttpSslHandler.IN") + (trafficCounter.getLastReadThroughput() >> 17) + //$NON-NLS-1$
-                        Messages.getString("HttpSslHandler.OUT") + //$NON-NLS-1$
-                        (trafficCounter.getLastWriteThroughput() >> 17) + "Mbits");
+                Messages.getString("HttpSslHandler.IN") + (trafficCounter.getLastReadThroughput() >> 20) + //$NON-NLS-1$
+                Messages.getString("HttpSslHandler.MOPS") + //$NON-NLS-1$
+                Messages.getString("HttpSslHandler.OUT") + //$NON-NLS-1$
+                (trafficCounter.getLastWriteThroughput() >> 20) + 
+                Messages.getString("HttpSslHandler.MOPS")); //$NON-NLS-1$
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
                 "" + LIMITROW);
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
@@ -389,13 +391,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (parms != null) {
             body0 = REQUEST.Listing.readBodyHeader();
             String parm = parms.get(0);
-            if ("Filter".equalsIgnoreCase(parm)) {
+            boolean isNotReload = ! "Reload".equalsIgnoreCase(parm);
+            if ("Filter".equalsIgnoreCase(parm) || ! isNotReload) {
                 String startid = getTrimValue("startid");
                 String stopid = getTrimValue("stopid");
-                if (startid != null && stopid == null) {
+                if (isNotReload && startid != null && stopid == null) {
                     stopid = Long.MAX_VALUE + "";
                 }
-                if (stopid != null && startid == null) {
+                if (isNotReload && stopid != null && startid == null) {
                     startid = (DbConstant.ILLEGALVALUE + 1) + "";
                 }
                 String start = getValue("start");
@@ -438,9 +441,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             i++;
                             DbTaskRunner taskRunner = DbTaskRunner
                                     .getFromStatement(preparedStatement);
-                            long specid = taskRunner.getSpecialId();
-                            if (idstart == null || idstart > specid) {
-                                idstart = specid;
+                            if (isNotReload) {
+                                long specid = taskRunner.getSpecialId();
+                                if (idstart == null || idstart > specid) {
+                                    idstart = specid;
+                                }
                             }
                             LocalChannelReference lcr =
                                     Configuration.configuration.getLocalTransaction().
@@ -505,13 +510,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (parms != null) {
             body0 = REQUEST.CancelRestart.readBodyHeader();
             String parm = parms.get(0);
-            if ("Filter".equalsIgnoreCase(parm)) {
+            boolean isNotReload = ! "Reload".equalsIgnoreCase(parm);
+            if ("Filter".equalsIgnoreCase(parm) || ! isNotReload) {
                 String startid = getTrimValue("startid");
                 String stopid = getTrimValue("stopid");
-                if (startid != null && stopid == null) {
+                if (isNotReload && startid != null && stopid == null) {
                     stopid = Long.MAX_VALUE + "";
                 }
-                if (stopid != null && startid == null) {
+                if (isNotReload && stopid != null && startid == null) {
                     startid = (DbConstant.ILLEGALVALUE + 1) + "";
                 }
                 String start = getValue("start");
@@ -553,9 +559,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             i++;
                             DbTaskRunner taskRunner = DbTaskRunner
                                     .getFromStatement(preparedStatement);
-                            long specid = taskRunner.getSpecialId();
-                            if (idstart == null || idstart > specid) {
-                                idstart = specid;
+                            if (isNotReload) {
+                                long specid = taskRunner.getSpecialId();
+                                if (idstart == null || idstart > specid) {
+                                    idstart = specid;
+                                }
                             }
                             LocalChannelReference lcr =
                                     Configuration.configuration.getLocalTransaction().

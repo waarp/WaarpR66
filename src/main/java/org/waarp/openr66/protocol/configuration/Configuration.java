@@ -37,9 +37,8 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
-import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
@@ -82,7 +81,6 @@ import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
-import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
@@ -356,7 +354,7 @@ public class Configuration {
     /**
      * Delay in ms between two checks
      */
-    public long delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+    public long delayLimit = GlobalTrafficHandler.DEFAULT_CHECK_INTERVAL;
 
     /**
      * Does this OpenR66 server will use and accept SSL connections
@@ -822,7 +820,8 @@ public class Configuration {
         // Factory for TrafficShapingHandler
         globalTrafficShapingHandler = new GlobalTrafficHandler(
                 objectSizeEstimator, timerTrafficCounter,
-                serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
+                serverGlobalWriteLimit, serverGlobalReadLimit, 
+                serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
         this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
 
         // Now start the InternalRunner
@@ -1100,6 +1099,9 @@ public class Configuration {
         }
         serverChannelReadLimit = newReadLimit;
         serverChannelWriteLimit = newWriteLimit;
+        if (globalTrafficShapingHandler != null && globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
+            ((GlobalChannelTrafficShapingHandler) globalTrafficShapingHandler).configureChannel(serverChannelWriteLimit, serverChannelReadLimit);
+        }
         anyBandwidthLimitation = (serverGlobalReadLimit > 0 || serverGlobalWriteLimit > 0 ||
                 serverChannelReadLimit > 0 || serverChannelWriteLimit > 0);
     }
@@ -1129,7 +1131,10 @@ public class Configuration {
         if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
             throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
         }
-        return new ChannelTrafficHandler(objectSizeEstimator,
+        if (globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
+            throw new OpenR66ProtocolNoDataException("Already included");
+        }
+        return new ChannelTrafficShapingHandler(objectSizeEstimator,
                 timerTrafficCounter, serverChannelWriteLimit,
                 serverChannelReadLimit, delayLimit);
     }
@@ -1156,7 +1161,7 @@ public class Configuration {
     /**
      * @return the globalTrafficShapingHandler
      */
-    public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
+    public GlobalTrafficHandler getGlobalTrafficShapingHandler() {
         return globalTrafficShapingHandler;
     }
 

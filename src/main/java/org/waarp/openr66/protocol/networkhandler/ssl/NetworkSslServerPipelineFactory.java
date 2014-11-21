@@ -25,8 +25,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -79,7 +79,7 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("ssl", sslHandler);
 
         pipeline.addLast("codec", new NetworkPacketCodec());
-        GlobalTrafficShapingHandler handler = Configuration.configuration
+        AbstractTrafficShapingHandler handler = Configuration.configuration
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast(NetworkServerPipelineFactory.LIMIT, handler);

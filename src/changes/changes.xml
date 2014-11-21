@@ -11,6 +11,8 @@
             <action dev="Frederic Bregier" type="fix">Optimize memory allocation during file writing operations</action>
             <action dev="Frederic Bregier" type="fix">Fix issue on Netty 3.9.4 with GlobalTrafficShaping</action>
             <action dev="Frederic Bregier" type="fix">Fix Waarp status feedback in DirectTransfer client</action>
+            <action dev="Frederic Bregier" type="add">Add SeeAllId option to Web administrator and improve interface</action>
+            <action dev="Frederic Bregier" type="fix">Change bandwidth display to MB instead of Mb</action>
             <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
         </release>
 	    <release version="2.4.29" date="2014-10-05" description="Fix release">

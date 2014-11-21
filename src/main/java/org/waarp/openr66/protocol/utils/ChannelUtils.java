@@ -29,8 +29,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.slf4j.LoggerFactory;
 import org.waarp.common.database.DbAdmin;
@@ -360,7 +360,7 @@ public class ChannelUtils extends Thread {
             }
         }
         if (Configuration.configuration.serverGlobalWriteLimit > 0) {
-            GlobalTrafficShapingHandler gts = Configuration.configuration
+            AbstractTrafficShapingHandler gts = Configuration.configuration
                     .getGlobalTrafficShapingHandler();
             if (gts != null) {
                 TrafficCounter tc = gts.getTrafficCounter();
