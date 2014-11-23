@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundBuffer;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.internal.PlatformDependent;
@@ -96,8 +95,8 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
     private static class PerChannel {
         ArrayDeque<ToSend> messagesQueue;
         long queueSize;
-        long lastWrite;
-        long lastRead;
+        long lastWriteTimestamp;
+        long lastReadTimestamp;
     }
 
     /**
@@ -240,8 +239,8 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
             perChannel = new PerChannel();
             perChannel.messagesQueue = new ArrayDeque<ToSend>();
             perChannel.queueSize = 0L;
-            perChannel.lastRead = TrafficCounter.milliSecondFromNano();
-            perChannel.lastWrite = perChannel.lastRead;
+            perChannel.lastReadTimestamp = TrafficCounter.milliSecondFromNano();
+            perChannel.lastWriteTimestamp = perChannel.lastReadTimestamp;
             channelQueues.put(key, perChannel);
         }
         return perChannel;
@@ -290,7 +289,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
         Integer key = ctx.channel().hashCode();
         PerChannel perChannel = channelQueues.get(key);
         if (perChannel != null) {
-            if (wait > maxTime && now + wait - perChannel.lastRead > maxTime) {
+            if (wait > maxTime && now + wait - perChannel.lastReadTimestamp > maxTime) {
                 wait = maxTime;
             }
         }
@@ -302,7 +301,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
         Integer key = ctx.channel().hashCode();
         PerChannel perChannel = channelQueues.get(key);
         if (perChannel != null) {
-            perChannel.lastRead = now;
+            perChannel.lastReadTimestamp = now;
         }
     }
 
@@ -332,18 +331,18 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
             // imply a synchronized only if needed
             perChannel = getOrSetPerChannel(ctx);
         }
-        ToSend newToSend;
+        final ToSend newToSend;
         long delay = writedelay;
         boolean globalSizeExceeded = false;
         // write operations need synchronization
         synchronized (perChannel) {
             if (writedelay == 0 && perChannel.messagesQueue.isEmpty()) {
                 trafficCounter.bytesRealWriteFlowControl(size);
-                ctx.writeAndFlush(msg, promise);
-                perChannel.lastWrite = now;
+                ctx.write(msg, promise);
+                perChannel.lastWriteTimestamp = now;
                 return;
             }
-            if (delay > maxTime && now + delay - perChannel.lastWrite > maxTime) {
+            if (delay > maxTime && now + delay - perChannel.lastWriteTimestamp > maxTime) {
                 delay = maxTime;
             }
             newToSend = new ToSend(delay + now, msg, size, promise);
@@ -356,10 +355,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
             }
         }
         if (globalSizeExceeded) {
-            ChannelOutboundBuffer cob = channel.unsafe().outboundBuffer();
-            if (cob != null) {
-                cob.setUserDefinedWritability(userDefinedWritabilityIndex, false);
-            }
+            setUserDefinedWritability(ctx, false);
         }
         final long futureNow = newToSend.relativeTimeAction;
         final PerChannel forSchedule = perChannel;
@@ -382,7 +378,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
                     perChannel.queueSize -= size;
                     queuesSize.addAndGet(-size);
                     ctx.write(newToSend.toSend, newToSend.promise);
-                    perChannel.lastWrite = now;
+                    perChannel.lastWriteTimestamp = now;
                 } else {
                     perChannel.messagesQueue.addFirst(newToSend);
                     break;

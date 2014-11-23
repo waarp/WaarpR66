@@ -40,7 +40,6 @@ public class TrafficCounter {
             InternalLoggerFactory.getInstance(TrafficCounter.class);
 
     /**
-     *
      * @return the time in ms using nanoTime, so not real EPOCH time but elapsed time in ms
      */
     public static final long milliSecondFromNano() {
@@ -77,7 +76,7 @@ public class TrafficCounter {
     private final AtomicLong cumulativeReadBytes = new AtomicLong();
 
     /**
-     * Last Time where cumulative bytes where reset to zero
+     * Last Time where cumulative bytes where reset to zero: this time is a real EPOC time (informative only)
      */
     private long lastCumulativeTime;
 
@@ -211,6 +210,7 @@ public class TrafficCounter {
         }
         lastTime.set(milliSecondFromNano());
         long localCheckInterval = checkInterval.get();
+        // if executor is null, it means it is piloted by a GlobalChannelTrafficCounter, so no executor
         if (localCheckInterval > 0 && executor != null) {
             monitorActive = true;
             monitor = new TrafficMonitoringTask(trafficShapingHandler, this);
@@ -265,15 +265,20 @@ public class TrafficCounter {
      * Constructor with the {@link AbstractTrafficShapingHandler} that hosts it, the Timer to use, its
      * name, the checkInterval between two computations in millisecond
      * @param trafficShapingHandler the associated AbstractTrafficShapingHandler
-     * @param executor the underlying executor service for scheduling checks
+     * @param executor the underlying executor service for scheduling checks, might be null when used
+     * from {@link GlobalChannelTrafficCounter}
      * @param name  the name given to this monitor
      * @param checkInterval the checkInterval in millisecond between two computations
      */
     public TrafficCounter(AbstractTrafficShapingHandler trafficShapingHandler,
                           ScheduledExecutorService executor, String name, long checkInterval) {
+        if (trafficShapingHandler == null) {
+            throw new IllegalArgumentException("TrafficShapingHandler must not be null");
+        }
         this.trafficShapingHandler = trafficShapingHandler;
         this.executor = executor;
         this.name = name;
+        // absolute time: informative only
         lastCumulativeTime = System.currentTimeMillis();
         writingTime = milliSecondFromNano();
         readingTime = writingTime;
@@ -336,7 +341,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the current checkInterval between two computations of traffic counter
      *         in millisecond
      */
@@ -345,7 +349,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the Read Throughput in bytes/s computes in the last check interval
      */
     public long lastReadThroughput() {
@@ -353,7 +356,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the Write Throughput in bytes/s computes in the last check interval
      */
     public long lastWriteThroughput() {
@@ -361,7 +363,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the number of bytes read during the last check Interval
      */
     public long lastReadBytes() {
@@ -369,7 +370,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the number of bytes written during the last check Interval
      */
     public long lastWrittenBytes() {
@@ -377,7 +377,6 @@ public class TrafficCounter {
     }
 
     /**
-    *
     * @return the current number of bytes read since the last checkInterval
     */
     public long currentReadBytes() {
@@ -385,7 +384,6 @@ public class TrafficCounter {
     }
 
     /**
-     *
      * @return the current number of bytes written since the last check Interval
      */
     public long currentWrittenBytes() {
@@ -436,7 +434,8 @@ public class TrafficCounter {
     }
 
     /**
-     * Reset both read and written cumulative bytes counters and the associated time.
+     * Reset both read and written cumulative bytes counters and the associated absolute time
+     * from System.currentTimeMillis().
      */
     public void resetCumulativeTime() {
         lastCumulativeTime = System.currentTimeMillis();
@@ -603,13 +602,12 @@ public class TrafficCounter {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("Monitor ").append(name);
-        builder.append(" Current Speed Read: ").append(lastReadThroughput >> 10).append(" KB/s, ");
-        builder.append("Asked Write: ").append(lastWriteThroughput >> 10).append(" KB/s, ");
-        builder.append("Real Write: ").append(realWriteThroughput >> 10).append(" KB/s, ");
-        builder.append("Current Read: ").append(currentReadBytes.get() >> 10).append(" KB, ");
-        builder.append("Current asked Write: ").append(currentWrittenBytes.get() >> 10).append(" KB, ");
-        builder.append("Current real Write: ").append(realWrittenBytes.get() >> 10).append(" KB");
-        return builder.toString();
+        return new StringBuilder("Monitor ").append(name)
+                .append(" Current Speed Read: ").append(lastReadThroughput >> 10).append(" KB/s, ")
+                .append("Asked Write: ").append(lastWriteThroughput >> 10).append(" KB/s, ")
+                .append("Real Write: ").append(realWriteThroughput >> 10).append(" KB/s, ")
+                .append("Current Read: ").append(currentReadBytes.get() >> 10).append(" KB, ")
+                .append("Current asked Write: ").append(currentWrittenBytes.get() >> 10).append(" KB, ")
+                .append("Current real Write: ").append(realWrittenBytes.get() >> 10).append(" KB").toString();
     }
 }

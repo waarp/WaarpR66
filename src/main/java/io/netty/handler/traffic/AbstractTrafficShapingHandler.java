@@ -141,7 +141,6 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
     }
 
     /**
-     *
      * @param newTrafficCounter the TrafficCounter to set
      */
     void setTrafficCounter(TrafficCounter newTrafficCounter) {
@@ -250,7 +249,7 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
         writeLimit = newWriteLimit;
         readLimit = newReadLimit;
         if (trafficCounter != null) {
-            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano() + 1);
+            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano());
         }
     }
 
@@ -285,7 +284,7 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
     public void setWriteLimit(long writeLimit) {
         this.writeLimit = writeLimit;
         if (trafficCounter != null) {
-            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano() + 1);
+            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano());
         }
     }
 
@@ -308,7 +307,7 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
     public void setReadLimit(long readLimit) {
         this.readLimit = readLimit;
         if (trafficCounter != null) {
-            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano() + 1);
+            trafficCounter.resetAccounting(TrafficCounter.milliSecondFromNano());
         }
     }
 
@@ -557,11 +556,15 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        setUserDefinedWritability(ctx, true);
+        super.channelRegistered(ctx);
+    }
+
+    void setUserDefinedWritability(ChannelHandlerContext ctx, boolean writable) {
         ChannelOutboundBuffer cob = ctx.channel().unsafe().outboundBuffer();
         if (cob != null) {
-            cob.setUserDefinedWritability(userDefinedWritabilityIndex, true);
+            cob.setUserDefinedWritability(userDefinedWritabilityIndex, writable);
         }
-        super.channelRegistered(ctx);
     }
 
     /**
@@ -572,24 +575,17 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
      */
     void checkWriteSuspend(ChannelHandlerContext ctx, long delay, long queueSize) {
         if (queueSize > maxWriteSize || delay > maxWriteDelay) {
-            ChannelOutboundBuffer cob = ctx.channel().unsafe().outboundBuffer();
-            if (cob != null) {
-                cob.setUserDefinedWritability(userDefinedWritabilityIndex, false);
-            }
+            setUserDefinedWritability(ctx, false);
         }
     }
     /**
      * Explicitly release the Write suspended status
      */
     void releaseWriteSuspended(ChannelHandlerContext ctx) {
-        ChannelOutboundBuffer cob = ctx.channel().unsafe().outboundBuffer();
-        if (cob != null) {
-            cob.setUserDefinedWritability(userDefinedWritabilityIndex, true);
-        }
+        setUserDefinedWritability(ctx, true);
     }
 
     /**
-     *
      * @return the current TrafficCounter (if
      *         channel is still connected)
      */
