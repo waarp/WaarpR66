@@ -178,12 +178,12 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
     void submitWrite(final ChannelHandlerContext ctx, final Object msg,
             final long size, final long delay, final long now,
             final ChannelPromise promise) {
-        ToSend newToSend;
+        final ToSend newToSend;
         // write order control
         synchronized (this) {
             if (delay == 0 && messagesQueue.isEmpty()) {
                 trafficCounter.bytesRealWriteFlowControl(size);
-                ctx.writeAndFlush(msg, promise);
+                ctx.write(msg, promise);
                 return;
             }
             newToSend = new ToSend(delay + now, msg, promise);
@@ -222,8 +222,7 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler 
         ctx.flush();
     }
 
-    /**
-    *
+   /**
     * @return current size in bytes of the write buffer
     */
    public long queueSize() {
