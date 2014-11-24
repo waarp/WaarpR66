@@ -54,6 +54,10 @@ public class R66SystemProperties {
      */
     public static final String OPENR66_STARTUP_WARNING = "openr66.startup.warning";
     /**
+     * Shall the database being check at startup (default is True)
+     */
+    public static final String OPENR66_STARTUP_DATABASE_CHECK = "openr66.startup.dbcheck";
+    /**
      * Shall we allow or not a request as RECV that will access to file outside Rule Out directory
      * (default = false)
      */
