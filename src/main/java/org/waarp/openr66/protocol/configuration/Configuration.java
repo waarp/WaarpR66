@@ -65,6 +65,7 @@ import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.commander.InternalRunner;
+import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.R66DefaultBusinessFactory;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -642,6 +643,7 @@ public class Configuration {
         }
         isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
         warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
+        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, true);
         chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
         blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
         maxfilenamelength = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255);
