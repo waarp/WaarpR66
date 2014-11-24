@@ -304,7 +304,6 @@
 	          <windowtitle>${project.name} ${project.version} API Reference</windowtitle>
 	          <additionalparam>
 	            -link http://java.sun.com/javase/6/docs/api/
-	            -link http://static.netty.io/3.5/api/
 
 				-group "Waarp R66 Server package" "org.waarp.openr66.server*"
 				-group "Waarp R66 Client package" "org.waarp.openr66.client*"
@@ -315,6 +314,9 @@
 				-group "Waarp R66 Commander package" "org.waarp.openr66.commander*"
 				-group "Waarp R66 Service Windows package" "org.waarp.openr66.service*"
 				-group "Waarp R66 Thrift Interface package" "org.waarp.openr66.thrift*"
+                -group "Waarp Executor Gateway package" "org.waarp.gateway*"
+
+                -group "Extra Netty patch package" "io.netty*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>

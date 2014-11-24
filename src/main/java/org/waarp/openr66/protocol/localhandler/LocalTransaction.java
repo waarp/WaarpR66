@@ -215,7 +215,6 @@ public class LocalTransaction {
      * 
      * @param remoteId
      * @param localId
-     * @return the LocalChannelReference
      * @throws OpenR66ProtocolSystemException
      */
     public void sendLaterToClient(Channel networkChannel, Integer remoteId, Integer localId, NetworkPacket packet) {
