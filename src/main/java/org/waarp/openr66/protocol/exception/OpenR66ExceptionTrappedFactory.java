@@ -48,7 +48,7 @@ public class OpenR66ExceptionTrappedFactory {
 
     /**
      * @param channel
-     * @param e
+     * @param throwable
      * @return the OpenR66Exception corresponding to the ExceptionEvent, or null if the exception
      *         should be ignored
      */

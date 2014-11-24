@@ -31,8 +31,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 public class GlobalTrafficHandler extends GlobalChannelTrafficShapingHandler {
 
     /**
-     * @param objectSizeEstimator
-     * @param timer
+     * @param executor
      * @param writeLimit
      * @param readLimit
      * @param writeChannelLimit
