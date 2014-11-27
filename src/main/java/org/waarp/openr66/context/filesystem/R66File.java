@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.netty.channel.ChannelFuture;
+
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileEndOfTransferException;
@@ -41,6 +42,7 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -475,11 +477,19 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.length();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#renameTo
-     * (java.lang.String)
-     */
+    protected String getFullInDir() {
+        DbTaskRunner runner = getSession().getRunner();
+        if (runner != null) {
+            R66Dir dir = new R66Dir(getSession());
+            try {
+                dir.changeDirectory(runner.getRule().getRecvPath());
+                return dir.getFullPath();
+            } catch (CommandAbstractException e) {
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean renameTo(String path) throws CommandAbstractException {
         if (!isExternal) {
@@ -493,7 +503,24 @@ public class R66File extends FilesystemBasedFileImpl {
         File file = getTrueFile();
         if (file.canRead()) {
             File newFile = getFileFromPath(path);
-            if (newFile.getParentFile().canWrite()) {
+            File parentFile = newFile.getParentFile();
+            if (parentFile == null) {
+                String dir = getFullInDir();
+                if (dir != null) {
+                    newFile = new File(dir, newFile.getPath());
+                    parentFile = newFile.getParentFile();
+                }
+            }
+            if (newFile.exists()) {
+                logger.warn("Target file already exists: "+newFile.getAbsolutePath());
+                return false;
+            }
+            if (newFile.getAbsolutePath().equals(file.getAbsolutePath())) {
+                // already in the right position
+                isReady = true;
+                return true;
+            }
+            if (parentFile != null && parentFile.canWrite()) {
                 if (!file.renameTo(newFile)) {
                     FileOutputStream fileOutputStream = null;
                     try {
@@ -557,7 +584,24 @@ public class R66File extends FilesystemBasedFileImpl {
         File file = getTrueFile();
         if (file.canRead()) {
             File newFile = new File(path);
-            if (newFile.getParentFile().canWrite()) {
+            File parentFile = newFile.getParentFile();
+            if (parentFile == null) {
+                String dir = getFullInDir();
+                if (dir != null) {
+                    newFile = new File(dir, newFile.getPath());
+                    parentFile = newFile.getParentFile();
+                }
+            }
+            if (newFile.exists()) {
+                logger.warn("Target file already exists: "+newFile.getAbsolutePath());
+                return false;
+            }
+            if (newFile.getAbsolutePath().equals(file.getAbsolutePath())) {
+                // already in the right position
+                isReady = true;
+                return true;
+            }
+            if (parentFile != null && parentFile.canWrite()) {
                 if (!file.renameTo(newFile)) {
                     FileOutputStream fileOutputStream = null;
                     try {
