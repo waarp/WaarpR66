@@ -69,7 +69,7 @@ a img {
 		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border: none; display: block;" alt="" /></td><td></td>
 		<td id="MH1_4" class="col_MenuHaut_sel"><a data-i18n="app.menu5" href="System.html" style="display:block;width:100%;height:100%;line-height:34px;">SYSTEM</a></td>
 		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border: none; display: block;" alt="" /></td><td></td>
-		<td id="MH1_5" class="col_MenuHaut"><a data-i18n="app.menu6" href="Logon.html" style="display:block;width:100%;height:100%;line-height:34px;">LOGON</a></td>
+		<td id="MH1_5" class="col_MenuHaut"><a data-i18n="app.menu7" href="Logout.html" style="display:block;width:100%;height:100%;line-height:34px;">LOGOUT</a></td>
 		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border: none; display: block;" alt="" /></td><td></td>
 		<td align="center"><b>&nbsp;<label data-i18n="app.haut1">Local:</label>&nbsp;<br/>XXXLOCALXXX</b></td>
 		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border: none; display: block;" alt="" /></td><td></td>
@@ -136,6 +136,12 @@ a img {
 						    <img id="glwhelp" alt="help for Global Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
 							<div id="containerglwhelp"><p data-i18n="menu5.filtre8" class="cshelp">
 							The value (in Byte per second) specifies the limit of write bandwidth (out) globally (cumulative). 0 means no limit. Must be greater than 1KBs.
+							</p></div><br/>
+						    <label data-i18n="menu5.filtre21">Delay for traffic shaping (ms):</label>
+						    <input type="text" name="DTRA" size="20" value="XXXXDELAYTRAFFICXXX">
+						    <img id="dthelp" alt="help for Delay for traffic shaping field"  class="help" width="16" height="16" src="img/help_small.gif" />
+							<div id="containerdthelp"><p data-i18n="menu5.filtre22" class="cshelp">
+							Delay for Traffic Shaping between two checks in ms. Must be greater than 100ms.
 							</p></div><br/>
 						    <label data-i18n="menu5.filtre9">Delay for Commander (ms):</label>
 						    <input type="text" name="DCOM" size="20" value="XXXXDELAYCOMMDXXX">
