@@ -5,6 +5,11 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="2.4.31" date="2015-03-08" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Optimize file copy by chunkSize</action>
+            <action dev="Frederic Bregier" type="add">Add Logout direct menu to web interface</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
         <release version="2.4.30" date="2014-12-01" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Fix Database memory consumption with MySQL/MariaDB</action>
             <action dev="Frederic Bregier" type="fix">Optimize some preparedStatement by allocating one per transfer</action>
