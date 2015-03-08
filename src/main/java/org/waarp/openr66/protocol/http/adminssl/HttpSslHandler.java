@@ -135,6 +135,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
     private static enum REQUEST {
         Logon("Logon.html"),
+        Logout("Logon.html"),
         index("index.html"),
         error("error.html"),
         unallowed("NotAllowed.html"),
@@ -1710,6 +1711,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
+    private String Logout() {
+        String logon = Logon();
+        logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+                Messages.getString("HttpSslHandler.Disconnected"));
+        newSession = true;
+        clearSession();
+        forceClose = true;
+        return logon;
+    }
+
     private String System() {
         getParams();
         DbHostConfiguration config = null;
@@ -1774,13 +1785,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         extraInformation += Messages.getString("HttpSslHandler.46"); //$NON-NLS-1$
                     }
                 } else if (act.equalsIgnoreCase("Disconnect")) {
-                    String logon = Logon();
-                    logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
-                            Messages.getString("HttpSslHandler.Disconnected"));
-                    newSession = true;
-                    clearSession();
-                    forceClose = true;
-                    return logon;
+                    return Logout();
                 } else if (act.equalsIgnoreCase("Block")) {
                     boolean block = params.containsKey("blocking");
                     if (block) {
@@ -2129,6 +2134,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 break;
             case Logon:
                 responseContent.append(index());
+                break;
+            case Logout:
+                responseContent.append(Logout());
                 break;
             case Rules:
                 if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
