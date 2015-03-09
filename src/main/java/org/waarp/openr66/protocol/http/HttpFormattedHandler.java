@@ -31,16 +31,18 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderUtil;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieDecoder;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
 
@@ -693,34 +695,34 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
         responseContent.setLength(0);
         // Decide whether to close the connection or not.
-        boolean keepAlive = HttpHeaders.isKeepAlive(request);
-        boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-                .headers().get(HttpHeaders.Names.CONNECTION)) ||
+        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
+        boolean close = HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+                .headers().get(HttpHeaderNames.CONNECTION)) ||
                 (!keepAlive);
 
         // Build the response object.
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
-        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         if (isCurrentRequestXml) {
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml");
         } else if (isCurrentRequestJson) {
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
         } else {
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
         }
         if (keepAlive) {
-            response.headers().set(HttpHeaders.Names.CONNECTION,
-                    HttpHeaders.Values.KEEP_ALIVE);
+            response.headers().set(HttpHeaderNames.CONNECTION,
+                    HttpHeaderValues.KEEP_ALIVE);
         }
         if (!close) {
             // There's no need to add 'Content-Length' header
             // if this is the last response.
-            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
         }
 
-        String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
+        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         if (cookieString != null) {
-            Set<Cookie> cookies = CookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.decode(cookieString);
             boolean i18nextFound = false;
             if (!cookies.isEmpty()) {
                 // Reset the cookies if necessary.
@@ -728,19 +730,19 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                     if (cookie.name().equalsIgnoreCase(I18NEXT)) {
                         i18nextFound = true;
                         cookie.setValue(lang);
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
                     } else {
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
                     }
                 }
                 if (!i18nextFound) {
                     Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                    response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
                 }
             }
             if (!i18nextFound) {
                 Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
             }
         }
 
@@ -769,8 +771,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                 .append(status.toString()).append(REQUEST.error.readEnd());
         ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
-        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
         // Close the connection as soon as the error message is sent.
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
