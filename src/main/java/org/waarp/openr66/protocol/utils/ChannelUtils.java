@@ -238,8 +238,7 @@ public class ChannelUtils extends Thread {
         if (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
             localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
         }
-        DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
-                .copy(), md5);
+        DataPacket data = new DataPacket(runner.getRank(), block.getBlock(), md5);
         ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
         runner.incrementRank();
         return future;

@@ -337,6 +337,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         logger.debug("Cannot get LocalChannel while an end of request comes: {}",
                                 packet.toString());
                     }
+                    packet.clear();
                     return;
                 }
                 // OK continue and send to the local channel
@@ -355,6 +356,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         logger.debug("Cannot get LocalChannel while an external error comes: {}",
                                 packet.toString());
                     }
+                    packet.clear();
                     return;
                 }
                 // OK continue and send to the local channel
@@ -370,6 +372,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)
                             || R66ShutdownHook.isShutdownStarting()) {
                         // ignore
+                        packet.clear();
                         return;
                     }
                     logger.warn("Cannot get LocalChannel: " + packet + " due to " +
@@ -378,6 +381,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                             "Cannot get localChannel since localId is not found anymore", "" + packet.getLocalId());
                     writeError(e.getChannel(), packet.getRemoteId(), packet
                             .getLocalId(), error);
+                    packet.clear();
                     return;
                 }
             }
