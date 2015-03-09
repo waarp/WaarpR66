@@ -26,7 +26,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -311,7 +311,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelInbo
         if (obj instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) msg;
             HttpResponseStatus status = response.status();
-            logger.debug(HttpHeaders.Names.REFERER + ": " + response.headers().get(HttpHeaders.Names.REFERER)
+            logger.debug(HttpHeaderNames.REFERER + ": " + response.headers().get(HttpHeaderNames.REFERER)
                     + " STATUS: " + status);
             if (response.status().code() != 200) {
                 if (response instanceof FullHttpResponse) {

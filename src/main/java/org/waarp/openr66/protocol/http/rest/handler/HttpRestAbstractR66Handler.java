@@ -29,7 +29,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -138,13 +138,13 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
         String answer = result.toString();
         ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
         HttpResponse response = handler.getResponse(buffer);
-        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
         if (status == HttpResponseStatus.UNAUTHORIZED) {
             ChannelFuture future = ctx.writeAndFlush(response);
             return future;
         }
-        response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-        response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
+        response.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/json");
+        response.headers().add(HttpHeaderNames.REFERER, handler.getRequest().uri());
         logger.debug("Will write: {}", body);
         ChannelFuture future = ctx.writeAndFlush(response);
         if (handler.isWillClose()) {

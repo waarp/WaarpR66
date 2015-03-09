@@ -530,10 +530,12 @@ public class NetworkTransaction {
                 NetworkServerHandler
                         .writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
                 NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                startupPacket.clear();
                 return;
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
                 logger.info("Will Close Local from Network Channel");
                 WaarpSslUtility.closingSslChannel(channel);
+                startupPacket.clear();
                 return;
             } catch (OpenR66ProtocolNoConnectionException e1) {
                 logger.error("Cannot create LocalChannel for: " + startupPacket + " due to "
@@ -543,6 +545,7 @@ public class NetworkTransaction {
                 NetworkServerHandler
                         .writeError(channel, startupPacket.getRemoteId(), startupPacket.getLocalId(), error);
                 NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+                startupPacket.clear();
                 return;
             }
             ByteBuf buf = startupPacket.getBuffer();
