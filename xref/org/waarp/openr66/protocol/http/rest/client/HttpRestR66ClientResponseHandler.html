@@ -34,7 +34,7 @@
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.SimpleChannelInboundHandler;
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.FullHttpResponse;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpContent;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaders;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderNames;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpObject;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponse;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponseStatus;
@@ -319,7 +319,7 @@
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">if</strong> (obj instanceof HttpResponse) {
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>             HttpResponse response = (HttpResponse) msg;
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>             HttpResponseStatus status = response.status();
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>             logger.debug(HttpHeaders.Names.REFERER + <span class="jxr_string">": "</span> + response.headers().get(HttpHeaders.Names.REFERER)
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             logger.debug(HttpHeaderNames.REFERER + <span class="jxr_string">": "</span> + response.headers().get(HttpHeaderNames.REFERER)
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>                     + <span class="jxr_string">" STATUS: "</span> + status);
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>             <strong class="jxr_keyword">if</strong> (response.status().code() != 200) {
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>                 <strong class="jxr_keyword">if</strong> (response instanceof FullHttpResponse) {
@@ -416,6 +416,6 @@
 <a class="jxr_linenumber" name="L408" href="#L408">408</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2014 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

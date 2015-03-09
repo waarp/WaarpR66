@@ -1,5 +1,3 @@
-io.netty.channel
-io.netty.handler.traffic
 org.waarp.gateway.kernel.exec
 org.waarp.openr66
 org.waarp.openr66.client

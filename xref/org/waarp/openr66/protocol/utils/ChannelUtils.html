@@ -225,7 +225,7 @@
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>         <strong class="jxr_keyword">if</strong> (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>             localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>         }
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/DataPacket.html">DataPacket</a> data = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/DataPacket.html">DataPacket</a>(runner.getRank(), block.getBlock().copy(), md5);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/DataPacket.html">DataPacket</a> data = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/DataPacket.html">DataPacket</a>(runner.getRank(), block.getBlock(), md5);<em class="jxr_comment">// was block.getBlock().copy()</em>
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>         ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>         runner.incrementRank();
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">return</strong> future;
@@ -274,7 +274,7 @@
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>             <a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> localChannelReference, <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/AbstractLocalPacket.html">AbstractLocalPacket</a> packet,
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>             <strong class="jxr_keyword">boolean</strong> wait)
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>             <strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolPacketException.html">OpenR66ProtocolPacketException</a> {
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> networkPacket;
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> networkPacket;
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L271" href="#L271">271</a>             networkPacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(localChannelReference
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>                     .getLocalId(), localChannelReference.getRemoteId(), packet, localChannelReference);
@@ -320,7 +320,7 @@
 <a class="jxr_linenumber" name="L312" href="#L312">312</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> willBeWaitingWriting(<a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> localChannelReference,
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">int</strong> size) {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>         <a href="../../../../../io/netty/handler/traffic/ChannelTrafficShapingHandler.html">ChannelTrafficShapingHandler</a> cts = localChannelReference.getChannelTrafficShapingHandler();
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         ChannelTrafficShapingHandler cts = localChannelReference.getChannelTrafficShapingHandler();
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>         <strong class="jxr_keyword">return</strong> willBeWaitingWriting(cts, size);
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>     }
 <a class="jxr_linenumber" name="L318" href="#L318">318</a> 
@@ -331,10 +331,10 @@
 <a class="jxr_linenumber" name="L323" href="#L323">323</a> <em class="jxr_javadoccomment">     * @param size</em>
 <a class="jxr_linenumber" name="L324" href="#L324">324</a> <em class="jxr_javadoccomment">     * @return the wait in ms</em>
 <a class="jxr_linenumber" name="L325" href="#L325">325</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> willBeWaitingWriting(<a href="../../../../../io/netty/handler/traffic/ChannelTrafficShapingHandler.html">ChannelTrafficShapingHandler</a> cts, <strong class="jxr_keyword">int</strong> size) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> willBeWaitingWriting(ChannelTrafficShapingHandler cts, <strong class="jxr_keyword">int</strong> size) {
 <a class="jxr_linenumber" name="L327" href="#L327">327</a>         <strong class="jxr_keyword">long</strong> currentTime = System.currentTimeMillis();
 <a class="jxr_linenumber" name="L328" href="#L328">328</a>         <strong class="jxr_keyword">if</strong> (cts != <strong class="jxr_keyword">null</strong> &amp;&amp; Configuration.configuration.serverChannelWriteLimit &gt; 0) {
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>             <a href="../../../../../io/netty/handler/traffic/TrafficCounter.html">TrafficCounter</a> tc = cts.trafficCounter();
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             TrafficCounter tc = cts.trafficCounter();
 <a class="jxr_linenumber" name="L330" href="#L330">330</a>             <strong class="jxr_keyword">if</strong> (tc != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L331" href="#L331">331</a>                 <strong class="jxr_keyword">long</strong> wait = waitTraffic(Configuration.configuration.serverChannelWriteLimit,
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>                         tc.currentWrittenBytes() + size,
@@ -348,7 +348,7 @@
 <a class="jxr_linenumber" name="L340" href="#L340">340</a>             <a href="../../../../../org/waarp/openr66/protocol/networkhandler/GlobalTrafficHandler.html">GlobalTrafficHandler</a> gts = Configuration.configuration
 <a class="jxr_linenumber" name="L341" href="#L341">341</a>                     .getGlobalTrafficShapingHandler();
 <a class="jxr_linenumber" name="L342" href="#L342">342</a>             <strong class="jxr_keyword">if</strong> (gts != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>                 <a href="../../../../../io/netty/handler/traffic/TrafficCounter.html">TrafficCounter</a> tc = gts.trafficCounter();
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>                 TrafficCounter tc = gts.trafficCounter();
 <a class="jxr_linenumber" name="L344" href="#L344">344</a>                 <strong class="jxr_keyword">if</strong> (tc != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L345" href="#L345">345</a>                     <strong class="jxr_keyword">long</strong> wait = waitTraffic(Configuration.configuration.serverGlobalWriteLimit,
 <a class="jxr_linenumber" name="L346" href="#L346">346</a>                             tc.currentWrittenBytes() + size,
@@ -456,6 +456,6 @@
 <a class="jxr_linenumber" name="L448" href="#L448">448</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2014 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

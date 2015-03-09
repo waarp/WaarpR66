@@ -37,7 +37,7 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> io.netty.buffer.Unpooled;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.ChannelFuture;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.ChannelHandlerContext;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaders;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderNames;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponse;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponseStatus;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.multipart.FileUpload;
@@ -146,13 +146,13 @@
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>         String answer = result.toString();
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>         ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>         HttpResponse response = handler.getResponse(buffer);
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>         response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         response.headers().add(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>         <strong class="jxr_keyword">if</strong> (status == HttpResponseStatus.UNAUTHORIZED) {
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>             ChannelFuture future = ctx.writeAndFlush(response);
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>             <strong class="jxr_keyword">return</strong> future;
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>         }
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>         response.headers().add(HttpHeaders.Names.CONTENT_TYPE, <span class="jxr_string">"application/json"</span>);
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>         response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         response.headers().add(HttpHeaderNames.CONTENT_TYPE, <span class="jxr_string">"application/json"</span>);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         response.headers().add(HttpHeaderNames.REFERER, handler.getRequest().uri());
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>         logger.debug(<span class="jxr_string">"Will write: {}"</span>, body);
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>         ChannelFuture future = ctx.writeAndFlush(response);
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>         <strong class="jxr_keyword">if</strong> (handler.isWillClose()) {
@@ -187,6 +187,6 @@
 <a class="jxr_linenumber" name="L179" href="#L179">179</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2014 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>
