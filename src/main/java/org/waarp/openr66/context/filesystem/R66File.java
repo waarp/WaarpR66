@@ -142,6 +142,12 @@ public class R66File extends FilesystemBasedFileImpl {
             // While not last block
             while (block != null && (!block.isEOF()) && (running.get())) {
                 try {
+                    future1.await();
+                } catch (InterruptedException e) {}
+                if (!future1.isSuccess()) {
+                    return;
+                }
+                try {
                     block = readDataBlock();
                 } catch (FileEndOfTransferException e) {
                     // Wait for last write
@@ -158,12 +164,6 @@ public class R66File extends FilesystemBasedFileImpl {
                 if (Configuration.configuration.globalDigest) {
                     FileUtils.computeGlobalHash(digest, block.getBlock());
                 }
-                try {
-                    future1.await();
-                } catch (InterruptedException e) {}
-                if (!future1.isSuccess()) {
-                    return;
-                }
                 future1 = future2;
             }
             if (!running.get()) {
@@ -178,6 +178,9 @@ public class R66File extends FilesystemBasedFileImpl {
                 if (!future1.isSuccess()) {
                     return;
                 }
+            }
+            if (block != null) {
+                block.clear();
             }
             retrieveDone = true;
             return;
