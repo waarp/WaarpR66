@@ -134,6 +134,7 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             ChannelFuture future1 = null, future2 = null;
             if ((block != null && (running.get()))) {
+                block.getBlock().retain();
                 future1 = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
                 if (Configuration.configuration.globalDigest) {
@@ -142,6 +143,13 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             // While not last block
             while (block != null && (!block.isEOF()) && (running.get())) {
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {
+                }
+                if (!future1.isSuccess()) {
+                    return;
+                }
                 try {
                     block = readDataBlock();
                 } catch (FileEndOfTransferException e) {
@@ -155,17 +163,11 @@ public class R66File extends FilesystemBasedFileImpl {
                     }
                     return;
                 }
+                block.getBlock().retain();
                 future2 = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
                 if (Configuration.configuration.globalDigest) {
                     FileUtils.computeGlobalHash(digest, block.getBlock());
-                }
-                try {
-                    future1.await();
-                } catch (InterruptedException e) {
-                }
-                if (!future1.isSuccess()) {
-                    return;
                 }
                 future1 = future2;
             }
@@ -182,6 +184,10 @@ public class R66File extends FilesystemBasedFileImpl {
                 if (!future1.isSuccess()) {
                     return;
                 }
+            }
+            if (block != null) {
+                block.getBlock().release();
+                block.clear();
             }
             retrieveDone = true;
             return;

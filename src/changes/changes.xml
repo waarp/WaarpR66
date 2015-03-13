@@ -5,6 +5,23 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="3.0.1" date="2015-03-09" description="Fix release, same as 2.4.31">
+            <action dev="Frederic Bregier" type="fix">Optimize Direct memory allocation</action>
+            <action dev="Frederic Bregier" type="fix">Optimize file copy by chunkSize</action>
+            <action dev="Frederic Bregier" type="add">Add Logout direct menu to web interface</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
+        <release version="3.0.0" date="2014-12-01" description="Fix release, same as 2.4.30">
+            <action dev="Frederic Bregier" type="fix">Migrate to Netty 4.1</action>
+            <action dev="Frederic Bregier" type="fix">Fix Database memory consumption with MySQL/MariaDB</action>
+            <action dev="Frederic Bregier" type="fix">Optimize some preparedStatement by allocating one per transfer</action>
+            <action dev="Frederic Bregier" type="fix">Optimize memory allocation during file writing operations</action>
+            <action dev="Frederic Bregier" type="fix">Fix issue on Netty 3.9.4 with GlobalTrafficShaping</action>
+            <action dev="Frederic Bregier" type="fix">Fix Waarp status feedback in DirectTransfer client</action>
+            <action dev="Frederic Bregier" type="add">Add SeeAllId option to Web administrator and improve interface</action>
+            <action dev="Frederic Bregier" type="fix">Change bandwidth display to MB instead of Mb</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
         <release version="2.4.29" date="2014-07-15" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Fix Waarp status feedback in SpooledDirectoryTransfer client</action>
             <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>

@@ -80,10 +80,18 @@ public class TestSendThroughClient extends SendThroughClient {
             }
             ChannelFuture future1 = null, future2 = null;
             if (block != null) {
+                block.getBlock().retain();
                 future1 = this.writeWhenPossible(block);
             }
             // While not last block
             while (block != null && !block.isEOF()) {
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {
+                }
+                if (!future1.isSuccess()) {
+                    return false;
+                }
                 try {
                     block = r66file.readDataBlock();
                 } catch (FileEndOfTransferException e) {
@@ -95,14 +103,8 @@ public class TestSendThroughClient extends SendThroughClient {
                     }
                     return future1.isSuccess();
                 }
+                block.getBlock().retain();
                 future2 = this.writeWhenPossible(block);
-                try {
-                    future1.await();
-                } catch (InterruptedException e) {
-                }
-                if (!future1.isSuccess()) {
-                    return false;
-                }
                 future1 = future2;
             }
             // Wait for last write
