@@ -266,7 +266,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                 getNumberLocalChannel()) + " " + Thread.activeCount());
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
-                        DbAdmin.getNbConnection() -  - Configuration.NBDBSESSION));
+                        DbAdmin.getNbConnection() - Configuration.NBDBSESSION));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {
