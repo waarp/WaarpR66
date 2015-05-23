@@ -5,6 +5,14 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="2.4.32" date="2015-05-25" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Date format in Spooled Directory admin page</action>
+            <action dev="Frederic Bregier" type="fix">Error code</action>
+            <action dev="Frederic Bregier" type="fix">Store original size in transfer info</action>
+            <action dev="Frederic Bregier" type="fix">Fix nb session</action>
+            <action dev="Frederic Bregier" type="fix">Fix per session admin parameter</action>
+            <action dev="Frederic Bregier" type="fix">Fix after upgrading dependencies</action>
+        </release>
         <release version="2.4.31" date="2015-03-09" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Optimize Direct memory allocation</action>
             <action dev="Frederic Bregier" type="fix">Optimize file copy by chunkSize</action>

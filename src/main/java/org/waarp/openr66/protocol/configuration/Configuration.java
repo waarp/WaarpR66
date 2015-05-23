@@ -159,6 +159,11 @@ public class Configuration {
     public static int RANKRESTART = 30;
 
     /**
+     * Number of DbSession for internal needs
+     */
+    public static int NBDBSESSION = 0;
+
+    /**
      * FileParameter
      */
     private static final FilesystemBasedFileParameterImpl fileParameter =
@@ -898,6 +903,7 @@ public class Configuration {
 
     public void startMonitoring() throws WaarpDatabaseSqlException {
         monitoring = new Monitoring(pastLimit, minimalDelay, null);
+        NBDBSESSION++;
         if (snmpConfig != null) {
             int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
             R66PrivateMib r66Mib =

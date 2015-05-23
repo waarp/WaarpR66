@@ -275,6 +275,15 @@ public class LocalTransaction {
 
     /**
      * 
+     * @param key as "requested requester specialId"
+     * @return True if the LocalChannelReference exists
+     */
+    public boolean contained(String key) {
+        return localChannelHashMapIdBased.containsKey(key);
+    }
+
+    /**
+     * 
      * @return the number of active local channels
      */
     public int getNumberLocalChannel() {

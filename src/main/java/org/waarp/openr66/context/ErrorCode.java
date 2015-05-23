@@ -148,7 +148,7 @@ public enum ErrorCode {
     /**
      * Code stands for self requested host starting request is invalid
      */
-    LoopSelfRequestedHost(Messages.getString("ErrorCode.25"), 'N'), //$NON-NLS-1$
+    LoopSelfRequestedHost(Messages.getString("ErrorCode.25"), 'L'), //$NON-NLS-1$
     /**
      * Code stands for request should exist but is not found on remote host
      */

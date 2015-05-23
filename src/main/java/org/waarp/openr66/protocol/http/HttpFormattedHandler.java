@@ -33,10 +33,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -45,6 +41,10 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http.cookie.Cookie;
+import org.jboss.netty.handler.codec.http.cookie.DefaultCookie;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
@@ -746,36 +746,27 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 
         String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
         if (cookieString != null) {
-            CookieDecoder cookieDecoder = new CookieDecoder();
-            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             boolean i18nextFound = false;
             if (!cookies.isEmpty()) {
                 // Reset the cookies if necessary.
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
                 for (Cookie cookie : cookies) {
-                    if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+                    if (cookie.name().equalsIgnoreCase(I18NEXT)) {
                         i18nextFound = true;
                         cookie.setValue(lang);
-                        cookieEncoder.addCookie(cookie);
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-                        cookieEncoder = new CookieEncoder(true);
+                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     } else {
-                        cookieEncoder.addCookie(cookie);
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-                        cookieEncoder = new CookieEncoder(true);
+                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     }
                 }
                 if (!i18nextFound) {
                     Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                    cookieEncoder.addCookie(cookie);
-                    response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                    response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                 }
             }
             if (!i18nextFound) {
                 Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
-                cookieEncoder.addCookie(cookie);
-                response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
             }
         }
 
