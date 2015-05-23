@@ -65,6 +65,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+import org.waarp.openr66.protocol.http.adminssl.HttpResponsiveSslHandler;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
@@ -216,6 +217,10 @@ public class FileBasedConfiguration {
      * HTTP Admin Directory
      */
     private static final String XML_HTTPADMINPATH = "httpadmin";
+    /**
+     * HTTP Admin model (fix = 0 or responsive = 1, not mandatory since auto detection)
+     */
+    private static final String XML_HTTPADMINMODEL = "httpmodel";
     /**
      * Use SSL for R66 connection
      */
@@ -514,6 +519,7 @@ public class FileBasedConfiguration {
             new XmlDecl(XmlType.STRING, XML_SERVER_PASSWD),
             new XmlDecl(XmlType.STRING, XML_SERVER_PASSWD_FILE),
             new XmlDecl(XmlType.STRING, XML_HTTPADMINPATH),
+            new XmlDecl(XmlType.INTEGER, XML_HTTPADMINMODEL),
             new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH),
             new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS),
             new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS),
@@ -924,6 +930,13 @@ public class FileBasedConfiguration {
             logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig") + "Http Admin Path"); //$NON-NLS-1$
             return false;
         }
+        value = hashConfig.get(XML_HTTPADMINMODEL);
+        // 0 = standard, 1 = responsive (preferred default)
+        int model = (! new File(file, HttpResponsiveSslHandler.LISTING_PAGE).isFile()) ? 0 : 1;
+        if (value != null && (!value.isEmpty())) {
+            model = value.getInteger();
+        }
+        config.httpModel = model;
 
         // Key for HTTPS
         value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
@@ -1721,6 +1734,7 @@ public class FileBasedConfiguration {
                     DbConstant.noCommitAdmin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
+                    Configuration.NBDBSESSION++;
                     DbConstant.noCommitAdmin.session.setAutoCommit(false);
                 } else {
                     DbConstant.noCommitAdmin = DbConstant.admin;

@@ -77,6 +77,7 @@ import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpInitializer;
+import org.waarp.openr66.protocol.http.adminssl.HttpReponsiveSslInitializer;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslInitializer;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
@@ -156,7 +157,10 @@ public class Configuration {
      * Rank to redo when a restart occurs
      */
     public static int RANKRESTART = 30;
-
+    /**
+     * Number of DbSession for internal needs
+     */
+    public static int NBDBSESSION = 0;
     /**
      * FileParameter
      */
@@ -320,6 +324,11 @@ public class Configuration {
      * Http Admin base
      */
     public String httpBasePath = "src/main/admin/";
+
+    /**
+     * Model for Http Admin: 0 = standard (i18n only), 1 = responsive (i18n + bootstrap + dynamic table + refresh)
+     */
+    public int httpModel = 1;
 
     /**
      * True if the service is going to shutdown
@@ -790,7 +799,12 @@ public class Configuration {
         httpsBootstrap = new ServerBootstrap();
         // Set up the event pipeline factory.
         WaarpNettyUtil.setServerBootstrap(httpsBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);
-        httpsBootstrap.childHandler(new HttpSslInitializer(useHttpCompression, false));
+        if (httpModel == 0) {
+            httpsBootstrap.childHandler(new HttpSslInitializer(useHttpCompression, false));
+        } else {
+            // Default
+            httpsBootstrap.childHandler(new HttpReponsiveSslInitializer(useHttpCompression, false));
+        }
         // Bind and start to accept incoming connections.
         if (SERVER_HTTPSPORT > 0) {
             ChannelFuture future = httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)).awaitUninterruptibly();
@@ -810,6 +824,7 @@ public class Configuration {
 
     public void startMonitoring() throws WaarpDatabaseSqlException {
         monitoring = new Monitoring(pastLimit, minimalDelay, null);
+        NBDBSESSION++;
         if (snmpConfig != null) {
             int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
             R66PrivateMib r66Mib =
