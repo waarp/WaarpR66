@@ -30,8 +30,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -42,8 +40,10 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.ServerCookieDecoder;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
 
 import org.waarp.common.database.DbAdmin;
@@ -722,7 +722,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
         String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         if (cookieString != null) {
-            Set<Cookie> cookies = ServerCookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             boolean i18nextFound = false;
             if (!cookies.isEmpty()) {
                 // Reset the cookies if necessary.
@@ -730,19 +730,19 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                     if (cookie.name().equalsIgnoreCase(I18NEXT)) {
                         i18nextFound = true;
                         cookie.setValue(lang);
-                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     } else {
-                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     }
                 }
                 if (!i18nextFound) {
                     Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                 }
             }
             if (!i18nextFound) {
                 Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
             }
         }
 

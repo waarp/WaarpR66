@@ -5,6 +5,15 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="3.0.2" date="2015-05-25" description="Fix release, same as 2.4.32 except addition of Responsive Design">
+            <action dev="Frederic Bregier" type="fix">Date format in Spooled Directory admin page</action>
+            <action dev="Frederic Bregier" type="fix">Error code</action>
+            <action dev="Frederic Bregier" type="fix">Store original size in transfer info</action>
+            <action dev="Frederic Bregier" type="fix">Fix nb session</action>
+            <action dev="Frederic Bregier" type="fix">Fix per session admin parameter</action>
+            <action dev="Frederic Bregier" type="add">httpmodel in configuration (optional) to enable 0 = Standard, 1 = Responsive design and dynamic</action>
+            <action dev="Frederic Bregier" type="fix">Upgrade dependencies</action>
+        </release>
         <release version="3.0.1" date="2015-03-09" description="Fix release, same as 2.4.31">
             <action dev="Frederic Bregier" type="fix">Optimize Direct memory allocation</action>
             <action dev="Frederic Bregier" type="fix">Optimize file copy by chunkSize</action>

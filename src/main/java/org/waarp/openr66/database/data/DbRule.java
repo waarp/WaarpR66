@@ -36,6 +36,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.file.DirInterface;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -45,9 +46,11 @@ import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -1009,7 +1012,7 @@ public class DbRule extends AbstractDbData {
         if (idsArray != null) {
             ids = XMLHOSTIDS;
             for (String element : idsArray) {
-                ids += XMLHOSTID + element + XMLENDHOSTID + "\n";
+                ids += XMLHOSTID + element + XMLENDHOSTID;
             }
             ids += XMLENDHOSTIDS;
         }
@@ -1030,10 +1033,10 @@ public class DbRule extends AbstractDbData {
                 builder.append(XMLTASK)
                         .append('<').append(TASK_TYPE).append('>')
                         .append(tasksArray[i][0])
-                        .append("</").append(TASK_TYPE).append(">\n")
+                        .append("</").append(TASK_TYPE).append(">")
                         .append('<').append(TASK_PATH).append('>')
                         .append(tasksArray[i][1])
-                        .append("</").append(TASK_PATH).append(">\n")
+                        .append("</").append(TASK_PATH).append(">")
                         .append('<').append(TASK_DELAY).append('>')
                         .append(tasksArray[i][2])
                         .append("</").append(TASK_DELAY).append('>');
@@ -1042,7 +1045,7 @@ public class DbRule extends AbstractDbData {
                             .append(tasksArray[i][3])
                             .append("</").append(TASK_COMMENT).append('>');
                 }
-                builder.append(XMLENDTASK).append('\n');
+                builder.append(XMLENDTASK);
             }
             builder.append(XMLENDTASKS);
         }
@@ -1249,6 +1252,79 @@ public class DbRule extends AbstractDbData {
         return preparedStatement;
     }
 
+    /**
+     * Write selected DbRule to a Json String
+     * 
+     * @param preparedStatement
+     * @return the associated Json String
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public static String getJson(DbPreparedStatement preparedStatement, int limit)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
+            OpenR66ProtocolBusinessException {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        preparedStatement.executeQuery();
+        int nb = 0;
+        while (preparedStatement.getNext()) {
+            DbRule rule = DbRule.getFromStatement(preparedStatement);
+            ObjectNode node = rule.getInternalJson();
+            arrayNode.add(node);
+            nb++;
+            if (nb >= limit) {
+                break;
+            }
+        }
+        preparedStatement.realClose();
+        // \n is not correctly parsed within HTML so put double \\n in fine
+        return JsonHandler.writeAsString(arrayNode).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+    }
+    private ObjectNode getInternalJson() {
+        ObjectNode node = getJson();
+        if (ids == null) {
+            node.put(Columns.HOSTIDS.name(), "");
+        }
+        if (recvPath == null) {
+            node.put(Columns.RECVPATH.name(), "");
+        }
+        if (sendPath == null) {
+            node.put(Columns.SENDPATH.name(), "");
+        }
+        if (archivePath == null) {
+            node.put(Columns.ARCHIVEPATH.name(), "");
+        }
+        if (workPath == null) {
+            node.put(Columns.WORKPATH.name(), "");
+        }
+        if (rpreTasks == null) {
+            node.put(Columns.RPRETASKS.name(), "");
+        }
+        if (rpostTasks == null) {
+            node.put(Columns.RPOSTTASKS.name(), "");
+        }
+        if (rerrorTasks == null) {
+            node.put(Columns.RERRORTASKS.name(), "");
+        }
+        if (spreTasks == null) {
+            node.put(Columns.SPRETASKS.name(), "");
+        }
+        if (spostTasks == null) {
+            node.put(Columns.SPOSTTASKS.name(), "");
+        }
+        if (serrorTasks == null) {
+            node.put(Columns.SERRORTASKS.name(), "");
+        }
+        return node;
+    }
+    /**
+     * 
+     * @return the Json string for this
+     */
+    public String getJsonAsString() {
+        ObjectNode node = getInternalJson();
+        return JsonHandler.writeAsString(node).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+    }
     /**
      * @param session
      * @param body
