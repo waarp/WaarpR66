@@ -490,6 +490,7 @@ public class DbTaskRunner extends AbstractDbData {
         requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
                 .getValue();
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
+        originalSize = getOriginalSizeTransferMap();
     }
 
     /**
@@ -606,6 +607,7 @@ public class DbTaskRunner extends AbstractDbData {
         fileInformation = requestPacket.getFileInformation();
         mode = requestPacket.getMode();
         originalSize = requestPacket.getOriginalSize();
+        setOriginalSizeTransferMap(originalSize);
         // itself but according to SSL
         requesterHostId = Configuration.configuration.getHostId(dbSession,
                 requested);
@@ -667,6 +669,7 @@ public class DbTaskRunner extends AbstractDbData {
         fileInformation = requestPacket.getFileInformation();
         mode = requestPacket.getMode();
         originalSize = requestPacket.getOriginalSize();
+        setOriginalSizeTransferMap(originalSize);
         requesterHostId = getRequester(session, requestPacket);
         requestedHostId = getRequested(session, requestPacket);
         // always itself
@@ -913,7 +916,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         node = source.path(JSON_ORIGINALSIZE);
         if (!node.isMissingNode() || !node.isNull()) {
-            originalSize = node.asLong(-1);
+            originalSize = node.asLong(getOriginalSizeTransferMap());
         }
         isSaved = false;
         try {
@@ -2553,7 +2556,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Set the ErrorCode for the UpdatedInfo
+     * Set the ErrorCode for the InfoStatus
      * 
      * @param code
      */
@@ -2741,6 +2744,31 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
+     * 
+     * @param size the new size value to set in TransferMap
+     */
+    private void setOriginalSizeTransferMap(long size) {
+        Map<String, Object> map = getTransferMap();
+        map.put(JSON_ORIGINALSIZE, size);
+        setTransferMap(map);
+    }
+    /**
+     * 
+     * @return the size set in TransferMap
+     */
+    private long getOriginalSizeTransferMap() {
+        Object size = getTransferMap().get(JSON_ORIGINALSIZE);
+        if (size == null) {
+            return -1;
+        }
+        if (size instanceof Long) {
+            return (Long) size;
+        } else {
+            return (Integer) size;
+        }
+    }
+
+/**
      * Set a new File information for this transfer
      * 
      * @param newFileInformation
@@ -4509,6 +4537,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void setOriginalSize(long originalSize) {
         this.originalSize = originalSize;
+        setOriginalSizeTransferMap(originalSize);
     }
 
     /**

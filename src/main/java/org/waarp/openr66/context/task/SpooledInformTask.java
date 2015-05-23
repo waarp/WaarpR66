@@ -19,6 +19,7 @@ package org.waarp.openr66.context.task;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeMap;
@@ -253,7 +254,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
         } else {
             builder.append("<TD bgcolor=LightGreen>");
         }
-        builder.append(inform.lastUpdate).append("</TD>");
+        builder.append(dateFormat.format(inform.lastUpdate)).append("</TD>");
         if (inform.fileMonitorInformation != null) {
             builder.append(Messages.getString("SpooledInformTask.AllOk")) //$NON-NLS-1$
                     .append(inform.fileMonitorInformation.globalok)
@@ -291,6 +292,8 @@ public class SpooledInformTask extends AbstractExecJavaTask {
         return inform;
     }
 
+    private static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG);
+
     /**
      * @param builder
      * @param inform
@@ -316,11 +319,11 @@ public class SpooledInformTask extends AbstractExecJavaTask {
             }
             builder.append("</TD><TD>");
             if (fileItem.lastTime > 0) {
-                builder.append(new Date(fileItem.lastTime));
+                builder.append(dateFormat.format(new Date(fileItem.lastTime)));
             }
             builder.append("</TD><TD>");
             if (fileItem.timeUsed > 0) {
-                builder.append(new Date(fileItem.timeUsed));
+                builder.append(dateFormat.format(new Date(fileItem.timeUsed)));
             }
             builder.append("</TD><TD>").append(fileItem.used)
                     .append("</TD><TD>").append(fileItem.specialId).append("</TD></TR>");

@@ -819,7 +819,7 @@ public class DbHostAuth extends AbstractDbData {
             alias += "(Alias: " + remoteHost + ") ";
         }
         if (Configuration.configuration.reverseAliases.containsKey(remoteHost)) {
-            String alias2 = "(Also alias: ";
+            String alias2 = "(ReverseAlias: ";
             String[] list = Configuration.configuration.reverseAliases.get(remoteHost);
             boolean found = false;
             for (String string : list) {
@@ -834,7 +834,7 @@ public class DbHostAuth extends AbstractDbData {
             }
         }
         if (Configuration.configuration.businessWhiteSet.contains(remoteHost)) {
-            alias += "(Business Allowed) ";
+            alias += "(Business: Allowed) ";
         }
         if (Configuration.configuration.roles.containsKey(remoteHost)) {
             RoleDefault item = Configuration.configuration.roles.get(remoteHost);
