@@ -73,6 +73,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
@@ -82,6 +83,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -489,6 +491,7 @@ public class DbTaskRunner extends AbstractDbData {
         requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
                 .getValue();
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
+        originalSize = getOriginalSizeTransferMap();
     }
 
     /**
@@ -605,6 +608,7 @@ public class DbTaskRunner extends AbstractDbData {
         fileInformation = requestPacket.getFileInformation();
         mode = requestPacket.getMode();
         originalSize = requestPacket.getOriginalSize();
+        setOriginalSizeTransferMap(originalSize);
         // itself but according to SSL
         requesterHostId = Configuration.configuration.getHostId(dbSession,
                 requested);
@@ -666,6 +670,7 @@ public class DbTaskRunner extends AbstractDbData {
         fileInformation = requestPacket.getFileInformation();
         mode = requestPacket.getMode();
         originalSize = requestPacket.getOriginalSize();
+        setOriginalSizeTransferMap(originalSize);
         requesterHostId = getRequester(session, requestPacket);
         requestedHostId = getRequested(session, requestPacket);
         // always itself
@@ -911,7 +916,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         node = source.path(JSON_ORIGINALSIZE);
         if (!node.isMissingNode() || !node.isNull()) {
-            originalSize = node.asLong(-1);
+            originalSize = node.asLong(getOriginalSizeTransferMap());
         }
         isSaved = false;
         try {
@@ -2558,7 +2563,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Set the ErrorCode for the UpdatedInfo
+     * Set the ErrorCode for the InfoStatus
      * 
      * @param code
      */
@@ -2745,6 +2750,30 @@ public class DbTaskRunner extends AbstractDbData {
         setTransferInformation(JsonHandler.writeAsString(map));
     }
 
+    /**
+     * 
+     * @param size the new size value to set in TransferMap
+     */
+    private void setOriginalSizeTransferMap(long size) {
+        Map<String, Object> map = getTransferMap();
+        map.put(JSON_ORIGINALSIZE, size);
+        setTransferMap(map);
+    }
+    /**
+     * 
+     * @return the size set in TransferMap
+     */
+    private long getOriginalSizeTransferMap() {
+        Object size = getTransferMap().get(JSON_ORIGINALSIZE);
+        if (size == null) {
+            return -1;
+        }
+        if (size instanceof Long) {
+            return (Long) size;
+        } else {
+            return (Integer) size;
+        }
+    }
     /**
      * Set a new File information for this transfer
      * 
@@ -4061,6 +4090,43 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
+     * Write selected TaskRunners to a Json String
+     * 
+     * @param preparedStatement
+     * @return the associated Json String
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public static String getJson(DbPreparedStatement preparedStatement, int limit)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
+            OpenR66ProtocolBusinessException {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        preparedStatement.executeQuery();
+        LocalTransaction localTransaction = Configuration.configuration.getLocalTransaction();
+        int nb = 0;
+        while (preparedStatement.getNext()) {
+            DbTaskRunner runner = DbTaskRunner
+                    .getFromStatement(preparedStatement);
+            ObjectNode node = runner.getJson();
+            node.put(Columns.SPECIALID.name(), Long.toString(runner.specialId));
+            node.put("UPDATEDINFO", runner.updatedInfo);
+            if (localTransaction == null) {
+                node.put("Running", false);
+            } else {
+                node.put("Running", localTransaction.contained(runner.getKey()));
+            }
+            arrayNode.add(node);
+            nb++;
+            if (nb >= limit) {
+                break;
+            }
+        }
+        preparedStatement.realClose();
+        return JsonHandler.writeAsString(arrayNode).replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}").replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\"").replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+    }
+
+    /**
      * Write selected TaskRunners to an XML file using an XMLWriter
      * 
      * @param preparedStatement
@@ -4202,6 +4268,23 @@ public class DbTaskRunner extends AbstractDbData {
         }
         node.put(JSON_ORIGINALSIZE, originalSize);
         return node;
+    }
+
+    /**
+     * 
+     * @return the Json string for this
+     */
+    public String getJsonAsString() {
+        ObjectNode node = getJson();
+        node.put(Columns.SPECIALID.name(), Long.toString(specialId));
+        node.put("UPDATEDINFO", updatedInfo);
+        LocalTransaction localTransaction = Configuration.configuration.getLocalTransaction();
+        if (localTransaction == null) {
+            node.put("Running", false);
+        } else {
+            node.put("Running", localTransaction.contained(getKey()));
+        }
+        return JsonHandler.writeAsString(node).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
     }
 
     /**
@@ -4522,6 +4605,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void setOriginalSize(long originalSize) {
         this.originalSize = originalSize;
+        setOriginalSizeTransferMap(originalSize);
     }
 
     /**

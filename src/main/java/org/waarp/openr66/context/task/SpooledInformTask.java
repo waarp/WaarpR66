@@ -19,6 +19,7 @@ package org.waarp.openr66.context.task;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeMap;
@@ -190,7 +191,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
      * @param builder
      */
     private static void endSpooledTable(StringBuilder builder) {
-        builder.append("</TABLE>");
+        builder.append("</TBODY></TABLE></small>");
     }
 
     /**
@@ -200,7 +201,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
      */
     private static StringBuilder beginSpooledTable(boolean detailed, String uri) {
         StringBuilder builder = new StringBuilder();
-        builder.append("<TABLE BORDER=1><CAPTION><A HREF=");
+        builder.append("<small><TABLE class='table table-condensed table-bordered' BORDER=1><CAPTION><A HREF=");
         builder.append(uri);
         if (detailed) {
             builder.append(Messages.getString("SpooledInformTask.TitleDetailed")); //$NON-NLS-1$
@@ -208,7 +209,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
             builder.append(Messages.getString("SpooledInformTask.TitleNormal")); //$NON-NLS-1$
         }
         // title first
-        builder.append("<TR><TH>").append(Messages.getString("SpooledInformTask.0")) //$NON-NLS-1$
+        builder.append("<THEAD><TR><TH>").append(Messages.getString("SpooledInformTask.0")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.1")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.2")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.3")) //$NON-NLS-1$
@@ -218,7 +219,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.7")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.8")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.9")) //$NON-NLS-1$
-                .append("</TH></TR>");
+                .append("</TH></TR></THEAD><TBODY>");
         return builder;
     }
 
@@ -254,7 +255,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
         } else {
             builder.append("<TD bgcolor=LightGreen>");
         }
-        builder.append(inform.lastUpdate).append("</TD>");
+        builder.append(dateFormat.format(inform.lastUpdate)).append("</TD>");
         if (inform.fileMonitorInformation != null) {
             builder.append(Messages.getString("SpooledInformTask.AllOk")) //$NON-NLS-1$
                     .append(inform.fileMonitorInformation.globalok)
@@ -273,10 +274,11 @@ public class SpooledInformTask extends AbstractExecJavaTask {
                     .append("</TD><TD>")
                     .append(inform.fileMonitorInformation.scanSubDir)
                     .append("</TD>");
-            String dirs = "";
+            String dirs = "<ul class='list-unstyled'>";
             for (File dir : inform.fileMonitorInformation.directories) {
-                dirs += dir + "<br>";
+                dirs += "<li>" + dir + "</li>";
             }
+            dirs += "</ul>";
             builder.append("<TD>").append(dirs).append("</TD><TD>");
             if (detailed && inform.fileMonitorInformation.fileItems != null) {
                 buildSpooledTableFiles(builder, inform);
@@ -289,26 +291,27 @@ public class SpooledInformTask extends AbstractExecJavaTask {
                 }
                 // Form GET to ensure encoding
                 builder.append(
-                        "<FORM name='DETAIL' method='GET' action='/SpooledDetailed.html'><input type=hidden name='name' value='")
-                        .append(name).append("'/><INPUT type='submit' value='DETAIL'/></FORM>");
+                        "<FORM class='form-inline' name='DETAIL' method='GET' action='/SpooledDetailed.html'><input type=hidden name='name' value='")
+                        .append(name).append("'/><INPUT type='submit' class='btn btn-info btn-sm' value='DETAIL'/></FORM>");
             }
         }
         builder.append("</TD></TR>");
         return inform;
     }
 
+    private static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG);
     /**
      * @param builder
      * @param inform
      */
     private static void buildSpooledTableFiles(StringBuilder builder, SpooledInformation inform) {
-        builder.append("<TABLE BORDER=1><TR><TH>").append(Messages.getString("SpooledInformTask.10")) //$NON-NLS-1$
+        builder.append("<small><TABLE class='table table-condensed table-bordered' BORDER=1><THEAD><TR><TH>").append(Messages.getString("SpooledInformTask.10")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.11")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.12")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.13")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.14")) //$NON-NLS-1$
                 .append("</TH><TH>").append(Messages.getString("SpooledInformTask.15")) //$NON-NLS-1$
-                .append("</TH></TR>");
+                .append("</TH></TR></THEAD><TBODY>");
         for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
             builder.append("<TR><TD>").append(fileItem.file).append("</TD><TD>");
             if (fileItem.hash != null) {
@@ -316,15 +319,15 @@ public class SpooledInformTask extends AbstractExecJavaTask {
             }
             builder.append("</TD><TD>");
             if (fileItem.lastTime > 0) {
-                builder.append(new Date(fileItem.lastTime));
+                builder.append(dateFormat.format(new Date(fileItem.lastTime)));
             }
             builder.append("</TD><TD>");
             if (fileItem.timeUsed > 0) {
-                builder.append(new Date(fileItem.timeUsed));
+                builder.append(dateFormat.format(new Date(fileItem.timeUsed)));
             }
             builder.append("</TD><TD>").append(fileItem.used).append("</TD><TD>")
                     .append(fileItem.specialId).append("</TD></TR>");
         }
-        builder.append("</TABLE>");
+        builder.append("</TBODY></TABLE></small>");
     }
 }

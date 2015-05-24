@@ -33,8 +33,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -46,8 +44,10 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.ServerCookieDecoder;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
 
 import org.waarp.common.command.exception.Reply421Exception;
@@ -231,7 +231,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     public static final String sLIMITROW = "LIMITROW";
     private static final String XXXRESULTXXX = "XXXRESULTXXX";
 
-    public static int LIMITROW = 48; // better if it can
+    public int LIMITROW = 48; // better if it can
                                      // be divided by 4
 
     /**
@@ -266,7 +266,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                 getNumberLocalChannel()) + " " + Thread.activeCount());
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
-                        DbAdmin.getNbConnection()));
+                        DbAdmin.getNbConnection() - Configuration.NBDBSESSION));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {
@@ -639,11 +639,11 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 StringBuilder builder = new StringBuilder();
                 if (stopcommand) {
                     if ("StopCleanAll".equalsIgnoreCase(parm)) {
-                        builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
+                        TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
                                 authentHttp, body, startid, stopid, tstart, tstop, rule, req,
                                 pending, transfer, error, seeAll);
                     } else {
-                        builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder,
+                        TransferUtils.stopSelectedTransfers(dbSession, 0, builder,
                                 authentHttp, body, startid, stopid, tstart, tstop, rule, req,
                                 pending, transfer, error, seeAll);
                     }
@@ -1920,7 +1920,11 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     String snb = getTrimValue(sLIMITROW);
                     if (snb != null) {
                         try {
+                            int old = LIMITROW;
                             LIMITROW = Integer.parseInt(snb);
+                            if (LIMITROW < 5) {
+                                LIMITROW = old;
+                            }
                         } catch (Exception e1) {
                         }
                     }
@@ -2102,13 +2106,15 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         if (uriRequest.charAt(0) == '/') {
             find = uriRequest.substring(1);
         }
-        find = find.substring(0, find.indexOf("."));
         REQUEST req = REQUEST.index;
-        try {
-            req = REQUEST.valueOf(find);
-        } catch (IllegalArgumentException e1) {
-            req = REQUEST.index;
-            logger.debug("NotFound: " + find + ":" + uriRequest);
+        if (find.length() != 0) {
+            find = find.substring(0, find.indexOf("."));
+            try {
+                req = REQUEST.valueOf(find);
+            } catch (IllegalArgumentException e1) {
+                req = REQUEST.index;
+                logger.debug("NotFound: " + find + ":" + uriRequest);
+            }
         }
         switch (req) {
             case CancelRestart:
@@ -2177,7 +2183,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     private void checkSession(Channel channel) {
         String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         if (cookieString != null) {
-            Set<Cookie> cookies = ServerCookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             if (!cookies.isEmpty()) {
                 for (Cookie elt : cookies) {
                     if (elt.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.HOST_ID)) {
@@ -2217,7 +2223,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         boolean i18nextFound = false;
         if (cookieString != null) {
-            Set<Cookie> cookies = ServerCookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             if (!cookies.isEmpty()) {
                 // Reset the sessions if necessary.
                 boolean findSession = false;
@@ -2227,34 +2233,34 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             findSession = false;
                         } else {
                             findSession = true;
-                            response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                            response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                         }
                     } else if (cookie.name().equalsIgnoreCase(I18NEXT)) {
                         i18nextFound = true;
                         cookie.setValue(lang);
-                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     } else {
-                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     }
                 }
                 if (!i18nextFound) {
                     Cookie cookie = new DefaultCookie(I18NEXT, lang);
-                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                 }
                 newSession = false;
                 if (!findSession) {
                     if (admin != null) {
-                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(admin));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(admin));
                         logger.debug("AddSession: " + uriRequest + ":{}", admin);
                     }
                 }
             }
         } else {
             Cookie cookie = new DefaultCookie(I18NEXT, lang);
-            response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+            response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
             if (admin != null) {
                 logger.debug("AddSession: " + uriRequest + ":{}", admin);
-                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(admin));
+                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(admin));
             }
         }
     }

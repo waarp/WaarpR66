@@ -18,6 +18,7 @@
 package org.waarp.openr66.protocol.utils;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbPreparedStatement;
@@ -159,238 +160,6 @@ public class TransferUtils {
         return finalResult;
     }
 
-    private static void stopOneTransfer(DbTaskRunner taskRunner,
-            StringBuilder builder, R66Session session, String body) {
-        LocalChannelReference lcr =
-                Configuration.configuration.getLocalTransaction().
-                        getFromRequest(taskRunner.getKey());
-        ErrorCode result;
-        ErrorCode code = ErrorCode.StoppedTransfer;
-        if (lcr != null) {
-            int rank = taskRunner.getRank();
-            lcr.sessionNewState(R66FiniteDualStates.ERROR);
-            ErrorPacket perror = new ErrorPacket(Messages.getString("TransferUtils.13") + rank, //$NON-NLS-1$
-                    code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            try {
-                // XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
-                // inform local instead of remote
-                ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
-            } catch (Exception e) {
-                logger.warn("Write local packet error", e);
-            }
-            result = ErrorCode.StoppedTransfer;
-        } else {
-            // Transfer is not running
-            // if in ERROR already just ignore it
-            if (taskRunner.getUpdatedInfo() == UpdatedInfo.INERROR) {
-                result = ErrorCode.TransferError;
-            } else {
-                // the database saying it is not stopped
-                result = ErrorCode.TransferError;
-                if (taskRunner != null) {
-                    if (taskRunner.stopOrCancelRunner(code)) {
-                        result = ErrorCode.StoppedTransfer;
-                    }
-                }
-            }
-        }
-        ErrorCode last = taskRunner.getErrorInfo();
-        taskRunner.setErrorExecutionStatus(result);
-        if (builder != null) {
-            builder.append(taskRunner.toSpecializedHtml(
-                    session,
-                    body,
-                    lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
-                            .getString("HttpSslHandler.NotActive")));
-        }
-        taskRunner.setErrorExecutionStatus(last);
-    }
-
-    /**
-     * Stop all selected transfers
-     * 
-     * @param dbSession
-     * @param limit
-     * @param builder
-     * @param session
-     * @param body
-     * @param startid
-     * @param stopid
-     * @param tstart
-     * @param tstop
-     * @param rule
-     * @param req
-     * @param pending
-     * @param transfer
-     * @param error
-     * @return the associated StringBuilder if the one given as parameter is not null
-     */
-    public static StringBuilder stopSelectedTransfers(DbSession dbSession, int limit,
-            StringBuilder builder, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error) {
-        return stopSelectedTransfers(dbSession, limit, builder, session, body, startid, stopid, tstart, tstop,
-                rule, req, pending, transfer, error, null);
-    }
-
-    public static StringBuilder stopSelectedTransfers(DbSession dbSession, int limit,
-            StringBuilder builder, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error, String host) {
-        if (dbSession == null || dbSession.isDisActive) {
-            // do it without DB
-            if (ClientRunner.activeRunners != null) {
-                for (ClientRunner runner : ClientRunner.activeRunners) {
-                    DbTaskRunner taskRunner = runner.getTaskRunner();
-                    stopOneTransfer(taskRunner, builder, session, body);
-                }
-            }
-            if (CommanderNoDb.todoList != null) {
-                CommanderNoDb.todoList.clear();
-            }
-            return builder;
-        }
-        DbPreparedStatement preparedStatement = null;
-        try {
-            preparedStatement =
-                    DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
-                            startid, stopid, tstart, tstop, rule, req,
-                            pending, transfer, error, false, false, host);
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                stopOneTransfer(taskRunner, builder, session, body);
-            }
-            preparedStatement.realClose();
-            return builder;
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
-            logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
-            return null;
-        }
-    }
-
-    /**
-     * Method to delete the temporary file
-     * 
-     * @param taskRunner
-     * @param builder
-     * @param session
-     * @param body
-     */
-    public static void cleanOneTransfer(DbTaskRunner taskRunner, StringBuilder builder, R66Session session, String body) {
-        if (!taskRunner.isSender() && !taskRunner.isAllDone()) {
-            String name = null;
-            try {
-                if (session != null) {
-                    session.getDir().changeDirectory("/");
-                    session.setBadRunner(taskRunner, ErrorCode.QueryAlreadyFinished);
-                    R66File file = session.getFile();
-                    if (file != null) {
-                        name = file.getFile();
-                        if (file.exists()) {
-                            logger.info(Messages.getString("TransferUtils.18") + file); //$NON-NLS-1$
-                            if (!file.delete()) {
-                                logger.warn(Messages.getString("TransferUtils.19") + file); //$NON-NLS-1$
-                            } else {
-                                taskRunner.setRankAtStartup(0);
-                                taskRunner.setFilename("###FILE DELETED### " + name);
-                                taskRunner.update();
-                            }
-                        } else if (!name.contains("###FILE DELETED### ")) {
-                            taskRunner.setRankAtStartup(0);
-                            taskRunner.setFilename("###FILE DELETED### " + name);
-                            taskRunner.update();
-                        }
-                    }
-                }
-            } catch (CommandAbstractException e1) {
-                logger.warn(Messages.getString("TransferUtils.19") + name, e1); //$NON-NLS-1$
-            } catch (WaarpDatabaseException e) {
-            }
-        }
-        if (builder != null) {
-            LocalChannelReference lcr =
-                    Configuration.configuration.getLocalTransaction().
-                            getFromRequest(taskRunner.getKey());
-            builder.append(taskRunner.toSpecializedHtml(
-                    session,
-                    body,
-                    lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
-                            .getString("HttpSslHandler.NotActive")));
-        }
-    }
-
-    /**
-     * Clean all selected transfers
-     * 
-     * @param dbSession
-     * @param limit
-     * @param builder
-     * @param session
-     * @param body
-     * @param startid
-     * @param stopid
-     * @param tstart
-     * @param tstop
-     * @param rule
-     * @param req
-     * @param pending
-     * @param transfer
-     * @param error
-     * @return the associated StringBuilder if the one given as parameter is not null
-     */
-    public static StringBuilder cleanSelectedTransfers(DbSession dbSession, int limit,
-            StringBuilder builder, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error) {
-        return cleanSelectedTransfers(dbSession, limit, builder, session, body, startid, stopid, tstart, tstop,
-                rule, req, pending, transfer, error, null);
-    }
-
-    public static StringBuilder cleanSelectedTransfers(DbSession dbSession, int limit,
-            StringBuilder builder, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error, String host) {
-        if (dbSession == null || dbSession.isDisActive) {
-            // do it without DB
-            if (ClientRunner.activeRunners != null) {
-                for (ClientRunner runner : ClientRunner.activeRunners) {
-                    DbTaskRunner taskRunner = runner.getTaskRunner();
-                    stopOneTransfer(taskRunner, null, session, null);
-                    cleanOneTransfer(taskRunner, builder, session, body);
-                }
-            }
-            if (CommanderNoDb.todoList != null) {
-                CommanderNoDb.todoList.clear();
-            }
-            return builder;
-        }
-        DbPreparedStatement preparedStatement = null;
-        try {
-            preparedStatement =
-                    DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
-                            startid, stopid, tstart, tstop, rule, req,
-                            pending, transfer, error, false, false, host);
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                stopOneTransfer(taskRunner, null, session, null);
-                cleanOneTransfer(taskRunner, builder, session, body);
-            }
-            preparedStatement.realClose();
-            return builder;
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
-            logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
-            return null;
-        }
-    }
-
     /**
      * Finalize a local task since only Post action has to be done
      * 
@@ -457,4 +226,247 @@ public class TransferUtils {
             throw new OpenR66RunnerErrorException(Messages.getString("TransferUtils.30"), e); //$NON-NLS-1$
         }
     }
+
+    @SuppressWarnings("unchecked")
+    private static void stopOneTransfer(DbTaskRunner taskRunner,
+            Object map, R66Session session, String body) {
+        LocalChannelReference lcr =
+                Configuration.configuration.getLocalTransaction().
+                        getFromRequest(taskRunner.getKey());
+        ErrorCode result;
+        ErrorCode code = ErrorCode.StoppedTransfer;
+        if (lcr != null) {
+            int rank = taskRunner.getRank();
+            lcr.sessionNewState(R66FiniteDualStates.ERROR);
+            ErrorPacket perror = new ErrorPacket(Messages.getString("TransferUtils.13") + rank, //$NON-NLS-1$
+                    code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            try {
+                // XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
+                // inform local instead of remote
+                ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
+            } catch (Exception e) {
+                logger.warn("Write local packet error", e);
+            }
+            result = ErrorCode.StoppedTransfer;
+        } else {
+            // Transfer is not running
+            // if in ERROR already just ignore it
+            if (taskRunner.getUpdatedInfo() == UpdatedInfo.INERROR) {
+                result = ErrorCode.TransferError;
+            } else {
+                // the database saying it is not stopped
+                result = ErrorCode.TransferError;
+                if (taskRunner != null) {
+                    if (taskRunner.stopOrCancelRunner(code)) {
+                        result = ErrorCode.StoppedTransfer;
+                    }
+                }
+            }
+        }
+        ErrorCode last = taskRunner.getErrorInfo();
+        taskRunner.setErrorExecutionStatus(result);
+        if (map != null) {
+            if (map instanceof Map) {
+                ((Map<String, String>) map).put(taskRunner.getKey(), taskRunner.getJsonAsString());
+            } else if (map instanceof StringBuilder) {
+                ((StringBuilder) map).append(taskRunner.toSpecializedHtml(
+                        session,
+                        body,
+                        lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
+                                .getString("HttpSslHandler.NotActive")));
+            }
+        }
+        taskRunner.setErrorExecutionStatus(last);
+    }
+
+    /**
+     * Stop all selected transfers
+     * 
+     * @param dbSession
+     * @param limit
+     * @param builder
+     * @param session
+     * @param body
+     * @param startid
+     * @param stopid
+     * @param tstart
+     * @param tstop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @return the associated StringBuilder if the one given as parameter is not null
+     */
+    public static void stopSelectedTransfers(DbSession dbSession, int limit,
+            Object map, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error) {
+        stopSelectedTransfers(dbSession, limit, map, session, body, startid, stopid, tstart, tstop,
+                rule, req, pending, transfer, error, null);
+    }
+
+    public static void stopSelectedTransfers(DbSession dbSession, int limit,
+            Object map, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error, String host) {
+        if (dbSession == null || dbSession.isDisActive) {
+            // do it without DB
+            if (ClientRunner.activeRunners != null) {
+                for (ClientRunner runner : ClientRunner.activeRunners) {
+                    DbTaskRunner taskRunner = runner.getTaskRunner();
+                    stopOneTransfer(taskRunner, map, session, body);
+                }
+            }
+            if (CommanderNoDb.todoList != null) {
+                CommanderNoDb.todoList.clear();
+            }
+            return;
+        }
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement =
+                    DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
+                            startid, stopid, tstart, tstop, rule, req,
+                            pending, transfer, error, false, false, host);
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                stopOneTransfer(taskRunner, map, session, body);
+            }
+            preparedStatement.realClose();
+            return;
+        } catch (WaarpDatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+            logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
+            return;
+        }
+    }
+
+    /**
+     * Method to delete the temporary file
+     * 
+     * @param taskRunner
+     * @param builder
+     * @param session
+     * @param body
+     */
+    @SuppressWarnings("unchecked")
+    public static void cleanOneTransfer(DbTaskRunner taskRunner, Object map, R66Session session, String body) {
+        if (!taskRunner.isSender() && !taskRunner.isAllDone()) {
+            String name = null;
+            try {
+                if (session != null) {
+                    session.getDir().changeDirectory("/");
+                    session.setBadRunner(taskRunner, ErrorCode.QueryAlreadyFinished);
+                    R66File file = session.getFile();
+                    if (file != null) {
+                        name = file.getFile();
+                        if (file.exists()) {
+                            logger.info(Messages.getString("TransferUtils.18") + file); //$NON-NLS-1$
+                            if (!file.delete()) {
+                                logger.warn(Messages.getString("TransferUtils.19") + file); //$NON-NLS-1$
+                            } else {
+                                taskRunner.setRankAtStartup(0);
+                                taskRunner.setFilename("###FILE DELETED### " + name);
+                                taskRunner.update();
+                            }
+                        } else if (!name.contains("###FILE DELETED### ")) {
+                            taskRunner.setRankAtStartup(0);
+                            taskRunner.setFilename("###FILE DELETED### " + name);
+                            taskRunner.update();
+                        }
+                    }
+                }
+            } catch (CommandAbstractException e1) {
+                logger.warn(Messages.getString("TransferUtils.19") + name, e1); //$NON-NLS-1$
+            } catch (WaarpDatabaseException e) {
+            }
+        }
+        if (map != null) {
+            if (map instanceof Map) {
+                ((Map<String, String>) map).put(taskRunner.getKey(), taskRunner.getJsonAsString());
+            } else if (map instanceof StringBuilder) {
+                LocalChannelReference lcr =
+                        Configuration.configuration.getLocalTransaction().
+                                getFromRequest(taskRunner.getKey());
+                ((StringBuilder) map).append(taskRunner.toSpecializedHtml(
+                        session,
+                        body,
+                        lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
+                                .getString("HttpSslHandler.NotActive")));
+            }
+        }
+    }
+
+    /**
+     * Clean all selected transfers
+     * 
+     * @param dbSession
+     * @param limit
+     * @param builder
+     * @param session
+     * @param body
+     * @param startid
+     * @param stopid
+     * @param tstart
+     * @param tstop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @return the associated StringBuilder if the one given as parameter is not null
+     */
+    public static void cleanSelectedTransfers(DbSession dbSession, int limit,
+            Object map, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error) {
+        cleanSelectedTransfers(dbSession, limit, map, session, body, startid, stopid, tstart, tstop,
+                rule, req, pending, transfer, error, null);
+    }
+
+    public static void cleanSelectedTransfers(DbSession dbSession, int limit,
+            Object map, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error, String host) {
+        if (dbSession == null || dbSession.isDisActive) {
+            // do it without DB
+            if (ClientRunner.activeRunners != null) {
+                for (ClientRunner runner : ClientRunner.activeRunners) {
+                    DbTaskRunner taskRunner = runner.getTaskRunner();
+                    stopOneTransfer(taskRunner, null, session, null);
+                    cleanOneTransfer(taskRunner, map, session, body);
+                }
+            }
+            if (CommanderNoDb.todoList != null) {
+                CommanderNoDb.todoList.clear();
+            }
+            return;
+        }
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement =
+                    DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
+                            startid, stopid, tstart, tstop, rule, req,
+                            pending, transfer, error, false, false, host);
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                stopOneTransfer(taskRunner, null, session, null);
+                cleanOneTransfer(taskRunner, map, session, body);
+            }
+            preparedStatement.realClose();
+            return;
+        } catch (WaarpDatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+            logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
+            return;
+        }
+    }
+
 }

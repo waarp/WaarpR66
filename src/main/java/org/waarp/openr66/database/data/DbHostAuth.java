@@ -33,14 +33,17 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -615,6 +618,7 @@ public class DbHostAuth extends AbstractDbData {
      * @param host
      * @param addr
      * @param ssl
+     * @param active
      * @return the DbPreparedStatement according to the filter
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -652,6 +656,42 @@ public class DbHostAuth extends AbstractDbData {
             preparedStatement.realClose();
             throw new WaarpDatabaseSqlException(e);
         }
+        return preparedStatement;
+    }
+
+    /**
+     * 
+     * @param session
+     * @param host
+     * @param addr
+     * @return the DbPreparedStatement according to the filter
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     */
+    public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+            String host, String addr)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        String condition = null;
+        if (host != null) {
+            condition = Columns.HOSTID.name() + " LIKE '%" + host + "%' ";
+        }
+        if (addr != null) {
+            if (condition != null) {
+                condition += " AND ";
+            } else {
+                condition = "";
+            }
+            condition += Columns.ADDRESS.name() + " LIKE '%" + addr + "%' ";
+        }
+        if (condition != null) {
+            condition = " WHERE " + condition;
+        } else {
+            condition = "";
+        }
+        preparedStatement.createPrepareStatement(request + condition +
+                " ORDER BY " + Columns.HOSTID.name());
         return preparedStatement;
     }
 
@@ -819,7 +859,7 @@ public class DbHostAuth extends AbstractDbData {
             alias += "(Alias: " + remoteHost + ") ";
         }
         if (Configuration.configuration.reverseAliases.containsKey(remoteHost)) {
-            String alias2 = "(Also alias: ";
+            String alias2 = "(ReverseAlias: ";
             String[] list = Configuration.configuration.reverseAliases.get(remoteHost);
             boolean found = false;
             for (String string : list) {
@@ -834,7 +874,7 @@ public class DbHostAuth extends AbstractDbData {
             }
         }
         if (Configuration.configuration.businessWhiteSet.contains(remoteHost)) {
-            alias += "(Business Allowed) ";
+            alias += "(Business: Allowed) ";
         }
         if (Configuration.configuration.roles.containsKey(remoteHost)) {
             RoleDefault item = Configuration.configuration.roles.get(remoteHost);
@@ -855,6 +895,60 @@ public class DbHostAuth extends AbstractDbData {
                 + getVersion(hostid);
     }
 
+    /**
+     * Write selected DbHostAuth to a Json String
+     * 
+     * @param preparedStatement
+     * @return the associated Json String
+     * @throws WaarpDatabaseNoConnectionException
+     * @throws WaarpDatabaseSqlException
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public static String getJson(DbPreparedStatement preparedStatement, int limit)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
+            OpenR66ProtocolBusinessException {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        preparedStatement.executeQuery();
+        int nb = 0;
+        while (preparedStatement.getNext()) {
+            DbHostAuth host = DbHostAuth
+                    .getFromStatement(preparedStatement);
+            ObjectNode node = host.getInternalJson();
+            arrayNode.add(node);
+            nb++;
+            if (nb >= limit) {
+                break;
+            }
+        }
+        preparedStatement.realClose();
+        return JsonHandler.writeAsString(arrayNode);
+    }
+    private ObjectNode getInternalJson() {
+        ObjectNode node = getJson();
+        try {
+            node.put(Columns.HOSTKEY.name(), Configuration.configuration.cryptoKey.decryptHexInString(
+                    new String(hostkey, WaarpStringUtils.UTF8)));
+        } catch (Exception e1) {
+            node.put(Columns.HOSTKEY.name(), "");
+        }
+        int nb = 0;
+        try {
+            nb = NetworkTransaction.nbAttachedConnection(getSocketAddress(), getHostid());
+        } catch (Exception e) {
+            nb = -1;
+        }
+        node.put("Connection", nb); 
+        node.put("Version", getVersion(hostid).replace("\"", "").replace(",", ", "));
+        return node;
+    }
+    /**
+     * 
+     * @return the Json string for this
+     */
+    public String getJsonAsString() {
+        ObjectNode node = getInternalJson();
+        return JsonHandler.writeAsString(node);
+    }
     /**
      * @param session
      * @param body
