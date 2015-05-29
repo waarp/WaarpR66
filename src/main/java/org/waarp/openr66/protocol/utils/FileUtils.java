@@ -87,7 +87,7 @@ public class FileUtils {
                 throw new OpenR66ProtocolSystemException(
                         "Cannot write destination file");
             }
-            if (write(fileChannelIn, fileChannelOut) > 0) {
+            if (write(fileChannelIn, fileChannelOut) > -1) {
                 if (move) {
                     // do not test the delete
                     from.delete();
