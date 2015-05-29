@@ -17,12 +17,13 @@
  */
 package org.waarp.openr66.context.task;
 
-import org.waarp.common.command.exception.CommandAbstractException;
+import java.io.File;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
  * Move the file (without renaming it)
@@ -56,28 +57,23 @@ public class MoveTask extends AbstractTask {
     public void run() {
         logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
                 session);
-        boolean success = false;
         String directory = argRule;
         directory = getReplacedValue(directory, argTransfer.split(" ")).replace('\\', '/');
         String finalname = directory.split(" ")[0] + R66Dir.SEPARATOR +
                 session.getFile().getBasename();
+        File from = session.getFile().getTrueFile();
+        File to = new File(finalname);
         try {
-            success = session.getFile().renameTo(finalname, true);
-        } catch (CommandAbstractException e) {
+            FileUtils.copy(from, to, true, false);
+        } catch (OpenR66ProtocolSystemException e) {
             logger.error("Move with " + argRule + ":" + argTransfer + " to " + finalname + " and " +
                     session, e);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            futureCompletion.setFailure(e);
             return;
         }
-        if (success) {
-            session.getRunner().setFileMoved(finalname, success);
-            futureCompletion.setSuccess();
-        } else {
-            logger.error("Cannot Move with " + argRule + ":" + argTransfer + " to " + finalname +
-                    " and " + session);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-                    "Cannot move file"));
-        }
+        session.getRunner().setFileMoved(finalname, true);
+        futureCompletion.setSuccess();
+
     }
 
 }
