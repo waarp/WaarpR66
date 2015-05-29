@@ -17,11 +17,12 @@
  */
 package org.waarp.openr66.context.task;
 
-import org.waarp.common.command.exception.CommandAbstractException;
+import java.io.File;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
  * Move and Rename the current file
@@ -53,28 +54,22 @@ public class MoveRenameTask extends AbstractTask {
      */
     @Override
     public void run() {
-        boolean success = false;
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0].replace('\\', '/');
         logger.debug("Move and Rename to " + finalname + " with " + argRule +
                 ":" + argTransfer + " and {}", session);
+        File from = session.getFile().getTrueFile();
+        File to = new File(finalname);
         try {
-            success = session.getFile().renameTo(finalname, true);
-        } catch (CommandAbstractException e) {
+            FileUtils.copy(from, to, true, false);
+        } catch (OpenR66ProtocolSystemException e) {
             logger.error("Move and Rename to " + finalname + " with " +
                     argRule + ":" + argTransfer + " and " + session, e);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            futureCompletion.setFailure(e);
             return;
         }
-        if (success) {
-            session.getRunner().setFileMoved(finalname, success);
-            futureCompletion.setSuccess();
-        } else {
-            logger.error("Cannot Move and Rename to " + finalname + " with " +
-                    argRule + ":" + argTransfer + " and " + session);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-                    "Cannot move file"));
-        }
+        session.getRunner().setFileMoved(finalname, true);
+        futureCompletion.setSuccess();
     }
 
 }
