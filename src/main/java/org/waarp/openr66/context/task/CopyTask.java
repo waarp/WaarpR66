@@ -58,7 +58,8 @@ public class CopyTask extends AbstractTask {
         logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",
                 session);
         File from = session.getFile().getTrueFile();
-        File to = new File(argRule.replace('\\', '/') + session.getFile().getBasename());
+        String directory = argRule.replace('\\', '/');
+        File to = new File(directory, session.getFile().getBasename());
         try {
             FileUtils.copy(from, to, false, false);
         } catch (OpenR66ProtocolSystemException e1) {
