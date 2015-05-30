@@ -4110,7 +4110,6 @@ public class DbTaskRunner extends AbstractDbData {
                     .getFromStatement(preparedStatement);
             ObjectNode node = runner.getJson();
             node.put(Columns.SPECIALID.name(), Long.toString(runner.specialId));
-            node.put("UPDATEDINFO", runner.updatedInfo);
             if (localTransaction == null) {
                 node.put("Running", false);
             } else {
@@ -4277,7 +4276,6 @@ public class DbTaskRunner extends AbstractDbData {
     public String getJsonAsString() {
         ObjectNode node = getJson();
         node.put(Columns.SPECIALID.name(), Long.toString(specialId));
-        node.put("UPDATEDINFO", updatedInfo);
         LocalTransaction localTransaction = Configuration.configuration.getLocalTransaction();
         if (localTransaction == null) {
             node.put("Running", false);
