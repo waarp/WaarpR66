@@ -5,6 +5,11 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="2.4.33" date="2015-06-01" description="Fix release">
+            <action dev="Bruno Carlin" type="fix">MOVE and MOVERENAME tasks should create subdirs if necessary</action>
+            <action dev="Bruno Carlin" type="fix">Make FileUtils.copy() handle empty files</action>
+            <action dev="Bruno Carlin" type="fix">Forces the destination path of a copy task to end with a slash</action>
+        </release>
         <release version="2.4.32" date="2015-05-25" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Date format in Spooled Directory admin page</action>
             <action dev="Frederic Bregier" type="fix">Error code</action>
