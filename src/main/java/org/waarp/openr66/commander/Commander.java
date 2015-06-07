@@ -218,14 +218,14 @@ public class Commander implements CommanderInterface {
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                    DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                    DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 return;
@@ -260,21 +260,21 @@ public class Commander implements CommanderInterface {
                 preparedStatementConfig.close();
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
@@ -311,21 +311,21 @@ public class Commander implements CommanderInterface {
                 preparedStatementHostConfig.close();
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 // XXX no return since table might not be initialized return;
             } catch (WaarpDatabaseException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
@@ -367,21 +367,21 @@ public class Commander implements CommanderInterface {
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
@@ -421,28 +421,28 @@ public class Commander implements CommanderInterface {
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseNoDataException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
@@ -499,21 +499,21 @@ public class Commander implements CommanderInterface {
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseSqlException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (WaarpDatabaseException e) {
                 try {
-                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
@@ -531,7 +531,7 @@ public class Commander implements CommanderInterface {
                     DbConstant.noCommitAdmin.session.commit();
                 } catch (WaarpDatabaseException e) {
                     try {
-                        DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                        DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
                     } catch (WaarpDatabaseNoConnectionException e1) {
                     }
                 }
