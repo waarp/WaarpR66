@@ -1249,13 +1249,15 @@ public class Monitoring implements WaarpInterfaceMonitor {
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (WaarpDatabaseNoConnectionException e1) {}
+                    dbSession.admin.getDbModel().validConnection(dbSession);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
             } catch (WaarpDatabaseSqlException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (WaarpDatabaseNoConnectionException e1) {}
+                    dbSession.admin.getDbModel().validConnection(dbSession);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
             }
         }
     }

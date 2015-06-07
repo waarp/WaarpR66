@@ -264,7 +264,7 @@ public class ServerInitDatabase {
 
     public static void initdb() throws WaarpDatabaseNoConnectionException {
         // Create tables: configuration, hosts, rules, runner, cptrunner
-        DbModelFactory.dbModel.createTables(DbConstant.admin.session);
+        DbConstant.admin.session.admin.getDbModel().createTables(DbConstant.admin.session);
     }
 
     /**
@@ -282,9 +282,9 @@ public class ServerInitDatabase {
                 .getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
         try {
             if (version != null) {
-                uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
+                uptodate = DbConstant.admin.session.admin.getDbModel().needUpgradeDb(DbConstant.admin.session, version, true);
             } else {
-                uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+                uptodate = DbConstant.admin.session.admin.getDbModel().needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
             }
             if (uptodate) {
                 logger.error(Messages.getString("ServerInitDatabase.SchemaNotUptodate")); //$NON-NLS-1$

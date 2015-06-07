@@ -1084,7 +1084,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -1102,6 +1102,7 @@ public class DbTaskRunner extends AbstractDbData {
             return;
         }
         boolean shallIgnore = shallIgnoreSave();
+        logger.debug("ShallIgnore: "+(dbSession==null)+":"+shallIgnore);
         if (dbSession == null || shallIgnore) {
             if (specialId == DbConstant.ILLEGALVALUE) {
                 // New SpecialId is not possible with No Database Model
@@ -1125,14 +1126,14 @@ public class DbTaskRunner extends AbstractDbData {
             logger.debug("DEBUG: not created " + specialId);
             return;
         }
-        logger.debug("DEBUG: created " + specialId);
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
             logger.info("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
         }
+        logger.debug("DEBUG: created " + specialId);
         setToArray();
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
@@ -1166,7 +1167,7 @@ public class DbTaskRunner extends AbstractDbData {
                             throw new WaarpDatabaseSqlException(e1);
                         }
                         specialId = result + 1;
-                        DbModelFactory.dbModel.resetSequence(dbSession, specialId + 1);
+                        dbSession.admin.getDbModel().resetSequence(dbSession, specialId + 1);
                         setToArray();
                         preparedStatement.close();
                         setValues(preparedStatement, allFields);
@@ -1419,7 +1420,7 @@ public class DbTaskRunner extends AbstractDbData {
     public boolean specialSubmit() throws WaarpDatabaseException {
         if (shallIgnoreSave()) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+                specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
                 logger.debug("Try Insert create a new Id from sequence: " +
                         specialId);
                 setPrimaryKey();
@@ -1563,7 +1564,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         if (limit > 0) {
-            request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+            request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
         }
         return new DbPreparedStatement(session, request);
     }
@@ -1595,7 +1596,7 @@ public class DbTaskRunner extends AbstractDbData {
             request += " WHERE " + getLimitWhereCondition();
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
-        request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+        request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
         return new DbPreparedStatement(session, request);
     }
 
@@ -1632,7 +1633,7 @@ public class DbTaskRunner extends AbstractDbData {
                 start == null && stop == null && rule == null && req == null && all) {
             // finish
             if (limit > 0) {
-                request = DbModelFactory.dbModel.limitRequest(selectAllFields,
+                request = preparedStatement.getDbSession().admin.getDbModel().limitRequest(selectAllFields,
                         request + orderby, limit);
             } else {
                 request = request + orderby;
@@ -1737,7 +1738,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (limit > 0) {
             scondition.insert(0, request).append(orderby);
             request = scondition.toString();
-            request = DbModelFactory.dbModel.limitRequest(selectAllFields,
+            request = preparedStatement.getDbSession().admin.getDbModel().limitRequest(selectAllFields,
                     request, limit);
         } else {
             scondition.insert(0, request).append(orderby);
@@ -1898,7 +1899,7 @@ public class DbTaskRunner extends AbstractDbData {
             request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
         request =
-                DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+                session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
         DbPreparedStatement pstt = new DbPreparedStatement(session, request);
         return pstt;
     }
