@@ -65,7 +65,6 @@ import org.waarp.openr66.context.task.TaskType;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerEndTasksException;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
-import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -4123,7 +4122,11 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
         preparedStatement.realClose();
-        return JsonHandler.writeAsString(arrayNode).replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}").replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\"").replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+        return JsonHandler.writeAsString(arrayNode).replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}")
+                .replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\"")
+                .replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1")
+                .replaceAll("([^\\\\])\\\\\"", "$1")
+                .replace("\\\\", "\\\\\\\\");
     }
 
     /**
@@ -4283,7 +4286,9 @@ public class DbTaskRunner extends AbstractDbData {
         } else {
             node.put("Running", localTransaction.contained(getKey()));
         }
-        return JsonHandler.writeAsString(node).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+        return JsonHandler.writeAsString(node).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1")
+                .replaceAll("([^\\\\])\\\\\"", "$1")
+                .replace("\\\\", "\\\\\\\\");
     }
 
     /**
