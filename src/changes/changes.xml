@@ -5,6 +5,9 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="3.0.3.1" date="2015-06-02" description="Fix release for Gateway Ftp 3.0.2">
+            <action dev="Frederic Bregier" type="fix">Fix WaarpShutdownHook not created if already created before (dependencies with Gateway Ftp)</action>
+        </release>
         <release version="3.0.3" date="2015-06-01" description="Fix release, same as 2.4.33">
             <action dev="Bruno Carlin" type="fix">MOVE and MOVERENAME tasks should create subdirs if necessary</action>
             <action dev="Bruno Carlin" type="fix">Make FileUtils.copy() handle empty files</action>
