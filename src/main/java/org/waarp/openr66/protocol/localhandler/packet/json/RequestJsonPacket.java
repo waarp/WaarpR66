@@ -32,6 +32,7 @@ public class RequestJsonPacket extends JsonPacket {
 
     protected String filename;
     protected long filesize = -1;
+    protected String fileInfo;
 
     /**
      * @return the filename
@@ -61,6 +62,20 @@ public class RequestJsonPacket extends JsonPacket {
      */
     public void setFilesize(long filesize) {
         this.filesize = filesize;
+    }
+
+    /**
+     * @return the fileInfo
+     */
+    public String getFileInfo() {
+        return fileInfo;
+    }
+
+    /**
+     * @param fileInfo the fileInfo to set
+     */
+    public void setFileInfo(String fileInfo) {
+        this.fileInfo = fileInfo;
     }
 
     public void setRequestUserPacket() {

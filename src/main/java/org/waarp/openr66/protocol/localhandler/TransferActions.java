@@ -443,6 +443,9 @@ public class TransferActions extends ServerActions {
             return;
         }
         logger.debug("Filesize: " + packet.getOriginalSize() + ":" + runner.isSender());
+        if (! shouldInformBack) {
+            shouldInformBack = ! packet.getFileInformation().equals(runner.getFileInformation());
+        }
         if (runner.isFileMoved() && runner.isSender() && runner.isInTransfer()
                 && runner.getRank() == 0 && (!packet.isToValidate())) {
             // File was moved during PreTask and very beginning of the transfer
@@ -470,8 +473,8 @@ public class TransferActions extends ServerActions {
         } else if (shouldInformBack && (!packet.isToValidate())) {
             // Was only for (shouldInformBack)
             // File length is now known, so inform back
-            sendFilenameFilesizeChanging(packet, runner, "Will send a modification of filesize: ",
-                    "Change Filesize on sender");
+            sendFilenameFilesizeChanging(packet, runner, "Will send a modification of filesize or fileInfo: ",
+                    "Change Filesize / FileInfo on sender");
         }
         session.setReady(true);
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
@@ -537,13 +540,15 @@ public class TransferActions extends ServerActions {
             request.setComment(info);
             request.setFilename(runner.getFilename());
             request.setFilesize(packet.getOriginalSize());
+            request.setFileInfo(runner.getFileInformation());
             JsonCommandPacket validPacket = new JsonCommandPacket(request,
                     LocalPacketFactory.REQUESTPACKET);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                     validPacket, true);
         } else {
             ValidPacket validPacket = new ValidPacket(info,
-                    runner.getFilename() + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getOriginalSize(),
+                    runner.getFilename() + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getOriginalSize()
+                    + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getFileInformation(),
                     LocalPacketFactory.REQUESTPACKET);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                     validPacket, true);
@@ -1044,6 +1049,46 @@ public class TransferActions extends ServerActions {
         }
     }
 
+    /**
+     * If newFileInfo is provided and different than current value
+     * @param channel
+     * @param newFileInfo
+     * @throws OpenR66RunnerErrorException
+     */
+    public void requestChangeFileInfo(Channel channel, String newFileInfo) throws OpenR66RunnerErrorException {
+        DbTaskRunner runner = session.getRunner();
+        logger.debug("NewFileInfo " + newFileInfo);
+        runner.setFileInformation(newFileInfo);
+        try {
+            runner.update();
+        } catch (WaarpDatabaseException e) {
+            runner.saveStatus();
+            runner.setErrorExecutionStatus(ErrorCode.ExternalOp);
+            session.newState(ERROR);
+            logger.error("File info changing in error {}", e.getMessage());
+            ErrorPacket error = new ErrorPacket("File changing information in error: " + e
+                    .getMessage(), runner.getErrorInfo().getCode(),
+                    ErrorPacket.FORWARDCLOSECODE);
+            try {
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                        error, true);
+            } catch (OpenR66ProtocolPacketException e2) {
+            }
+            try {
+                session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(e), session,
+                        true, runner.getErrorInfo(), runner));
+            } catch (OpenR66RunnerErrorException e1) {
+                localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(e), session,
+                        true, runner.getErrorInfo(), runner));
+            } catch (OpenR66ProtocolSystemException e1) {
+                localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(e), session,
+                        true, runner.getErrorInfo(), runner));
+            }
+            session.setStatus(97);
+            ChannelCloseTimer.closeFutureChannel(channel);
+            return;
+        }
+    }
     /**
      * Change the filename and the filesize
      * 

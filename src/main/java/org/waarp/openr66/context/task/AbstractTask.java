@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.waarp.common.command.exception.CommandAbstractException;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
@@ -40,6 +42,12 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public abstract class AbstractTask implements Runnable {
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory
+            .getLogger(AbstractTask.class);
+
     /**
      * Current full path of current FILENAME
      */
@@ -446,7 +454,12 @@ public abstract class AbstractTask implements Runnable {
         }
         // finalname
         if (argFormat != null && argFormat.length > 0)
-            return String.format(builder.toString(), argFormat);
+            try {
+                return String.format(builder.toString(), argFormat);
+            } catch (Exception e) {
+                // ignored error since bad argument in static rule info
+                logger.error("Bad format in Rule: {"+builder.toString()+"} " + e.getMessage());
+            }
         return builder.toString();
     }
 }
