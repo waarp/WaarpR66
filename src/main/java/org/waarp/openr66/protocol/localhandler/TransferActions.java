@@ -540,16 +540,28 @@ public class TransferActions extends ServerActions {
             request.setComment(info);
             request.setFilename(runner.getFilename());
             request.setFilesize(packet.getOriginalSize());
-            request.setFileInfo(runner.getFileInformation());
+            String infoTransfer = runner.getFileInformation();
+            if (infoTransfer != null && ! infoTransfer.equals(packet.getFileInformation())) {
+                request.setFileInfo(runner.getFileInformation());
+            }
             JsonCommandPacket validPacket = new JsonCommandPacket(request,
                     LocalPacketFactory.REQUESTPACKET);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                     validPacket, true);
         } else {
-            ValidPacket validPacket = new ValidPacket(info,
+            String infoTransfer = runner.getFileInformation();
+            ValidPacket validPacket;
+            if (infoTransfer != null && ! infoTransfer.equals(packet.getFileInformation())
+                    && localChannelReference.getPartner().changeFileInfoEnabled()) {
+                validPacket = new ValidPacket(info,
                     runner.getFilename() + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getOriginalSize()
                     + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getFileInformation(),
                     LocalPacketFactory.REQUESTPACKET);
+            } else {
+                validPacket = new ValidPacket(info,
+                        runner.getFilename() + PartnerConfiguration.BAR_SEPARATOR_FIELD + packet.getOriginalSize(),
+                        LocalPacketFactory.REQUESTPACKET);
+            }
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                     validPacket, true);
         }
