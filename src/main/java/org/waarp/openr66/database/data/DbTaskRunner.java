@@ -3281,6 +3281,9 @@ public class DbTaskRunner extends AbstractDbData {
             if (this.isSender()) {
                 // Nothing to do since it is the original file
                 this.setPostTask();
+                if (!shallIgnoreSave()) {
+                    this.saveStatus();
+                }
             } else {
                 int poststep = this.step;
                 this.setPostTask();
