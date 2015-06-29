@@ -57,9 +57,10 @@ import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
  * - #ACCOUNT# is replaced by the account<br>
  * - #COMMAND# is replaced by the command issued for the file<br>
  * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
+ * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
  * <br>
  * So for instance
- * "-to Host -file #BASEPATH##FILE# -rule RULE [-md5] [-nolog] [-delay +delay]  [-info #USER# #ACCOUNT# #COMMAND# INFO]" <br>
+ * "-to Host -file #BASEPATH##FILE# -rule RULE [-md5] [-nolog] [-delay +delay]  [-info ##UUID## #USER# #ACCOUNT# #COMMAND# INFO]" <br>
  * will be a standard use of this function.
  * 
  * @author Frederic Bregier
