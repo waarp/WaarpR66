@@ -3274,6 +3274,9 @@ public class DbTaskRunner extends AbstractDbData {
         logger.debug("status: " + status + ":" + finalValue);
 
         if (session == null) {
+            if (localChannelReference == null) {
+                return;
+            }
             this.session = localChannelReference.getSession();
         }
         if (status) {

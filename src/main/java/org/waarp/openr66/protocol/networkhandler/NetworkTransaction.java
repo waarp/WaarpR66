@@ -1158,7 +1158,7 @@ public class NetworkTransaction {
         retrieveRunnerConcurrentHashMap.put(session.getLocalChannelReference().getLocalId(),
                 retrieveRunner);
         retrieveRunner.setDaemon(true);
-        retrieveExecutor.execute(retrieveRunner);
+        Configuration.configuration.getLocalWorkerGroup().execute(retrieveRunner);
     }
 
     /**
