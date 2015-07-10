@@ -93,7 +93,7 @@ var prepareTable = function() {
 					  { data: "UPDATEDINFO", title :i18n.t("menu2.entete9"), render: renderGeneric, createdCell: createdCellInfoColor},
 					  { data: "RANK", title :i18n.t("menu2.entete10"), render: function(data, type, row, meta) {
 						  var gsize = row.ORIGINALSIZE;
-						  if (gsize > 0) {var percent = ~~(data*row.BLOCKSZ/gsize*100);
+						  if (gsize > 0) {var percent = ~~(data*row.BLOCKSZ/gsize*100); if (percent > 100) percent = 100;
 							return blockString1+data+blockString2+percent+blockString3;} else {return data;}
 					  }},
 					  { data: "BLOCKSZ", title :i18n.t("menu2.entete22")},

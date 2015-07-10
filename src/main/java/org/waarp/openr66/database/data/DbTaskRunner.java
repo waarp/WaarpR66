@@ -3274,6 +3274,9 @@ public class DbTaskRunner extends AbstractDbData {
         logger.debug("status: " + status + ":" + finalValue);
 
         if (session == null) {
+            if (localChannelReference == null) {
+                return;
+            }
             this.session = localChannelReference.getSession();
         }
         if (status) {
@@ -3281,6 +3284,9 @@ public class DbTaskRunner extends AbstractDbData {
             if (this.isSender()) {
                 // Nothing to do since it is the original file
                 this.setPostTask();
+                if (!shallIgnoreSave()) {
+                    this.saveStatus();
+                }
             } else {
                 int poststep = this.step;
                 this.setPostTask();

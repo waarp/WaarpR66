@@ -20,6 +20,7 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.UUID;
 import org.waarp.gateway.kernel.session.CommandExecutorInterface;
 import org.waarp.gateway.kernel.session.HttpAuthInterface;
 
@@ -42,6 +43,7 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * - #ACCOUNT# is replaced by the account<br>
  * - #COMMAND# is replaced by the command issued for the file<br>
  * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
+ * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -58,6 +60,7 @@ public abstract class AbstractExecutor {
     protected static final String FILE = "#FILE#";
     protected static final String COMMAND = "#COMMAND#";
     protected static final String SPECIALID = "#SPECIALID#";
+    protected static final String sUUID = "#sUUID#";
 
     protected static final String REFUSED = "REFUSED";
     protected static final String NONE = "NONE";
@@ -377,6 +380,9 @@ public abstract class AbstractExecutor {
         replaceAll(builder, FILE, args[3]);
         replaceAll(builder, COMMAND, args[4]);
         replaceAll(builder, SPECIALID, args[5]);
+        if (builder.indexOf(sUUID) > 0) {
+            replaceAll(builder, sUUID, new UUID().toString());
+        }
         logger.debug("Result: {}", builder);
         return builder.toString();
     }

@@ -350,6 +350,15 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                 }
             }
         }
+        // check if not already in shutdown or closed
+        if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)
+                || R66ShutdownHook.isShutdownStarting() ||
+                ! localChannelReference.getLocalChannel().isActive()) {
+            logger.debug("Cannot use LocalChannel since already in shutdown: " + packet);
+            // ignore
+            packet.clear();
+            return;
+        }
         ByteBuf buf = packet.getBuffer();
         localChannelReference.getLocalChannel().writeAndFlush(buf);
     }

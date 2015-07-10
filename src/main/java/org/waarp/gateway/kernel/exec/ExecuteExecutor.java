@@ -41,6 +41,8 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * - #USER# is replaced by the username<br>
  * - #ACCOUNT# is replaced by the account<br>
  * - #COMMAND# is replaced by the command issued for the file<br>
+ * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
+ * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
  * 
  * @author Frederic Bregier
  * 
