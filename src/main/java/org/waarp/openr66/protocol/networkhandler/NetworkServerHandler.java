@@ -386,6 +386,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 }
             }
         }
+        // check if not already in shutdown or closed
+        if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)
+                || R66ShutdownHook.isShutdownStarting() ||
+                ! localChannelReference.getLocalChannel().isConnected()) {
+            logger.debug("Cannot use LocalChannel since already in shutdown: " + packet);
+            // ignore
+            packet.clear();
+            return;
+        }
         Channels.write(localChannelReference.getLocalChannel(), packet
                 .getBuffer());
     }

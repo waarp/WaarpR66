@@ -19,6 +19,7 @@ package org.waarp.openr66.database.model;
 
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.model.DbModel;
 import org.waarp.common.database.model.DbType;
 
 /**
@@ -43,6 +44,7 @@ public class DbModelFactory extends org.waarp.common.database.model.DbModelFacto
             String dbuser, String dbpasswd, boolean write)
             throws WaarpDatabaseNoConnectionException {
         DbType type = DbType.getFromDriver(dbdriver);
+        DbModel dbModel;
         switch (type) {
             case H2:
                 dbModel = new DbModelH2(dbserver, dbuser, dbpasswd);
@@ -63,7 +65,8 @@ public class DbModelFactory extends org.waarp.common.database.model.DbModelFacto
                 throw new WaarpDatabaseNoConnectionException(
                         "TypeDriver unknown: " + type);
         }
-        return new DbAdmin(type, dbserver, dbuser, dbpasswd,
+        dbModels.add(dbModel);
+        return new DbAdmin(dbModel, dbserver, dbuser, dbpasswd,
                 write);
     }
 

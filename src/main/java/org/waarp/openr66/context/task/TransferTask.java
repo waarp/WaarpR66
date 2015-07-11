@@ -36,9 +36,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * Transfer task:<br>
  * 
  * Result of arguments will be as r66send command.<br>
- * Format is like r66send command in any order except "-info" which should be the last item:<br>
- * "-file filepath -to requestedHost -rule rule [-md5] [-start yyyyMMddHHmmss or -delay (delay or +delay)] [-info information]"
- * <br>
+ * Format is like r66send command in any order except "-info" which should be the last item, and "-copyinfo"
+ * will copy at first place the original transfer information as the new one, while still having the possibility to add new informations through "-info":<br>
+ * "-file filepath -to requestedHost -rule rule [-md5] [-start yyyyMMddHHmmss or -delay (delay or +delay)] [-copyinfo] [-info information]" <br>
  * <br>
  * INFO is the only one field that can contains blank character.<br>
  * 
@@ -83,6 +83,7 @@ public class TransferTask extends AbstractTask {
         String requested = null;
         String rule = null;
         String information = null;
+        String finalInformation = null;
         boolean isMD5 = false;
         int blocksize = Configuration.configuration.BLOCKSIZE;
         Timestamp timestart = null;
@@ -96,6 +97,8 @@ public class TransferTask extends AbstractTask {
             } else if (args[i].equalsIgnoreCase("-rule")) {
                 i++;
                 rule = args[i];
+            } else if (args[i].equalsIgnoreCase("-copyinfo")) {
+                finalInformation = argTransfer;
             } else if (args[i].equalsIgnoreCase("-info")) {
                 i++;
                 information = args[i];
@@ -133,12 +136,18 @@ public class TransferTask extends AbstractTask {
                 } catch (NumberFormatException e) {}
             }
         }
-        if (information == null) {
-            information = "noinfo";
+        if (information != null) {
+            if (finalInformation == null) {
+                finalInformation = information;
+            } else {
+                finalInformation += " " + information;
+            }
+        } else if (finalInformation == null) {
+            finalInformation = "noinfo";
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                requested, filepath, rule, information, isMD5, blocksize, DbConstant.ILLEGALVALUE,
+                requested, filepath, rule, finalInformation, isMD5, blocksize, DbConstant.ILLEGALVALUE,
                 timestart);
         transaction.run();
         future.awaitUninterruptibly();

@@ -386,6 +386,9 @@ public class TransferActions extends ServerActions {
             // not valid so create an error from there
             ErrorCode code = ErrorCode.getFromCode("" + packet.getCode());
             session.setBadRunner(runner, code);
+            if (!runner.shallIgnoreSave()) {
+                runner.saveStatus();
+            }
             session.newState(ERROR);
             logger.error("Bad runner at startup {} {}", packet, session);
             ErrorPacket errorPacket = new ErrorPacket(code.mesg,

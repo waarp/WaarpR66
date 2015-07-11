@@ -2103,7 +2103,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         REQUEST req = REQUEST.index;
         find = find.substring(0, find.indexOf("."));
         if (find.length() != 0) {
-            find = find.substring(0, find.indexOf("."));
             try {
                 req = REQUEST.valueOf(find);
             } catch (IllegalArgumentException e1) {

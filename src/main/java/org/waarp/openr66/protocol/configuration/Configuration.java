@@ -60,6 +60,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
+import org.waarp.common.utility.WaarpShutdownHook;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
@@ -630,7 +631,9 @@ public class Configuration {
     public Configuration() {
         // Init signal handler
         shutdownConfiguration.timeout = TIMEOUTCON;
-        new R66ShutdownHook(shutdownConfiguration);
+        if (WaarpShutdownHook.shutdownHook == null) {
+            new R66ShutdownHook(shutdownConfiguration);
+        }
         computeNbThreads();
         scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
                 "ScheduledTask"));

@@ -25,7 +25,6 @@ import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
-import org.waarp.common.database.model.DbModelFactory;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -1249,13 +1248,15 @@ public class Monitoring implements WaarpInterfaceMonitor {
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (WaarpDatabaseNoConnectionException e1) {}
+                    dbSession.admin.getDbModel().validConnection(dbSession);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
             } catch (WaarpDatabaseSqlException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (WaarpDatabaseNoConnectionException e1) {}
+                    dbSession.admin.getDbModel().validConnection(dbSession);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
             }
         }
     }
