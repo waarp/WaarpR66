@@ -65,7 +65,6 @@ import org.waarp.openr66.context.task.TaskType;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerEndTasksException;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
-import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -3267,6 +3266,9 @@ public class DbTaskRunner extends AbstractDbData {
         logger.debug("status: " + status + ":" + finalValue);
 
         if (session == null) {
+            if (localChannelReference == null) {
+                return;
+            }
             this.session = localChannelReference.getSession();
         }
         if (status) {

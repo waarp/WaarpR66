@@ -32,7 +32,6 @@ import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostConfiguration;
-import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
