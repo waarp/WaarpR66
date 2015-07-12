@@ -1166,7 +1166,7 @@
 <a class="jxr_linenumber" name="L1158" href="#L1158">1158</a>         retrieveRunnerConcurrentHashMap.put(session.getLocalChannelReference().getLocalId(),
 <a class="jxr_linenumber" name="L1159" href="#L1159">1159</a>                 retrieveRunner);
 <a class="jxr_linenumber" name="L1160" href="#L1160">1160</a>         retrieveRunner.setDaemon(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L1161" href="#L1161">1161</a>         retrieveExecutor.execute(retrieveRunner);
+<a class="jxr_linenumber" name="L1161" href="#L1161">1161</a>         Configuration.configuration.getLocalWorkerGroup().execute(retrieveRunner);
 <a class="jxr_linenumber" name="L1162" href="#L1162">1162</a>     }
 <a class="jxr_linenumber" name="L1163" href="#L1163">1163</a> 
 <a class="jxr_linenumber" name="L1164" href="#L1164">1164</a>     <em class="jxr_javadoccomment">/**</em>
