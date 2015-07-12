@@ -20,6 +20,7 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.UUID;
 import org.waarp.gateway.kernel.session.CommandExecutorInterface;
 import org.waarp.gateway.kernel.session.HttpAuthInterface;
 
@@ -31,7 +32,7 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * If the command starts with "JAVAEXECUTE", the following will be a command through Java class to
  * be executed.<br>
  * If the command starts with "R66PREPARETRANSFER", the following will be a r66 prepare transfer
- * execution (asynchrone only).<br>
+ * execution (asynchronous operation only).<br>
  * 
  * 
  * The following replacement are done dynamically before the command is executed:<br>
@@ -41,6 +42,8 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * - #USER# is replaced by the username<br>
  * - #ACCOUNT# is replaced by the account<br>
  * - #COMMAND# is replaced by the command issued for the file<br>
+ * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
+ * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -56,6 +59,8 @@ public abstract class AbstractExecutor {
     protected static final String BASEPATH = "#BASEPATH#";
     protected static final String FILE = "#FILE#";
     protected static final String COMMAND = "#COMMAND#";
+    protected static final String SPECIALID = "#SPECIALID#";
+    protected static final String sUUID = "#sUUID#";
 
     protected static final String REFUSED = "REFUSED";
     protected static final String NONE = "NONE";
@@ -113,9 +118,9 @@ public abstract class AbstractExecutor {
         public CommandExecutor(String retrieve, long retrDelay,
                 String store, long storDelay) {
             if (retrieve == null || retrieve.trim().length() == 0) {
-                pretrCMD = NONE;
-                pretrType = tNONE;
-                pretrRefused = false;
+                pretrCMD = commandExecutor.pretrCMD;
+                pretrType = commandExecutor.pretrType;
+                pretrRefused = commandExecutor.pretrRefused;
             } else if (isRefused(retrieve)) {
                 pretrCMD = REFUSED;
                 pretrType = tREFUSED;
@@ -139,9 +144,9 @@ public abstract class AbstractExecutor {
             }
             pretrDelay = retrDelay;
             if (store == null || store.trim().length() == 0) {
-                pstorCMD = NONE;
-                pstorRefused = false;
-                pstorType = tNONE;
+                pstorCMD = commandExecutor.pstorCMD;
+                pstorRefused = commandExecutor.pstorRefused;
+                pstorType = commandExecutor.pstorType;
             } else if (isRefused(store)) {
                 pstorCMD = REFUSED;
                 pstorRefused = true;
@@ -269,14 +274,14 @@ public abstract class AbstractExecutor {
         commandExecutor =
                 new CommandExecutor(retrieve, retrDelay, store, storDelay);
         logger.info("Executor configured as [RETR: " +
-                commandExecutor.pretrCMD + ":" + commandExecutor.pretrDelay + ":" +
+                commandExecutor.getRetrType() + ":" + commandExecutor.pretrCMD + ":" + commandExecutor.pretrDelay + ":" +
                 commandExecutor.pretrRefused +
-                "] [STOR: " + commandExecutor.pstorCMD + ":" +
+                "] [STOR: " + commandExecutor.getStorType() + ":" + commandExecutor.pstorCMD + ":" +
                 commandExecutor.pstorDelay + ":" + commandExecutor.pstorRefused + "]");
     }
 
     /**
-     * Check if the given operation is allowed
+     * Check if the given operation is allowed Globally
      * 
      * @param isStore
      * @return True if allowed, else False
@@ -302,7 +307,8 @@ public abstract class AbstractExecutor {
             if (executor == null) {
                 executor = commandExecutor;
             } else if (executor.pstorType == tNONE) {
-                executor = commandExecutor;
+                String replaced = getPreparedCommand(executor.pstorCMD, args);
+                return new NoTaskExecutor(replaced, executor.pstorDelay, futureCompletion);
             }
             if (executor.pstorRefused) {
                 logger.error("STORe like operation REFUSED");
@@ -330,7 +336,8 @@ public abstract class AbstractExecutor {
             if (executor == null) {
                 executor = commandExecutor;
             } else if (executor.pretrType == tNONE) {
-                executor = commandExecutor;
+                String replaced = getPreparedCommand(executor.pretrCMD, args);
+                return new NoTaskExecutor(replaced, executor.pretrDelay, futureCompletion);
             }
             if (executor.pretrRefused) {
                 logger.error("RETRieve operation REFUSED");
@@ -372,6 +379,10 @@ public abstract class AbstractExecutor {
         replaceAll(builder, BASEPATH, args[2]);
         replaceAll(builder, FILE, args[3]);
         replaceAll(builder, COMMAND, args[4]);
+        replaceAll(builder, SPECIALID, args[5]);
+        if (builder.indexOf(sUUID) > 0) {
+            replaceAll(builder, sUUID, new UUID().toString());
+        }
         logger.debug("Result: {}", builder);
         return builder.toString();
     }

@@ -56,9 +56,11 @@ import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
  * - #USER# is replaced by the username<br>
  * - #ACCOUNT# is replaced by the account<br>
  * - #COMMAND# is replaced by the command issued for the file<br>
+ * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
+ * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
  * <br>
  * So for instance
- * "-to Host -file #BASEPATH##FILE# -rule RULE [-md5] [-nolog] [-delay +delay]  [-info #USER# #ACCOUNT# #COMMAND# INFO]" <br>
+ * "-to Host -file #BASEPATH##FILE# -rule RULE [-md5] [-nolog] [-delay +delay]  [-info ##UUID## #USER# #ACCOUNT# #COMMAND# INFO]" <br>
  * will be a standard use of this function.
  * 
  * @author Frederic Bregier
@@ -198,7 +200,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
                 blocksize, 0, DbConstant.ILLEGALVALUE, fileinfo, originalSize, sep);
         // Not isRecv since it is the requester, so send => isRetrieve is true
         boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
-        logger.debug("Will prepared: " + request.toString());
+        logger.debug("Will prepare: {}", request);
         DbTaskRunner taskRunner;
         try {
             taskRunner = new DbTaskRunner(dbsession, rule, isRetrieve, request,
@@ -209,13 +211,19 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
             throw new Reply421Exception("Cannot get new task\n    " + message);
         }
         taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
-        try {
-            taskRunner.update();
-        } catch (WaarpDatabaseException e) {
-            logger.error("Cannot prepare task since {}\n    " + message, e
-                    .getMessage());
-            throw new Reply421Exception("Cannot prepare task\n    " + message);
+        if (!taskRunner.forceSaveStatus()) {
+            try {
+                if (!taskRunner.specialSubmit()) {
+                    logger.error("Cannot prepare task: " + message);
+                    throw new Reply421Exception("Cannot get new task\n    " + message);
+                }
+            } catch (WaarpDatabaseException e) {
+                logger.error("Cannot prepare task since {}\n    " + message, e
+                        .getMessage());
+                throw new Reply421Exception("Cannot get new task\n    " + message);
+            }
         }
+        logger.debug("R66PreparedTransfer prepared: {}", request);
         future.setSuccess();
     }
 }

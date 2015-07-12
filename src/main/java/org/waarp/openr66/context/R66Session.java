@@ -701,6 +701,7 @@ public class R66Session implements SessionInterface {
             // generated due to a possible wildcard not ready
             file = null;
         }
+        logger.debug("GlobalLastStep: " + runner.getGloballaststep());
         if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
             if (this.businessObject != null) {
                 this.businessObject.checkAfterPreCommand(this);

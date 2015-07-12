@@ -80,7 +80,7 @@ public class PartnerConfiguration {
     private String id;
     private ObjectNode root = JsonHandler.createObjectNode();
     private boolean useJson = false;
-
+    private boolean changeFileInfoEnabled = false;
     /**
      * Constructor for an external HostId
      * 
@@ -118,6 +118,9 @@ public class PartnerConfiguration {
         } else {
             logger.debug("NOT UseJson for " + id + ":" + json);
             useJson = false;
+        }
+        if (isVersion2GEQVersion1(R66Versions.V3_0_4.getVersion(), version)) {
+            changeFileInfoEnabled = true;
         }
         JsonHandler.setValue(root, FIELDS.SEPARATOR, sep);
 
@@ -214,6 +217,13 @@ public class PartnerConfiguration {
      */
     public boolean useJson() {
         return useJson;
+    }
+
+    /**
+     * @return the changeFileInfoEnabled
+     */
+    public boolean changeFileInfoEnabled() {
+        return changeFileInfoEnabled;
     }
 
     /**

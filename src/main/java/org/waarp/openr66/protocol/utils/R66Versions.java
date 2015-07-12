@@ -20,7 +20,11 @@ public enum R66Versions {
     /**
      * Change VARCHAR(255) to VARCHAR(8096)
      */
-    V2_4_25;
+    V2_4_25,
+    /**
+     * Add support for FileInformation change
+     */
+    V3_0_4;
 
     public String getVersion() {
         return this.name().substring(1).replace('_', '.');

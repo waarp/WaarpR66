@@ -160,13 +160,21 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                         String newfilename = fields[0];
                         // potential file size changed
                         long newSize = -1;
+                        String newFileInfo = null;
                         if (fields.length > 1) {
                             try {
-                                newSize = Long.parseLong(fields[fields.length - 1]);
+                                newSize = Long.parseLong(fields[1]);
+                                // potential fileInfo changed
+                                if (fields.length > 2) {
+                                    newFileInfo = fields[2];
+                                }
                             } catch (NumberFormatException e2) {
-                                newfilename += PartnerConfiguration.BAR_SEPARATOR_FIELD + fields[fields.length - 1];
+                                newfilename += PartnerConfiguration.BAR_SEPARATOR_FIELD + fields[1];
                                 newSize = -1;
                             }
+                        }
+                        if (newFileInfo != null && ! newFileInfo.equals(serverHandler.session.getRunner().getFileInformation())) {
+                            serverHandler.requestChangeFileInfo(ctx.channel(), newFileInfo);
                         }
                         serverHandler.requestChangeNameSize(ctx.channel(), newfilename, newSize);
                         packet.clear();
@@ -285,7 +293,13 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                             return;
                         }
                         long newSize = node.getFilesize();
+                        String newFileInfo = node.getFileInfo();
                         logger.debug("NewSize " + newSize + " NewName " + newfilename);
+                        // potential fileInfo changed
+                        if (newFileInfo != null && ! newFileInfo.equals(serverHandler.session.getRunner().getFileInformation())) {
+                            logger.debug("NewSize " + newSize + " NewName " + newfilename + " newFileInfo: " + newFileInfo);
+                            serverHandler.requestChangeFileInfo(ctx.channel(), newFileInfo);
+                        }
                         // potential file size changed
                         serverHandler.requestChangeNameSize(ctx.channel(), newfilename, newSize);
                     } else {
