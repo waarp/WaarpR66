@@ -172,7 +172,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static final int[] dbTypes = {
             Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.INTEGER,
-            Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
+            Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.NVARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.INTEGER,
             Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
             Types.NVARCHAR, Types.NVARCHAR, Types.NVARCHAR, Types.BIGINT };

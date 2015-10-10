@@ -85,8 +85,8 @@ public class DbRule extends AbstractDbData {
 
     public static final int[] dbTypes = {
             Types.LONGVARCHAR,
-            Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
-            Types.VARCHAR, Types.VARCHAR,
+            Types.INTEGER, Types.NVARCHAR, Types.NVARCHAR,
+            Types.NVARCHAR, Types.NVARCHAR,
             Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
             Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
             Types.INTEGER, Types.NVARCHAR };
