@@ -239,14 +239,14 @@
 <a class="jxr_linenumber" name="L231" href="#L231">231</a> <em class="jxr_javadoccomment">     * Default number of threads in pool for Server (true network listeners). Server will change</em>
 <a class="jxr_linenumber" name="L232" href="#L232">232</a> <em class="jxr_javadoccomment">     * this value on startup if not set. The value should be closed to the number of CPU.</em>
 <a class="jxr_linenumber" name="L233" href="#L233">233</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> SERVER_THREAD = 8;
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> SERVER_THREAD = 0;
 <a class="jxr_linenumber" name="L235" href="#L235">235</a> 
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L237" href="#L237">237</a> <em class="jxr_javadoccomment">     * Default number of threads in pool for Client. The value is for true client for Executor in</em>
 <a class="jxr_linenumber" name="L238" href="#L238">238</a> <em class="jxr_javadoccomment">     * the Pipeline for Business logic. The value does not indicate a limit of concurrent clients,</em>
 <a class="jxr_linenumber" name="L239" href="#L239">239</a> <em class="jxr_javadoccomment">     * but a limit on truly packet concurrent actions.</em>
 <a class="jxr_linenumber" name="L240" href="#L240">240</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> CLIENT_THREAD = 80;
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> CLIENT_THREAD = 10;
 <a class="jxr_linenumber" name="L242" href="#L242">242</a> 
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L244" href="#L244">244</a> <em class="jxr_javadoccomment">     * Default session limit 64Mbit, so up to 16 full simultaneous clients</em>
@@ -659,8 +659,8 @@
 <a class="jxr_linenumber" name="L651" href="#L651">651</a>         <strong class="jxr_keyword">if</strong> (configured) {
 <a class="jxr_linenumber" name="L652" href="#L652">652</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L653" href="#L653">653</a>         }
-<a class="jxr_linenumber" name="L654" href="#L654">654</a>         workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD * 4, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Worker"</span>));
-<a class="jxr_linenumber" name="L655" href="#L655">655</a>         handlerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD * 2, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Handler"</span>));
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>         workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Worker"</span>));
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>         handlerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Handler"</span>));
 <a class="jxr_linenumber" name="L656" href="#L656">656</a>         subTaskGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"SubTask"</span>));
 <a class="jxr_linenumber" name="L657" href="#L657">657</a>         localBossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"LocalBoss"</span>));
 <a class="jxr_linenumber" name="L658" href="#L658">658</a>         localWorkerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(CLIENT_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"LocalWorker"</span>));
@@ -681,8 +681,8 @@
 <a class="jxr_linenumber" name="L673" href="#L673">673</a>     }
 <a class="jxr_linenumber" name="L674" href="#L674">674</a> 
 <a class="jxr_linenumber" name="L675" href="#L675">675</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> serverPipelineInit() {
-<a class="jxr_linenumber" name="L676" href="#L676">676</a>         bossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(SERVER_THREAD * 2, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Boss"</span>, false));
-<a class="jxr_linenumber" name="L677" href="#L677">677</a>         httpBossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(SERVER_THREAD * 3, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"HttpBoss"</span>));
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>         bossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(SERVER_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"Boss"</span>, false));
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>         httpBossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(SERVER_THREAD, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"HttpBoss"</span>));
 <a class="jxr_linenumber" name="L678" href="#L678">678</a>         httpWorkerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(SERVER_THREAD * 10, <strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"HttpWorker"</span>));
 <a class="jxr_linenumber" name="L679" href="#L679">679</a>     }
 <a class="jxr_linenumber" name="L680" href="#L680">680</a> 
@@ -1097,7 +1097,7 @@
 <a class="jxr_linenumber" name="L1089" href="#L1089">1089</a>         <strong class="jxr_keyword">if</strong> (nb &gt; 32) {
 <a class="jxr_linenumber" name="L1090" href="#L1090">1090</a>             nb = Runtime.getRuntime().availableProcessors() + 1;
 <a class="jxr_linenumber" name="L1091" href="#L1091">1091</a>         }
-<a class="jxr_linenumber" name="L1092" href="#L1092">1092</a>         <strong class="jxr_keyword">if</strong> (SERVER_THREAD &lt; nb) {
+<a class="jxr_linenumber" name="L1092" href="#L1092">1092</a>         <strong class="jxr_keyword">if</strong> (SERVER_THREAD &lt;= 0 || SERVER_THREAD &gt; nb) {
 <a class="jxr_linenumber" name="L1093" href="#L1093">1093</a>             logger.info(Messages.getString(<span class="jxr_string">"Configuration.ThreadNumberChange"</span>) + nb); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1094" href="#L1094">1094</a>             SERVER_THREAD = nb;
 <a class="jxr_linenumber" name="L1095" href="#L1095">1095</a>             CLIENT_THREAD = SERVER_THREAD * 10;

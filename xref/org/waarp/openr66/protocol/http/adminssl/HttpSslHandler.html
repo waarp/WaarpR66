@@ -45,11 +45,11 @@
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.FullHttpRequest;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.FullHttpResponse;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderNames;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderUtil;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderValues;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpMethod;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponse;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponseStatus;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderValues;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpMethod;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponse;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponseStatus;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpUtil;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpVersion;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.QueryStringDecoder;
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.cookie.Cookie;
@@ -2285,8 +2285,8 @@
 <a class="jxr_linenumber" name="L2277" href="#L2277">2277</a>         responseContent.setLength(0);
 <a class="jxr_linenumber" name="L2278" href="#L2278">2278</a> 
 <a class="jxr_linenumber" name="L2279" href="#L2279">2279</a>         <em class="jxr_comment">// Decide whether to close the connection or not.</em>
-<a class="jxr_linenumber" name="L2280" href="#L2280">2280</a>         <strong class="jxr_keyword">boolean</strong> keepAlive = HttpHeaderUtil.isKeepAlive(request);
-<a class="jxr_linenumber" name="L2281" href="#L2281">2281</a>         <strong class="jxr_keyword">boolean</strong> close = HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+<a class="jxr_linenumber" name="L2280" href="#L2280">2280</a>         <strong class="jxr_keyword">boolean</strong> keepAlive = HttpUtil.isKeepAlive(request);
+<a class="jxr_linenumber" name="L2281" href="#L2281">2281</a>         <strong class="jxr_keyword">boolean</strong> close = HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(request
 <a class="jxr_linenumber" name="L2282" href="#L2282">2282</a>                 .headers().get(HttpHeaderNames.CONNECTION)) ||
 <a class="jxr_linenumber" name="L2283" href="#L2283">2283</a>                 (!keepAlive) || forceClose;
 <a class="jxr_linenumber" name="L2284" href="#L2284">2284</a> 
