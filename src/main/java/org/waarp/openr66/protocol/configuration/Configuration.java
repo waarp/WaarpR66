@@ -231,14 +231,14 @@ public class Configuration {
      * Default number of threads in pool for Server (true network listeners). Server will change
      * this value on startup if not set. The value should be closed to the number of CPU.
      */
-    public int SERVER_THREAD = 8;
+    public int SERVER_THREAD = 0;
 
     /**
      * Default number of threads in pool for Client. The value is for true client for Executor in
      * the Pipeline for Business logic. The value does not indicate a limit of concurrent clients,
      * but a limit on truly packet concurrent actions.
      */
-    public int CLIENT_THREAD = 80;
+    public int CLIENT_THREAD = 10;
 
     /**
      * Default session limit 64Mbit, so up to 16 full simultaneous clients
@@ -651,8 +651,8 @@ public class Configuration {
         if (configured) {
             return;
         }
-        workerGroup = new NioEventLoopGroup(CLIENT_THREAD * 4, new WaarpThreadFactory("Worker"));
-        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD * 2, new WaarpThreadFactory("Handler"));
+        workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
+        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
         localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
         localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
@@ -673,8 +673,8 @@ public class Configuration {
     }
 
     public void serverPipelineInit() {
-        bossGroup = new NioEventLoopGroup(SERVER_THREAD * 2, new WaarpThreadFactory("Boss", false));
-        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD * 3, new WaarpThreadFactory("HttpBoss"));
+        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss", false));
+        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
         httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
     }
 
@@ -1089,7 +1089,7 @@ public class Configuration {
         if (nb > 32) {
             nb = Runtime.getRuntime().availableProcessors() + 1;
         }
-        if (SERVER_THREAD < nb) {
+        if (SERVER_THREAD <= 0 || SERVER_THREAD > nb) {
             logger.info(Messages.getString("Configuration.ThreadNumberChange") + nb); //$NON-NLS-1$
             SERVER_THREAD = nb;
             CLIENT_THREAD = SERVER_THREAD * 10;

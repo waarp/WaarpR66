@@ -52,7 +52,7 @@ public class DbConfiguration extends AbstractDbData {
 
     public static final int[] dbTypes = {
             Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
-            Types.BIGINT, Types.INTEGER, Types.VARCHAR };
+            Types.BIGINT, Types.INTEGER, Types.NVARCHAR };
 
     public static final String table = " CONFIGURATION ";
 

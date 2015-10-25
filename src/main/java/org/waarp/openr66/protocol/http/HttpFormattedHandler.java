@@ -34,10 +34,10 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -695,8 +695,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         ByteBuf buf = Unpooled.copiedBuffer(responseContent.toString(), WaarpStringUtils.UTF8);
         responseContent.setLength(0);
         // Decide whether to close the connection or not.
-        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
-        boolean close = HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+        boolean keepAlive = HttpUtil.isKeepAlive(request);
+        boolean close = HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(request
                 .headers().get(HttpHeaderNames.CONNECTION)) ||
                 (!keepAlive);
 

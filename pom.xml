@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpR66</artifactId>
   <name>Waarp OpenR66</name>
-  <version>3.0.4</version>
+  <version>3.0.5</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>3.0.4</version>
+      <version>3.0.5</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
@@ -78,7 +78,7 @@
     <dependency>
     	<groupId>mysql</groupId>
     	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.35</version>
+    	<version>5.1.36</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -95,7 +95,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpSnmp</artifactId>
-    	<version>3.0.0</version>
+    	<version>3.0.1</version>
     </dependency>
     <dependency>
     	<groupId>ch.qos.logback</groupId>
@@ -110,7 +110,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpThrift</artifactId>
-    	<version>3.0.0</version>
+    	<version>3.0.1</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -122,13 +122,13 @@
     <dependency>
     	<groupId>org.postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>9.4-1201-jdbc4</version>
+    	<version>9.4-1203-jdbc4</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>org.mariadb.jdbc</groupId>
     	<artifactId>mariadb-java-client</artifactId>
-    	<version>1.1.8</version>
+    	<version>1.2.2</version>
     	<optional>true</optional>
     	<exclusions>
     	    <exclusion>
@@ -140,7 +140,7 @@
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpGatewayKernel</artifactId>
-        <version>3.0.2</version>
+        <version>3.0.4</version>
     </dependency>
     <dependency>
         <groupId>Waarp</groupId>
