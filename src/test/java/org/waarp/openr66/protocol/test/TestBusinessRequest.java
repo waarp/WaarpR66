@@ -70,7 +70,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
         Configuration.configuration.pipelineInit();
 
         final NetworkTransaction networkTransaction = new NetworkTransaction();
-        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        DbHostAuth host = Configuration.configuration.getHOST_AUTH();
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 100;
         if (args.length > 1) {

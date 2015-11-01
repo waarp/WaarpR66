@@ -166,7 +166,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
         node1.put(DbHostConfiguration.JSON_MODEL, DbHostConfiguration.class.getSimpleName());
         DbValue[] values = DbHostConfiguration.getAllType();
         for (DbValue dbValue : values) {
-            node1.put(dbValue.column, dbValue.getType());
+            node1.put(dbValue.getColumn(), dbValue.getType());
         }
 
         ObjectNode node2, node3;
@@ -192,10 +192,10 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
             node3 = JsonHandler.createObjectNode();
             node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as " + this.path + "/id");
             for (DbValue dbValue : values) {
-                if (dbValue.column.equalsIgnoreCase(DbHostConfiguration.Columns.HOSTID.name())) {
+                if (dbValue.getColumn().equalsIgnoreCase(DbHostConfiguration.Columns.HOSTID.name())) {
                     continue;
                 }
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
                     node3, node1);
@@ -211,7 +211,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
         if (this.methods.contains(METHOD.POST)) {
             node3 = JsonHandler.createObjectNode();
             for (DbValue dbValue : values) {
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
                     node3, node1);
@@ -235,7 +235,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
         super.put(handler, arguments, result, body);
         // according to what is updated and if concerned
         DbHostConfiguration item = getItem(handler, arguments, result, body);
-        if (item.getHostid().equals(Configuration.configuration.HOST_ID)) {
+        if (item.getHostid().equals(Configuration.configuration.getHOST_ID())) {
             DbHostConfiguration.updateHostConfiguration(Configuration.configuration, item);
         }
     }
@@ -244,7 +244,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
     protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
             RestArgument result, METHOD method) throws HttpForbiddenRequestException {
         HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
-        R66Session session = r66handler.serverHandler.getSession();
+        R66Session session = r66handler.getServerHandler().getSession();
         if (!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
             throw new HttpForbiddenRequestException("Partner must have ConfigAdmin role");
         }

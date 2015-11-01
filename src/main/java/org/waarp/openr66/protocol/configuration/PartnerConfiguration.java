@@ -57,7 +57,7 @@ public class PartnerConfiguration {
     /**
      * Uses as separator in field
      */
-    public static String SEPARATOR_FIELD = BAR_SEPARATOR_FIELD;
+    private static String SEPARATOR_FIELD = BAR_SEPARATOR_FIELD;
 
     /**
      * JSON Fields
@@ -106,9 +106,9 @@ public class PartnerConfiguration {
             JsonHandler.setValue(root, FIELDS.FILESIZE, (Boolean) FIELDS.FILESIZE.defaultValue);
             JsonHandler.setValue(root, FIELDS.FINALHASH, (Boolean) FIELDS.FINALHASH.defaultValue);
         }
-        JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.digest.name);
+        JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.getDigest().name);
         JsonHandler.setValue(root, FIELDS.PROXIFIED, (Boolean) FIELDS.PROXIFIED.defaultValue);
-        String sep = SEPARATOR_FIELD;
+        String sep = getSEPARATOR_FIELD();
         if (!isVersion2GEQVersion1(R66Versions.V2_4_13.getVersion(), version)) {
             sep = BLANK_SEPARATOR_FIELD;
         }
@@ -132,7 +132,7 @@ public class PartnerConfiguration {
             }
         }
         if (this.isProxified()) {
-            Configuration.configuration.blacklistBadAuthent = false;
+            Configuration.configuration.setBlacklistBadAuthent(false);
         }
         logger.debug("Info HostId: " + root.toString());
     }
@@ -147,10 +147,10 @@ public class PartnerConfiguration {
         JsonHandler.setValue(root, FIELDS.HOSTID, id);
         JsonHandler.setValue(root, FIELDS.VERSION, Version.ID);
         JsonHandler.setValue(root, FIELDS.FILESIZE, true);
-        JsonHandler.setValue(root, FIELDS.FINALHASH, Configuration.configuration.globalDigest);
-        JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.digest.name);
-        JsonHandler.setValue(root, FIELDS.PROXIFIED, Configuration.configuration.isHostProxyfied);
-        JsonHandler.setValue(root, FIELDS.SEPARATOR, SEPARATOR_FIELD);
+        JsonHandler.setValue(root, FIELDS.FINALHASH, Configuration.configuration.isGlobalDigest());
+        JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.getDigest().name);
+        JsonHandler.setValue(root, FIELDS.PROXIFIED, Configuration.configuration.isHostProxyfied());
+        JsonHandler.setValue(root, FIELDS.SEPARATOR, getSEPARATOR_FIELD());
         useJson = true;
         logger.debug("Info HostId: " + root.toString());
     }
@@ -244,7 +244,7 @@ public class PartnerConfiguration {
             return DigestAlgo.valueOf(algo);
         } catch (IllegalArgumentException e) {
         }
-        return Configuration.configuration.digest;
+        return Configuration.configuration.getDigest();
     }
 
     /**
@@ -253,8 +253,8 @@ public class PartnerConfiguration {
      * @return the separator to be used
      */
     public final static String getSeparator(String remoteHost) {
-        logger.debug("Versions: search: " + remoteHost + " in {}", Configuration.configuration.versions);
-        PartnerConfiguration partner = Configuration.configuration.versions.get(remoteHost);
+        logger.debug("Versions: search: " + remoteHost + " in {}", Configuration.configuration.getVersions());
+        PartnerConfiguration partner = Configuration.configuration.getVersions().get(remoteHost);
         if (partner != null) {
             return partner.getSeperator();
         }
@@ -356,10 +356,24 @@ public class PartnerConfiguration {
         logger.debug("UseJson host: '"
                 + host
                 + "':"
-                + (Configuration.configuration.versions.containsKey(host) ?
-                        Configuration.configuration.versions.get(host).useJson() : "no:"
-                                + Configuration.configuration.versions.keySet()));
-        return (Configuration.configuration.versions.containsKey(host) && Configuration.configuration.versions
+                + (Configuration.configuration.getVersions().containsKey(host) ?
+                        Configuration.configuration.getVersions().get(host).useJson() : "no:"
+                                + Configuration.configuration.getVersions().keySet()));
+        return (Configuration.configuration.getVersions().containsKey(host) && Configuration.configuration.getVersions()
                 .get(host).useJson());
+    }
+
+    /**
+     * @return the sEPARATOR_FIELD
+     */
+    public static String getSEPARATOR_FIELD() {
+        return SEPARATOR_FIELD;
+    }
+
+    /**
+     * @param sEPARATOR_FIELD the sEPARATOR_FIELD to set
+     */
+    public static void setSEPARATOR_FIELD(String sEPARATOR_FIELD) {
+        SEPARATOR_FIELD = sEPARATOR_FIELD;
     }
 }

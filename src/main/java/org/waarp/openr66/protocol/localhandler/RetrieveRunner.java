@@ -89,10 +89,6 @@ public class RetrieveRunner extends Thread {
         running.set(false);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Runnable#run()
-     */
     @Override
     public void run() {
         boolean requestValidDone = false;
@@ -146,7 +142,7 @@ public class RetrieveRunner extends Thread {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
-                        Configuration.configuration.TIMEOUTCON)) {
+                        Configuration.configuration.getTIMEOUTCON())) {
                     // valid it however
                     session.getRunner().setAllDone();
                     try {
@@ -164,11 +160,11 @@ public class RetrieveRunner extends Thread {
             } else {
                 if (localChannelReference.getFutureEndTransfer().isDone()) {
                     // Done and Not Success => error
-                    if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                    if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered()) {
                         localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                         ErrorPacket error = new ErrorPacket(
                                 localChannelReference.getErrorMessage(),
-                                localChannelReference.getFutureEndTransfer().getResult().code
+                                localChannelReference.getFutureEndTransfer().getResult().getCode()
                                         .getCode(),
                                 ErrorPacket.FORWARDCLOSECODE);
                         try {
@@ -222,11 +218,11 @@ public class RetrieveRunner extends Thread {
                     }
                 } else {
                     if (localChannelReference.getFutureEndTransfer().isDone()) {
-                        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered()) {
                             localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                             ErrorPacket error = new ErrorPacket(
                                     localChannelReference.getErrorMessage(),
-                                    localChannelReference.getFutureEndTransfer().getResult().code
+                                    localChannelReference.getFutureEndTransfer().getResult().getCode()
                                             .getCode(),
                                     ErrorPacket.FORWARDCLOSECODE);
                             try {

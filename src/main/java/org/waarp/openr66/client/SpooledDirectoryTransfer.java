@@ -154,8 +154,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 
     protected FileMonitor monitor = null;
 
-    public long sent = 0;
-    public long error = 0;
+    private long sent = 0;
+    private long error = 0;
 
     /**
      * @param future
@@ -220,26 +220,26 @@ public class SpooledDirectoryTransfer implements Runnable {
 
     @Override
     public void run() {
-        if (submit && !DbConstant.admin.isActive) {
+        if (submit && !DbConstant.admin.isActive()) {
             logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
             this.future.cancel();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("SpooledDirectoryTransfer.2")));
             }
             return;
         }
-        sent = 0;
-        error = 0;
+        setSent(0);
+        setError(0);
         // first check if rule is for SEND
         DbRule dbrule = null;
         try {
-            dbrule = new DbRule(DbConstant.admin.session, rulename);
+            dbrule = new DbRule(DbConstant.admin.getSession(), rulename);
         } catch (WaarpDatabaseException e1) {
             logger.error(Messages.getString("Transfer.18"), e1); //$NON-NLS-1$
             this.future.setFailure(e1);
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("Transfer.18") + e1.getMessage()));
             }
             return;
@@ -247,8 +247,8 @@ public class SpooledDirectoryTransfer implements Runnable {
         if (dbrule.isRecvMode()) {
             logger.error(Messages.getString("SpooledDirectoryTransfer.5")); //$NON-NLS-1$
             this.future.cancel();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("SpooledDirectoryTransfer.5")));
             }
             return;
@@ -257,8 +257,8 @@ public class SpooledDirectoryTransfer implements Runnable {
         if (status.isDirectory()) {
             logger.error(Messages.getString("SpooledDirectoryTransfer.6")); //$NON-NLS-1$
             this.future.cancel();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("SpooledDirectoryTransfer.6")));
             }
             return;
@@ -267,16 +267,16 @@ public class SpooledDirectoryTransfer implements Runnable {
         if (stop.isDirectory()) {
             logger.error(Messages.getString("SpooledDirectoryTransfer.7")); //$NON-NLS-1$
             this.future.cancel();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("SpooledDirectoryTransfer.7")));
             }
             return;
         } else if (stop.exists()) {
             logger.warn(Messages.getString("SpooledDirectoryTransfer.8")); //$NON-NLS-1$
             this.future.setSuccess();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("SpooledDirectoryTransfer.8")));
             }
             return;
@@ -286,8 +286,8 @@ public class SpooledDirectoryTransfer implements Runnable {
             if (!dir.isDirectory()) {
                 logger.error(Messages.getString("SpooledDirectoryTransfer.9") + " : " + dir); //$NON-NLS-1$
                 this.future.cancel();
-                if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                    Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+                if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                    Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                             .getString("SpooledDirectoryTransfer.9")));
                 }
                 return;
@@ -318,8 +318,8 @@ public class SpooledDirectoryTransfer implements Runnable {
             // wrong
             logger.error(Messages.getString("Configuration.WrongInit") + " : already running");
             this.future.cancel();
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-                Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+                Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(new Exception(Messages
                         .getString("Configuration.WrongInit") + " : already running"));
             }
             return;
@@ -343,8 +343,8 @@ public class SpooledDirectoryTransfer implements Runnable {
                 public void run(FileItem notused) {
                     try {
                         Thread.currentThread().setName("FileMonitorInformation_" + name);
-                        if (DbConstant.admin.session != null && DbConstant.admin.session.isDisActive) {
-                            DbConstant.admin.session.checkConnectionNoException();
+                        if (DbConstant.admin.getSession() != null && DbConstant.admin.getSession().isDisActive()) {
+                            DbConstant.admin.getSession().checkConnectionNoException();
                         }
                         String status = monitorArg.getStatus();
                         if (normalInfoAsWarn) {
@@ -363,11 +363,11 @@ public class SpooledDirectoryTransfer implements Runnable {
                                 BusinessRequest transaction = new BusinessRequest(networkTransaction, future, host,
                                         packet);
                                 transaction.run();
-                                future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON,
+                                future.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON(),
                                         TimeUnit.MILLISECONDS);
                                 while (!future.isDone()) {
                                     logger.warn("Out of time during information to Waarp server: " + host);
-                                    future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON,
+                                    future.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON(),
                                             TimeUnit.MILLISECONDS);
                                 }
                                 if (!future.isSuccess()) {
@@ -377,7 +377,7 @@ public class SpooledDirectoryTransfer implements Runnable {
                                     if (result == null) {
                                         monitorArg.setNextAsFullStatus();
                                     } else {
-                                        status = (String) result.other;
+                                        status = (String) result.getOther();
                                         if (status == null || status.equalsIgnoreCase(NEEDFULL)) {
                                             monitorArg.setNextAsFullStatus();
                                         }
@@ -409,8 +409,8 @@ public class SpooledDirectoryTransfer implements Runnable {
         monitor.start();
         monitor.waitForStopFile();
         this.future.setSuccess();
-        if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-            Configuration.configuration.shutdownConfiguration.serviceFuture.setSuccess();
+        if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
+            Configuration.configuration.getShutdownConfiguration().serviceFuture.setSuccess();
         }
     }
 
@@ -430,9 +430,9 @@ public class SpooledDirectoryTransfer implements Runnable {
         }
 
         public void run(FileItem fileItem) {
-            this.fileItem = fileItem;
-            if (DbConstant.admin.session != null && DbConstant.admin.session.isDisActive) {
-                DbConstant.admin.session.checkConnectionNoException();
+            this.setFileItem(fileItem);
+            if (DbConstant.admin.getSession() != null && DbConstant.admin.getSession().isDisActive()) {
+                DbConstant.admin.getSession().checkConnectionNoException();
             }
             boolean finalStatus = false;
             int ko = 0;
@@ -459,7 +459,7 @@ public class SpooledDirectoryTransfer implements Runnable {
                                 // Transfer try at least once
                                 text = "Request Transfer try Restart: " + specialId + " " + filename + " ";
                                 try {
-                                    String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+                                    String srequester = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
                                             host);
                                     // Try restart
                                     RequestTransfer transaction = new RequestTransfer(future, specialId, host,
@@ -484,14 +484,14 @@ public class SpooledDirectoryTransfer implements Runnable {
                                         transaction2.run();
                                         // special task
                                         future.awaitUninterruptibly();
-                                        if (!DbConstant.admin.isActive) {
+                                        if (!DbConstant.admin.isActive()) {
                                             DbTaskRunner.removeNoDbSpecialId(specialId);
                                         }
                                     }
                                 } catch (WaarpDatabaseException e) {
                                     direct = true;
-                                    if (DbConstant.admin.session != null) {
-                                        DbConstant.admin.session.checkConnectionNoException();
+                                    if (DbConstant.admin.getSession() != null) {
+                                        DbConstant.admin.getSession().checkConnectionNoException();
                                     }
                                     logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
                                 }
@@ -519,10 +519,10 @@ public class SpooledDirectoryTransfer implements Runnable {
                         R66Result r66result = future.getResult();
                         if (future.isSuccess()) {
                             finalStatus = true;
-                            sent++;
+                            setSent(getSent() + 1);
                             DbTaskRunner runner = null;
                             if (r66result != null) {
-                                runner = r66result.runner;
+                                runner = r66result.getRunner();
                                 if (runner != null) {
                                     specialId = runner.getSpecialId();
                                     String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
@@ -534,16 +534,16 @@ public class SpooledDirectoryTransfer implements Runnable {
                                                 + runner.toShortString()
                                                 + "     <REMOTE>" + host + "</REMOTE>"
                                                 + "     <FILEFINAL>" +
-                                                (r66result.file != null ?
-                                                        r66result.file.toString() + "</FILEFINAL>"
+                                                (r66result.getFile() != null ?
+                                                        r66result.getFile().toString() + "</FILEFINAL>"
                                                         : "no file"));
                                     } else {
                                         logger.info(text + " status: " + status + "     "
                                                 + runner.toShortString()
                                                 + "     <REMOTE>" + host + "</REMOTE>"
                                                 + "     <FILEFINAL>" +
-                                                (r66result.file != null ?
-                                                        r66result.file.toString() + "</FILEFINAL>"
+                                                (r66result.getFile() != null ?
+                                                        r66result.getFile().toString() + "</FILEFINAL>"
                                                         : "no file"));
                                     }
                                     if (nolog && !submit) {
@@ -576,7 +576,7 @@ public class SpooledDirectoryTransfer implements Runnable {
                                 }
                             }
                         } else {
-                            error++;
+                            setError(getError() + 1);
                             ko++;
                             DbTaskRunner runner = null;
                             if (r66result != null) {
@@ -584,15 +584,15 @@ public class SpooledDirectoryTransfer implements Runnable {
                                 if (future.getCause() != null) {
                                     errMsg = future.getCause().getMessage();
                                 }
-                                boolean isConnectionImpossible = (r66result.code == ErrorCode.ConnectionImpossible)
+                                boolean isConnectionImpossible = (r66result.getCode() == ErrorCode.ConnectionImpossible)
                                         && !normalInfoAsWarn;
-                                runner = r66result.runner;
+                                runner = r66result.getRunner();
                                 if (runner != null) {
                                     specialId = runner.getSpecialId();
-                                    if (!DbConstant.admin.isActive && remoteHosts.size() > 1) {
+                                    if (!DbConstant.admin.isActive() && remoteHosts.size() > 1) {
                                         DbTaskRunner.removeNoDbSpecialId(specialId);
                                         specialId = DbConstant.ILLEGALVALUE;
-                                    } else if (DbConstant.admin.isActive) {
+                                    } else if (DbConstant.admin.isActive()) {
                                         DbTaskRunner.removeNoDbSpecialId(specialId);
                                     }
                                     if (isConnectionImpossible) {
@@ -899,7 +899,7 @@ public class SpooledDirectoryTransfer implements Runnable {
             }
             // Now set default values from configuration
             Arguments arg = new Arguments();
-            arg.block = Configuration.configuration.BLOCKSIZE;
+            arg.block = Configuration.configuration.getBLOCKSIZE();
             int i = 1;
             try {
                 for (i = 1; i < args.length; i++) {
@@ -995,9 +995,9 @@ public class SpooledDirectoryTransfer implements Runnable {
                 arg.fileInfo = NO_INFO_ARGS;
             }
             if (arg.sname == null) {
-                arg.sname = Configuration.configuration.HOST_ID + " : " + arg.localDirectory;
+                arg.sname = Configuration.configuration.getHOST_ID() + " : " + arg.localDirectory;
             }
-            if (arg.tosubmit && !DbConstant.admin.isActive) {
+            if (arg.tosubmit && !DbConstant.admin.isActive()) {
                 logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
                 return false;
             }
@@ -1038,7 +1038,7 @@ public class SpooledDirectoryTransfer implements Runnable {
         arguments.clear();
         if (!getParams(args)) {
             logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             if (normalStart) {
@@ -1070,13 +1070,13 @@ public class SpooledDirectoryTransfer implements Runnable {
             executorService.shutdown();
             Configuration.configuration.launchStatistics();
             if (normalStart) {
-                while (!executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
-                    Thread.sleep(Configuration.configuration.TIMEOUTCON);
+                while (!executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(), TimeUnit.MILLISECONDS)) {
+                    Thread.sleep(Configuration.configuration.getTIMEOUTCON());
                 }
                 for (SpooledDirectoryTransfer spooledDirectoryTransfer : list) {
                     logger.warn(Messages.getString("SpooledDirectoryTransfer.58") + spooledDirectoryTransfer.name
-                            + ": " + spooledDirectoryTransfer.sent
-                            + " success, " + spooledDirectoryTransfer.error
+                            + ": " + spooledDirectoryTransfer.getSent()
+                            + " success, " + spooledDirectoryTransfer.getError()
                             + Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
                 }
                 list.clear();
@@ -1092,6 +1092,34 @@ public class SpooledDirectoryTransfer implements Runnable {
                 System.exit(0);
             }
         }
+    }
+
+    /**
+     * @return the sent
+     */
+    public long getSent() {
+        return sent;
+    }
+
+    /**
+     * @param sent the sent to set
+     */
+    private void setSent(long sent) {
+        this.sent = sent;
+    }
+
+    /**
+     * @return the error
+     */
+    public long getError() {
+        return error;
+    }
+
+    /**
+     * @param error the error to set
+     */
+    private void setError(long error) {
+        this.error = error;
     }
 
 }

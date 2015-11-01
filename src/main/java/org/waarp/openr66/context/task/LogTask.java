@@ -61,10 +61,6 @@ public class LogTask extends AbstractTask {
         super(TaskType.LOG, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         String finalValue = argRule;

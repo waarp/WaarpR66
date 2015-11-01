@@ -26,7 +26,7 @@ import org.waarp.snmp.interf.WaarpTimeTicks;
  * @author Frederic Bregier
  * 
  */
-public class R66TimeTicks extends WaarpTimeTicks {
+class R66TimeTicks extends WaarpTimeTicks {
 
     private int type = 1;
     private int entry = 0;
@@ -47,19 +47,11 @@ public class R66TimeTicks extends WaarpTimeTicks {
         setInternalValue(value);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue()
-     */
     @Override
     protected void setInternalValue() {
-        Configuration.configuration.monitoring.run(type, entry);
+        Configuration.configuration.getMonitoring().run(type, entry);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.snmp.interf.WaarpGauge32#setInternalValue(long)
-     */
     @Override
     protected void setInternalValue(long value) {
         setValue(value);

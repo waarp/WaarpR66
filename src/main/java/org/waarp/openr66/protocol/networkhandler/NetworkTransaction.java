@@ -142,16 +142,16 @@ public class NetworkTransaction {
         NetworkServerInitializer networkServerInitializer = new NetworkServerInitializer(false);
         clientBootstrap = new Bootstrap();
         WaarpNettyUtil.setBootstrap(clientBootstrap, Configuration.configuration.getNetworkWorkerGroup(),
-                (int) Configuration.configuration.TIMEOUTCON);
+                (int) Configuration.configuration.getTIMEOUTCON());
         clientBootstrap.handler(networkServerInitializer);
         clientSslBootstrap = new Bootstrap();
-        if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
+        if (Configuration.configuration.isUseSSL() && Configuration.configuration.getHOST_SSLID() != null) {
             NetworkSslServerInitializer networkSslServerInitializer = new NetworkSslServerInitializer(true);
             WaarpNettyUtil.setBootstrap(clientSslBootstrap, Configuration.configuration.getNetworkWorkerGroup(),
-                    (int) Configuration.configuration.TIMEOUTCON);
+                    (int) Configuration.configuration.getTIMEOUTCON());
             clientSslBootstrap.handler(networkSslServerInitializer);
         } else {
-            if (Configuration.configuration.warnOnStartup) {
+            if (Configuration.configuration.isWarnOnStartup()) {
                 logger.warn("No SSL support configured");
             } else {
                 logger.info("No SSL support configured");
@@ -308,7 +308,7 @@ public class NetworkTransaction {
                 lastException = e1;
                 localChannelReference = null;
                 try {
-                    Thread.sleep(Configuration.configuration.delayRetry);
+                    Thread.sleep(Configuration.configuration.getDelayRetry());
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -342,11 +342,11 @@ public class NetworkTransaction {
         LocalChannelReference localChannelReference = null;
         boolean ok = false;
         // check valid limit on server side only (could be the initiator but not a client)
-        DbHostAuth auth = isSSL ? Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
+        DbHostAuth auth = isSSL ? Configuration.configuration.getHOST_SSLAUTH() : Configuration.configuration.getHOST_AUTH();
         if (!auth.isClient()) {
             boolean valid = false;
             for (int i = 0; i < Configuration.RETRYNB * 2; i++) {
-                if (Configuration.configuration.constraintLimitHandler.checkConstraintsSleep(i)) {
+                if (Configuration.configuration.getConstraintLimitHandler().checkConstraintsSleep(i)) {
                     logger.debug("Constraints exceeded: " + i);
                 } else {
                     logger.debug("Constraints NOT exceeded");
@@ -368,6 +368,9 @@ public class NetworkTransaction {
                         .getLocalTransaction().createNewClient(networkChannelReference,
                                 ChannelUtils.NOCHANNEL, futureRequest);
             } catch (OpenR66ProtocolSystemException e) {
+                throw new OpenR66ProtocolNetworkException(
+                        "Cannot connect to local channel", e);
+            } catch (NullPointerException e) {
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to local channel", e);
             }
@@ -430,7 +433,7 @@ public class NetworkTransaction {
                 }
                 try {
                     if (isSSL) {
-                        if (Configuration.configuration.HOST_SSLID != null) {
+                        if (Configuration.configuration.getHOST_SSLID() != null) {
                             channelFuture = clientSslBootstrap.connect(socketServerAddress);
                         } else {
                             throw new OpenR66ProtocolNoConnectionException("No SSL support");
@@ -443,7 +446,7 @@ public class NetworkTransaction {
                             "Cannot connect to remote server due to a channel exception");
                 }
                 try {
-                    channelFuture.await(Configuration.configuration.TIMEOUTCON / 3);
+                    channelFuture.await(Configuration.configuration.getTIMEOUTCON() / 3);
                 } catch (InterruptedException e1) {
                 }
                 if (channelFuture.isSuccess()) {
@@ -568,7 +571,7 @@ public class NetworkTransaction {
 
         try {
             DbHostAuth auth = localChannelReference.getNetworkServerHandler().isSsl() ?
-                    Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
+                    Configuration.configuration.getHOST_SSLAUTH() : Configuration.configuration.getHOST_AUTH();
             authent = new AuthentPacket(
                     Configuration.configuration.getHostId(
                             localChannelReference.getNetworkServerHandler().isSsl()),
@@ -621,7 +624,7 @@ public class NetworkTransaction {
                     new OpenR66ProtocolSystemException(
                             "Out of time or Connection invalid during Authentication"),
                     localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
-            logger.info("Authent is Invalid due to: {} {}", finalValue.exception.getMessage(),
+            logger.info("Authent is Invalid due to: {} {}", finalValue.getException().getMessage(),
                     future.toString());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
@@ -702,7 +705,7 @@ public class NetworkTransaction {
             try {
                 timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, false);
                 Configuration.configuration.getTimerClose().newTimeout(timerTask,
-                        Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+                        Configuration.configuration.getTIMEOUTCON() * 3, TimeUnit.MILLISECONDS);
             } catch (OpenR66RunnerErrorException e) {
                 // ignore
             }
@@ -733,7 +736,7 @@ public class NetworkTransaction {
             try {
                 timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, false);
                 Configuration.configuration.getTimerClose().newTimeout(timerTask,
-                        Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+                        Configuration.configuration.getTIMEOUTCON() * 3, TimeUnit.MILLISECONDS);
             } catch (OpenR66RunnerErrorException e) {
                 // ignore
             }
@@ -757,7 +760,7 @@ public class NetworkTransaction {
      */
     public static boolean shuttingDownNetworkChannelBlackList(NetworkChannelReference networkChannelReference) {
         shuttingDownNetworkChannelInternal(networkChannelReference);
-        if (!Configuration.configuration.blacklistBadAuthent) {
+        if (!Configuration.configuration.isBlacklistBadAuthent()) {
             return false;
         }
         if (containsBlacklistNCR(networkChannelReference)) {
@@ -768,7 +771,7 @@ public class NetworkTransaction {
         try {
             timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, true);
             Configuration.configuration.getTimerClose().newTimeout(timerTask,
-                    Configuration.configuration.TIMEOUTCON * 10, TimeUnit.MILLISECONDS);
+                    Configuration.configuration.getTIMEOUTCON() * 10, TimeUnit.MILLISECONDS);
         } catch (OpenR66RunnerErrorException e) {
             // ignore
         }
@@ -781,7 +784,7 @@ public class NetworkTransaction {
      * @return True if this channel is blacklisted
      */
     public static boolean isBlacklisted(Channel channel) {
-        if (!Configuration.configuration.blacklistBadAuthent) {
+        if (!Configuration.configuration.isBlacklistBadAuthent()) {
             return false;
         }
         SocketAddress address = channel.remoteAddress();
@@ -931,7 +934,7 @@ public class NetworkTransaction {
             try {
                 logger.debug("NC count: {}", networkChannelReference);
                 if (networkChannelReference.nbLocalChannels() <= 0) {
-                    long time = networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON * 2);
+                    long time = networkChannelReference.checkLastTime(Configuration.configuration.getTIMEOUTCON() * 2);
                     if (time > Configuration.RETRYINMS) {
                         logger.debug("NC reschedule at " + time + " : {}", networkChannelReference);
                         // will re execute this request later on
@@ -973,9 +976,10 @@ public class NetworkTransaction {
                 try {
                     cfc = new CloseFutureChannel(networkChannelReference);
                     Configuration.configuration.getTimerClose().
-                            newTimeout(cfc, Configuration.configuration.TIMEOUTCON * 2,
+                            newTimeout(cfc, Configuration.configuration.getTIMEOUTCON() * 2,
                                     TimeUnit.MILLISECONDS);
                 } catch (OpenR66RunnerErrorException e) {
+                } catch (IllegalStateException e) {
                 }
             }
             logger.debug("NC left: {}", networkChannelReference);
@@ -1201,7 +1205,7 @@ public class NetworkTransaction {
      */
     public void closeAll(boolean quickShutdown) {
         logger.debug("close All Network Channels");
-        if (!Configuration.configuration.isServer) {
+        if (!Configuration.configuration.isServer()) {
             R66ShutdownHook.shutdownHook.launchFinalExit();
         }
         closeRetrieveExecutors();
@@ -1212,7 +1216,7 @@ public class NetworkTransaction {
         }
         DbAdmin.closeAllConnection();
         Configuration.configuration.clientStop(quickShutdown);
-        if (!Configuration.configuration.isServer) {
+        if (!Configuration.configuration.isServer()) {
             logger.debug("Last action before exit");
             ChannelUtils.stopLogger();
         }

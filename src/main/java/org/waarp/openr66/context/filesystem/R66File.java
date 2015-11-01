@@ -125,9 +125,9 @@ public class R66File extends FilesystemBasedFileImpl {
                 retrieveDone = true;
                 return;
             }
-            if (Configuration.configuration.globalDigest) {
+            if (Configuration.configuration.isGlobalDigest()) {
                 try {
-                    digest = new FilesystemBasedDigest(Configuration.configuration.digest);
+                    digest = new FilesystemBasedDigest(Configuration.configuration.getDigest());
                 } catch (NoSuchAlgorithmException e2) {
                     // ignore
                 }
@@ -137,7 +137,7 @@ public class R66File extends FilesystemBasedFileImpl {
                 block.getBlock().retain();
                 future1 = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
-                if (Configuration.configuration.globalDigest) {
+                if (Configuration.configuration.isGlobalDigest()) {
                     FileUtils.computeGlobalHash(digest, block.getBlock());
                 }
             }
@@ -166,7 +166,7 @@ public class R66File extends FilesystemBasedFileImpl {
                 block.getBlock().retain();
                 future2 = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
-                if (Configuration.configuration.globalDigest) {
+                if (Configuration.configuration.isGlobalDigest()) {
                     FileUtils.computeGlobalHash(digest, block.getBlock());
                 }
                 future1 = future2;
@@ -283,10 +283,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return (R66Session) session;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
-     */
     @Override
     public boolean canRead() throws CommandAbstractException {
         if (isExternal) {
@@ -297,10 +293,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.canRead();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
-     */
     @Override
     public boolean canWrite() throws CommandAbstractException {
         if (isExternal) {
@@ -313,10 +305,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.canWrite();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#delete()
-     */
     @Override
     public boolean delete() throws CommandAbstractException {
         if (isExternal) {
@@ -334,10 +322,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.delete();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#exists()
-     */
     @Override
     public boolean exists() throws CommandAbstractException {
         if (isExternal) {
@@ -347,10 +331,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.exists();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel ()
-     */
     @Override
     protected FileChannel getFileChannel() {
         if (!isExternal) {
@@ -440,10 +420,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return fos;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory ()
-     */
     @Override
     public boolean isDirectory() throws CommandAbstractException {
         if (isExternal) {
@@ -453,10 +429,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.isDirectory();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
-     */
     @Override
     public boolean isFile() throws CommandAbstractException {
         if (isExternal) {
@@ -466,10 +438,6 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.isFile();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#length()
-     */
     @Override
     public long length() throws CommandAbstractException {
         if (isExternal) {
@@ -666,10 +634,6 @@ public class R66File extends FilesystemBasedFileImpl {
         isReady = true;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#closeFile ()
-     */
     @Override
     public boolean closeFile() throws CommandAbstractException {
         boolean status = super.closeFile();

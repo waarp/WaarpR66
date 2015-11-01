@@ -131,11 +131,11 @@ public class HttpTestRestR66Client implements Runnable {
             WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         }
         logger = WaarpLoggerFactory.getLogger(HttpTestRestR66Client.class);
-        Configuration.configuration.HOST_ID = hostid;
+        Configuration.configuration.setHOST_ID(hostid);
         if (args.length > 0) {
             NB = Integer.parseInt(args[0]);
-            if (Configuration.configuration.CLIENT_THREAD < NB) {
-                Configuration.configuration.CLIENT_THREAD = NB + 1;
+            if (Configuration.configuration.getCLIENT_THREAD() < NB) {
+                Configuration.configuration.setCLIENT_THREAD(NB + 1);
             }
             if (args.length > 1) {
                 NBPERTHREAD = Integer.parseInt(args[1]);
@@ -160,7 +160,7 @@ public class HttpTestRestR66Client implements Runnable {
             host = HttpTestR66PseudoMain.config.REST_ADDRESS;
         }
         String filename = keydesfilename;
-        Configuration.configuration.cryptoFile = filename;
+        Configuration.configuration.setCryptoFile(filename);
         File keyfile = new File(filename);
         Des des = new Des();
         try {
@@ -172,11 +172,11 @@ public class HttpTestRestR66Client implements Runnable {
             logger.error("Unable to load CryptoKey from Config file");
             return;
         }
-        Configuration.configuration.cryptoKey = des;
+        Configuration.configuration.setCryptoKey(des);
         HttpRestR66Handler.instantiateHandlers(HttpTestR66PseudoMain.config);
         // Configure the client.
         clientHelper = new HttpRestR66Client(baseURI, new HttpTestRestClientInitializer(null),
-                Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON);
+                Configuration.configuration.getCLIENT_THREAD(), Configuration.configuration.getTIMEOUTCON());
         logger.warn("ClientHelper created");
         try {
             try {
@@ -499,7 +499,7 @@ public class HttpTestRestR66Client implements Runnable {
                 source.put(Columns.ISMOVED.name(), false);
                 source.put(Columns.MODETRANS.name(), 2);
                 source.put(Columns.ORIGINALNAME.name(), "original filename");
-                source.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+                source.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
                 source.put(Columns.SPECIALID.name(), DbConstant.ILLEGALVALUE);
                 source.put(Columns.REQUESTED.name(), hostid);
                 source.put(Columns.REQUESTER.name(), hostid);
@@ -566,7 +566,7 @@ public class HttpTestRestR66Client implements Runnable {
                 break;
             case DbTaskRunner:
                 answer.put(DbTaskRunnerR66RestMethodHandler.FILTER_ARGS.STOPTRANS.name(), new DateTime().toString());
-                answer.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+                answer.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
                 break;
             default:
                 RestFuture restFuture = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
@@ -621,7 +621,7 @@ public class HttpTestRestR66Client implements Runnable {
             args = new HashMap<String, String>();
             args.put(DbTaskRunner.Columns.REQUESTER.name(), hostid);
             args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
-            args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+            args.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
         }
         RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.DELETE, host,
                 data.uri + "/" + item, key, value,
@@ -687,7 +687,7 @@ public class HttpTestRestR66Client implements Runnable {
             args = new HashMap<String, String>();
             args.put(DbTaskRunner.Columns.REQUESTER.name(), hostid);
             args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
-            args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+            args.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
         }
         RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.GET, host, base
                 + "/" + item, key, value,
@@ -713,7 +713,7 @@ public class HttpTestRestR66Client implements Runnable {
             args = new HashMap<String, String>();
             args.put(DbTaskRunner.Columns.REQUESTER.name(), hostid);
             args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
-            args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+            args.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
         }
         // update
         answer.removeAll();
@@ -761,7 +761,7 @@ public class HttpTestRestR66Client implements Runnable {
             args = new HashMap<String, String>();
             args.put(DbTaskRunner.Columns.REQUESTER.name(), hostid);
             args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
-            args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
+            args.put(Columns.OWNERREQ.name(), Configuration.configuration.getHOST_ID());
         }
         RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.DELETE, host, base
                 + "/" + item, key, value,

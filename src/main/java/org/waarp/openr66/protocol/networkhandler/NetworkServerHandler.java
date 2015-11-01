@@ -123,8 +123,8 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             NetworkTransaction.closedNetworkChannel(remoteAddress);
         }
         // Now force the close of the database after a wait
-        if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null
-                && !dbSession.equals(DbConstant.admin.session)) {
+        if (dbSession != null && DbConstant.admin != null && DbConstant.admin.getSession() != null
+                && !dbSession.equals(DbConstant.admin.getSession())) {
             dbSession.forceDisconnect();
             dbSession = null;
         }
@@ -138,8 +138,8 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
         if (NetworkTransaction.isBlacklisted(netChannel)) {
             logger.warn("Connection refused since Partner is BlackListed from " + remoteAddress.toString());
             isBlackListed = true;
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyError(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyError(
                         "Black Listed connection temptative", "During connection");
             }
             // close immediately the connection
@@ -157,30 +157,30 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             return;
         }
         try {
-            if (DbConstant.admin.isActive) {
+            if (DbConstant.admin.isActive()) {
                 if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
                     this.dbSession = new DbSession(DbConstant.admin, false);
                     this.dbSession.useConnection();
                 } else {
                     logger.debug("DbSession will be adjusted on LocalChannelReference");
-                    this.dbSession = DbConstant.admin.session;
+                    this.dbSession = DbConstant.admin.getSession();
                 }
             }
         } catch (WaarpDatabaseNoConnectionException e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");
-            this.dbSession = DbConstant.admin.session;
+            this.dbSession = DbConstant.admin.getSession();
         }
         logger.debug("Network Channel Connected: {} ", ctx.channel().id());
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (Configuration.configuration.isShutdown)
+        if (Configuration.configuration.isShutdown())
             return;
         if (evt instanceof IdleStateEvent) {
             if (this.networkChannelReference != null
-                    && this.networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON * 2) <= 0) {
+                    && this.networkChannelReference.checkLastTime(Configuration.configuration.getTIMEOUTCON() * 2) <= 0) {
                 keepAlivedSent = 0;
                 return;
             }
@@ -193,8 +193,8 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                     }
                 }
                 logger.error("Not getting KAlive: closing channel");
-                if (Configuration.configuration.r66Mib != null) {
-                    Configuration.configuration.r66Mib.notifyWarning(
+                if (Configuration.configuration.getR66Mib() != null) {
+                    Configuration.configuration.getR66Mib().notifyWarning(
                             "KeepAlive get no answer", "Closing network connection");
                 }
                 ChannelCloseTimer.closeFutureChannel(ctx.channel());

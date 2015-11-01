@@ -179,7 +179,7 @@ public class RequestInformation implements Runnable {
         }
 
         // Connection
-        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
                 requested);
         if (host == null) {
             logger.error(Messages.getString("Message.HostNotFound") + requested); //$NON-NLS-1$
@@ -234,7 +234,7 @@ public class RequestInformation implements Runnable {
             if (!OutputFormat.isQuiet()) {
                 System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
             }
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -259,7 +259,7 @@ public class RequestInformation implements Runnable {
             if (result.isSuccess()) {
                 value = 0;
                 R66Result r66result = result.getResult();
-                ValidPacket info = (ValidPacket) r66result.other;
+                ValidPacket info = (ValidPacket) r66result.getOther();
                 outputFormat.setValue(FIELDS.status.name(), 0);
                 outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
                 outputFormat.setValue(FIELDS.remote.name(), srequested);

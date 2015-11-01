@@ -106,7 +106,7 @@ public class ConfigImport implements Runnable {
         this.role = null;
         this.rolePurge = false;
         this.networkTransaction = networkTransaction;
-        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+        this.dbhost = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     public ConfigImport(R66Future future, boolean hostPurge, boolean rulePurge,
@@ -126,7 +126,7 @@ public class ConfigImport implements Runnable {
         this.role = role;
         this.rolePurge = rolePurge;
         this.networkTransaction = networkTransaction;
-        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+        this.dbhost = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     /**
@@ -167,7 +167,7 @@ public class ConfigImport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             dbhost = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         boolean isSSL = dbhost.isSsl();
@@ -181,7 +181,7 @@ public class ConfigImport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             dbhost = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -364,7 +364,7 @@ public class ConfigImport implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -381,14 +381,14 @@ public class ConfigImport implements Runnable {
             transaction.setSpecialIds(lhost, lrule, lbusiness, lalias, lrole);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("ConfigImport in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();
                     System.exit(10);
                 }
             } else {
-                stohost = Configuration.configuration.HOST_SSLID;
+                stohost = Configuration.configuration.getHOST_SSLID();
             }
             transaction.run();
             future.awaitUninterruptibly();
@@ -400,13 +400,13 @@ public class ConfigImport implements Runnable {
                 logger.debug("UseJson: " + useJson);
                 String message = null;
                 if (useJson) {
-                    message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+                    message = (result.getOther() != null ? ((JsonCommandPacket) result.getOther()).getRequest() :
                             "no file");
                 } else {
-                    message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                    message = (result.getOther() != null ? ((ValidPacket) result.getOther()).getSheader() :
                             "no file");
                 }
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("WARNED on import:     " +
                             message
                             + "     delay: " + delay);
@@ -416,14 +416,14 @@ public class ConfigImport implements Runnable {
                             + "     delay: " + delay);
                 }
             } else {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("ConfigImport is     WARNED", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("ConfigImport in     FAILURE", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

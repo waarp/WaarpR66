@@ -69,7 +69,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
         }
         if (!getParams(args, true)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);

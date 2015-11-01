@@ -196,7 +196,7 @@ public class RuleFileBasedConfiguration {
             String delay;
             if (valdelay == null || (valdelay.isEmpty())) {
                 delay = Long
-                        .toString(Configuration.configuration.TIMEOUTCON);
+                        .toString(Configuration.configuration.getTIMEOUTCON());
             } else {
                 delay = valdelay.getIntoString();
             }
@@ -371,28 +371,28 @@ public class RuleFileBasedConfiguration {
         String recvpath;
         value = hash.get(XRECVPATH);
         if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
-            recvpath = Configuration.configuration.inPath;
+            recvpath = Configuration.configuration.getInPath();
         } else {
             recvpath = DirInterface.SEPARATOR + value.getString();
         }
         String sendpath;
         value = hash.get(XSENDPATH);
         if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
-            sendpath = Configuration.configuration.outPath;
+            sendpath = Configuration.configuration.getOutPath();
         } else {
             sendpath = DirInterface.SEPARATOR + value.getString();
         }
         String archivepath;
         value = hash.get(XARCHIVEPATH);
         if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
-            archivepath = Configuration.configuration.archivePath;
+            archivepath = Configuration.configuration.getArchivePath();
         } else {
             archivepath = DirInterface.SEPARATOR + value.getString();
         }
         String workpath;
         value = hash.get(XWORKPATH);
         if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
-            workpath = Configuration.configuration.workingPath;
+            workpath = Configuration.configuration.getWorkingPath();
         } else {
             workpath = DirInterface.SEPARATOR + value.getString();
         }
@@ -448,10 +448,10 @@ public class RuleFileBasedConfiguration {
             }
         }
 
-        newRule = new DbRule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
+        newRule = new DbRule(DbConstant.admin.getSession(), idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, rpretasks, rposttasks, rerrortasks,
                 spretasks, sposttasks, serrortasks);
-        if (DbConstant.admin != null && DbConstant.admin.session != null) {
+        if (DbConstant.admin != null && DbConstant.admin.getSession() != null) {
             if (newRule.exist()) {
                 newRule.update();
             } else {
@@ -486,15 +486,15 @@ public class RuleFileBasedConfiguration {
      */
     private static void addToElement(Element element, DbRule rule) {
         Element root = element;
-        root.add(newElement(XIDRULE, rule.idRule));
+        root.add(newElement(XIDRULE, rule.getIdRule()));
         Element hosts = new DefaultElement(XHOSTIDS);
-        if (rule.idsArray != null) {
-            for (String host : rule.idsArray) {
+        if (rule.getIdsArray() != null) {
+            for (String host : rule.getIdsArray()) {
                 hosts.add(newElement(XHOSTID, host));
             }
         }
         root.add(hosts);
-        root.add(newElement(XMODE, Integer.toString(rule.mode)));
+        root.add(newElement(XMODE, Integer.toString(rule.getMode())));
         String dir = rule.getRuleRecvPath();
         if (dir != null) {
             if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
@@ -530,7 +530,7 @@ public class RuleFileBasedConfiguration {
         Element tasks = new DefaultElement(XRPRETASKS);
         Element roottasks = new DefaultElement(XTASKS);
         int rank = 0;
-        String[][] array = rule.rpreTasksArray;
+        String[][] array = rule.getRpreTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -547,7 +547,7 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
         tasks = new DefaultElement(XRPOSTTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.rpostTasksArray;
+        array = rule.getRpostTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -564,7 +564,7 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
         tasks = new DefaultElement(XRERRORTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.rerrorTasksArray;
+        array = rule.getRerrorTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -581,7 +581,7 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
         tasks = new DefaultElement(XSPRETASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.spreTasksArray;
+        array = rule.getSpreTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -596,7 +596,7 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
         tasks = new DefaultElement(XSPOSTTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.spostTasksArray;
+        array = rule.getSpostTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -613,7 +613,7 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
         tasks = new DefaultElement(XSERRORTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.serrorTasksArray;
+        array = rule.getSerrorTasksArray();
         if (array != null) {
             for (rank = 0; rank < array.length; rank++) {
                 Element task = new DefaultElement(XTASK);
@@ -665,12 +665,12 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.session);
+        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
         for (DbRule rule : rules) {
-            String filename = dir.getAbsolutePath() + File.separator + hostname + "_" + rule.idRule
+            String filename = dir.getAbsolutePath() + File.separator + hostname + "_" + rule.getIdRule()
                     +
                     RuleFileBasedConfiguration.EXT_RULE;
-            logger.debug("Will write Rule: " + rule.idRule + " in " + filename);
+            logger.debug("Will write Rule: " + rule.getIdRule() + " in " + filename);
             RuleFileBasedConfiguration.writeXML(filename, rule);
         }
     }
@@ -692,7 +692,7 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.session);
+        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
         String filename = dir.getAbsolutePath() + File.separator + hostname +
                 RuleFileBasedConfiguration.EXT_RULES;
         Document document = DocumentHelper.createDocument();

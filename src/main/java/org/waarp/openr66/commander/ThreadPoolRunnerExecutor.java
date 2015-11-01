@@ -32,7 +32,7 @@ import org.waarp.openr66.context.ErrorCode;
  * @author Frederic Bregier
  * 
  */
-public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
+class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
 
     /**
      * RejectedExecutionHandler for this ThreadPoolRunnerExecutor

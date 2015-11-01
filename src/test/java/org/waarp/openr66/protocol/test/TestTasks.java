@@ -83,7 +83,7 @@ public class TestTasks {
         R66Session session = new R66Session();
         DbRule rule = new DbRule(null, "idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in,
                 null, null, null, null, null, null);
-        RequestPacket requestPacket = new RequestPacket(rule.idRule, rule.mode, filename,
+        RequestPacket requestPacket = new RequestPacket(rule.getIdRule(), rule.getMode(), filename,
                 Configuration.BUFFERSIZEDEFAULT, (int) size / Configuration.BUFFERSIZEDEFAULT + 1,
                 1, argTransfer, size, PartnerConfiguration.BAR_SEPARATOR_FIELD);
         DbTaskRunner runner = null;

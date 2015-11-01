@@ -59,10 +59,6 @@ public class ExecTask extends AbstractTask {
         super(TaskType.EXEC, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         /*
@@ -76,7 +72,7 @@ public class ExecTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         // Check if the execution will be done through LocalExec daemon
-        if (Configuration.configuration.useLocalExec && useLocalExec) {
+        if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
                 localExecClient

@@ -33,8 +33,8 @@ public class R66Future extends WaarpFuture {
     /**
      * Used in some specific occasion, such as client submission in API mode
      */
-    public DbTaskRunner runner = null;
-    public long filesize = 0;
+    private DbTaskRunner runner = null;
+    private long filesize = 0;
 
     /**
      *
@@ -69,5 +69,33 @@ public class R66Future extends WaarpFuture {
         return "Future: " + isDone() + " " + isSuccess() + " " +
                 (getCause() != null ? getCause().getMessage() : "no cause") +
                 " " + (result != null ? result.toString() : "no result");
+    }
+
+    /**
+     * @return the runner
+     */
+    public DbTaskRunner getRunner() {
+        return runner;
+    }
+
+    /**
+     * @param runner the runner to set
+     */
+    public void setRunner(DbTaskRunner runner) {
+        this.runner = runner;
+    }
+
+    /**
+     * @return the filesize
+     */
+    public long getFilesize() {
+        return filesize;
+    }
+
+    /**
+     * @param filesize the filesize to set
+     */
+    public void setFilesize(long filesize) {
+        this.filesize = filesize;
     }
 }

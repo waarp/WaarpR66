@@ -38,13 +38,6 @@ import org.waarp.openr66.protocol.utils.R66Future;
  */
 public class TestRecvThroughClient extends RecvThroughClient {
     public static class TestRecvThroughHandler extends RecvThroughHandler {
-
-        /*
-         * (non-Javadoc)
-         * @see
-         * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
-         * .ByteBuf)
-         */
         @Override
         public void writeByteBuf(ByteBuf buffer)
                 throws OpenR66ProtocolBusinessException {
@@ -84,7 +77,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
         }
         if (!getParams(args, false)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -107,33 +100,33 @@ public class TestRecvThroughClient extends RecvThroughClient {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Warning with Id: " +
-                            result.runner.getSpecialId() + " on file: " +
-                            (result.file != null ? result.file.toString() : "no file")
+                            result.getRunner().getSpecialId() + " on file: " +
+                            (result.getFile() != null ? result.getFile().toString() : "no file")
                             + " delay: " + delay);
                 } else {
                     logger.warn("Success with Id: " +
-                            result.runner.getSpecialId() + " on Final file: " +
-                            (result.file != null ? result.file.toString() : "no file")
+                            result.getRunner().getSpecialId() + " on Final file: " +
+                            (result.getFile() != null ? result.getFile().toString() : "no file")
                             + " delay: " + delay);
                 }
             } else {
-                if (result == null || result.runner == null) {
+                if (result == null || result.getRunner() == null) {
                     logger.warn("Transfer in Error with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(1);
                 }
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Transfer in Warning with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                            result.getRunner().getSpecialId(), future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("Transfer in Error with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                            result.getRunner().getSpecialId(), future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

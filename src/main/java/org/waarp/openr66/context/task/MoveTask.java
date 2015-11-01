@@ -49,10 +49,6 @@ public class MoveTask extends AbstractTask {
         super(TaskType.MOVE, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("Move with " + argRule + ":" + argTransfer + " and {}",

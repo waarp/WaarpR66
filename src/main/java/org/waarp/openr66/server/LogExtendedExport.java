@@ -141,8 +141,8 @@ public class LogExtendedExport implements Runnable {
     public void setDownloadTryImport(String ruleDownload, boolean tryimport) {
         this.ruleDownload = ruleDownload;
         if (ruleDownload != null && tryimport &&
-                !this.host.getHostid().equals(Configuration.configuration.HOST_ID) &&
-                !this.host.getHostid().equals(Configuration.configuration.HOST_SSLID)) {
+                !this.host.getHostid().equals(Configuration.configuration.getHOST_ID()) &&
+                !this.host.getHostid().equals(Configuration.configuration.getHOST_SSLID())) {
             this.tryimport = tryimport;
         } else {
             this.tryimport = false;
@@ -162,7 +162,7 @@ public class LogExtendedExport implements Runnable {
             future.setResult(new R66Result(
                     new OpenR66ProtocolNoDataException("No action required"),
                     null, true, ErrorCode.IncorrectCommand, null));
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
 
@@ -192,7 +192,7 @@ public class LogExtendedExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             host = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         boolean isSSL = host.isSsl();
@@ -207,7 +207,7 @@ public class LogExtendedExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             host = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -236,8 +236,8 @@ public class LogExtendedExport implements Runnable {
                 return;
             }
         }
-        future.filesize = newFuture.filesize;
-        future.runner = newFuture.runner;
+        future.setFilesize(newFuture.getFilesize());
+        future.setRunner(newFuture.getRunner());
         future.setResult(newFuture.getResult());
         if (newFuture.isSuccess()) {
             future.setSuccess();
@@ -253,7 +253,7 @@ public class LogExtendedExport implements Runnable {
 
     public void importLog(R66Future future) throws OpenR66ProtocolBusinessException {
         if (future.isSuccess()) {
-            JsonCommandPacket packet = (JsonCommandPacket) future.getResult().other;
+            JsonCommandPacket packet = (JsonCommandPacket) future.getResult().getOther();
             if (packet != null) {
                 LogResponseJsonPacket res = (LogResponseJsonPacket) packet.getJsonRequest();
                 String fileExported = res.getFilename();
@@ -264,8 +264,8 @@ public class LogExtendedExport implements Runnable {
                     DirectTransfer transfer = new DirectTransfer(futuretemp, host.getHostid(),
                             fileExported,
                             ruleToExport, "Get Exported Logs from "
-                                    + Configuration.configuration.HOST_ID,
-                            false, Configuration.configuration.BLOCKSIZE,
+                                    + Configuration.configuration.getHOST_ID(),
+                            false, Configuration.configuration.getBLOCKSIZE(),
                             DbConstant.ILLEGALVALUE,
                             networkTransaction);
                     transfer.run();
@@ -276,9 +276,9 @@ public class LogExtendedExport implements Runnable {
                         }
                         throw new OpenR66ProtocolBusinessException("Download of exported logs in error");
                     } else {
-                        logsFile = futuretemp.getResult().file.getTrueFile();
+                        logsFile = futuretemp.getResult().getFile().getTrueFile();
                     }
-                    if (tryimport && DbConstant.admin.isActive) {
+                    if (tryimport && DbConstant.admin.isActive()) {
                         try {
                             DbTaskRunner.loadXml(logsFile);
                         } catch (OpenR66ProtocolBusinessException e) {
@@ -394,7 +394,7 @@ public class LogExtendedExport implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -403,17 +403,17 @@ public class LogExtendedExport implements Runnable {
         DbHostAuth dbhost = null;
         if (stohost != null) {
             try {
-                dbhost = new DbHostAuth(DbConstant.admin.session, stohost);
+                dbhost = new DbHostAuth(DbConstant.admin.getSession(), stohost);
             } catch (WaarpDatabaseException e) {
                 logger.error("Wrong initialization");
-                if (DbConstant.admin != null && DbConstant.admin.isActive) {
+                if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                     DbConstant.admin.close();
                 }
                 System.exit(2);
             }
         } else {
-            dbhost = Configuration.configuration.HOST_SSLAUTH;
-            stohost = Configuration.configuration.HOST_SSLID;
+            dbhost = Configuration.configuration.getHOST_SSLAUTH();
+            stohost = Configuration.configuration.getHOST_SSLID();
         }
         R66Future future = new R66Future(true);
 
@@ -432,26 +432,26 @@ public class LogExtendedExport implements Runnable {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("WARNED on file:     " +
-                            (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+                            (result.getOther() != null ? ((JsonCommandPacket) result.getOther()).getRequest() :
                                     "no file")
                             + "     delay: " + delay);
                 } else {
                     logger.warn("SUCCESS on Final file:     " +
-                            (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+                            (result.getOther() != null ? ((JsonCommandPacket) result.getOther()).getRequest() :
                                     "no file")
                             + "     delay: " + delay);
                 }
             } else {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("LogExtendedExport is     WARNED", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("LogExtendedExport in     FAILURE", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

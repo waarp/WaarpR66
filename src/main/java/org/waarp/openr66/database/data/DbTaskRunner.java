@@ -343,14 +343,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-    /*private static final AtomicLong clientNoDbSpecialIdLast =
-    		new AtomicLong(
-    				System.currentTimeMillis());*/
-
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#initObject()
-     */
     @Override
     protected void initObject() {
         primaryKey = new DbValue[] {
@@ -391,37 +383,21 @@ public class DbTaskRunner extends AbstractDbData {
                 primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3] };
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getSelectAllFields()
-     */
     @Override
     protected String getSelectAllFields() {
         return selectAllFields;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getTable()
-     */
     @Override
     protected String getTable() {
         return table;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getInsertAllValues()
-     */
     @Override
     protected String getInsertAllValues() {
         return insertAllValues;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getUpdateAllFields()
-     */
     @Override
     protected String getUpdateAllFields() {
         return updateAllFields;
@@ -498,10 +474,10 @@ public class DbTaskRunner extends AbstractDbData {
      * @return The Where condition on Primary Key
      */
     protected String getWherePrimaryKey() {
-        return primaryKey[0].column + " = ? AND " +
-                primaryKey[1].column + " = ? AND " +
-                primaryKey[2].column + " = ? AND " +
-                primaryKey[3].column + " = ? ";
+        return primaryKey[0].getColumn() + " = ? AND " +
+                primaryKey[1].getColumn() + " = ? AND " +
+                primaryKey[2].getColumn() + " = ? AND " +
+                primaryKey[3].getColumn() + " = ? ";
     }
 
     /**
@@ -528,7 +504,7 @@ public class DbTaskRunner extends AbstractDbData {
                 return Configuration.configuration.getHostId(session.getAuth()
                         .isSsl());
             } catch (OpenR66ProtocolNoSslException e) {
-                return Configuration.configuration.HOST_ID;
+                return Configuration.configuration.getHOST_ID();
             }
         } else {
             // the request is sent after acknowledge by the requested
@@ -551,7 +527,7 @@ public class DbTaskRunner extends AbstractDbData {
                 return Configuration.configuration.getHostId(session.getAuth()
                         .isSsl());
             } catch (OpenR66ProtocolNoSslException e) {
-                return Configuration.configuration.HOST_ID;
+                return Configuration.configuration.getHOST_ID();
             }
         }
     }
@@ -596,7 +572,7 @@ public class DbTaskRunner extends AbstractDbData {
         super(dbSession);
         this.session = null;
         this.rule = rule;
-        ruleId = this.rule.idRule;
+        ruleId = this.rule.getIdRule();
         rank = requestPacket.getRank();
         status = ErrorCode.Unknown;
         infostatus = ErrorCode.Unknown;
@@ -614,7 +590,7 @@ public class DbTaskRunner extends AbstractDbData {
         // given one
         requestedHostId = requested;
         // always itself
-        ownerRequest = Configuration.configuration.HOST_ID;
+        ownerRequest = Configuration.configuration.getHOST_ID();
 
         if (startTime != null) {
             start = startTime;
@@ -629,11 +605,11 @@ public class DbTaskRunner extends AbstractDbData {
         if (this.rule == null) {
             this.rule = new DbRule(this.dbSession, ruleId);
         }
-        if (mode != rule.mode) {
+        if (mode != rule.getMode()) {
             if (RequestPacket.isMD5Mode(mode)) {
-                mode = RequestPacket.getModeMD5(rule.mode);
+                mode = RequestPacket.getModeMD5(rule.getMode());
             } else {
-                mode = rule.mode;
+                mode = rule.getMode();
             }
         }
         checkThroughMode();
@@ -658,7 +634,7 @@ public class DbTaskRunner extends AbstractDbData {
         this.session = session;
         this.localChannelReference = session.getLocalChannelReference();
         this.rule = rule;
-        ruleId = this.rule.idRule;
+        ruleId = this.rule.getIdRule();
         rank = requestPacket.getRank();
         status = ErrorCode.Unknown;
         infostatus = ErrorCode.Unknown;
@@ -673,7 +649,7 @@ public class DbTaskRunner extends AbstractDbData {
         requesterHostId = getRequester(session, requestPacket);
         requestedHostId = getRequested(session, requestPacket);
         // always itself
-        ownerRequest = Configuration.configuration.HOST_ID;
+        ownerRequest = Configuration.configuration.getHOST_ID();
 
         start = new Timestamp(System.currentTimeMillis());
         setToArray();
@@ -682,11 +658,11 @@ public class DbTaskRunner extends AbstractDbData {
         if (this.rule == null) {
             this.rule = new DbRule(this.dbSession, ruleId);
         }
-        if (mode != rule.mode) {
+        if (mode != rule.getMode()) {
             if (RequestPacket.isMD5Mode(mode)) {
-                mode = RequestPacket.getModeMD5(rule.mode);
+                mode = RequestPacket.getModeMD5(rule.getMode());
             } else {
-                mode = rule.mode;
+                mode = rule.getMode();
             }
         }
         checkThroughMode();
@@ -721,13 +697,13 @@ public class DbTaskRunner extends AbstractDbData {
         requestedHostId = requested;
         requesterHostId = requester;
         // always itself
-        ownerRequest = Configuration.configuration.HOST_ID;
+        ownerRequest = Configuration.configuration.getHOST_ID();
 
         select();
         updateUsed(specialId);
 
         if (rule != null) {
-            if (!ruleId.equals(rule.idRule)) {
+            if (!ruleId.equals(rule.getIdRule())) {
                 throw new WaarpDatabaseNoDataException(
                         "Rule does not correspond");
             }
@@ -752,7 +728,7 @@ public class DbTaskRunner extends AbstractDbData {
         requestedHostId = requested;
         requesterHostId = requester;
         // always itself
-        ownerRequest = Configuration.configuration.HOST_ID;
+        ownerRequest = Configuration.configuration.getHOST_ID();
 
         select();
         updateUsed(specialId);
@@ -777,7 +753,7 @@ public class DbTaskRunner extends AbstractDbData {
         requesterHostId = requester;
         // might be not itself
         if (owner == null || owner.isEmpty()) {
-            ownerRequest = Configuration.configuration.HOST_ID;
+            ownerRequest = Configuration.configuration.getHOST_ID();
         } else {
             ownerRequest = owner;
         }
@@ -842,7 +818,7 @@ public class DbTaskRunner extends AbstractDbData {
                         if (!ignorePrimaryKey) {
                             ownerRequest = item.asText();
                             if (ownerRequest == null || ownerRequest.isEmpty()) {
-                                ownerRequest = Configuration.configuration.HOST_ID;
+                                ownerRequest = Configuration.configuration.getHOST_ID();
                             }
                         }
                         break;
@@ -920,11 +896,11 @@ public class DbTaskRunner extends AbstractDbData {
         isSaved = false;
         try {
             this.rule = new DbRule(dbSession, ruleId);
-            if (mode != rule.mode) {
+            if (mode != rule.getMode()) {
                 if (RequestPacket.isMD5Mode(mode)) {
-                    mode = RequestPacket.getModeMD5(rule.mode);
+                    mode = RequestPacket.getModeMD5(rule.getMode());
                 } else {
-                    mode = rule.mode;
+                    mode = rule.getMode();
                 }
             }
         } catch (WaarpDatabaseException e) {
@@ -962,7 +938,7 @@ public class DbTaskRunner extends AbstractDbData {
         requesterHostId = Configuration.configuration.getHostId(dbSession,
                 requested);
         // always itself
-        ownerRequest = Configuration.configuration.HOST_ID;
+        ownerRequest = Configuration.configuration.getHOST_ID();
 
         select();
         updateUsed(specialId);
@@ -973,7 +949,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return the condition to limit access to the row concerned by the Host
      */
     private static String getLimitWhereCondition() {
-        return " " + Columns.OWNERREQ + " = '" + Configuration.configuration.HOST_ID + "' ";
+        return " " + Columns.OWNERREQ + " = '" + Configuration.configuration.getHOST_ID() + "' ";
     }
 
     /**
@@ -1020,15 +996,11 @@ public class DbTaskRunner extends AbstractDbData {
         dbR66TaskHashMap.updateTtl(specialId);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#delete()
-     */
     @Override
     public void delete() throws WaarpDatabaseException {
         if (dbSession == null || shallIgnoreSave()) {
             removeNoDbSpecialId();
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 deleteXmlWorkNoDb();
             }
             return;
@@ -1066,7 +1038,7 @@ public class DbTaskRunner extends AbstractDbData {
                 createNoDbSpecialId();
             }
             isSaved = true;
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 try {
                     setToArray();
                     this.writeXmlWorkNoDb();
@@ -1084,7 +1056,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
+            specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -1109,7 +1081,7 @@ public class DbTaskRunner extends AbstractDbData {
                 createNoDbSpecialId();
             }
             isSaved = true;
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 try {
                     setToArray();
                     this.writeXmlWorkNoDb();
@@ -1128,7 +1100,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
+            specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
             logger.info("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -1151,11 +1123,11 @@ public class DbTaskRunner extends AbstractDbData {
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
                 try {
                     find.createPrepareStatement("SELECT MAX(" +
-                            primaryKey[3].column + ") FROM " + table + " WHERE " +
-                            primaryKey[0].column + " = ? AND " +
-                            primaryKey[1].column + " = ? AND " +
-                            primaryKey[2].column + " = ? AND " +
-                            primaryKey[3].column + " != ? ");
+                            primaryKey[3].getColumn() + ") FROM " + table + " WHERE " +
+                            primaryKey[0].getColumn() + " = ? AND " +
+                            primaryKey[1].getColumn() + " = ? AND " +
+                            primaryKey[2].getColumn() + " = ? AND " +
+                            primaryKey[3].getColumn() + " != ? ");
                     setPrimaryKey();
                     setValues(find, primaryKey);
                     find.executeQuery();
@@ -1167,7 +1139,7 @@ public class DbTaskRunner extends AbstractDbData {
                             throw new WaarpDatabaseSqlException(e1);
                         }
                         specialId = result + 1;
-                        dbSession.admin.getDbModel().resetSequence(dbSession, specialId + 1);
+                        dbSession.getAdmin().getDbModel().resetSequence(dbSession, specialId + 1);
                         setToArray();
                         preparedStatement.close();
                         setValues(preparedStatement, allFields);
@@ -1192,7 +1164,7 @@ public class DbTaskRunner extends AbstractDbData {
     public boolean exist() throws WaarpDatabaseException {
         boolean shallIgnore = shallIgnoreSave();
         if (dbSession == null || shallIgnore) {
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 return existXmlWorkNoDb();
             }
             if (shallIgnore) {
@@ -1230,7 +1202,7 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public void select() throws WaarpDatabaseException {
         if (dbSession == null) {
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 try {
                     this.loadXmlWorkNoDb();
                     setFromArray();
@@ -1330,7 +1302,7 @@ public class DbTaskRunner extends AbstractDbData {
         boolean shallIgnore = shallIgnoreSave();
         if (dbSession == null || shallIgnore) {
             isSaved = true;
-            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+            if (Configuration.configuration.isSaveTaskRunnerWithNoDb()) {
                 try {
                     setToArray();
                     this.writeXmlWorkNoDb();
@@ -1354,16 +1326,16 @@ public class DbTaskRunner extends AbstractDbData {
         // SNMP notification
         if (updatedInfo == UpdatedInfo.INERROR.ordinal() ||
                 updatedInfo == UpdatedInfo.INTERRUPTED.ordinal()) {
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyInfoTask(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyInfoTask(
                         "Task is " + UpdatedInfo.values()[updatedInfo].name(), this);
             }
         } else {
             if (globalstep != TASKSTEP.TRANSFERTASK.ordinal() ||
                     (globalstep == TASKSTEP.TRANSFERTASK.ordinal() &&
                     (rank % 100 == 0))) {
-                if (Configuration.configuration.r66Mib != null) {
-                    Configuration.configuration.r66Mib.notifyTask(
+                if (Configuration.configuration.getR66Mib() != null) {
+                    Configuration.configuration.getR66Mib().notifyTask(
                             "Task is currently " + UpdatedInfo.values()[updatedInfo].name(), this);
                 }
             }
@@ -1423,7 +1395,7 @@ public class DbTaskRunner extends AbstractDbData {
     public boolean specialSubmit() throws WaarpDatabaseException {
         if (shallIgnoreSave()) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
+                specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
                 logger.debug("Try Insert create a new Id from sequence: " +
                         specialId);
                 setPrimaryKey();
@@ -1567,7 +1539,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         if (limit > 0) {
-            request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
+            request = session.getAdmin().getDbModel().limitRequest(selectAllFields, request, limit);
         }
         return new DbPreparedStatement(session, request);
     }
@@ -1599,7 +1571,7 @@ public class DbTaskRunner extends AbstractDbData {
             request += " WHERE " + getLimitWhereCondition();
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
-        request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
+        request = session.getAdmin().getDbModel().limitRequest(selectAllFields, request, limit);
         return new DbPreparedStatement(session, request);
     }
 
@@ -1636,7 +1608,7 @@ public class DbTaskRunner extends AbstractDbData {
                 start == null && stop == null && rule == null && req == null && all) {
             // finish
             if (limit > 0) {
-                request = preparedStatement.getDbSession().admin.getDbModel().limitRequest(selectAllFields,
+                request = preparedStatement.getDbSession().getAdmin().getDbModel().limitRequest(selectAllFields,
                         request + orderby, limit);
             } else {
                 request = request + orderby;
@@ -1735,7 +1707,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (limit > 0) {
             scondition.insert(0, request).append(orderby);
             request = scondition.toString();
-            request = preparedStatement.getDbSession().admin.getDbModel().limitRequest(selectAllFields,
+            request = preparedStatement.getDbSession().getAdmin().getDbModel().limitRequest(selectAllFields,
                     request, limit);
         } else {
             scondition.insert(0, request).append(orderby);
@@ -1896,7 +1868,7 @@ public class DbTaskRunner extends AbstractDbData {
             request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
         request =
-                session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
+                session.getAdmin().getDbModel().limitRequest(selectAllFields, request, limit);
         DbPreparedStatement pstt = new DbPreparedStatement(session, request);
         return pstt;
     }
@@ -2053,8 +2025,8 @@ public class DbTaskRunner extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
         String requesterd;
-        String from = Configuration.configuration.HOST_ID;
-        String sfrom = Configuration.configuration.HOST_SSLID;
+        String from = Configuration.configuration.getHOST_ID();
+        String sfrom = Configuration.configuration.getHOST_SSLID();
         if (in) {
             requesterd = Columns.REQUESTED.name();
         } else {
@@ -2093,8 +2065,8 @@ public class DbTaskRunner extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
         String requesterd;
-        String from = Configuration.configuration.HOST_ID;
-        String sfrom = Configuration.configuration.HOST_SSLID;
+        String from = Configuration.configuration.getHOST_ID();
+        String sfrom = Configuration.configuration.getHOST_SSLID();
         if (in) {
             requesterd = Columns.REQUESTED.name();
         } else {
@@ -2470,9 +2442,9 @@ public class DbTaskRunner extends AbstractDbData {
         if (!this.isSender) {
             int newrank = this.getRank();
             if (newrank > 0) {
-                logger.debug("Decrease Rank Restart of -" + Configuration.RANKRESTART +
+                logger.debug("Decrease Rank Restart of -" + Configuration.getRANKRESTART() +
                         " from " + newrank);
-                newrank -= Configuration.RANKRESTART;
+                newrank -= Configuration.getRANKRESTART();
                 if (newrank <= 0) {
                     newrank = 1;
                 }
@@ -2551,10 +2523,6 @@ public class DbTaskRunner extends AbstractDbData {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
-     */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
         updatedInfo = info.ordinal();
@@ -3154,9 +3122,9 @@ public class DbTaskRunner extends AbstractDbData {
             case PRETASK:
                 try {
                     if (this.isSender) {
-                        return runNextTask(rule.spreTasksArray);
+                        return runNextTask(rule.getSpreTasksArray());
                     } else {
-                        return runNextTask(rule.rpreTasksArray);
+                        return runNextTask(rule.getRpreTasksArray());
                     }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
@@ -3167,9 +3135,9 @@ public class DbTaskRunner extends AbstractDbData {
             case POSTTASK:
                 try {
                     if (this.isSender) {
-                        return runNextTask(rule.spostTasksArray);
+                        return runNextTask(rule.getSpostTasksArray());
                     } else {
-                        return runNextTask(rule.rpostTasksArray);
+                        return runNextTask(rule.getRpostTasksArray());
                     }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
@@ -3180,9 +3148,9 @@ public class DbTaskRunner extends AbstractDbData {
             case ERRORTASK:
                 try {
                     if (this.isSender) {
-                        return runNextTask(rule.serrorTasksArray);
+                        return runNextTask(rule.getSerrorTasksArray());
                     } else {
-                        return runNextTask(rule.rerrorTasksArray);
+                        return runNextTask(rule.getRerrorTasksArray());
                     }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
@@ -3235,7 +3203,7 @@ public class DbTaskRunner extends AbstractDbData {
             if ((!future.isDone()) || future.isFailed()) {
                 R66Result result = future.getResult();
                 if (result != null) {
-                    infostatus = future.getResult().code;
+                    infostatus = future.getResult().getCode();
                 } else {
                     infostatus = ErrorCode.ExternalOp;
                 }
@@ -3293,7 +3261,7 @@ public class DbTaskRunner extends AbstractDbData {
                 this.saveStatus();
                 // in case of error
                 R66Result error =
-                        new R66Result(this.session, finalValue.isAnswered,
+                        new R66Result(this.session, finalValue.isAnswered(),
                                 ErrorCode.FinalOp, this);
                 if (!isRecvThrough()) {
                     if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
@@ -3308,8 +3276,8 @@ public class DbTaskRunner extends AbstractDbData {
                                         "Cannot move file to final position");
                                 R66Result result = new R66Result(e, session, false,
                                         ErrorCode.FinalOp, this);
-                                result.file = file;
-                                result.runner = this;
+                                result.setFile(file);
+                                result.setRunner(this);
                                 if (localChannelReference != null) {
                                     localChannelReference.invalidateRequest(result);
                                 }
@@ -3319,8 +3287,8 @@ public class DbTaskRunner extends AbstractDbData {
                         } catch (OpenR66ProtocolSystemException e) {
                             R66Result result = new R66Result(e, session, false,
                                     ErrorCode.FinalOp, this);
-                            result.file = file;
-                            result.runner = this;
+                            result.setFile(file);
+                            result.setRunner(this);
                             if (localChannelReference != null) {
                                 localChannelReference.invalidateRequest(result);
                             }
@@ -3330,13 +3298,13 @@ public class DbTaskRunner extends AbstractDbData {
                             R66Result result = new R66Result(
                                     new OpenR66RunnerErrorException(e), session,
                                     false, ErrorCode.FinalOp, this);
-                            result.file = file;
-                            result.runner = this;
+                            result.setFile(file);
+                            result.setRunner(this);
                             if (localChannelReference != null) {
                                 localChannelReference.invalidateRequest(result);
                             }
                             errorTransfer(error, file, localChannelReference);
-                            throw (OpenR66RunnerErrorException) result.exception;
+                            throw (OpenR66RunnerErrorException) result.getException();
                         }
                         logger.debug("File finally moved: {}", file);
                         try {
@@ -3353,32 +3321,32 @@ public class DbTaskRunner extends AbstractDbData {
                             try {
                                 if (!FilesystemBasedDigest.getHex(
                                         FilesystemBasedDigest.getHash(file.getTrueFile(), true,
-                                                Configuration.configuration.digest)).equals(hash)) {
+                                                Configuration.configuration.getDigest())).equals(hash)) {
                                     // KO
                                     R66Result result = new R66Result(
                                             new OpenR66RunnerErrorException("Bad final digest on receive operation"),
                                             session,
                                             false, ErrorCode.FinalOp, this);
-                                    result.file = file;
-                                    result.runner = this;
+                                    result.setFile(file);
+                                    result.setRunner(this);
                                     if (localChannelReference != null) {
                                         localChannelReference.invalidateRequest(result);
                                     }
                                     errorTransfer(error, file, localChannelReference);
-                                    throw (OpenR66RunnerErrorException) result.exception;
+                                    throw (OpenR66RunnerErrorException) result.getException();
                                 }
                             } catch (IOException e) {
                                 R66Result result = new R66Result(
                                         new OpenR66RunnerErrorException("Bad final digest on receive operation", e),
                                         session,
                                         false, ErrorCode.FinalOp, this);
-                                result.file = file;
-                                result.runner = this;
+                                result.setFile(file);
+                                result.setRunner(this);
                                 if (localChannelReference != null) {
                                     localChannelReference.invalidateRequest(result);
                                 }
                                 errorTransfer(error, file, localChannelReference);
-                                throw (OpenR66RunnerErrorException) result.exception;
+                                throw (OpenR66RunnerErrorException) result.getException();
                             }
                         }
                     }
@@ -3393,7 +3361,7 @@ public class DbTaskRunner extends AbstractDbData {
                     if (!file.exists()) {
                         // error
                         R66Result error =
-                                new R66Result(this.session, finalValue.isAnswered,
+                                new R66Result(this.session, finalValue.isAnswered(),
                                         ErrorCode.FileNotFound, this);
                         this.setErrorExecutionStatus(ErrorCode.FileNotFound);
                         errorTransfer(error, file, localChannelReference);
@@ -3402,7 +3370,7 @@ public class DbTaskRunner extends AbstractDbData {
                 } catch (CommandAbstractException e) {
                     // error
                     R66Result error =
-                            new R66Result(this.session, finalValue.isAnswered,
+                            new R66Result(this.session, finalValue.isAnswered(),
                                     ErrorCode.FileNotFound, this);
                     this.setErrorExecutionStatus(ErrorCode.FileNotFound);
                     errorTransfer(error, file, localChannelReference);
@@ -3414,8 +3382,8 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (OpenR66RunnerErrorException e1) {
                 R66Result result = new R66Result(e1, this.session, false,
                         ErrorCode.ExternalOp, this);
-                result.file = file;
-                result.runner = this;
+                result.setFile(file);
+                result.setRunner(this);
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
                 this.saveStatus();
                 errorTransfer(result, file, localChannelReference);
@@ -3454,8 +3422,8 @@ public class DbTaskRunner extends AbstractDbData {
             LocalChannelReference localChannelReference) throws OpenR66RunnerErrorException {
         // error or not ?
         ErrorCode runnerStatus = this.getErrorInfo();
-        if (finalValue.exception != null) {
-            logger.error("Transfer KO on " + file + " due to " + finalValue.exception.getMessage());
+        if (finalValue.getException() != null) {
+            logger.error("Transfer KO on " + file + " due to " + finalValue.getException().getMessage());
         } else {
             logger.error("Transfer KO on " + file + " due to " + finalValue.toString());
         }
@@ -3465,17 +3433,17 @@ public class DbTaskRunner extends AbstractDbData {
             this.deleteTempFile();
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
-            finalValue.isAnswered = true;
+            finalValue.setAnswered(true);
         } else if (runnerStatus == ErrorCode.StoppedTransfer) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
-            finalValue.isAnswered = true;
+            finalValue.setAnswered(true);
         } else if (runnerStatus == ErrorCode.Shutdown) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
-            finalValue.isAnswered = true;
+            finalValue.setAnswered(true);
         }
         logger.debug("status: " + status + " wasNotError:"
                 + (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) +
@@ -3483,17 +3451,17 @@ public class DbTaskRunner extends AbstractDbData {
         if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
             // errorstep was not already executed
             // real error
-            localChannelReference.setErrorMessage(finalValue.getMessage(), finalValue.code);
+            localChannelReference.setErrorMessage(finalValue.getMessage(), finalValue.getCode());
             // First send error mesg
-            if (!finalValue.isAnswered) {
+            if (!finalValue.isAnswered()) {
                 localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                 ErrorPacket errorPacket = new ErrorPacket(finalValue
                         .getMessage(),
-                        finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        finalValue.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                             errorPacket, true);
-                    finalValue.isAnswered = true;
+                    finalValue.setAnswered(true);
                 } catch (OpenR66ProtocolPacketException e1) {
                     // should not be
                 }
@@ -3720,12 +3688,12 @@ public class DbTaskRunner extends AbstractDbData {
                         sdir = rule.getRecvPath();
                     }
                     R66Dir dir;
-                    if (session.dirsFromSession.containsKey(sdir)) {
-                        dir = session.dirsFromSession.get(sdir);
+                    if (session.getDirsFromSession().containsKey(sdir)) {
+                        dir = session.getDirsFromSession().get(sdir);
                     } else {
                         dir = new R66Dir(session);
                         dir.changeDirectory(sdir);
-                        session.dirsFromSession.put(sdir, dir);
+                        session.getDirsFromSession().put(sdir, dir);
                     }
                     freespace = dir.getFreeSpace();
                 } catch (CommandAbstractException e) {
@@ -3904,11 +3872,11 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if the current host is the requested host (to prevent request to itself)
      */
     public boolean isSelfRequested() {
-        if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) ||
-                this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
+        if (this.requestedHostId.equals(Configuration.configuration.getHOST_ID()) ||
+                this.requestedHostId.equals(Configuration.configuration.getHOST_SSLID())) {
             // check if not calling itself
-            return (!this.requesterHostId.equals(Configuration.configuration.HOST_ID) && !this.requesterHostId
-                    .equals(Configuration.configuration.HOST_SSLID));
+            return (!this.requesterHostId.equals(Configuration.configuration.getHOST_ID()) && !this.requesterHostId
+                    .equals(Configuration.configuration.getHOST_SSLID()));
         }
         return false;
     }
@@ -3927,10 +3895,10 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if the request is a self request (same host on both side)
      */
     public boolean isSelfRequest() {
-        return ((this.requestedHostId.equals(Configuration.configuration.HOST_ID) || this.requestedHostId
-                .equals(Configuration.configuration.HOST_SSLID)) && (this.requesterHostId
-                .equals(Configuration.configuration.HOST_ID) || this.requesterHostId
-                .equals(Configuration.configuration.HOST_SSLID)));
+        return ((this.requestedHostId.equals(Configuration.configuration.getHOST_ID()) || this.requestedHostId
+                .equals(Configuration.configuration.getHOST_SSLID())) && (this.requesterHostId
+                .equals(Configuration.configuration.getHOST_ID()) || this.requesterHostId
+                .equals(Configuration.configuration.getHOST_SSLID())));
     }
 
     /**
@@ -3978,8 +3946,8 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public RequestPacket getRequest() {
         String sep = null;
-        if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) ||
-                this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
+        if (this.requestedHostId.equals(Configuration.configuration.getHOST_ID()) ||
+                this.requestedHostId.equals(Configuration.configuration.getHOST_SSLID())) {
             sep = PartnerConfiguration.getSeparator(this.requesterHostId);
         } else {
             sep = PartnerConfiguration.getSeparator(this.requestedHostId);
@@ -4023,11 +3991,11 @@ public class DbTaskRunner extends AbstractDbData {
             throws WaarpDatabaseSqlException {
         Element root = new DefaultElement(XMLRUNNER);
         for (DbValue value : runner.allFields) {
-            if (value.column.equals(Columns.UPDATEDINFO.name()) ||
-                    value.column.equals(Columns.TRANSFERINFO.name())) {
+            if (value.getColumn().equals(Columns.UPDATEDINFO.name()) ||
+                    value.getColumn().equals(Columns.TRANSFERINFO.name())) {
                 continue;
             }
-            root.add(newElement(value.column.toLowerCase(), value
+            root.add(newElement(value.getColumn().toLowerCase(), value
                     .getValueAsString()));
         }
         return root;
@@ -4044,11 +4012,11 @@ public class DbTaskRunner extends AbstractDbData {
     private static void setRunnerFromElement(DbTaskRunner runner, Element root)
             throws WaarpDatabaseSqlException {
         for (DbValue value : runner.allFields) {
-            if (value.column.equals(Columns.UPDATEDINFO.name()) ||
-                    value.column.equals(Columns.TRANSFERINFO.name())) {
+            if (value.getColumn().equals(Columns.UPDATEDINFO.name()) ||
+                    value.getColumn().equals(Columns.TRANSFERINFO.name())) {
                 continue;
             }
-            Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
+            Element elt = (Element) root.selectSingleNode(value.getColumn().toLowerCase());
             if (elt != null) {
                 String newValue = elt.getText();
                 value.setValueFromString(newValue);
@@ -4228,7 +4196,7 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement = new DbPreparedStatement(
-                    DbConstant.admin.session);
+                    DbConstant.admin.getSession());
             preparedStatement.createPrepareStatement(request);
             writeXMLWriter(preparedStatement, filename);
         } finally {
@@ -4243,8 +4211,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @return the backend XML filename for the current TaskRunner in NoDb Client mode
      */
     public String backendXmlFilename() {
-        return Configuration.configuration.baseDirectory +
-                Configuration.configuration.archivePath + R66Dir.SEPARATOR +
+        return Configuration.configuration.getBaseDirectory() +
+                Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
                 this.requesterHostId + "_" + this.requestedHostId + "_" + this.ruleId + "_"
                 + this.specialId
                 + XMLEXTENSION;
@@ -4315,11 +4283,11 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private static void setRunnerFromElementNoException(DbTaskRunner runner, Element root) {
         for (DbValue value : runner.allFields) {
-            if (value.column.equals(Columns.UPDATEDINFO.name()) ||
-                    value.column.equals(Columns.TRANSFERINFO.name())) {
+            if (value.getColumn().equals(Columns.UPDATEDINFO.name()) ||
+                    value.getColumn().equals(Columns.TRANSFERINFO.name())) {
                 continue;
             }
-            Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
+            Element elt = (Element) root.selectSingleNode(value.getColumn().toLowerCase());
             if (elt != null) {
                 String newValue = elt.getText();
                 try {
@@ -4356,7 +4324,7 @@ public class DbTaskRunner extends AbstractDbData {
             logger.error("Cannot read XML", e);
             throw new OpenR66ProtocolBusinessException("Cannot read XML: " + e.getMessage());
         }
-        runner.ownerRequest = Configuration.configuration.HOST_ID;
+        runner.ownerRequest = Configuration.configuration.getHOST_ID();
         if (reverse) {
             runner.isSender = !runner.isSender;
             if (runner.isSender) {
@@ -4522,7 +4490,7 @@ public class DbTaskRunner extends AbstractDbData {
         boolean error = false;
         Exception one = null;
         for (Element element : elts) {
-            DbTaskRunner runnerlog = new DbTaskRunner(DbConstant.admin.session);
+            DbTaskRunner runnerlog = new DbTaskRunner(DbConstant.admin.getSession());
             try {
                 setRunnerFromElement(runnerlog, element);
                 runnerlog.setFromArray();

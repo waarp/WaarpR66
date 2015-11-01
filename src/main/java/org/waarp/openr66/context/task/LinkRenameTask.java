@@ -52,10 +52,6 @@ public class LinkRenameTask extends AbstractTask {
         super(TaskType.LINKRENAME, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         String finalname = argRule;

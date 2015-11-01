@@ -86,7 +86,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
     }
 
     public void initRequest() throws OpenR66ProtocolNoConnectionException {
-        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
                 remoteHost);
         if (host == null) {
             future.setResult(null);
@@ -146,7 +146,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();

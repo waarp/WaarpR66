@@ -86,7 +86,7 @@ public class LogExport implements Runnable {
         this.start = start;
         this.stop = stop;
         this.networkTransaction = networkTransaction;
-        this.host = Configuration.configuration.HOST_SSLAUTH;
+        this.host = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     public void setHost(DbHostAuth host) {
@@ -114,18 +114,18 @@ public class LogExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             host = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         boolean isSSL = host.isSsl();
 
         // first clean if ask
-        if (clean && (host.getHostid().equals(Configuration.configuration.HOST_ID)
-                || host.getHostid().equals(Configuration.configuration.HOST_SSLID))) {
+        if (clean && (host.getHostid().equals(Configuration.configuration.getHOST_ID())
+                || host.getHostid().equals(Configuration.configuration.getHOST_SSLID()))) {
             // Update all UpdatedInfo to DONE
             // where GlobalLastStep = ALLDONETASK and status = CompleteOk
             try {
-                DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+                DbTaskRunner.changeFinishedToDone(DbConstant.admin.getSession());
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.warn("Clean cannot be done {}", e.getMessage());
             }
@@ -139,7 +139,7 @@ public class LogExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             host = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -222,7 +222,7 @@ public class LogExport implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -238,14 +238,14 @@ public class LogExport implements Runnable {
                     networkTransaction);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("LogExport in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();
                     System.exit(10);
                 }
             } else {
-                stohost = Configuration.configuration.HOST_SSLID;
+                stohost = Configuration.configuration.getHOST_SSLID();
             }
             transaction.run();
             future.awaitUninterruptibly();
@@ -253,26 +253,26 @@ public class LogExport implements Runnable {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("WARNED on file:     " +
-                            (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                            (result.getOther() != null ? ((ValidPacket) result.getOther()).getSheader() :
                                     "no file")
                             + "     delay: " + delay);
                 } else {
                     logger.warn("SUCCESS on Final file:     " +
-                            (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                            (result.getOther() != null ? ((ValidPacket) result.getOther()).getSheader() :
                                     "no file")
                             + "     delay: " + delay);
                 }
             } else {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("LogExport is     WARNED", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("LogExport in     FAILURE", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

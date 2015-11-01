@@ -68,8 +68,8 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             logger.warn("Connection refused since Partner is in BlackListed from "
                     + networkChannel.remoteAddress().toString());
             isBlackListed = true;
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyError(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyError(
                         "Black Listed connection temptative", "During Handshake");
             }
             // close immediately the connection
@@ -84,8 +84,8 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             sslHandler.handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
                 public void operationComplete(Future<? super Channel> future) throws Exception {
                     if (!future.isSuccess()) {
-                        if (Configuration.configuration.r66Mib != null) {
-                            Configuration.configuration.r66Mib.notifyError(
+                        if (Configuration.configuration.getR66Mib() != null) {
+                            Configuration.configuration.getR66Mib().notifyError(
                                     "SSL Connection Error", "During Handshake");
                         }
                     }

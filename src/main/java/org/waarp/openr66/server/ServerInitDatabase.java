@@ -107,7 +107,7 @@ public class ServerInitDatabase {
         }
         if (!getParams(args)) {
             logger.error(_INFO_ARGS);
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -228,8 +228,8 @@ public class ServerInitDatabase {
                 }
                 DbHostConfiguration hostConfiguration = null;
                 try {
-                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.session,
-                            Configuration.configuration.HOST_ID);
+                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
+                            Configuration.configuration.getHOST_ID());
                     if (salias != null) {
                         hostConfiguration.setAliases(salias);
                     }
@@ -241,8 +241,8 @@ public class ServerInitDatabase {
                     }
                     hostConfiguration.update();
                 } catch (WaarpDatabaseException e) {
-                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.session,
-                            Configuration.configuration.HOST_ID,
+                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
+                            Configuration.configuration.getHOST_ID(),
                             sbusiness, sroles, salias, null);
                     try {
                         hostConfiguration.insert();
@@ -262,7 +262,7 @@ public class ServerInitDatabase {
 
     public static void initdb() throws WaarpDatabaseNoConnectionException {
         // Create tables: configuration, hosts, rules, runner, cptrunner
-        DbConstant.admin.session.admin.getDbModel().createTables(DbConstant.admin.session);
+        DbConstant.admin.getSession().getAdmin().getDbModel().createTables(DbConstant.admin.getSession());
     }
 
     /**
@@ -277,12 +277,12 @@ public class ServerInitDatabase {
         boolean uptodate = true;
         // Check if the database is up to date
         String version = DbHostConfiguration
-                .getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+                .getVersionDb(DbConstant.admin.getSession(), Configuration.configuration.getHOST_ID());
         try {
             if (version != null) {
-                uptodate = DbConstant.admin.session.admin.getDbModel().needUpgradeDb(DbConstant.admin.session, version, true);
+                uptodate = DbConstant.admin.getSession().getAdmin().getDbModel().needUpgradeDb(DbConstant.admin.getSession(), version, true);
             } else {
-                uptodate = DbConstant.admin.session.admin.getDbModel().needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+                uptodate = DbConstant.admin.getSession().getAdmin().getDbModel().needUpgradeDb(DbConstant.admin.getSession(), "1.1.0", true);
             }
             if (uptodate) {
                 logger.error(Messages.getString("ServerInitDatabase.SchemaNotUptodate")); //$NON-NLS-1$

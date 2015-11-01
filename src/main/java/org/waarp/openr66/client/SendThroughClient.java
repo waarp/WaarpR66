@@ -148,7 +148,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
+            rule = new DbRule(DbConstant.admin.getSession(), rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -156,7 +156,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             future.setFailure(e);
             return false;
         }
-        int mode = rule.mode;
+        int mode = rule.getMode();
         if (isMD5) {
             mode = RequestPacket.getModeMD5(mode);
         }
@@ -170,7 +170,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             try {
                 // no starttime since immediate
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.session, rule, isSender, request,
+                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isSender, request,
                                 remoteHost, null);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
@@ -283,7 +283,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
-                        Configuration.configuration.TIMEOUTCON)) {
+                        Configuration.configuration.getTIMEOUTCON())) {
                     // valid it however
                     localChannelReference.validateRequest(localChannelReference
                             .getFutureEndTransfer().getResult());
@@ -312,7 +312,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
      * @param e
      */
     public void transferInError(OpenR66Exception e) {
-        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered()) {
             R66Result result = new R66Result(e, localChannelReference.getSession(), true,
                     ErrorCode.TransferError, taskRunner);
             logger.error("Transfer in error", e);

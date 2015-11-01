@@ -97,10 +97,6 @@ public class ShutdownPacket extends AbstractLocalPacket {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "ShutdownPacket" + (restart != 0 ? " and restart" : "");

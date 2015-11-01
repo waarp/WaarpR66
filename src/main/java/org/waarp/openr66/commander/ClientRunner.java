@@ -110,13 +110,9 @@ public class ClientRunner extends Thread {
         return localChannelReference;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Runnable#run()
-     */
     @Override
     public void run() {
-        if (Configuration.configuration.isShutdown) {
+        if (Configuration.configuration.isShutdown()) {
             taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
             taskRunner.forceSaveStatus();
             return;
@@ -161,7 +157,7 @@ public class ClientRunner extends Thread {
             }
             R66Result result = transfer.getResult();
             if (result != null) {
-                if (result.code == ErrorCode.QueryAlreadyFinished) {
+                if (result.getCode() == ErrorCode.QueryAlreadyFinished) {
                     logger.warn(Messages.getString("Transfer.Status")
                             +
                             (transfer.isSuccess() ? Messages.getString("RequestInformation.Success") : Messages
@@ -247,7 +243,7 @@ public class ClientRunner extends Thread {
         if (localChannelReference.getFutureValidRequest().isSuccess()) {
             return finishTransfer(localChannelReference);
         } else if (localChannelReference.getFutureValidRequest().getResult() != null &&
-                localChannelReference.getFutureValidRequest().getResult().code == ErrorCode.ServerOverloaded) {
+                localChannelReference.getFutureValidRequest().getResult().getCode() == ErrorCode.ServerOverloaded) {
             return tryAgainTransferOnOverloaded(true, localChannelReference);
         } else
             return finishTransfer(localChannelReference);
@@ -289,7 +285,7 @@ public class ClientRunner extends Thread {
         // redo if possible
         if (retry && incRetry) {
             try {
-                Thread.sleep(Configuration.configuration.constraintLimitHandler
+                Thread.sleep(Configuration.configuration.getConstraintLimitHandler()
                         .getSleepTime());
             } catch (InterruptedException e) {
             }
@@ -340,7 +336,7 @@ public class ClientRunner extends Thread {
                 taskRunner.select();
             } catch (WaarpDatabaseException e) {
                 logger.debug("Not a problem but cannot find at the end the task");
-                taskRunner.setFrom(transfer.runner);
+                taskRunner.setFrom(transfer.getRunner());
             }
             taskRunner.setSender(isSender);
             this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk, false);
@@ -349,7 +345,7 @@ public class ClientRunner extends Thread {
                 taskRunner.select();
             } catch (WaarpDatabaseException e) {
                 logger.debug("Not a problem but cannot find at the end the task");
-                taskRunner.setFrom(transfer.runner);
+                taskRunner.setFrom(transfer.getRunner());
             }
             taskRunner.setSender(isSender);
             // Case when we were interrupted
@@ -375,7 +371,7 @@ public class ClientRunner extends Thread {
                 }
                 return transfer;
             }
-            if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
+            if (transfer.getResult().getCode() == ErrorCode.QueryAlreadyFinished) {
                 // check if post task to execute
                 logger.warn("WARN QueryAlreadyFinished:     " +
                         transfer.toString() + "     " +
@@ -396,7 +392,7 @@ public class ClientRunner extends Thread {
                         break;
                     default:
                         this.changeUpdatedInfo(UpdatedInfo.INERROR,
-                                transfer.getResult().code, false);
+                                transfer.getResult().getCode(), false);
                 }
             }
         }
@@ -444,7 +440,7 @@ public class ClientRunner extends Thread {
             throw new OpenR66ProtocolNoConnectionException(
                     "Requested host cannot initiate itself the request");
         }
-        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
                 taskRunner.getRequested());
         if (host == null) {
             logger.error("Requested host cannot be found: " +
@@ -476,7 +472,7 @@ public class ClientRunner extends Thread {
                 retry = " but will retry";
                 // now wait
                 try {
-                    Thread.sleep(Configuration.configuration.delayRetry);
+                    Thread.sleep(Configuration.configuration.getDelayRetry());
                 } catch (InterruptedException e) {
                     logger.debug(
                             "Will not retry since limit of connection attemtps is reached for {}",

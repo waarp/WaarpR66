@@ -490,7 +490,7 @@ public class FileUtils {
     public final static String getHash(File f) throws OpenR66ProtocolSystemException {
         try {
             return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
-                    FilesystemBasedFileParameterImpl.useNio, Configuration.configuration.digest));
+                    FilesystemBasedFileParameterImpl.useNio, Configuration.configuration.getDigest()));
         } catch (IOException e) {
             throw new OpenR66ProtocolSystemException(e);
         }

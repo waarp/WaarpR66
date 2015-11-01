@@ -73,7 +73,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
      */
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpRestR66Handler.class);
 
-    public static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
+    private static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
 
     public static enum RESTHANDLERS {
         DbHostAuth(DbHostAuthR66RestMethodHandler.BASEURI, org.waarp.openr66.database.data.DbHostAuth.class),
@@ -253,7 +253,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     /**
      * Server Actions handler
      */
-    public ServerActions serverHandler = new ServerActions();
+    private ServerActions serverHandler = new ServerActions();
 
     @Override
     protected void checkConnection(ChannelHandlerContext ctx) throws HttpInvalidAuthenticationException {
@@ -268,11 +268,11 @@ public class HttpRestR66Handler extends HttpRestHandler {
             }
             DbHostAuth host;
             try {
-                host = new DbHostAuth(DbConstant.admin.session, user);
+                host = new DbHostAuth(DbConstant.admin.getSession(), user);
                 key = new String(host.getHostkey(), WaarpStringUtils.UTF8);
             } catch (WaarpDatabaseException e) {
                 // might be global Admin
-                if (user.equals(Configuration.configuration.ADMINNAME)) {
+                if (user.equals(Configuration.configuration.getADMINNAME())) {
                     key = new String(Configuration.configuration.getSERVERADMINKEY(), WaarpStringUtils.UTF8);
                 }
             }
@@ -287,25 +287,25 @@ public class HttpRestR66Handler extends HttpRestHandler {
             }
         } else {
             // User set only for right access, not for signature check
-            user = Configuration.configuration.ADMINNAME;
+            user = Configuration.configuration.getADMINNAME();
             if (restConfiguration.REST_SIGNATURE) {
                 arguments.checkBaseAuthent(restConfiguration.hmacSha256, null, restConfiguration.REST_TIME_LIMIT);
             } else {
                 arguments.checkTime(restConfiguration.REST_TIME_LIMIT);
             }
         }
-        serverHandler.newSession();
-        R66Session session = serverHandler.getSession();
+        getServerHandler().newSession();
+        R66Session session = getServerHandler().getSession();
         if (!restConfiguration.REST_AUTHENTICATED) {
             // Default is Admin
-            session.getAuth().specialNoSessionAuth(true, Configuration.configuration.HOST_SSLID);
+            session.getAuth().specialNoSessionAuth(true, Configuration.configuration.getHOST_SSLID());
         } else {
             // we have one DbSession per connection, only after authentication
-            DbSession temp = dbSessionFromUser.get(user);
+            DbSession temp = getDbSessionFromUser().get(user);
             if (temp == null) {
                 try {
                     temp = new DbSession(DbConstant.admin, false);
-                    dbSessionFromUser.put(user, temp);
+                    getDbSessionFromUser().put(user, temp);
                 } catch (WaarpDatabaseNoConnectionException e) {
                 }
             }
@@ -332,7 +332,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        serverHandler.channelClosed(ctx);
+        getServerHandler().channelClosed(ctx);
     }
 
     /**
@@ -357,10 +357,10 @@ public class HttpRestR66Handler extends HttpRestHandler {
         // Configure the server.
         ServerBootstrap httpBootstrap = new ServerBootstrap();
         WaarpNettyUtil.setServerBootstrap(httpBootstrap, Configuration.configuration.getHttpBossGroup(),
-                Configuration.configuration.getHttpWorkerGroup(), (int) Configuration.configuration.TIMEOUTCON);
+                Configuration.configuration.getHttpWorkerGroup(), (int) Configuration.configuration.getTIMEOUTCON());
         // Set up the event pipeline factory.
         if (restConfiguration.REST_SSL) {
-            httpBootstrap.childHandler(new HttpRestR66Initializer(false, Configuration.waarpSslContextFactory,
+            httpBootstrap.childHandler(new HttpRestR66Initializer(false, Configuration.getWaarpSslContextFactory(),
                     restConfiguration));
         } else {
             httpBootstrap.childHandler(new HttpRestR66Initializer(false, null, restConfiguration));
@@ -381,5 +381,19 @@ public class HttpRestR66Handler extends HttpRestHandler {
         if (future.isSuccess()) {
             group.add(future.channel());
         }
+    }
+
+    /**
+     * @return the dbSessionFromUser
+     */
+    public static HashMap<String, DbSession> getDbSessionFromUser() {
+        return dbSessionFromUser;
+    }
+
+    /**
+     * @return the serverHandler
+     */
+    public ServerActions getServerHandler() {
+        return serverHandler;
     }
 }

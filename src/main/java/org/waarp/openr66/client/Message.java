@@ -136,7 +136,7 @@ public class Message implements Runnable {
         // Connection
         DbHostAuth host = null;
         if (hostAuth == null) {
-            host = R66Auth.getServerAuth(DbConstant.admin.session,
+            host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
                     requested);
         } else {
             host = hostAuth;
@@ -191,7 +191,7 @@ public class Message implements Runnable {
         }
         if (!getParams(args)) {
             logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -212,7 +212,7 @@ public class Message implements Runnable {
             if (result.isSuccess()) {
                 value = 0;
                 R66Result r66result = result.getResult();
-                ValidPacket info = (ValidPacket) r66result.other;
+                ValidPacket info = (ValidPacket) r66result.getOther();
                 logger.warn(Messages.getString("Message.11") + Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
                 if (!OutputFormat.isQuiet()) {
                     System.out

@@ -125,10 +125,6 @@ public class EndRequestPacket extends AbstractLocalPacket {
         return LocalPacketFactory.ENDREQUESTPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "EndRequestPacket: " + code + " " + way + (optional != null ? " " + optional : "");

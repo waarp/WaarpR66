@@ -24,7 +24,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.util.HashedWheelTimer;
 
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -36,11 +35,6 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * @author Frederic Bregier
  */
 public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> {
-    /**
-     * Global HashedWheelTimer
-     */
-    public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
-
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
     public static final String LIMIT = "LIMIT";
@@ -56,7 +50,7 @@ public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> 
     protected void initChannel(SocketChannel ch) throws Exception {
         final ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
-        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0, Configuration.configuration.TIMEOUTCON,
+        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0, Configuration.configuration.getTIMEOUTCON(),
                 TimeUnit.MILLISECONDS));
         GlobalTrafficHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {

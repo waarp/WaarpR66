@@ -89,10 +89,6 @@ public class KeepAlivePacket extends AbstractLocalPacket {
         return LocalPacketFactory.KEEPALIVEPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "KeepAlivePacket: " + way;

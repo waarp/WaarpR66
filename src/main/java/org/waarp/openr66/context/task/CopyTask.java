@@ -49,10 +49,6 @@ public class CopyTask extends AbstractTask {
         super(TaskType.COPY, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",

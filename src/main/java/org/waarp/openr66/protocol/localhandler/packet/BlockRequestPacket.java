@@ -81,10 +81,6 @@ public class BlockRequestPacket extends AbstractLocalPacket {
         middle = Unpooled.EMPTY_BUFFER;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "BlockRequestPacket: " + block;

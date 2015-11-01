@@ -131,10 +131,6 @@ public class RescheduleTransferTask extends AbstractTask {
         super(TaskType.RESCHEDULE, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("Reschedule with " + argRule + ":" + argTransfer +

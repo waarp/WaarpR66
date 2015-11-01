@@ -103,7 +103,7 @@ public class TestTransaction implements Runnable {
                     .error("Needs a correct configuration file as first argument");
             return;
         }
-        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        DbHostAuth host = Configuration.configuration.getHOST_AUTH();
         final SocketAddress socketServerAddress;
         try {
             socketServerAddress = host.getSocketAddress();

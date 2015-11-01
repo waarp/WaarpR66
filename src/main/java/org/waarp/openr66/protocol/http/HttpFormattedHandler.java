@@ -123,17 +123,17 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
          * @return the content of the unique file
          */
         public String readFileUnique(HttpFormattedHandler handler) {
-            return handler.readFileHeader(Configuration.configuration.httpBasePath + "monitor/"
+            return handler.readFileHeader(Configuration.configuration.getHttpBasePath() + "monitor/"
                     + this.header);
         }
 
         public String readHeader(HttpFormattedHandler handler) {
-            return handler.readFileHeader(Configuration.configuration.httpBasePath + "monitor/"
+            return handler.readFileHeader(Configuration.configuration.getHttpBasePath() + "monitor/"
                     + this.header);
         }
 
         public String readEnd() {
-            return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + "monitor/"
+            return WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + "monitor/"
                     + this.end);
         }
     }
@@ -145,9 +145,9 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
     public static final int LIMITROW = 60; // better if it can be divided by 4
     private static final String I18NEXT = "i18next";
 
-    public final R66Session authentHttp = new R66Session();
+    private final R66Session authentHttp = new R66Session();
 
-    private String lang = Messages.slocale;
+    private String lang = Messages.getSlocale();
 
     private FullHttpRequest request;
 
@@ -164,7 +164,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * The Database connection attached to this NetworkChannelReference shared among all associated
      * LocalChannels
      */
-    private DbSession dbSession = DbConstant.admin.session;
+    private DbSession dbSession = DbConstant.admin.getSession();
 
     /**
      * Does this dbSession is private and so should be closed
@@ -198,7 +198,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                 Integer.toString(
                         DbAdmin.getNbConnection()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-                Configuration.configuration.HOST_ID);
+                Configuration.configuration.getHOST_ID());
         TrafficCounter trafficCounter =
                 Configuration.configuration.getGlobalTrafficShapingHandler().trafficCounter();
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
@@ -234,7 +234,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
                 uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
             HttpWriteCacheEnable.writeFile(request,
-                    ctx, Configuration.configuration.httpBasePath + uriRequest,
+                    ctx, Configuration.configuration.getHttpBasePath() + uriRequest,
                     "XYZR66NOSESSION");
             return;
         }
@@ -378,7 +378,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         } finally {
             if (this.isPrivateDbSession && dbSession != null) {
                 dbSession.forceDisconnect();
-                DbAdmin.nbHttpSession--;
+                DbAdmin.decHttpSession();
                 dbSession = null;
             }
         }
@@ -412,7 +412,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                                 getFromRequest(taskRunner.getKey());
                 responseContent.append(
                         taskRunner.toHtml(
-                                authentHttp,
+                                getAuthentHttp(),
                                 lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
                                         .getString("HttpSslHandler.NotActive")))
                         .append("</tr>\r\n");
@@ -629,8 +629,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * @param nb
      */
     private void statusxml(ChannelHandlerContext ctx, long nb, boolean detail) {
-        Configuration.configuration.monitoring.run(nb, detail);
-        responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
+        Configuration.configuration.getMonitoring().run(nb, detail);
+        responseContent.append(Configuration.configuration.getMonitoring().exportXml(detail));
     }
 
     /**
@@ -640,8 +640,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * @param nb
      */
     private void statusjson(ChannelHandlerContext ctx, long nb, boolean detail) {
-        Configuration.configuration.monitoring.run(nb, detail);
-        responseContent.append(Configuration.configuration.monitoring.exportJson(detail));
+        Configuration.configuration.getMonitoring().run(nb, detail);
+        responseContent.append(Configuration.configuration.getMonitoring().exportJson(detail));
     }
 
     private void spooled(ChannelHandlerContext ctx, boolean detail, String name, int istatus) {
@@ -788,7 +788,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                 if (cause instanceof IOException) {
                     if (this.isPrivateDbSession && dbSession != null) {
                         dbSession.forceDisconnect();
-                        DbAdmin.nbHttpSession--;
+                        DbAdmin.decHttpSession();
                         dbSession = null;
                     }
                     // Nothing to do
@@ -802,7 +802,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         } else {
             if (this.isPrivateDbSession && dbSession != null) {
                 dbSession.forceDisconnect();
-                DbAdmin.nbHttpSession--;
+                DbAdmin.decHttpSession();
                 dbSession = null;
             }
             // Nothing to do
@@ -816,7 +816,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
         logger.debug("Closed");
         if (this.isPrivateDbSession && dbSession != null) {
             dbSession.forceDisconnect();
-            DbAdmin.nbHttpSession--;
+            DbAdmin.decHttpSession();
             dbSession = null;
         }
     }
@@ -824,11 +824,18 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Connected");
-        authentHttp.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+        getAuthentHttp().getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
         super.channelActive(ctx);
         ChannelGroup group = Configuration.configuration.getHttpChannelGroup();
         if (group != null) {
             group.add(ctx.channel());
         }
+    }
+
+    /**
+     * @return the authentHttp
+     */
+    public R66Session getAuthentHttp() {
+        return authentHttp;
     }
 }

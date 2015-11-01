@@ -57,11 +57,11 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class MultipleSubmitTransfer extends SubmitTransfer {
-    public int errorMultiple = 0;
-    public int doneMultiple = 0;
+    private int errorMultiple = 0;
+    private int doneMultiple = 0;
     protected boolean submit = false;
     protected NetworkTransaction networkTransaction = null;
-    public List<OutputFormat> results = new ArrayList<OutputFormat>();
+    private List<OutputFormat> results = new ArrayList<OutputFormat>();
 
     public MultipleSubmitTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
@@ -80,7 +80,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         // first check if filenames contains wildcards
         DbRule dbrule = null;
         try {
-            dbrule = new DbRule(DbConstant.admin.session, rulename);
+            dbrule = new DbRule(DbConstant.admin.getSession(), rulename);
         } catch (WaarpDatabaseException e) {
             logger.error(Messages.getString("SubmitTransfer.2") + rule); //$NON-NLS-1$
             ChannelUtils.stopLogger();
@@ -116,7 +116,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                         transaction.normalInfoAsWarn = normalInfoAsWarn;
                         transaction.run();
                         future.awaitUninterruptibly();
-                        DbTaskRunner runner = future.getResult().runner;
+                        DbTaskRunner runner = future.getResult().getRunner();
                         OutputFormat outputFormat = new OutputFormat(MultipleSubmitTransfer.class.getSimpleName(), null);
                         if (future.isSuccess()) {
                             outputFormat.setValue(FIELDS.status.name(), 0);
@@ -126,13 +126,13 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                                             Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
                             outputFormat.setValue(FIELDS.remote.name(), host);
                             outputFormat.setValueString(runner.getJson());
-                            results.add(outputFormat);
+                            getResults().add(outputFormat);
                             if (transaction.normalInfoAsWarn) {
                                 logger.warn(outputFormat.loggerOut());
                             } else {
                                 logger.info(outputFormat.loggerOut());
                             }
-                            doneMultiple++;
+                            setDoneMultiple(getDoneMultiple() + 1);
                         } else {
                             outputFormat.setValue(FIELDS.status.name(), 2);
                             if (runner == null) {
@@ -153,15 +153,15 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                             if (future.getCause() != null) {
                                 outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
                             }
-                            results.add(outputFormat);
-                            errorMultiple++;
+                            getResults().add(outputFormat);
+                            setErrorMultiple(getErrorMultiple() + 1);
                             resultError = future.getResult();
                         }
                     }
                 }
             }
         }
-        if (errorMultiple > 0) {
+        if (getErrorMultiple() > 0) {
             if (resultError != null) {
                 this.future.setResult(resultError);
             }
@@ -194,7 +194,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
             if (!OutputFormat.isQuiet()) {
                 System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
             }
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -221,7 +221,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                                 FIELDS.statusTxt.name(),
                                 "Multiple " + Messages.getString("SubmitTransfer.3") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-                outputFormat.setValue("ok", transaction.doneMultiple);
+                outputFormat.setValue("ok", transaction.getDoneMultiple());
                 if (transaction.normalInfoAsWarn) {
                     logger.warn(outputFormat.loggerOut());
                 } else {
@@ -229,7 +229,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                 }
                 if (!OutputFormat.isQuiet()) {
                     outputFormat.sysout();
-                    for (OutputFormat result : transaction.results) {
+                    for (OutputFormat result : transaction.getResults()) {
                         System.out.println();
                         result.sysout();
                     }
@@ -248,12 +248,12 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                                 FIELDS.statusTxt.name(),
                                 "Multiple " + Messages.getString("SubmitTransfer.14") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-                outputFormat.setValue("ok", transaction.doneMultiple);
-                outputFormat.setValue("ko", transaction.errorMultiple);
+                outputFormat.setValue("ok", transaction.getDoneMultiple());
+                outputFormat.setValue("ko", transaction.getErrorMultiple());
                 logger.error(outputFormat.loggerOut());
                 if (!OutputFormat.isQuiet()) {
                     outputFormat.sysout();
-                    for (OutputFormat result : transaction.results) {
+                    for (OutputFormat result : transaction.getResults()) {
                         System.out.println();
                         result.sysout();
                     }
@@ -264,7 +264,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                 }
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
-                System.exit(transaction.errorMultiple);
+                System.exit(transaction.getErrorMultiple());
             }
         } finally {
             if (networkTransaction != null) {
@@ -273,4 +273,38 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         }
     }
 
+    /**
+     * @return the errorMultiple
+     */
+    public int getErrorMultiple() {
+        return errorMultiple;
+    }
+
+    /**
+     * @param errorMultiple the errorMultiple to set
+     */
+    private void setErrorMultiple(int errorMultiple) {
+        this.errorMultiple = errorMultiple;
+    }
+
+    /**
+     * @return the doneMultiple
+     */
+    public int getDoneMultiple() {
+        return doneMultiple;
+    }
+
+    /**
+     * @param doneMultiple the doneMultiple to set
+     */
+    private void setDoneMultiple(int doneMultiple) {
+        this.doneMultiple = doneMultiple;
+    }
+
+    /**
+     * @return the results
+     */
+    public List<OutputFormat> getResults() {
+        return results;
+    }
 }

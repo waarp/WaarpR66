@@ -64,10 +64,6 @@ public class FileCheckTask extends AbstractTask {
         super(TaskType.CHKFILE, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         DbTaskRunner runner = session.getRunner();

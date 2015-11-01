@@ -54,7 +54,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(SpooledInformTask.class);
 
-    public static final TreeMap<String, SpooledInformation> spooledInformationMap = new TreeMap<String, SpooledInformTask.SpooledInformation>();
+    static final TreeMap<String, SpooledInformation> spooledInformationMap = new TreeMap<String, SpooledInformTask.SpooledInformation>();
 
     public static class SpooledInformation {
         public String host;
@@ -235,9 +235,9 @@ public class SpooledInformTask extends AbstractExecJavaTask {
         if (inform == null) {
             return null;
         }
-        long time = inform.lastUpdate.getTime() + Configuration.configuration.TIMEOUTCON;
+        long time = inform.lastUpdate.getTime() + Configuration.configuration.getTIMEOUTCON();
         long curtime = System.currentTimeMillis();
-        if (time + Configuration.configuration.TIMEOUTCON < curtime) {
+        if (time + Configuration.configuration.getTIMEOUTCON() < curtime) {
             if (status > 0) {
                 return inform;
             }
@@ -248,7 +248,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
         }
         builder.append("<TR><TH>").append(name.replace(',', ' ')).append("</TH><TD>").append(inform.host)
                 .append("</TD>");
-        if (time + Configuration.configuration.TIMEOUTCON < curtime) {
+        if (time + Configuration.configuration.getTIMEOUTCON() < curtime) {
             builder.append("<TD bgcolor=Red>");
         } else if (time < curtime) {
             builder.append("<TD bgcolor=Orange>");

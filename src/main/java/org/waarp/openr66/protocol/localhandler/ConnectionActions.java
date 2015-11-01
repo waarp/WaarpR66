@@ -154,13 +154,13 @@ public abstract class ConnectionActions {
                 if (localChannelReference != null) {
                     R66Future fvr = localChannelReference.getFutureValidRequest();
                     try {
-                        fvr.await(Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
+                        fvr.await(Configuration.configuration.getTIMEOUTCON() * 2, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e1) {
                     }
                     if (fvr.isDone()) {
                         if (!fvr.isSuccess()) {
                             // test if remote server was Overloaded
-                            if (fvr.getResult() != null && fvr.getResult().code == ErrorCode.ServerOverloaded) {
+                            if (fvr.getResult() != null && fvr.getResult().getCode() == ErrorCode.ServerOverloaded) {
                                 // ignore
                                 mustFinalize = false;
                             }
@@ -299,8 +299,8 @@ public abstract class ConnectionActions {
         logger.debug(Messages.getString("LocalServerHandler.6") + //$NON-NLS-1$
                 localChannelReference.getNetworkChannel().remoteAddress() +
                 " : " + packet.getHostId(), e1);
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyError(
+        if (Configuration.configuration.getR66Mib() != null) {
+            Configuration.configuration.getR66Mib().notifyError(
                     "Connection not allowed from " +
                             localChannelReference.getNetworkChannel().remoteAddress()
                             + " since " + e1.getMessage(), packet.getHostId());
@@ -392,13 +392,13 @@ public abstract class ConnectionActions {
         }
         localChannelReference.setPartner(packet.getHostId());
         // Now if configuration say to do so: check remote ip address
-        if (Configuration.configuration.checkRemoteAddress && !localChannelReference.getPartner().isProxified()) {
+        if (Configuration.configuration.isCheckRemoteAddress() && !localChannelReference.getPartner().isProxified()) {
             DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
                     packet.getHostId());
             boolean toTest = false;
             if (!host.isProxified()) {
                 if (host.isClient()) {
-                    if (Configuration.configuration.checkClientAddress) {
+                    if (Configuration.configuration.isCheckClientAddress()) {
                         if (host.isNoAddress()) {
                             // 0.0.0.0 so nothing
                             toTest = false;
@@ -456,7 +456,7 @@ public abstract class ConnectionActions {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
             session.setStatus(98);
         }
-        logger.debug("Partner: {} from {}", localChannelReference.getPartner(), Configuration.configuration.versions);
+        logger.debug("Partner: {} from {}", localChannelReference.getPartner(), Configuration.configuration.getVersions());
     }
 
     /**
