@@ -519,14 +519,17 @@ public class DbHostAuth extends AbstractDbData {
         }
         String request = "SELECT " + selectAllFields;
         request += " FROM " + table;
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
         ArrayList<DbHostAuth> dbArrayList = new ArrayList<DbHostAuth>();
-        preparedStatement.executeQuery();
-        while (preparedStatement.getNext()) {
-            DbHostAuth hostAuth = getFromStatement(preparedStatement);
-            dbArrayList.add(hostAuth);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+        try {
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                DbHostAuth hostAuth = getFromStatement(preparedStatement);
+                dbArrayList.add(hostAuth);
+            }
+        } finally {
+            preparedStatement.realClose();
         }
-        preparedStatement.realClose();
         DbHostAuth[] result = new DbHostAuth[0];
         return dbArrayList.toArray(result);
     }
@@ -856,19 +859,22 @@ public class DbHostAuth extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
             OpenR66ProtocolBusinessException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
-        preparedStatement.executeQuery();
-        int nb = 0;
-        while (preparedStatement.getNext()) {
-            DbHostAuth host = DbHostAuth
-                    .getFromStatement(preparedStatement);
-            ObjectNode node = host.getInternalJson();
-            arrayNode.add(node);
-            nb++;
-            if (nb >= limit) {
-                break;
+        try {
+            preparedStatement.executeQuery();
+            int nb = 0;
+            while (preparedStatement.getNext()) {
+                DbHostAuth host = DbHostAuth
+                        .getFromStatement(preparedStatement);
+                ObjectNode node = host.getInternalJson();
+                arrayNode.add(node);
+                nb++;
+                if (nb >= limit) {
+                    break;
+                }
             }
+        } finally {
+            preparedStatement.realClose();
         }
-        preparedStatement.realClose();
         return JsonHandler.writeAsString(arrayNode);
     }
     private ObjectNode getInternalJson() {

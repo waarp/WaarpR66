@@ -4076,26 +4076,29 @@ public class DbTaskRunner extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
             OpenR66ProtocolBusinessException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
-        preparedStatement.executeQuery();
-        LocalTransaction localTransaction = Configuration.configuration.getLocalTransaction();
-        int nb = 0;
-        while (preparedStatement.getNext()) {
-            DbTaskRunner runner = DbTaskRunner
-                    .getFromStatement(preparedStatement);
-            ObjectNode node = runner.getJson();
-            node.put(Columns.SPECIALID.name(), Long.toString(runner.specialId));
-            if (localTransaction == null) {
-                node.put("Running", false);
-            } else {
-                node.put("Running", localTransaction.contained(runner.getKey()));
+        try {
+            preparedStatement.executeQuery();
+            LocalTransaction localTransaction = Configuration.configuration.getLocalTransaction();
+            int nb = 0;
+            while (preparedStatement.getNext()) {
+                DbTaskRunner runner = DbTaskRunner
+                        .getFromStatement(preparedStatement);
+                ObjectNode node = runner.getJson();
+                node.put(Columns.SPECIALID.name(), Long.toString(runner.specialId));
+                if (localTransaction == null) {
+                    node.put("Running", false);
+                } else {
+                    node.put("Running", localTransaction.contained(runner.getKey()));
+                }
+                arrayNode.add(node);
+                nb++;
+                if (nb >= limit) {
+                    break;
+                }
             }
-            arrayNode.add(node);
-            nb++;
-            if (nb >= limit) {
-                break;
-            }
+        } finally {
+            preparedStatement.realClose();
         }
-        preparedStatement.realClose();
         return JsonHandler.writeAsString(arrayNode).replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}")
                 .replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\"")
                 .replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1")

@@ -832,14 +832,17 @@ public class DbRule extends AbstractDbData {
         }
         String request = "SELECT " + selectAllFields;
         request += " FROM " + table;
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
         ArrayList<DbRule> dbArrayList = new ArrayList<DbRule>();
-        preparedStatement.executeQuery();
-        while (preparedStatement.getNext()) {
-            DbRule dbrule = getFromStatement(preparedStatement);
-            dbArrayList.add(dbrule);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+        try {
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                DbRule dbrule = getFromStatement(preparedStatement);
+                dbArrayList.add(dbrule);
+            }
+        } finally {
+            preparedStatement.realClose();
         }
-        preparedStatement.realClose();
         return dbArrayList.toArray(result);
     }
 
@@ -1213,18 +1216,21 @@ public class DbRule extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
             OpenR66ProtocolBusinessException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
-        preparedStatement.executeQuery();
-        int nb = 0;
-        while (preparedStatement.getNext()) {
-            DbRule rule = DbRule.getFromStatement(preparedStatement);
-            ObjectNode node = rule.getInternalJson();
-            arrayNode.add(node);
-            nb++;
-            if (nb >= limit) {
-                break;
+        try {
+            preparedStatement.executeQuery();
+            int nb = 0;
+            while (preparedStatement.getNext()) {
+                DbRule rule = DbRule.getFromStatement(preparedStatement);
+                ObjectNode node = rule.getInternalJson();
+                arrayNode.add(node);
+                nb++;
+                if (nb >= limit) {
+                    break;
+                }
             }
+        } finally {
+            preparedStatement.realClose();
         }
-        preparedStatement.realClose();
         // \n is not correctly parsed within HTML so put double \\n in fine
         return JsonHandler.writeAsString(arrayNode).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
     }
