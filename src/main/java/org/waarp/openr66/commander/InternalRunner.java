@@ -90,7 +90,7 @@ public class InternalRunner {
      */
     public void submitTaskRunner(DbTaskRunner taskRunner) {
         if (isRunning || !Configuration.configuration.isShutdown()) {
-            if (threadPoolExecutor.getActiveCount() + 5 > Configuration.configuration.getRUNNER_THREAD()) {
+            if (threadPoolExecutor.getActiveCount() > Configuration.configuration.getRUNNER_THREAD()) {
                 // too many current active threads
                 taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
                 taskRunner.forceSaveStatus();
