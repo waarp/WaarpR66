@@ -55,6 +55,7 @@
 <MENU_INSERTION nom="identity"/>
 <MENU_INSERTION nom="client"/>
 <MENU_INSERTION nom="taskrunnernodb"/>
+<MENU_INSERTION nom="businessfactory"/>
 <MENU_INSERTION nom="ssl"/>
 <MENU_INSERTION nom="directory"/>
 <MENU_INSERTION nom="limit"/>
@@ -114,6 +115,7 @@
 <AFFICHAGE_ELEMENT type="zone" element="identity"/>
 <AFFICHAGE_ELEMENT type="zone" element="client"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="taskrunnernodb"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="businessfactory"/>
 <AFFICHAGE_ELEMENT type="zone" element="ssl"/>
 <AFFICHAGE_ELEMENT type="zone" element="directory"/>
 <AFFICHAGE_ELEMENT type="zone" element="limit"/>
@@ -399,6 +401,12 @@ The host ids (1 by 1) that will be allow to use Business Requests (from version 
 <STRINGS_ELEMENT element="taskrunnernodb">
 <TITRE>taskrunnernodb</TITRE>
 <DOCUMENTATION>When client with no DB, do R66 will use XML files as permanent information on Transfer Tasks</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="businessfactory">
+<TITRE>businessfactory</TITRE>
+<DOCUMENTATION>
+If you need a special Business Factory, you must specify the full class name here. Default is: org.waarp.openr66.context.R66DefaultBusinessFactory which only logs in DEBUG mode.
+                        </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="ssl">
 <TITRE>ssl</TITRE>

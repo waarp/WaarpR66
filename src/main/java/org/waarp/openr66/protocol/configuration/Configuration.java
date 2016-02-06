@@ -167,7 +167,7 @@ public class Configuration {
      */
     private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
 
-    private final R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
+    private R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
     // Global Dynamic values
     /**
      * Version validation
@@ -2359,6 +2359,13 @@ public class Configuration {
      */
     public void setTimeLimitCache(long timeLimitCache) {
         this.timeLimitCache = timeLimitCache;
+    }
+
+    /**
+     * @param r66BusinessFactory the r66BusinessFactory to set
+     */
+    public void setR66BusinessFactory(R66BusinessFactoryInterface r66BusinessFactory) {
+        this.r66BusinessFactory = r66BusinessFactory;
     }
 
     private static class CleanLruCache extends Thread {

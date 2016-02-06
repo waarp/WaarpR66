@@ -55,6 +55,7 @@ import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
+import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
@@ -271,6 +272,11 @@ public class FileBasedConfiguration {
      * In case of multiple OpenR66 Monitors behing a loadbalancer (ha config)
      */
     private static final String XML_MULTIPLE_MONITORS = "multiplemonitors";
+    /**
+     * If you need a special Business Factory, you must specify the full class name here.
+     * Default is: org.waarp.openr66.context.R66DefaultBusinessFactory which only logs in DEBUG mode.
+     */
+    private static final String XML_BUSINESS_FACTORY = "businessfactory";
     /**
      * Usage of CPU Limit
      */
@@ -526,7 +532,8 @@ public class FileBasedConfiguration {
             new XmlDecl(XmlType.LONG, XML_MONITOR_PASTLIMIT),
             new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
             new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG),
-            new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS)
+            new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS),
+            new XmlDecl(XmlType.STRING, XML_BUSINESS_FACTORY)
     };
     /**
      * Structure of the Configuration file
@@ -608,9 +615,7 @@ public class FileBasedConfiguration {
      */
     private static final XmlDecl[] configSubmitLimitDecls = {
             // limit
-            new XmlDecl(
-                    XmlType.INTEGER,
-                    XML_BLOCKSIZE)
+            new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE)
     };
     /**
      * Structure of the Configuration file
@@ -618,9 +623,8 @@ public class FileBasedConfiguration {
      */
     private static final XmlDecl[] configClientParamDecls = {
             // client
-            new XmlDecl(
-                    XmlType.BOOLEAN,
-                    XML_SAVE_TASKRUNNERNODB),
+            new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB),
+            new XmlDecl(XmlType.STRING, XML_BUSINESS_FACTORY)
     };
     /**
      * Structure of the Configuration file
@@ -1020,6 +1024,15 @@ public class FileBasedConfiguration {
                 logger.info(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
             }
         }
+        value = hashConfig.get(XML_BUSINESS_FACTORY);
+        if (value != null && (!value.isEmpty())) {
+            try {
+                config.setR66BusinessFactory((R66BusinessFactoryInterface) Class.forName(value.getString()).newInstance());
+            } catch (Exception e) {
+                logger.error("Bad Business Factory class", e);
+                return false;
+            }
+        }
         return true;
     }
 
@@ -1032,6 +1045,15 @@ public class FileBasedConfiguration {
         XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
         if (value != null && (!value.isEmpty())) {
             config.setSaveTaskRunnerWithNoDb(value.getBoolean());
+        }
+        value = hashConfig.get(XML_BUSINESS_FACTORY);
+        if (value != null && (!value.isEmpty())) {
+            try {
+                config.setR66BusinessFactory((R66BusinessFactoryInterface) Class.forName(value.getString()).newInstance());
+            } catch (Exception e) {
+                logger.error("Bad Business Factory class", e);
+                return false;
+            }
         }
         return true;
     }
