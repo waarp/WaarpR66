@@ -106,11 +106,7 @@ public abstract class ConnectionActions {
 
     void businessError() {
         if (session.getBusinessObject() != null) {
-            try {
-                session.getBusinessObject().checkAtError(session);
-            } catch (OpenR66RunnerErrorException e) {
-                return;
-            }
+            session.getBusinessObject().checkAtError(session);
         }
     }
     /**

@@ -71,7 +71,7 @@ public interface R66BusinessInterface {
      * @param session
      * @throws OpenR66RunnerErrorException
      */
-    public void checkAtError(R66Session session) throws OpenR66RunnerErrorException;
+    public void checkAtError(R66Session session);
 
     /**
      * Called once after pre tasks, while filename could be changed (or not)

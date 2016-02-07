@@ -570,10 +570,7 @@ public class R66Session implements SessionInterface {
                 }
             }
             if (this.businessObject != null) {
-                try {
-                    this.businessObject.checkAtError(this);
-                } catch (OpenR66RunnerErrorException e) {
-                }
+                this.businessObject.checkAtError(this);
             }
             this.runner.setPostTask();
             try {

@@ -71,7 +71,7 @@ public class TestBusinessFactory implements R66BusinessFactoryInterface {
             }
             
             @Override
-            public void checkAtError(R66Session session) throws OpenR66RunnerErrorException {
+            public void checkAtError(R66Session session) {
                 logger.warn("checkAtError: " + session.toString());
             }
             
