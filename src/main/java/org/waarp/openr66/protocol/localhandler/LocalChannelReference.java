@@ -583,8 +583,8 @@ public class LocalChannelReference {
         if (!futureRequest.isDone()) {
             if (finalValue.getOther() == null &&
                     session.getBusinessObject() != null &&
-                    session.getBusinessObject().getInfo() != null) {
-                finalValue.setOther(session.getBusinessObject().getInfo());
+                    session.getBusinessObject().getInfo(session) != null) {
+                finalValue.setOther(session.getBusinessObject().getInfo(session));
             }
             futureRequest.setResult(finalValue);
             futureRequest.setSuccess();

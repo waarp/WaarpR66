@@ -134,8 +134,8 @@ public class RetrieveRunner extends Thread {
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                 if (session.getExtendedProtocol() &&
                         session.getBusinessObject() != null &&
-                        session.getBusinessObject().getInfo() != null) {
-                    validPacket.setOptional(session.getBusinessObject().getInfo());
+                        session.getBusinessObject().getInfo(session) != null) {
+                    validPacket.setOptional(session.getBusinessObject().getInfo(session));
                 }
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
@@ -196,8 +196,8 @@ public class RetrieveRunner extends Thread {
                                 ErrorCode.CompleteOk.ordinal());
                         if (session.getExtendedProtocol() &&
                                 session.getBusinessObject() != null &&
-                                session.getBusinessObject().getInfo() != null) {
-                            validPacket.setOptional(session.getBusinessObject().getInfo());
+                                session.getBusinessObject().getInfo(session) != null) {
+                            validPacket.setOptional(session.getBusinessObject().getInfo(session));
                         }
                         try {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference,

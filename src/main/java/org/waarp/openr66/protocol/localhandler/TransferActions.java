@@ -1029,11 +1029,11 @@ public class TransferActions extends ServerActions {
             }
             if (transfer.isSuccess()) {
                 if (session.getExtendedProtocol() && session.getBusinessObject() != null) {
-                    if (session.getBusinessObject().getInfo() == null) {
-                        session.getBusinessObject().setInfo(optional);
+                    if (session.getBusinessObject().getInfo(session) == null) {
+                        session.getBusinessObject().setInfo(session, optional);
                     } else {
-                        String temp = session.getBusinessObject().getInfo();
-                        session.getBusinessObject().setInfo(optional);
+                        String temp = session.getBusinessObject().getInfo(session);
+                        session.getBusinessObject().setInfo(session, optional);
                         optional = temp;
                     }
                 } else if (session.getExtendedProtocol() &&

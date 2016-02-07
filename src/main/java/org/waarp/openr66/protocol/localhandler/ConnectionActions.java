@@ -104,6 +104,15 @@ public abstract class ConnectionActions {
         this.session = handler.session;
     }
 
+    void businessError() {
+        if (session.getBusinessObject() != null) {
+            try {
+                session.getBusinessObject().checkAtError(session);
+            } catch (OpenR66RunnerErrorException e) {
+                return;
+            }
+        }
+    }
     /**
      * @return the session
      */
@@ -246,6 +255,7 @@ public abstract class ConnectionActions {
     public void newSession() {
         session = new R66Session();
         session.setStatus(60);
+        session.setBusinessObject(Configuration.configuration.getR66BusinessFactory().getBusinessInterface(session));
     }
 
     /**
@@ -275,6 +285,17 @@ public abstract class ConnectionActions {
                 session.setStatus(40);
             }
             return;
+        }
+        if (session.getBusinessObject() != null) {
+            try {
+                session.getBusinessObject().checkAtConnection(session);
+            } catch (OpenR66RunnerErrorException e) {
+                ErrorPacket error = new ErrorPacket("Connection refused by business logic",
+                        ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                channel.writeAndFlush(error).addListener(ChannelFutureListener.CLOSE);
+                session.setStatus(40);
+                return;
+            }
         }
         session.newState(STARTUP);
         localChannelReference.validateStartup(true);
@@ -330,6 +351,7 @@ public abstract class ConnectionActions {
                 + valid);
         ChannelCloseTimer.closeFutureChannel(channel);
         ChannelCloseTimer.closeFutureChannel(networkchannel);
+        businessError();
     }
 
     /**
@@ -364,6 +386,7 @@ public abstract class ConnectionActions {
             localChannelReference.validateConnection(false, result);
             ChannelCloseTimer.closeFutureChannel(channel);
             session.setStatus(43);
+            businessError();
             return;
         }
         try {
@@ -388,6 +411,7 @@ public abstract class ConnectionActions {
             localChannelReference.validateConnection(false, result);
             ChannelCloseTimer.closeFutureChannel(channel);
             session.setStatus(43);
+            businessError();
             return;
         }
         localChannelReference.setPartner(packet.getHostId());
@@ -442,6 +466,16 @@ public abstract class ConnectionActions {
                 }
             }
         }
+        if (session.getBusinessObject() != null) {
+            try {
+                session.getBusinessObject().checkAtAuthentication(session);
+            } catch (OpenR66RunnerErrorException e) {
+                refusedConnection(channel, packet,
+                        new OpenR66ProtocolNotAuthenticatedException(e.getMessage()));
+                session.setStatus(104);
+                return;
+            }
+        }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk, null);
         session.newState(AUTHENTD);
         localChannelReference.validateConnection(true, result);
@@ -479,6 +513,7 @@ public abstract class ConnectionActions {
         session.newState(ERROR);
         session.setStatus(45);
         channel.close();
+        businessError();
     }
 
     /**

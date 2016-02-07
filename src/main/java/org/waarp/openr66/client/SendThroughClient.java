@@ -27,6 +27,7 @@ import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
@@ -271,12 +272,11 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 // send a validation
                 localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
-                if (localChannelReference.getSession().getExtendedProtocol() &&
-                        localChannelReference.getSession().getBusinessObject() != null &&
-                        localChannelReference.getSession().getBusinessObject().getInfo() != null
-                        && localChannelReference.getSession().getBusinessObject().getInfo() != null) {
-                    validPacket.setOptional(localChannelReference.getSession().getBusinessObject()
-                            .getInfo());
+                R66Session session = localChannelReference.getSession();
+                if (session != null && session.getExtendedProtocol() &&
+                        session.getBusinessObject() != null &&
+                                session.getBusinessObject().getInfo(session) != null) {
+                    validPacket.setOptional(session.getBusinessObject().getInfo(session));
                 }
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);

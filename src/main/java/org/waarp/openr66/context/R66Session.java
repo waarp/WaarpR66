@@ -224,7 +224,7 @@ public class R66Session implements SessionInterface {
         // No clean of file since it can be used after channel is closed
         isReady = false;
         if (businessObject != null) {
-            businessObject.releaseResources();
+            businessObject.releaseResources(this);
             businessObject = null;
         }
     }
@@ -260,7 +260,7 @@ public class R66Session implements SessionInterface {
         // No clean of file since it can be used after channel is closed
         isReady = false;
         if (businessObject != null) {
-            businessObject.releaseResources();
+            businessObject.releaseResources(this);
             businessObject = null;
         }
     }
@@ -597,7 +597,6 @@ public class R66Session implements SessionInterface {
             throws OpenR66RunnerErrorException {
         this.runner = runner;
         logger.debug("Runner to set: {} {}", runner.shallIgnoreSave(), runner);
-        setBusinessObject(Configuration.configuration.getR66BusinessFactory().getBusinessInterface(this));
         this.runner.checkThroughMode();
         if (this.businessObject != null) {
             this.businessObject.checkAtStartup(this);
