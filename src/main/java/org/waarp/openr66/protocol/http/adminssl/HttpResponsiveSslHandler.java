@@ -1462,20 +1462,37 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 istatus = 0;
             }
         }
+        if (spooled.contains("XXXSPOOLEDXXX")) {
+            if (name != null && !name.isEmpty()) {
+                // name is specified
+                uri = request.uri();
+                if (istatus != 0) {
+                    uri += "&status=" + istatus;
+                }
+                StringBuilder builder = SpooledInformTask.buildSpooledUniqueTable(uri, name);
+                return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+            } else {
+                if (istatus != 0) {
+                    uri += "&status=" + istatus;
+                }
+                StringBuilder builder = SpooledInformTask.buildSpooledTable(detailed, istatus, uri);
+                return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+            }
+        }
         if (name != null && !name.isEmpty()) {
             // name is specified
             uri = request.uri();
             if (istatus != 0) {
                 uri += "&status=" + istatus;
             }
-            StringBuilder builder = SpooledInformTask.buildSpooledUniqueTable(uri, name);
-            return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+            String builder = SpooledInformTask.buildSpooledUniqueJson(uri, name);
+            return spooled.replace(XXXDATAJSONXXX, builder);
         } else {
             if (istatus != 0) {
                 uri += "&status=" + istatus;
             }
-            StringBuilder builder = SpooledInformTask.buildSpooledTable(detailed, istatus, uri);
-            return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+            String builder = SpooledInformTask.buildSpooledJson(detailed, istatus, uri);
+            return spooled.replace(XXXDATAJSONXXX, builder);
         }
     }
 

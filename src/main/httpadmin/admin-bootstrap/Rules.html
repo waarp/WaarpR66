@@ -5,58 +5,51 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang=""> <!--<![endif]-->
 <head>
 	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="Cache-Control" content="no-cache" />
 	<meta http-equiv="Expires" content="Mon, 15 Jan 2007 12:00:00 GMT" />
 	<meta name="robots" content="noindex,nofollow" />
 	<meta http-equiv="Pragma" content="no-cache" />
-	<!-- Datatable -->
-	<link rel="stylesheet" href="datatable/css/dataTables.tableTools.min.css">
+		<!-- Datatable -->
+	<link rel="stylesheet" href="datatable/datatables.min.css">
 	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" href="css/magic-bootstrap-min.css">
-	<link rel="stylesheet" href="datatable/css/jquery.dataTables.min.css">
 	<link rel="stylesheet" href="css/bootstrap-multiselect.min.css">
+	<link rel="stylesheet" href="datatable/css/jquery.dataTables.min.css">
 	<!-- special CSS -->
 	<style type="text/css">
-	@-moz-document url-prefix() { fieldset { display: table-cell; } }
-	table.dataTable select{font-size:x-small;}
-	table.dataTable thead th{font-size:x-small;}
-	table.dataTable tbody th,table.dataTable tbody td{font-size:x-small;}
 	table.dataTable tbody xmp{font-size:x-small; word-wrap:break-word; overflow-wrap:break-word; overflow:auto; width:150px;}
-	@media screen and (min-width: 768px) {
-		.mdialog-custom-class {
-			width: 70%; /* either % (e.g. 60%) or px (400px) */
-		}
-	}
+	@media screen and (min-width: 768px) { .mdialog-custom-class { width: 70%; /* either % (e.g. 60%) or px (400px) */ } }
 	</style>
 	<!-- JQuery -->
-	<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery-1.12.0.min.js"></script>
 	<!-- I18NEXT -->
-	<script type="text/javascript" src="res/i18next-1.8.0.min.js"></script>
+	<script type="text/javascript" src="res/i18next-1.11.2.min.js"></script>
 	<script type="text/javascript">
 var setLng="XXXLANGXXX";
 if (setLng.length > 4) { setLng = "en"; }
+var EdgeWindows10=navigator.userAgent.search('Windows NT 10') > 0 && navigator.userAgent.search('Edge/') > 0;
 	</script>
-	<script src="js/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+	<script src="js/modernizr-3.3.1-respond-1.4.2.min.js"></script>
 	<!-- Bootstrap -->
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="datatable/datatables.min.js"></script>
+	<script type="text/javascript" src="datatable/pdfmake-0.1.20/pdfmake.min.js"></script>
+	<script type="text/javascript" src="datatable/pdfmake-0.1.20/vfs_fonts.js"></script>
+    <script type="text/javascript" src="res/tooltip.js"></script>
+
 	<script type="text/javascript" src="js/bootstrap-multiselect.min.js"></script>
 	<script type="text/javascript" src="res/marknote.js"></script>
-	<script type="text/javascript" src="datatable/js/jquery.dataTables.min.js"></script>
-	<script type="text/javascript" src="datatable/js/dataTables.tableTools.min.js"></script>
 	<script type="text/javascript" src="res/systemhelper.js"></script>
-    <script type="text/javascript" src="res/tooltip.js"></script>
 	<!-- special Javascript -->
 	<script type="text/javascript">
 var hostids=XXXHOSTSIDSXXX;
 var table;
 function validButton(rank) {
 	if (rank >= 0) {
-		table.$('tr.selected').removeClass('selected');
 		var row = table.row(rank);
-		row.nodes().to$().addClass('selected');
 		var json = row.data();
 		for (key in json) {
 			if (key != "@model") {
@@ -75,17 +68,17 @@ function validButton(rank) {
 	return false;
 }
 var prepareTable = function() {
-	var renderSubmit = function (data, type, full, meta) {
-		return '<button type="submit" class="btn btn-default btn-xs" id="submit-rank-button" onclick="validButton('+meta.row+')">Edit</button>';
-	};
 	var renderMODE = function (data, type, full, meta) {return TRANSFERMODE[data];};
 	var w=window,d=document,e=d.documentElement,g=d.getElementsByTagName('body')[0],x=w.innerWidth||e.clientWidth||g.clientWidth;
 	x=~~(x/10);
 	var xmpString = "<xmp style='width:"+x+"px'>";
-	var renderXML = function (data, type, full, meta) {return xmpString+data+"</xmp>";};
+	var renderXML = function (data, type, full, meta) {if (type == 'export') {return data;} 
+		else if (type == 'printPdf') { return marknote.Util.erefEncode(data.replace(/</g, ' <').replace(/ <\//g, '</')); } 
+		else if (type == 'print') { return data.replace(/</g, ' &lt;').replace(/>/g, '&gt; '); } 
+		return xmpString+data+"</xmp>";};
 	var myData = 'XXXDATAJSONXXX';
 
-	var myColumns = [{ data: "@model", title :"Actions", orderable: false, render: renderSubmit},
+	var myColumns = [
 					  { data: "IDRULE", title :"Rule Id"},
 					  { data: "MODETRANS", title :"Mode", render: renderMODE},
 					  { data: "HOSTIDS", title :"Host Ids", render: renderXML},
@@ -102,63 +95,38 @@ var prepareTable = function() {
 					];
 	var nbcol = myColumns.length;
 	var row = document.getElementById("myTable4").createTFoot().insertRow(0);
-	var range=[];for(var i=1;i < nbcol;i++){range[i-1]=i}
 	for (var i = 0; i < nbcol; i++) {
 		row.insertCell(0);
 	}
+	var printButton = printButtonFunction(EdgeWindows10, "Page", "XXXHOSTIDXXX-", i18n.t("app.menu4"), { page: 'current'}, ':visible');
 	table = $('#myTable4').DataTable({
 		"lengthMenu": [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
 		"pagingType": "full_numbers",
-		"order": [[1, "asc"]],
+		"order": [[0, "asc"]],
 		stateSave: true,// shall be true
 		"data" : $.parseJSON(myData),
 		"columns": myColumns,
-		"dom": 'T<"clear">lfrtip',
-		  "tableTools": {
-			  "sSwfPath": "datatable/swf/copy_csv_xls.swf",
-			  "aButtons": [
-			  {"sExtends": "copy",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu4"),
-			  "fnCellRender": function ( sValue, iColumn, nTr, iDataIndex ) {
-					if ( iColumn === 3 || iColumn >= 8 ) {return sValue.replace(xmpString, "").replace("</xmp>", "");}
-                    return sValue;
-                },
-			  "sMessage": i18n.t("app.menu4")+" (WaarpR66)"},
-			  {"sExtends": "print",
-			  "bFooter": false,
-			  "sTitle": i18n.t("app.menu4"),
-			  "fnClick": function (nButton, oConfig, oFlash) { table.column(0).visible(false);
-				this.fnPrint( true, oConfig ); $(window).keyup(function(){table.column(0).visible(true);});},
-			  "sMessage": i18n.t("app.menu4")+" (WaarpR66)"},
-			  {"sExtends": "print", "bShowAll": false, "sButtonText": "Print Selected",
-			  "bFooter": false,
-			  "sTitle": i18n.t("app.menu4"),
-			  "fnClick": function (nButton, oConfig, oFlash) { table.column(0).visible(false);
-				this.fnPrint( true, oConfig ); $(window).keyup(function(){table.column(0).visible(true);});},
-			  "sMessage": i18n.t("app.menu4")+" (WaarpR66)"},
-			  {"sExtends": "csv",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu4"), "sFileName": "XXXHOSTIDXXX-*-csv.csv",
-			  "fnCellRender": function ( sValue, iColumn, nTr, iDataIndex ) {
-					if ( iColumn === 3 || iColumn >= 8 ) {return sValue.replace(xmpString, "").replace("</xmp>", "");}
-                    return sValue;
-                }, "sCharSet": "utf8",
-			  "sMessage": i18n.t("app.menu4")+" (WaarpR66)"},
-			  {"sExtends": "xls",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu4"), "sFileName": "XXXHOSTIDXXX-*-xls.csv",
-			  "fnCellRender": function ( sValue, iColumn, nTr, iDataIndex ) {
-					if ( iColumn === 3 || iColumn >= 8 ) {return sValue.replace(xmpString, "").replace("</xmp>", "");}
-                    return sValue;
-                }, "sCharSet": "utf16le",
-			  "sMessage": i18n.t("app.menu4")+" (WaarpR66)"}
-			  ]
-		  },
+		fixedHeader: true,
+		dom: 'B<"clear">lfrtip',
+		select: { style: 'single' },
+		buttons: [
+			{ extend: 'colvis' },
+			{ text: 'Edit', enabled: false, action: function () { var id = table.rows( { selected: true } ); if (id.length > 0) {validButton( id[0] );} }
+            },
+			{ extend: 'copy', exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			{ extend: 'excel', title: "XXXHOSTIDXXX-"+i18n.t("app.menu4"),
+			  exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			{ extend: 'csv', title: "XXXHOSTIDXXX-"+i18n.t("app.menu4"),
+			  exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			printButton[0], printButton[1], printButton[2], printButton[3]
+		],
 		initComplete: function () {
 			this.api().columns().every( function () {
 				var column = this;
-				if (column.index() == 0 || column.index() >= 8 || column.index() == 3) {
+				if (column.index() >= 7 || column.index() == 2) {
 					return;
 				}
 				var select = $('<select><option value=""></option></select>')
@@ -173,7 +141,7 @@ var prepareTable = function() {
 							$(this).css({ "background-color": "#CDCDCD"});
 						}
 					} );
-				if (column.index() == 2) {
+				if (column.index() == 1) {
 					column.data().unique().sort().each( function ( val, j ) {var val = TRANSFERMODE[val];
 						select.append( '<option value="'+val+'">'+val+'</option>' );});
 				} else {
@@ -182,6 +150,14 @@ var prepareTable = function() {
 			} );
 		}
 	 });
+	table.on( 'select', function ( e, dt, type, indexes ) {
+		var selectedRows = table.rows( { selected: true } ).count();
+		table.button( 1 ).enable( selectedRows === 1 );
+	} )
+	.on( 'deselect', function ( e, dt, type, indexes ) {
+		var selectedRows = table.rows( { selected: true } ).count();
+		table.button( 1 ).enable( selectedRows === 1 );
+	} );
 };
 </script>
 </head>
@@ -233,7 +209,7 @@ var prepareTable = function() {
 							<input type="hidden" name="LIMITROW" value="XXXLIMITROWXXX">
 							<small><label class="control-label" for="transferId0" data-i18n="menu2.entete1">Transfer Id</label>&nbsp;</small><input type="text" class="form-control input-sm" id="transferId0" name="startid" placeholder="TransferId">
 						</div>
-						<button type="submit" class="btn btn-default btn-sm" value="Search" name="ACTION">Search</button>
+						<button type="submit" class="btn btn-default btn-sm" value="Search" name="ACTION" data-i18n="[title]app.searchhelp"><label class="control-label" data-i18n="app.search">Search</label></button>
 					</form>
 				</div>
 			</div>
@@ -344,11 +320,11 @@ var prepareTable = function() {
 	  </div>
 	</div><div class="row">
 	  <div class="form-group col-md-3 text-right">
-		<input type="reset" value="Clear" class="btn btn-default btn-sm" onclick="$('#delete-button').addClass('disabled');$('#update-button').addClass('disabled');" title="Resets the values to the ones at page load">
+		<input type="reset" value="Clear" class="btn btn-default btn-sm" onclick="$('#delete-button').addClass('disabled');$('#update-button').addClass('disabled');" data-i18n="[title]app.help1">
 	  </div><div class="form-group col-md-3 text-right">
-		<button type="submit" class="btn btn-warning btn-sm" id="create-button" value="Create" name="ACTION" title="Only valid for new Host Id">Create</button>
-		<button type="submit" class="btn btn-primary btn-sm disabled" id="update-button" value="Update" name="ACTION" title="Only valid for existing Host Id">Update</button>
-		<button type="submit" class="btn btn-danger btn-sm disabled" id="delete-button" value="Delete" name="ACTION" title="Only valid for existing Host Id">Delete</button>
+		<button type="submit" class="btn btn-warning btn-sm" id="create-button" value="Create" name="ACTION" data-i18n="[title]app.help2">Create</button>
+		<button type="submit" class="btn btn-primary btn-sm disabled" id="update-button" value="Update" name="ACTION" data-i18n="[title]app.help3">Update</button>
+		<button type="submit" class="btn btn-danger btn-sm disabled" id="delete-button" value="Delete" name="ACTION" data-i18n="[title]app.help3">Delete</button>
 	  </div>
 	</div>
 	</form></small></div><div class="panel-footer"><small>
@@ -389,9 +365,9 @@ var prepareTable = function() {
 		<label class="control-label" for="LIMITROW" data-i18n="menu2.text16">Limit rows to</label>
 		<input type="number" class="form-control input-sm" id="LIMITROW" name="LIMITROW" size="4" value="XXXLIMITROWXXX"> <label data-i18n="menu2.text17">first results.</label>
 	  </div><div class="form-group col-md-1 text-right">
-		<input type="reset" value="Clear" class="btn btn-default btn-sm" name="ACTION" title="Resets the values to the ones at page load">
+		<input type="reset" value="Clear" class="btn btn-default btn-sm" name="ACTION" data-i18n="[title]app.help1">
 	  </div><div class="form-group col-md-1 text-right">
-		<input type="submit" value="Filter" class="btn btn-primary btn-sm" name="ACTION" title="Filter uses results to limit Ids in future filtering requests">
+		<input type="submit" value="Filter" class="btn btn-primary btn-sm" name="ACTION" data-i18n="[title]app.help4">
 	  </div>
 	</div>
 	</form></small></div></div>
@@ -459,6 +435,6 @@ phelper.append(aref).append("&nbsp;");}
   </small>
 ​<!-- modal -->
 <script type="text/javascript">
-i18n.init({lng: setLng, fallbackLng : "en", resGetPath : "res/locales/__lng__/__ns__.json", useLocalStorage: true, localStorageExpirationTime: 86400000}, function(t) { doFinal();});//useLocalStorage: true, localStorageExpirationTime: 86400000 // in ms, default 1 week
+i18n.init({ lng: setLng, fallbackLng : "en", resGetPath : "res/locales/__lng__/__ns__.json", useLocalStorage: true, localStorageExpirationTime: 86400000}, function(t) { doFinal();});//useLocalStorage: true, localStorageExpirationTime: 86400000 // in ms, default 1 week
 </script>
 </body></html>

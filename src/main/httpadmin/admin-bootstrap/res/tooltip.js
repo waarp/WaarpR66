@@ -66,7 +66,7 @@ JSON.stringify = JSON.stringify || function (obj) {
 		return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
 	}
 };
-var renderTimestamp = function(data, type, full, meta) {return new Date(data).toISOString().replace('T', ' ');};
+var renderTimestamp = function(data, type, full, meta) {if (data === null || data === undefined) {return '';} if (type == 'export' || type == 'exportXls') {return new Date(data).toISOString();} return new Date(data).toISOString().replace('T', ' ');};
 var TASKSTEP = ['NOTASK', 'PRETASK', 'TRANSFERTASK', 'POSTTASK', 'ALLDONETASK', 'ERRORTASK'];
 var TASKSTEPClass = ["warning", "info", "active", "info", "success", "danger"];
 var TASKSTEPColor = ["Orange", "Yellow", "LightGreen", "Turquoise", "Cyan", "#F78181"];
@@ -77,3 +77,85 @@ var UpdatedInfo = ['UNKNOWN','NOTUPDATED','INTERRUPTED','TOSUBMIT','INERROR','RU
 var UpdatedInfoClass = ["info", "info", "warning", "active", "danger", "active", "success"];
 var UpdatedInfoColor = ["Turquoise", "Yellow", "Orange", "Turquoise", "#F78181", "LightGreen", "Cyan"];
 var createdCellInfoColor = function (td, cellData, rowData, row, col) {$(td).css("background-color", UpdatedInfoColor[cellData]);};
+var printButtonFunction = function(EdgeWindows10, page, menu, titlecontent, content, rangevisible) {
+	var result = [];
+	var sdate = new Date().toJSON();
+	if (EdgeWindows10) {
+		result = [
+			{ text: 'No action (Edge-W10)', title: menu+titlecontent, enabled: false,
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, columns: rangevisible  },
+			  action: function(e, dt, node, config) {
+				alert('Function not supported under Edge and Windows 10');
+			  }
+			},
+			{ text: 'No action (Edge-W10)', title: menu+titlecontent, enabled: false,
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, columns: rangevisible  },
+			  action: function(e, dt, node, config) {
+				alert('Function not supported under Edge and Windows 10');
+			  }
+			},
+			{ text: 'Print Page (Edge-W10)', title: menu+titlecontent, filename: menu+titlecontent+".pdf",
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, modifier: content, columns: rangevisible },
+			  action: function(e, dt, node, config) {
+				w = window.open();
+				w.document.write("<html><head><title>Print Page:"+titlecontent+"</title><link rel='stylesheet' href='datatable/datatables.min.css'><link rel='stylesheet' href='datatable/css/jquery.dataTables.min.css'><link rel='stylesheet' href='css/magic-bootstrap-min.css'><style type='text/css'>@-moz-document url-prefix() {fieldset { display: table-cell; } } table.dataTable select{font-size:x-small;} table.dataTable thead th{font-size:x-small;} table.dataTable tbody th,table.dataTable tbody td{font-size:x-small;} .label-as-badge {border-radius: 1em;}</style></head><body><div class='dataTables_wrapper dt-bootstrap'><table class='table table-condensed table-bordered hover order-column dataTable' role='grid'>");
+				w.document.write($('#myTable4').html().replace(new RegExp('<tfoot>.*</tfoot>'), ''));
+				w.document.write("</table></div></body>");
+				w.print();
+				w.close();
+			  }
+			},
+			{ text: 'No action (Edge-W10)', title: menu+titlecontent, enabled: false,
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, columns: rangevisible  },
+			  action: function(e, dt, node, config) {
+				alert('Function not supported under Edge and Windows 10');
+			  }
+			}
+		];
+	} else {
+		result = [{ extend: 'pdf', text: page+' to Pdf', title: menu+titlecontent, filename: menu+titlecontent+'_'+sdate+".pdf",
+			  orientation: 'landscape', download: 'open', exportOptions: { orthogonal: 'printPdf', modifier: content, columns: rangevisible },
+			  customize: function ( win ) {
+				if (win.document) {
+					$(win.document.body).css('font-size', '8px');
+					$(win.document.body).find('table').addClass('compact').css('font-size', '5px')
+				} else if (win.content) {
+					win.styles.title.fontSize = 10;
+					win.defaultStyle.fontSize = 5;
+					win.styles.tableHeader.fontSize = 7;
+					win.styles.tableHeader.fillColor = '#d07307';
+					win.content[0].margin[3] = 0;
+					win.content[1].layout = { vLineWidth : function() { return 1; }, paddingLeft : function() { return 1; }, 
+						paddingRight: function() { return 1; }, paddingTop: function() { return 1; }, paddingBottom: function() { return 1; } };
+					win.pageMargins = [ 10, 10, 10, 10 ];
+				}
+			  }
+			},
+			{ extend: 'pdf', title: menu+titlecontent, filename: menu+titlecontent+'_'+sdate+".pdf",
+			  orientation: 'landscape', download: 'open', exportOptions: { orthogonal: 'printPdf', columns: rangevisible },
+			  customize: function ( win ) {
+				if (win.document) {
+					$(win.document.body).css('font-size', '8px');
+					$(win.document.body).find('table').addClass('compact').css('font-size', '5px')
+				} else if (win.content) {
+					win.styles.title.fontSize = 10;
+					win.defaultStyle.fontSize = 5;
+					win.styles.tableHeader.fontSize = 7;
+					win.styles.tableHeader.fillColor = '#d07307';
+					win.content[0].margin[3] = 0;
+					win.content[1].layout = { vLineWidth : function() { return 1; }, paddingLeft : function() { return 1; }, 
+						paddingRight: function() { return 1; }, paddingTop: function() { return 1; }, paddingBottom: function() { return 1; } };
+					win.pageMargins = [ 10, 10, 10, 10 ];
+				}
+			  }
+			},
+			{ extend: 'print', text: 'Print '+page, title: menu+titlecontent, autoPrint: false,
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, modifier: content, columns: rangevisible }
+			},
+			{ extend: 'print', text: 'Print All', title: menu+titlecontent, autoPrint: false,
+			  exportOptions: { orthogonal: 'print', decodeEntities: false, columns: rangevisible }
+			}
+		];
+	};
+	return result;
+};

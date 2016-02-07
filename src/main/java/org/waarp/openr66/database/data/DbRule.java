@@ -1232,7 +1232,7 @@ public class DbRule extends AbstractDbData {
             preparedStatement.realClose();
         }
         // \n is not correctly parsed within HTML so put double \\n in fine
-        return JsonHandler.writeAsString(arrayNode).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1").replace("\\\\", "\\\\\\\\");
+        return WaarpStringUtils.cleanJsonForHtml(arrayNode.toString());
     }
     private ObjectNode getInternalJson() {
         ObjectNode node = getJson();

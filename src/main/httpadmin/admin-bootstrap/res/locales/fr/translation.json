@@ -7,12 +7,21 @@
     "menu5": "SYSTEME",
     "menu6": "SESSION",
     "menu7": "EXIT",
+    "menu8": "SCRUTATEURS",
     "haut1": "Local:",
     "haut2": "Réseau:",
     "haut3": "Serveur:",
     "haut4": "Connexion:",
     "erreur": "Une erreur est survenue forçant la fermeture de la connexion...",
-	"erreur2": "Votre profil n'autorise pas cette fonction."
+	"erreur2": "Votre profil n'autorise pas cette fonction.",
+	"search": "Chercher",
+	"searchhelp": "Recherche basée sur l'ID de Transfert",
+	"help1": "Remet les valeurs à celles existantes lors du chargement de la page",
+	"help2": "Valide uniquement pour un nouvel ID",
+	"help3": "Valide uniquement pour un ID déjà existant",
+	"help4": "Filtres pour la recherche",
+	"help5": "Permet de recharger en gardant le filtre actuel actif pour la prochaine requête - même vide -",
+	"help6": "Taux de rafraichissement : 0 = désactivé"
   },
   "menu1": {
   	"titre": "Accueil",
@@ -106,7 +115,26 @@
 	"entete22": "Taille bloc",
 	"entete23": "Taille src",
 	"entete24": "Mode",
-	"entete25": "Direction"
+	"entete25": "Direction",
+	"spooled1": "Nom",
+	"spooled2": "Serveur",
+	"spooled3": "Dernière Mise à jour",
+	"spooled4": "OK Global",
+	"spooled5": "Erreur Global",
+	"spooled6": "OK Jour",
+	"spooled7": "Erreur Jour",
+	"spooled8": "Intervalle",
+	"spooled9": "Fichier stop",
+	"spooled10": "Fichier Statut",
+	"spooled11": "Récursif",
+	"spooled12": "Répertoires",
+	"spooled13": "Fichiers",
+	"subspooled1": "Fichier",
+	"subspooled2": "Empreinte",
+	"subspooled3": "Date de découverte",
+	"subspooled4": "Date de transfert",
+	"subspooled5": "Transféré",
+	"subspooled6": "Identifiant"
   },
   "menu3": {
   	"titre": "Serveurs",
@@ -141,7 +169,7 @@
   	"filtre5": "Filtre sur SSL :",
   	"filtre6": "Si cochée, seuls les serveurs SSL seront listés. Sinon seuls les serveurs non SSL seront listés.",
   	"filtre7": "Filtre sur Actif :",
-  	"filtre8": "Si cochée, seuls les serveurs Actifs seront listés. Sinon seuls les serveurs non Actifs seront listés."  	
+  	"filtre8": "Si cochée, seuls les serveurs Actifs seront listés. Sinon seuls les serveurs non Actifs seront listés."
   },   
   "menu4": {
   	"titre": "Règles",
@@ -179,7 +207,7 @@
   	"text18": "Cela spécifie toutes les actions à faire APRES UNE ERREUR de transfert en tant qu'expéditeur (SEND et destinataire, RECV et demandeur).",
   	"filtre1": "Filtre sur l'id de la règle :",
   	"filtre2": "Filtre sur le mode :",
-  	"filtre3": "Soit vous choisissez ALL SEND, ALL RECV ou ALL mais aucun mode spécifique (SEND, RECV, ...), soit vous choisissez certains modes spécifiques (SEND, SENDMD5, ...)."  	
+  	"filtre3": "Soit vous choisissez ALL SEND, ALL RECV ou ALL mais aucun mode spécifique (SEND, RECV, ...), soit vous choisissez certains modes spécifiques (SEND, SENDMD5, ...)."
   },
   "menu5": {
   	"titre": "Système",
@@ -220,12 +248,14 @@
   	"text13": "Changer la langue utilisée dans l'interface Web",
   	"text14": "Changer la langue pour le Serveur OpenR66",
 	"text15": "Vous pouvez choisir parmi les langues disponibles. Vous pouvez changer soit seulement l'interface web ou l'ensemble de la langue pour le serveur. Note: IE peut ne pas accepter le changement de langue sauf en mode de compatibilité.",
-	"text16": "Changer le niveau de Logdans le Serveur OpenR66",
+	"text16": "Changer le niveau de Log dans le Serveur OpenR66",
 	"text17": "DEBUG",
 	"text18": "INFO",
 	"text19": "ATTENTION",
 	"text20": "ERREUR",
-	"text21": "Vous pouvez changer dynamiquement le niveau de log du programme d'ici (en plus de pouvoir le fixer dans le fichier de configuration)."
+	"text21": "Vous pouvez changer dynamiquement le niveau de log du programme d'ici (en plus de pouvoir le fixer dans le fichier de configuration).",
+	"text22": "Vous pouvez nettoyer le cache de votre navigateur (notamment les traductions et les contextes) en cliquant sur ce bouton.",
+	"text23": "Vider le cache du Navigateur"
   }, 
   "menu6": {
   	"titre": "Connexion",

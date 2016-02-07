@@ -4099,11 +4099,8 @@ public class DbTaskRunner extends AbstractDbData {
         } finally {
             preparedStatement.realClose();
         }
-        return JsonHandler.writeAsString(arrayNode).replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}")
-                .replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\"")
-                .replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1")
-                .replaceAll("([^\\\\])\\\\\"", "$1")
-                .replace("\\\\", "\\\\\\\\");
+        return WaarpStringUtils.cleanJsonForHtml(arrayNode.toString().replaceAll("(\\\"\\{)([^}]+)(\\}\\\")", "{$2}")
+                .replaceAll("([^\\\\])(\\\\\")([a-zA-Z_0-9]+)(\\\\\")", "$1\"$3\""));
     }
 
     /**
@@ -4263,9 +4260,7 @@ public class DbTaskRunner extends AbstractDbData {
         } else {
             node.put("Running", localTransaction.contained(getKey()));
         }
-        return JsonHandler.writeAsString(node).replaceAll("([^\\\\])\\\\n", "$1").replaceAll("([^\\\\])\\\\r", "$1")
-                .replaceAll("([^\\\\])\\\\\"", "$1")
-                .replace("\\\\", "\\\\\\\\");
+        return WaarpStringUtils.cleanJsonForHtml(JsonHandler.writeAsString(node));
     }
 
     /**

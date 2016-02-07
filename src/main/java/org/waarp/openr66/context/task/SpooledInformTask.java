@@ -30,7 +30,9 @@ import org.waarp.common.filemonitor.FileMonitor.FileMonitorInformation;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.client.SpooledDirectoryTransfer;
+import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -39,6 +41,8 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Java Task for SpooledDirectory information to the Waarp Server
@@ -329,5 +333,165 @@ public class SpooledInformTask extends AbstractExecJavaTask {
                     .append(fileItem.specialId).append("</TD></TR>");
         }
         builder.append("</TBODY></TABLE></small>");
+    }
+
+    /**
+     * @param detailed
+     * @param status
+     *            1 for ok, -1 for ko, 0 for all
+     * @param uri
+     * @return the String containing the JSON format of the current Spooled information
+     */
+    public static String buildSpooledJson(boolean detailed, int status, String uri) {
+        ArrayNode array = JsonHandler.createArrayNode();
+        // get current information
+        synchronized (spooledInformationMap) {
+            Set<String> names = spooledInformationMap.keySet();
+            for (String name : names) {
+                // per Name
+                buildSpooledJsonElement(detailed, status, array, name);
+            }
+        }
+        return WaarpStringUtils.cleanJsonForHtml(array.toString());
+    }
+
+    /**
+     * @param name
+     * @param uri
+     * @return the String containing the JSON format of the current Spooled information
+     */
+    public static String buildSpooledUniqueJson(String uri, String name) {
+        ArrayNode array = JsonHandler.createArrayNode();
+        // get current information
+        synchronized (spooledInformationMap) {
+            // per Name
+            buildSpooledJsonElement(true, 0, array, name);
+        }
+        logger.warn(array.toString());
+        return WaarpStringUtils.cleanJsonForHtml(array.toString());
+    }
+
+    /**
+     * @param detailed
+     * @param status
+     * @param builder
+     * @param name
+     */
+    private static void buildSpooledJsonElement(boolean detailed, int status, ArrayNode array,
+            String name) {
+        SpooledInformation inform = spooledInformationMap.get(name);
+        if (inform == null) {
+            return;
+        }
+        long time = inform.lastUpdate.getTime() + Configuration.configuration.getTIMEOUTCON();
+        long curtime = System.currentTimeMillis();
+        if (status != 0) {
+            if (time + Configuration.configuration.getTIMEOUTCON() < curtime) {
+                if (status < 0) {
+                    return;
+                }
+            } else if (status > 0) {
+                    return;
+            }
+        }
+        ObjectNode elt = JsonHandler.createObjectNode();
+        elt.put("NAME", name.replace(',', ' '));
+        elt.put("HOST", inform.host);
+        String val = null;
+        if (time + Configuration.configuration.getTIMEOUTCON() < curtime) {
+            val = "bg-danger";
+        } else if (time < curtime) {
+            val = "bg-warning";
+        } else {
+            val = "bg-success";
+        }
+        elt.put("LAST_UPDATE", val + " " + inform.lastUpdate.getTime());
+        if (inform.fileMonitorInformation != null) {
+            elt.put("GLOBALOK", inform.fileMonitorInformation.globalok.get());
+            elt.put("GLOBALERROR", inform.fileMonitorInformation.globalerror.get());
+            elt.put("TODAYOK", inform.fileMonitorInformation.todayok.get());
+            elt.put("TODAYERROR", inform.fileMonitorInformation.todayerror.get());
+            elt.put("INTERVAL", inform.fileMonitorInformation.elapseTime);
+            elt.put("STOPFILE", inform.fileMonitorInformation.stopFile.getPath());
+            elt.put("STATUSFILE", inform.fileMonitorInformation.statusFile.getPath());
+            elt.put("SUBDIRS", inform.fileMonitorInformation.scanSubDir);
+            String dirs = "";
+            String dirs2 = "";
+            int i = 0;
+            for (File dir : inform.fileMonitorInformation.directories) {
+                i++;
+                dirs += dir + "("+i+") ";
+                dirs2 += dir + " ";
+            }
+            elt.put("DIRECTORIES", dirs);
+            if (detailed && inform.fileMonitorInformation.fileItems != null) {
+                buildSpooledJsonFiles(elt, inform, dirs2.split(" "));
+            } else {
+                // simply print number of files
+                if (inform.fileMonitorInformation.fileItems != null) {
+                    elt.putArray("FILES").add(inform.fileMonitorInformation.fileItems.size());
+                } else {
+                    elt.putArray("FILES").add(0);
+                }
+            }
+        }
+        array.add(elt);
+        return;
+    }
+
+    /**
+     * @param builder
+     * @param inform
+     */
+    private static void buildSpooledJsonFiles(ObjectNode node, SpooledInformation inform, String []dirs) {
+        ArrayNode array = node.putArray("FILES");
+        if (inform.fileMonitorInformation.fileItems.size() == 0) {
+            array.add(0);
+            return;
+        }
+        ArrayNode header = JsonHandler.createArrayNode();
+        header.add("FILE");
+        header.add("HASH");
+        header.add("LASTTIME");
+        header.add("USEDTIME");
+        header.add("USED");
+        header.add("ID");
+        array.add(header);
+        for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
+            ObjectNode elt = JsonHandler.createObjectNode();
+            int i = 0;
+            String path = fileItem.file.getPath();
+            String sep = path.lastIndexOf('/') >= 0 ? "/" : "\\";
+            for (String dir : dirs) {
+                i++;
+                if (path.startsWith(dir+sep)) {
+                    path = "("+i+")"+path.substring(dir.length());
+                    break;
+                }
+            }
+            elt.put("FILE", path);
+            if (fileItem.hash != null) {
+                elt.put("HASH", FilesystemBasedDigest.getHex(fileItem.hash));
+            } else {
+                elt.putNull("HASH");
+            }
+            if (fileItem.lastTime > 0) {
+                elt.put("LASTTIME", fileItem.lastTime);
+            } else {
+                elt.putNull("LASTTIME");
+            }
+            if (fileItem.timeUsed > 0) {
+                elt.put("USEDTIME", fileItem.timeUsed);
+            } else {
+                elt.putNull("USEDTIME");
+            }
+            elt.put("USED", fileItem.used);
+            if (fileItem.specialId == DbConstant.ILLEGALVALUE) {
+                elt.put("ID", "");
+            } else {
+                elt.put("ID", Long.toString(fileItem.specialId));
+            }
+            array.add(elt);
+        }
     }
 }
