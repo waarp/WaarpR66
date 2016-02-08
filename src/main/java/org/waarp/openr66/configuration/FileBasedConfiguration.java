@@ -1775,7 +1775,7 @@ public class FileBasedConfiguration {
                 try {
                     request.select("SELECT * FROM " + DbConfiguration.table);
                 } catch (WaarpDatabaseSqlException e) {
-                    logger.error(Messages.getString("Database.DbNotInitiated"), e); //$NON-NLS-1$
+                    logger.warn(Messages.getString("Database.DbNotInitiated"), e); //$NON-NLS-1$
                     return true;
                 } finally {
                     request.close();

@@ -71,6 +71,7 @@ public class ServerInitDatabase {
             if (args[i].equalsIgnoreCase("-initdb")) {
                 database = true;
                 FileBasedConfiguration.checkDatabase = false;
+                upgradeDb = true;
             } else if (args[i].equalsIgnoreCase("-upgradeDb")) {
                 upgradeDb = true;
             } else if (args[i].equalsIgnoreCase("-loadBusiness")) {
@@ -243,7 +244,7 @@ public class ServerInitDatabase {
                 } catch (WaarpDatabaseException e) {
                     hostConfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
                             Configuration.configuration.getHOST_ID(),
-                            sbusiness, sroles, salias, null);
+                            sbusiness, sroles, salias, "");
                     try {
                         hostConfiguration.insert();
                     } catch (WaarpDatabaseException e1) {

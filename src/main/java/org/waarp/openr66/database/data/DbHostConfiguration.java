@@ -1197,7 +1197,7 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             hostConfiguration = new DbHostConfiguration(dbSession, hostid);
         } catch (WaarpDatabaseNoDataException e) {
-            hostConfiguration = new DbHostConfiguration(dbSession, hostid, null, null, null, null);
+            hostConfiguration = new DbHostConfiguration(dbSession, hostid, "", "", "", "");
             try {
                 hostConfiguration.insert();
             } catch (WaarpDatabaseException e1) {
