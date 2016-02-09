@@ -63,7 +63,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         String createTableH2 = "CREATE TABLE ";
         String constraint = " CONSTRAINT ";
         String primaryKey = " PRIMARY KEY ";
-        String notNull = " NOT NULL ";
+        String notNull = " "; //NOT NULL not correctly supported with Oracle since Empty String => Null for Oracle
 
         // Multiple Mode
         String action = createTableH2 + DbMultipleMonitor.table + "(";
