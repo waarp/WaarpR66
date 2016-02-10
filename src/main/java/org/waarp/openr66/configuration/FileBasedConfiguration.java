@@ -49,6 +49,7 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
+import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.xml.XmlDecl;
 import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
@@ -65,6 +66,7 @@ import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
+import org.waarp.openr66.protocol.configuration.R66SystemProperties;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.http.adminssl.HttpResponsiveSslHandler;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
@@ -2051,6 +2053,7 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setConfigurationServerMinimalFromXml(Configuration config, String filename) {
+        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
         Document document = null;
         // Open config file
         try {
@@ -2121,6 +2124,7 @@ public class FileBasedConfiguration {
      */
     public static boolean setConfigurationServerShutdownFromXml(Configuration config,
             String filename) {
+        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
         Document document = null;
         // Open config file
         try {
@@ -2300,6 +2304,7 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setClientConfigurationFromXml(Configuration config, String filename) {
+        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
         Document document = null;
         // Open config file
         try {
@@ -2385,6 +2390,7 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setSubmitClientConfigurationFromXml(Configuration config, String filename) {
+        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
         Document document = null;
         // Open config file
         try {
