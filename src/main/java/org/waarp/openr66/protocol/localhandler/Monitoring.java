@@ -181,14 +181,14 @@ public class Monitoring implements WaarpInterfaceMonitor {
         if (session != null) {
             dbSession = session;
         } else {
-            if (DbConstant.admin.isActive) {
+            if (DbConstant.admin.isActive()) {
                 try {
                     dbSession = new DbSession(DbConstant.admin, false);
                 } catch (WaarpDatabaseNoConnectionException e) {
-                    dbSession = DbConstant.admin.session;
+                    dbSession = DbConstant.admin.getSession();
                 }
             } else {
-                dbSession = DbConstant.admin.session;
+                dbSession = DbConstant.admin.getSession();
             }
         }
         this.initialize();
@@ -198,7 +198,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * Initialize the Db Requests after constructor or after use of releaseResources
      */
     public void initialize() {
-        if (dbSession == null || dbSession.isDisActive) {
+        if (dbSession == null || dbSession.isDisActive()) {
             logger.warn("Cannot Initialize monitoring");
             return;
         }
@@ -265,7 +265,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * Release all Db Requests
      */
     public void releaseResources() {
-        if (dbSession == null || dbSession.isDisActive) {
+        if (dbSession == null || dbSession.isDisActive()) {
             return;
         }
         try {
@@ -302,7 +302,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
             countStatus.realClose();
         } catch (Exception e) {
         }
-        if (!dbSession.equals(DbConstant.admin.session)) {
+        if (!dbSession.equals(DbConstant.admin.getSession())) {
             dbSession.forceDisconnect();
             dbSession = null;
         }
@@ -372,10 +372,10 @@ public class Monitoring implements WaarpInterfaceMonitor {
             } else {
                 nbMs = nbSecond * 1000;
             }
-            if (dbSession != null && dbSession.isDisActive) {
+            if (dbSession != null && dbSession.isDisActive()) {
                 dbSession.checkConnectionNoException();
             }
-            if (dbSession == null || dbSession.isDisActive) {
+            if (dbSession == null || dbSession.isDisActive()) {
                 nbNetworkConnection =
                         Configuration.configuration.getHttpChannelGroup().size() +
                                 Configuration.configuration.getServerChannelGroup().size();
@@ -602,7 +602,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
         StringBuilder builder = new StringBuilder("<STATUS>")
                 // Global Informations
                 .append("<HostID>")
-                .append(Configuration.configuration.HOST_ID)
+                .append(Configuration.configuration.getHOST_ID())
                 .append("</HostID>")
                 .append("<Date>")
                 .append(new DateTime().toString())
@@ -828,7 +828,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
         ObjectNode node = JsonHandler.createObjectNode();
         node = node.putObject("STATUS");
         // Global Informations
-        node.put("HostID", Configuration.configuration.HOST_ID);
+        node.put("HostID", Configuration.configuration.getHOST_ID());
         node.put("Date", new DateTime().toString());
         node.put("LastRun", new DateTime(lastTry).toString());
         node.put("FromDate", new DateTime(currentLimit).toString());
@@ -922,19 +922,19 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * @param entry
      */
     public void run(int type, int entry) {
-        long nbMs = Configuration.configuration.agentSnmp.getUptime() + 100;
+        long nbMs = Configuration.configuration.getAgentSnmp().getUptime() + 100;
         MibLevel level = MibLevel.values()[type];
         switch (level) {
             case globalInfo:// Global
-                if (((R66PrivateMib) this.agent.mib).rowGlobal != null)
+                if (((R66PrivateMib) this.agent.getMib()).rowGlobal != null)
                     run(nbMs, WaarpGlobalValuesIndex.values()[entry]);
                 return;
             case detailedInfo:// Detailed
-                if (((R66PrivateMib) this.agent.mib).rowDetailed != null)
+                if (((R66PrivateMib) this.agent.getMib()).rowDetailed != null)
                     run(nbMs, WaarpDetailedValuesIndex.values()[entry]);
                 return;
             case errorInfo:// Error
-                if (((R66PrivateMib) this.agent.mib).rowError != null)
+                if (((R66PrivateMib) this.agent.getMib()).rowError != null)
                     run(nbMs, WaarpErrorValuesIndex.values()[entry]);
                 return;
             case staticInfo:
@@ -953,7 +953,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * @param value
      */
     protected void updateGlobalValue(int rank, long value) {
-        ((R66PrivateMib) this.agent.mib).rowGlobal.setValue(rank, value);
+        ((R66PrivateMib) this.agent.getMib()).rowGlobal.setValue(rank, value);
     }
 
     /**
@@ -963,7 +963,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * @param value
      */
     protected void updateDetailedValue(int rank, long value) {
-        ((R66PrivateMib) this.agent.mib).rowDetailed.setValue(rank, value);
+        ((R66PrivateMib) this.agent.getMib()).rowDetailed.setValue(rank, value);
     }
 
     /**
@@ -973,7 +973,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
      * @param value
      */
     protected void updateErrorValue(int rank, long value) {
-        ((R66PrivateMib) this.agent.mib).rowError.setValue(rank, value);
+        ((R66PrivateMib) this.agent.getMib()).rowError.setValue(rank, value);
     }
 
     /**
@@ -986,7 +986,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
         synchronized (trafficCounter) {
             long val = 0;
             long limitDate = System.currentTimeMillis() - nbMs;
-            if (dbSession == null || dbSession.isDisActive) {
+            if (dbSession == null || dbSession.isDisActive()) {
                 switch (entry) {
                     case applUptime:
                         return;
@@ -1228,7 +1228,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
     protected void run(long nbMs, WaarpDetailedValuesIndex entry) {
         synchronized (trafficCounter) {
             long limitDate = System.currentTimeMillis() - nbMs;
-            if (dbSession == null || dbSession.isDisActive) {
+            if (dbSession == null || dbSession.isDisActive()) {
                 switch (entry) {
                     case nbStepNotask:
                         updateDetailedValue(entry.ordinal(), nbCountStepNotask);
@@ -1371,13 +1371,13 @@ public class Monitoring implements WaarpInterfaceMonitor {
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    dbSession.admin.getDbModel().validConnection(dbSession);
+                    dbSession.getAdmin().getDbModel().validConnection(dbSession);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
             } catch (WaarpDatabaseSqlException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
-                    dbSession.admin.getDbModel().validConnection(dbSession);
+                    dbSession.getAdmin().getDbModel().validConnection(dbSession);
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
             }
@@ -1393,7 +1393,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
     protected void run(long nbMs, WaarpErrorValuesIndex entry) {
         synchronized (trafficCounter) {
             long limitDate = System.currentTimeMillis() - nbMs;
-            if (dbSession == null || dbSession.isDisActive) {
+            if (dbSession == null || dbSession.isDisActive()) {
                 return;
             }
             // Error

@@ -66,10 +66,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         super(session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean ()
-     */
     @Override
     protected void businessClean() {
         currentAuth = null;
@@ -78,14 +74,9 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     public String getBaseDirectory() {
-        return Configuration.configuration.baseDirectory;
+        return Configuration.configuration.getBaseDirectory();
     }
 
-    /*
-     * (non-Javadoc)
-     * @seeorg.waarp.common.file.filesystembased.FilesystemBasedAuthImpl#
-     * setBusinessPassword(java.lang.String)
-     */
     @Override
     protected NextCommandReply setBusinessPassword(String arg0)
             throws Reply421Exception, Reply530Exception {
@@ -120,14 +111,14 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             setRootFromAuth();
             getSession().getDir().initAfterIdentification();
             isAdmin = currentAuth.isAdminrole();
-            if (Configuration.configuration.roles.isEmpty()) {
+            if (Configuration.configuration.getRoles().isEmpty()) {
                 if (isAdmin) {
                     role.setRole(ROLE.FULLADMIN);
                 } else {
                     role.setRole(ROLE.PARTNER);
                 }
             } else {
-                RoleDefault configRole = Configuration.configuration.roles.get(hostId);
+                RoleDefault configRole = Configuration.configuration.getRoles().get(hostId);
                 if (configRole == null) {
                     // set to default PARTNER
                     role.setRole(ROLE.PARTNER);
@@ -171,10 +162,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @seeorg.waarp.common.file.filesystembased.FilesystemBasedAuthImpl# setBusinessRootFromAuth()
-     */
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
         String path = null;
@@ -186,11 +173,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         return path;
     }
 
-    /*
-     * (non-Javadoc)
-     * @seeorg.waarp.common.file.filesystembased.FilesystemBasedAuthImpl#
-     * setBusinessUser(java.lang.String)
-     */
     @Override
     protected NextCommandReply setBusinessUser(String arg0)
             throws Reply421Exception, Reply530Exception {
@@ -258,12 +240,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         this.isIdentified = true;
         DbHostAuth auth = null;
         try {
-            auth = new DbHostAuth(DbConstant.admin.session,
+            auth = new DbHostAuth(DbConstant.admin.getSession(),
                     hostid);
         } catch (WaarpDatabaseException e1) {
         }
         if (auth == null) {
-            auth = new DbHostAuth(DbConstant.admin.session, hostid, "127.0.0.1", 6666, isSSL, null, true, false);
+            auth = new DbHostAuth(DbConstant.admin.getSession(), hostid, "127.0.0.1", 6666, isSSL, null, true, false);
         }
         role.clear();
         currentAuth = auth;
@@ -277,7 +259,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         isAdmin = isSSL;
         if (isSSL) {
             role.setRole(ROLE.FULLADMIN);
-            this.user = Configuration.configuration.ADMINNAME;
+            this.user = Configuration.configuration.getADMINNAME();
         }
     }
 
@@ -318,12 +300,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             setRootFromAuth();
             getSession().getDir().initAfterIdentification();
             isAdmin = currentAuth.isAdminrole();
-            if (Configuration.configuration.roles.isEmpty()) {
+            if (Configuration.configuration.getRoles().isEmpty()) {
                 if (isAdmin) {
                     role.setRole(ROLE.FULLADMIN);
                 }
             } else {
-                RoleDefault configRole = Configuration.configuration.roles.get(hostId);
+                RoleDefault configRole = Configuration.configuration.getRoles().get(hostId);
                 if (configRole != null) {
                     role.setRoleDefault(configRole);
                     if (this.role.isContaining(ROLE.FULLADMIN)) {

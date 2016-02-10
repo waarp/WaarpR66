@@ -82,7 +82,7 @@ public enum R66FiniteDualStates {
      */
     public static void initR66FiniteStates() {
         for (R66Transition trans : R66Transition.values()) {
-            stateMap.put(trans.elt.state, trans.elt.set);
+            stateMap.put(trans.elt.getState(), trans.elt.getSet());
         }
     }
 

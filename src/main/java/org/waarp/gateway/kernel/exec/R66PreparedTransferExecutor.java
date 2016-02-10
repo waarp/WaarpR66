@@ -89,7 +89,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
 
     protected String remoteHost = null;
 
-    protected int blocksize = Configuration.configuration.BLOCKSIZE;;
+    protected int blocksize = Configuration.configuration.getBLOCKSIZE();;
 
     protected DbSession dbsession;
 
@@ -127,7 +127,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
                 blocksize = Integer.parseInt(args[i]);
                 if (blocksize < 100) {
                     logger.warn("Block size is too small: " + blocksize);
-                    blocksize = Configuration.configuration.BLOCKSIZE;
+                    blocksize = Configuration.configuration.getBLOCKSIZE();
                 }
             } else if (args[i].equalsIgnoreCase("-nolog")) {
                 nolog = true;
@@ -184,7 +184,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
             throw new Reply421Exception("Cannot get Rule: " +
                     rulename + "\n    " + message);
         }
-        int mode = rule.mode;
+        int mode = rule.getMode();
         if (isMD5) {
             mode = RequestPacket.getModeMD5(mode);
         }

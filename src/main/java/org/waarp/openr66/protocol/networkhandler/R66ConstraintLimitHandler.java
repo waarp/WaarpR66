@@ -60,7 +60,7 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
             GlobalTrafficShapingHandler handler, long delay,
             long limitLowBandwidth) {
         super(1000, Configuration.configuration != null ?
-                Configuration.configuration.TIMEOUTCON : 30000,
+                Configuration.configuration.getTIMEOUTCON() : 30000,
                 useJdKCpuLimit,
                 lowcpuLimit, highcpuLimit,
                 percentageDecrease, handler, delay, limitLowBandwidth);
@@ -79,7 +79,7 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
     public R66ConstraintLimitHandler(boolean useCpuLimit,
             boolean useJdKCpuLimit, double cpulimit, int channellimit) {
         super(1000, Configuration.configuration != null ?
-                Configuration.configuration.TIMEOUTCON : 30000,
+                Configuration.configuration.getTIMEOUTCON() : 30000,
                 useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
     }
 
@@ -115,16 +115,12 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
             double percentageDecrease, GlobalTrafficShapingHandler handler,
             long delay, long limitLowBandwidth) {
         super(1000, Configuration.configuration != null ?
-                Configuration.configuration.TIMEOUTCON : 30000,
+                Configuration.configuration.getTIMEOUTCON() : 30000,
                 useCpuLimit, useJdKCpuLimit,
                 cpulimit, channellimit, lowcpuLimit, highcpuLimit,
                 percentageDecrease, handler, delay, limitLowBandwidth);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getNumberLocalChannel()
-     */
     @Override
     protected int getNumberLocalChannel() {
         if (Configuration.configuration.getLocalTransaction() != null) {
@@ -133,22 +129,14 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
         return 0;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getReadLimit()
-     */
     @Override
     protected long getReadLimit() {
-        return Configuration.configuration.serverGlobalReadLimit;
+        return Configuration.configuration.getServerGlobalReadLimit();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.cpu.WaarpConstraintLimitHandler#getWriteLimit()
-     */
     @Override
     protected long getWriteLimit() {
-        return Configuration.configuration.serverGlobalWriteLimit;
+        return Configuration.configuration.getServerGlobalWriteLimit();
     }
 
 }

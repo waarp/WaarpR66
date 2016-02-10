@@ -54,12 +54,12 @@ public class SubmitTransfer extends AbstractTransfer {
         if (logger == null) {
             logger = WaarpLoggerFactory.getLogger(SubmitTransfer.class);
         }
-        if (!DbConstant.admin.isActive) {
+        if (!DbConstant.admin.isActive()) {
             logger.debug("Client not connected");
             R66Result result = new R66Result(new OpenR66DatabaseGlobalException("No database connexion"), null, true,
                     ErrorCode.Internal, null);
             future.setResult(result);
-            future.setFailure(result.exception);
+            future.setFailure(result.getException());
             return;
         }
         long srcId = id;
@@ -72,7 +72,7 @@ public class SubmitTransfer extends AbstractTransfer {
             R66Result result = new R66Result(new OpenR66DatabaseGlobalException(), null, true,
                     ErrorCode.Internal, taskRunner);
             future.setResult(result);
-            future.setFailure(result.exception);
+            future.setFailure(result.getException());
             return;
         }
         if (srcId != DbConstant.ILLEGALVALUE) {
@@ -85,7 +85,7 @@ public class SubmitTransfer extends AbstractTransfer {
                         null, true,
                         ErrorCode.Internal, taskRunner);
                 future.setResult(result);
-                future.setFailure(result.exception);
+                future.setFailure(result.getException());
                 return;
             }
         } else {
@@ -99,7 +99,7 @@ public class SubmitTransfer extends AbstractTransfer {
                             true,
                             ErrorCode.Internal, taskRunner);
                     future.setResult(result);
-                    future.setFailure(result.exception);
+                    future.setFailure(result.getException());
                     return;
                 }
             } catch (WaarpDatabaseException e) {
@@ -107,7 +107,7 @@ public class SubmitTransfer extends AbstractTransfer {
                 R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null, true,
                         ErrorCode.Internal, taskRunner);
                 future.setResult(result);
-                future.setFailure(result.exception);
+                future.setFailure(result.getException());
                 return;
             }
         }
@@ -133,7 +133,7 @@ public class SubmitTransfer extends AbstractTransfer {
             if (!OutputFormat.isQuiet()) {
                 System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
             }
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -146,7 +146,7 @@ public class SubmitTransfer extends AbstractTransfer {
         transaction.normalInfoAsWarn = snormalInfoAsWarn;
         transaction.run();
         future.awaitUninterruptibly();
-        DbTaskRunner runner = future.getResult().runner;
+        DbTaskRunner runner = future.getResult().getRunner();
         OutputFormat outputFormat = new OutputFormat(SubmitTransfer.class.getSimpleName(), args);
         if (future.isSuccess()) {
             outputFormat.setValue(FIELDS.status.name(), 0);
@@ -183,7 +183,7 @@ public class SubmitTransfer extends AbstractTransfer {
             }
             DbConstant.admin.close();
             ChannelUtils.stopLogger();
-            System.exit(future.getResult().code.ordinal());
+            System.exit(future.getResult().getCode().ordinal());
         }
         DbConstant.admin.close();
         System.exit(0);

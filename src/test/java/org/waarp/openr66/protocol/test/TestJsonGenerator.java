@@ -70,7 +70,7 @@ public class TestJsonGenerator {
                 .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
             logger.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -79,7 +79,7 @@ public class TestJsonGenerator {
         logger.warn("Start Test Json");
         DbPreparedStatement preparedStatement;
         try {
-            preparedStatement = DbTaskRunner.getFilterPrepareStatement(DbConstant.admin.session, nb, false,
+            preparedStatement = DbTaskRunner.getFilterPrepareStatement(DbConstant.admin.getSession(), nb, false,
                     null, null, null, null, null, null,
                     false, false, false, false, true, null);
             preparedStatement.executeQuery();
@@ -96,7 +96,7 @@ public class TestJsonGenerator {
         }
         System.out.println();
         try {
-            preparedStatement = DbHostAuth.getFilterPrepareStament(DbConstant.admin.session,
+            preparedStatement = DbHostAuth.getFilterPrepareStament(DbConstant.admin.getSession(),
                     null, null);
             preparedStatement.executeQuery();
             String hosts = DbHostAuth.getJson(preparedStatement, nb);
@@ -112,7 +112,7 @@ public class TestJsonGenerator {
         }
         System.out.println();
         try {
-            preparedStatement = DbRule.getFilterPrepareStament(DbConstant.admin.session,
+            preparedStatement = DbRule.getFilterPrepareStament(DbConstant.admin.getSession(),
                     null, -1);
             preparedStatement.executeQuery();
             String rules = DbRule.getJson(preparedStatement, nb);

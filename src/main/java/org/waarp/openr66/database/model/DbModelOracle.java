@@ -63,7 +63,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         String createTableH2 = "CREATE TABLE ";
         String constraint = " CONSTRAINT ";
         String primaryKey = " PRIMARY KEY ";
-        String notNull = " NOT NULL ";
+        String notNull = " "; //NOT NULL not correctly supported with Oracle since Empty String => Null for Oracle
 
         // Multiple Mode
         String action = createTableH2 + DbMultipleMonitor.table + "(";
@@ -93,7 +93,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
             request.close();
         }
         DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
-                Configuration.configuration.HOST_ID, 0, 0, 0);
+                Configuration.configuration.getHOST_ID(), 0, 0, 0);
         try {
             if (!multipleMonitor.exist()) {
                 multipleMonitor.insert();
@@ -264,10 +264,6 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()
-     */
     @Override
     public void resetSequence(DbSession session, long newvalue)
             throws WaarpDatabaseNoConnectionException {
@@ -292,10 +288,6 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         System.out.println(action);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.model.DbModel#nextSequence()
-     */
     @Override
     public long nextSequence(DbSession dbSession)
             throws WaarpDatabaseNoConnectionException,
@@ -422,7 +414,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.close();
             }
         }
-        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID,
+        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
                 R66Versions.V2_4_25.getVersion());
         return true;
     }
@@ -436,10 +428,10 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request = new DbRequest(session);
                 request.select("select " + DbHostConfiguration.Columns.HOSTID.name() + " from "
                         + DbHostConfiguration.table +
-                        " where " + DbHostConfiguration.Columns.HOSTID + " = '" + Configuration.configuration.HOST_ID
+                        " where " + DbHostConfiguration.Columns.HOSTID + " = '" + Configuration.configuration.getHOST_ID()
                         + "'");
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID,
+                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_13.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -456,7 +448,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.select("select " + DbTaskRunner.Columns.TRANSFERINFO.name() + " from " + DbTaskRunner.table +
                         " where " + DbTaskRunner.Columns.SPECIALID + " = " + DbConstant.ILLEGALVALUE);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID,
+                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_17.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -473,7 +465,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.select("select " + DbHostAuth.Columns.ISACTIVE.name() + " from " + DbHostAuth.table +
                         " where " + DbHostAuth.Columns.PORT + " = " + 0);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID,
+                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_23.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -487,7 +479,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
             try {
                 if (upgradeDb(session, version)) {
-                    DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID,
+                    DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
                             R66Versions.V2_4_25.getVersion());
                 } else {
                     return true;

@@ -86,10 +86,6 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "ConnectionErrorPacket: " + sheader + ":" + smiddle;

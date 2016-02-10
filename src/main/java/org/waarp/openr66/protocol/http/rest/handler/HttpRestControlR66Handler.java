@@ -86,7 +86,7 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
             logger.debug("Obj: {}", body);
         }
         handler.setWillClose(false);
-        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
         R66Session session = serverHandler.getSession();
         // now action according to body
         JsonPacket json = (JsonPacket) body;
@@ -129,7 +129,7 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
                 RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
                 R66Result r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(),
                         node.getSpecialid(), node.getRestarttime());
-                if (serverHandler.isCodeValid(r66result.code)) {
+                if (serverHandler.isCodeValid(r66result.getCode())) {
                     result.setDetail("Restart Transfer done");
                     setOk(handler, result, node, HttpResponseStatus.OK);
                 } else {
@@ -152,14 +152,14 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
                     String reqr = node.getRequester();
                     long id = node.getSpecialid();
                     resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-                    result.setDetail(resulttest.code.mesg);
+                    result.setDetail(resulttest.getCode().mesg);
                     setOk(handler, result, node, HttpResponseStatus.OK);
                 }
             } else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {
                 result.setCommand(ACTIONS_TYPE.CreateTransfer.name());
                 TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
                 R66Result r66result = serverHandler.transferRequest(node);
-                if (serverHandler.isCodeValid(r66result.code)) {
+                if (serverHandler.isCodeValid(r66result.getCode())) {
                     result.setDetail("New Transfer registered");
                     setOk(handler, result, node, HttpResponseStatus.OK);
                 } else {
@@ -191,7 +191,7 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
             node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
             DbValue[] values = DbTaskRunner.getAllType();
             for (DbValue dbValue : values) {
-                node1b.put(dbValue.column, dbValue.getType());
+                node1b.put(dbValue.getColumn(), dbValue.getType());
             }
             node1.add(node1b);
             ObjectNode node2;

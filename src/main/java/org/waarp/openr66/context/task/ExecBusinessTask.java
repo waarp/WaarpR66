@@ -70,8 +70,8 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
                             invalid();
                             return;
                         }
-                        if (future.getResult() != null && future.getResult().other != null) {
-                            validate = future.getResult().other.toString();
+                        if (future.getResult() != null && future.getResult().getOther() != null) {
+                            validate = future.getResult().getOther().toString();
                         }
                     } else {
                         logger.error("ExecBusiness in error, Task invalid: " + operation);

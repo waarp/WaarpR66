@@ -128,7 +128,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
     @Override
     public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments,
             RestArgument result, Object body, Exception exception) {
-        ((HttpRestR66Handler) handler).serverHandler.getSession().newState(ERROR);
+        ((HttpRestR66Handler) handler).getServerHandler().getSession().newState(ERROR);
         return super.handleException(handler, arguments, result, body, exception);
     }
 

@@ -63,10 +63,6 @@ public class TransferTask extends AbstractTask {
         super(TaskType.TRANSFER, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("Transfer with " + argRule + ":" + argTransfer + " and {}",
@@ -85,7 +81,7 @@ public class TransferTask extends AbstractTask {
         String information = null;
         String finalInformation = null;
         boolean isMD5 = false;
-        int blocksize = Configuration.configuration.BLOCKSIZE;
+        int blocksize = Configuration.configuration.getBLOCKSIZE();
         Timestamp timestart = null;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-to")) {
@@ -114,7 +110,7 @@ public class TransferTask extends AbstractTask {
                 blocksize = Integer.parseInt(args[i]);
                 if (blocksize < 100) {
                     logger.warn("Block size is too small: " + blocksize);
-                    blocksize = Configuration.configuration.BLOCKSIZE;
+                    blocksize = Configuration.configuration.getBLOCKSIZE();
                 }
             } else if (args[i].equalsIgnoreCase("-start")) {
                 i++;
@@ -154,7 +150,7 @@ public class TransferTask extends AbstractTask {
         transaction.run();
         future.awaitUninterruptibly();
         futureCompletion.setResult(future.getResult());
-        DbTaskRunner runner = future.getResult().runner;
+        DbTaskRunner runner = future.getResult().getRunner();
         if (future.isSuccess()) {
             logger.info("Prepare transfer in     SUCCESS     " + runner.toShortString() +
                     "     <REMOTE>" + requested + "</REMOTE>");

@@ -171,9 +171,6 @@ public abstract class AbstractExecutor {
             pstorDelay = storDelay;
         }
 
-        /* (non-Javadoc)
-         * @see org.waarp.gateway.kernel.exec.CommandExecutorInterface#isValidOperation(boolean)
-         */
         @Override
         public boolean isValidOperation(boolean isStore) {
             if (isStore && pstorRefused) {
@@ -186,9 +183,6 @@ public abstract class AbstractExecutor {
             return true;
         }
 
-        /* (non-Javadoc)
-         * @see org.waarp.gateway.kernel.exec.CommandExecutorInterface#getRetrType()
-         */
         @Override
         public String getRetrType() {
             switch (pretrType) {
@@ -207,9 +201,6 @@ public abstract class AbstractExecutor {
             }
         }
 
-        /* (non-Javadoc)
-         * @see org.waarp.gateway.kernel.exec.CommandExecutorInterface#getStorType()
-         */
         @Override
         public String getStorType() {
             switch (pstorType) {

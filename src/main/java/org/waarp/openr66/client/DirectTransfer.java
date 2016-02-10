@@ -135,7 +135,7 @@ public class DirectTransfer extends AbstractTransfer {
             if (!OutputFormat.isQuiet()) {
                 System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
             }
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -160,7 +160,7 @@ public class DirectTransfer extends AbstractTransfer {
             R66Result result = future.getResult();
             OutputFormat outputFormat = new OutputFormat(DirectTransfer.class.getSimpleName(), args);
             if (future.isSuccess()) {
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     outputFormat.setValue(FIELDS.status.name(), 1);
                     outputFormat.setValue(FIELDS.statusTxt.name(),
                             Messages.getString("Transfer.Status") + Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
@@ -170,8 +170,8 @@ public class DirectTransfer extends AbstractTransfer {
                             Messages.getString("Transfer.Status") + Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
                 }
                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-                outputFormat.setValueString(result.runner.getJson());
-                outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
+                outputFormat.setValueString(result.getRunner().getJson());
+                outputFormat.setValue("filefinal", (result.getFile() != null ? result.getFile().toString() : "no file"));
                 outputFormat.setValue("delay", delay);
                 if (transaction.normalInfoAsWarn) {
                     logger.warn(outputFormat.loggerOut());
@@ -181,19 +181,19 @@ public class DirectTransfer extends AbstractTransfer {
                 if (!OutputFormat.isQuiet()) {
                     outputFormat.sysout();
                 }
-                if (nolog || result.runner.shallIgnoreSave()) {
+                if (nolog || result.getRunner().shallIgnoreSave()) {
                     // In case of success, delete the runner
                     try {
-                        result.runner.delete();
+                        result.getRunner().delete();
                     } catch (WaarpDatabaseException e) {
-                        logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
+                        logger.warn("Cannot apply nolog to     " + result.getRunner().toShortString(),
                                 e);
                     }
                 }
                 networkTransaction.closeAll();
                 System.exit(0);
             } else {
-                if (result == null || result.runner == null) {
+                if (result == null || result.getRunner() == null) {
                     outputFormat.setValue(FIELDS.status.name(), 2);
                     outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
                     outputFormat.setValue(FIELDS.remote.name(), rhost);
@@ -205,7 +205,7 @@ public class DirectTransfer extends AbstractTransfer {
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     outputFormat.setValue(FIELDS.status.name(), 1);
                     outputFormat.setValue(FIELDS.statusTxt.name(),
                             Messages.getString("Transfer.Status") + Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
@@ -215,8 +215,8 @@ public class DirectTransfer extends AbstractTransfer {
                             Messages.getString("Transfer.Status") + Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
                 }
                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-                outputFormat.setValueString(result.runner.getJson());
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                outputFormat.setValueString(result.getRunner().getJson());
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn(outputFormat.loggerOut(), future.getCause());
                 } else {
                     logger.error(outputFormat.loggerOut(), future.getCause());
@@ -226,7 +226,7 @@ public class DirectTransfer extends AbstractTransfer {
                     outputFormat.sysout();
                 }
                 networkTransaction.closeAll();
-                System.exit(result.code.ordinal());
+                System.exit(result.getCode().ordinal());
             }
         } catch (Throwable e) {
             logger.error("Exception", e);

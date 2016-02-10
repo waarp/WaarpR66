@@ -76,7 +76,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
             logger.debug("Obj: {}", body);
         }
         handler.setWillClose(false);
-        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
         // now action according to body
         JsonPacket json = (JsonPacket) body;
         if (json == null) {

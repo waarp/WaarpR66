@@ -57,11 +57,11 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     private String hostid;
 
-    public int countConfig;
+    private int countConfig;
 
-    public int countHost;
+    private int countHost;
 
-    public int countRule;
+    private int countRule;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     public static final int NBPRKEY = 1;
@@ -101,53 +101,33 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?) ";
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#initObject()
-     */
     @Override
     protected void initObject() {
         primaryKey = new DbValue[] { new DbValue(hostid, Columns.HOSTID
                 .name()) };
         otherFields = new DbValue[] {
-                new DbValue(countConfig, Columns.COUNTCONFIG.name()),
-                new DbValue(countHost, Columns.COUNTHOST.name()),
-                new DbValue(countRule, Columns.COUNTRULE.name()) };
+                new DbValue(getCountConfig(), Columns.COUNTCONFIG.name()),
+                new DbValue(getCountHost(), Columns.COUNTHOST.name()),
+                new DbValue(getCountRule(), Columns.COUNTRULE.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], primaryKey[0] };
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getSelectAllFields()
-     */
     @Override
     protected String getSelectAllFields() {
         return selectAllFields;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getTable()
-     */
     @Override
     protected String getTable() {
         return table;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getInsertAllValues()
-     */
     @Override
     protected String getInsertAllValues() {
         return insertAllValues;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getUpdateAllFields()
-     */
     @Override
     protected String getUpdateAllFields() {
         return updateAllFields;
@@ -156,37 +136,29 @@ public class DbMultipleMonitor extends AbstractDbData {
     @Override
     protected void setToArray() {
         allFields[Columns.HOSTID.ordinal()].setValue(hostid);
-        allFields[Columns.COUNTCONFIG.ordinal()].setValue(countConfig);
+        allFields[Columns.COUNTCONFIG.ordinal()].setValue(getCountConfig());
         allFields[Columns.COUNTHOST.ordinal()]
-                .setValue(countHost);
+                .setValue(getCountHost());
         allFields[Columns.COUNTRULE.ordinal()]
-                .setValue(countRule);
+                .setValue(getCountRule());
     }
 
     @Override
     protected void setFromArray() throws WaarpDatabaseSqlException {
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
-        countConfig = (Integer) allFields[Columns.COUNTCONFIG.ordinal()]
-                .getValue();
-        countHost = (Integer) allFields[Columns.COUNTHOST.ordinal()]
-                .getValue();
-        countRule = (Integer) allFields[Columns.COUNTRULE.ordinal()]
-                .getValue();
+        setCountConfig((Integer) allFields[Columns.COUNTCONFIG.ordinal()]
+                .getValue());
+        setCountHost((Integer) allFields[Columns.COUNTHOST.ordinal()]
+                .getValue());
+        setCountRule((Integer) allFields[Columns.COUNTRULE.ordinal()]
+                .getValue());
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getWherePrimaryKey()
-     */
     @Override
     protected String getWherePrimaryKey() {
-        return primaryKey[0].column + " = ? ";
+        return primaryKey[0].getColumn() + " = ? ";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#setPrimaryKey()
-     */
     @Override
     protected void setPrimaryKey() {
         primaryKey[0].setValue(hostid);
@@ -205,9 +177,9 @@ public class DbMultipleMonitor extends AbstractDbData {
     public DbMultipleMonitor(DbSession dbSession, String hostid, int cc, int ch, int cr) {
         super(dbSession);
         this.hostid = hostid;
-        countConfig = cc;
-        countHost = ch;
-        countRule = cr;
+        setCountConfig(cc);
+        setCountHost(ch);
+        setCountRule(cr);
         setToArray();
         isSaved = false;
     }
@@ -224,10 +196,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         select();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#delete()
-     */
     @Override
     public void delete() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -238,10 +206,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         super.delete();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#insert()
-     */
     @Override
     public void insert() throws WaarpDatabaseException {
         if (isSaved) {
@@ -255,10 +219,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         super.insert();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#exist()
-     */
     @Override
     public boolean exist() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -267,10 +227,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         return super.exist();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#select()
-     */
     @Override
     public void select() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -280,7 +236,7 @@ public class DbMultipleMonitor extends AbstractDbData {
             } else {
                 // copy info
                 for (int i = 0; i < allFields.length; i++) {
-                    allFields[i].value = conf.allFields[i].value;
+                    allFields[i].setValue(conf.allFields[i].getValue());
                 }
                 setFromArray();
                 isSaved = true;
@@ -290,10 +246,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         super.select();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()
-     */
     @Override
     public void update() throws WaarpDatabaseException {
         if (isSaved) {
@@ -340,7 +292,7 @@ public class DbMultipleMonitor extends AbstractDbData {
     public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
-                Configuration.configuration.HOST_ID, 0, 0, 0);
+                Configuration.configuration.getHOST_ID(), 0, 0, 0);
         try {
             if (!multipleMonitor.exist()) {
                 multipleMonitor.insert();
@@ -350,7 +302,7 @@ public class DbMultipleMonitor extends AbstractDbData {
         }
         String request = "SELECT " + selectAllFields;
         request += " FROM " + table + " WHERE " + Columns.HOSTID.name() + " = '"
-                + Configuration.configuration.HOST_ID + "'" +
+                + Configuration.configuration.getHOST_ID() + "'" +
                 " FOR UPDATE ";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
         return prep;
@@ -362,15 +314,15 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @return True if this is the last update
      */
     public boolean checkUpdateConfig() {
-        if (countConfig <= 0) {
-            countConfig = Configuration.configuration.multipleMonitors;
-            countConfig--;
+        if (getCountConfig() <= 0) {
+            setCountConfig(Configuration.configuration.getMultipleMonitors());
+            setCountConfig(getCountConfig() - 1);
             this.isSaved = false;
         } else {
-            countConfig--;
+            setCountConfig(getCountConfig() - 1);
             this.isSaved = false;
         }
-        return this.countConfig <= 0;
+        return this.getCountConfig() <= 0;
     }
 
     /**
@@ -379,15 +331,15 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @return True if this is the last update
      */
     public boolean checkUpdateHost() {
-        if (countHost <= 0) {
-            countHost = Configuration.configuration.multipleMonitors;
-            countHost--;
+        if (getCountHost() <= 0) {
+            setCountHost(Configuration.configuration.getMultipleMonitors());
+            setCountHost(getCountHost() - 1);
             this.isSaved = false;
         } else {
-            countHost--;
+            setCountHost(getCountHost() - 1);
             this.isSaved = false;
         }
-        return this.countHost <= 0;
+        return this.getCountHost() <= 0;
     }
 
     /**
@@ -396,21 +348,17 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @return True if this is the last update
      */
     public boolean checkUpdateRule() {
-        if (countRule <= 0) {
-            countRule = Configuration.configuration.multipleMonitors;
-            countRule--;
+        if (getCountRule() <= 0) {
+            setCountRule(Configuration.configuration.getMultipleMonitors());
+            setCountRule(getCountRule() - 1);
             this.isSaved = false;
         } else {
-            countRule--;
+            setCountRule(getCountRule() - 1);
             this.isSaved = false;
         }
-        return this.countRule <= 0;
+        return this.getCountRule() <= 0;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
-     */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
     }
@@ -419,6 +367,48 @@ public class DbMultipleMonitor extends AbstractDbData {
      * return the String representation
      */
     public String toString() {
-        return "DbMM " + countConfig + ":" + countHost + ":" + countRule;
+        return "DbMM " + getCountConfig() + ":" + getCountHost() + ":" + getCountRule();
+    }
+
+    /**
+     * @return the countConfig
+     */
+    public int getCountConfig() {
+        return countConfig;
+    }
+
+    /**
+     * @param countConfig the countConfig to set
+     */
+    private void setCountConfig(int countConfig) {
+        this.countConfig = countConfig;
+    }
+
+    /**
+     * @return the countHost
+     */
+    public int getCountHost() {
+        return countHost;
+    }
+
+    /**
+     * @param countHost the countHost to set
+     */
+    private void setCountHost(int countHost) {
+        this.countHost = countHost;
+    }
+
+    /**
+     * @return the countRule
+     */
+    public int getCountRule() {
+        return countRule;
+    }
+
+    /**
+     * @param countRule the countRule to set
+     */
+    private void setCountRule(int countRule) {
+        this.countRule = countRule;
     }
 }

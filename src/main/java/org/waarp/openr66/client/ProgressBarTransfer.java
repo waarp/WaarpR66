@@ -103,7 +103,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                 }
                 if ((!localChannelReference.getFutureValidRequest().isSuccess()) &&
                         (localChannelReference.getFutureValidRequest() != null &&
-                        localChannelReference.getFutureValidRequest().getResult().code ==
+                        localChannelReference.getFutureValidRequest().getResult().getCode() ==
                         ErrorCode.ServerOverloaded)) {
                     switch (taskRunner.getUpdatedInfo()) {
                         case DONE:
@@ -117,7 +117,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                     // redo if possible
                     if (runner.incrementTaskRunnerTry(taskRunner, Configuration.RETRYNB)) {
                         try {
-                            Thread.sleep(Configuration.configuration.constraintLimitHandler
+                            Thread.sleep(Configuration.configuration.getConstraintLimitHandler()
                                     .getSleepTime());
                         } catch (InterruptedException e) {
                         }
@@ -129,17 +129,17 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                     }
                 }
                 logger.debug("connection done on progressBarTransfer");
-                this.filesize = future.filesize;
+                this.filesize = future.getFilesize();
                 while (!future.awaitUninterruptibly(INTERVALCALLBACK)) {
                     if (future.isDone()) {
                         break;
                     }
-                    callBack(future.runner.getRank(), future.runner.getBlocksize());
+                    callBack(future.getRunner().getRank(), future.getRunner().getBlocksize());
                 }
                 logger.debug("transfer done on progressBarTransfer");
                 runner.finishTransfer(localChannelReference);
                 lastCallBack(future.isSuccess(),
-                        future.runner.getRank(), future.runner.getBlocksize());
+                        future.getRunner().getRank(), future.getRunner().getBlocksize());
                 exc = null;
                 break;
             } catch (OpenR66RunnerErrorException e) {

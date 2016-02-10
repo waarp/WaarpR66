@@ -84,7 +84,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     protected final String fileInformation;
 
-    protected String separator = PartnerConfiguration.SEPARATOR_FIELD;
+    protected String separator = PartnerConfiguration.getSEPARATOR_FIELD();
 
     /**
      * 
@@ -255,7 +255,7 @@ public class RequestPacket extends AbstractLocalPacket {
         }
         int blocksize = Integer.parseInt(amiddle[1]);
         if (blocksize < 100) {
-            blocksize = Configuration.configuration.BLOCKSIZE;
+            blocksize = Configuration.configuration.getBLOCKSIZE();
         }
         int rank = Integer.parseInt(amiddle[2]);
         long specialId = Long.parseLong(amiddle[3]);
@@ -287,7 +287,7 @@ public class RequestPacket extends AbstractLocalPacket {
         this.mode = mode;
         this.filename = filename;
         if (blocksize < 100) {
-            this.blocksize = Configuration.configuration.BLOCKSIZE;
+            this.blocksize = Configuration.configuration.getBLOCKSIZE();
         } else {
             this.blocksize = blocksize;
         }
@@ -374,10 +374,6 @@ public class RequestPacket extends AbstractLocalPacket {
         return LocalPacketFactory.REQUESTPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "RequestPacket: " + rulename + " : " + mode + " : " + filename +

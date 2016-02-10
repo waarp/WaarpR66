@@ -151,7 +151,7 @@ public class ServerActions extends ConnectionActions {
                     LocalPacketFactory.TESTPACKET);
             R66Result result = new R66Result(session, true,
                     ErrorCode.CompleteOk, null);
-            result.other = validPacket;
+            result.setOther(validPacket);
             session.newState(VALIDOTHER);
             localChannelReference.validateRequest(result);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
@@ -253,7 +253,7 @@ public class ServerActions extends ConnectionActions {
                 R66Result result = new R66Result(
                         new OpenR66ProtocolShutdownException(), session, true,
                         ErrorCode.Shutdown, session.getRunner());
-                result.other = packet;
+                result.setOther(packet);
                 rank = shutdownRequest(result, rank);
                 if (rank >= 0) {
                     packet.setSmiddle(Integer.toString(rank));
@@ -273,9 +273,9 @@ public class ServerActions extends ConnectionActions {
                 session.newState(VALIDOTHER);
                 R66Result resulttest = stopOrCancel(packet.getTypeValid(), keys[0], keys[1], id);
                 // inform back the requester
-                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
-                resulttest.other = packet;
+                resulttest.setOther(packet);
                 localChannelReference.validateRequest(resulttest);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -300,7 +300,7 @@ public class ServerActions extends ConnectionActions {
                             new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
                             session, true,
                             ErrorCode.IncorrectCommand, null);
-                    resulttest.other = packet;
+                    resulttest.setOther(packet);
                     localChannelReference.invalidateRequest(resulttest);
                 } else {
                     long id = Long.parseLong(keys[2]);
@@ -317,10 +317,10 @@ public class ServerActions extends ConnectionActions {
                     session.newState(VALIDOTHER);
                     R66Result result = requestRestart(keys[0], keys[1], id, date);
                     valid = new ValidPacket(packet.getSmiddle(),
-                            result.code.getCode(),
+                            result.getCode().getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
-                    result.other = packet;
-                    if (isCodeValid(result.code)) {
+                    result.setOther(packet);
+                    if (isCodeValid(result.getCode())) {
                         localChannelReference.validateRequest(result);
                     } else {
                         localChannelReference.invalidateRequest(result);
@@ -340,8 +340,8 @@ public class ServerActions extends ConnectionActions {
                 // Validate user request
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.getFromCode(packet.getSmiddle()), null);
-                resulttest.other = packet;
-                switch (resulttest.code) {
+                resulttest.setOther(packet);
+                switch (resulttest.getCode()) {
                     case CompleteOk:
                     case InitOk:
                     case PostProcessingOk:
@@ -387,9 +387,9 @@ public class ServerActions extends ConnectionActions {
                 packet.clear();
                 // create export of log and optionally purge them from database
                 DbPreparedStatement getValid = null;
-                String filename = Configuration.configuration.baseDirectory +
-                        Configuration.configuration.archivePath + R66Dir.SEPARATOR +
-                        Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
+                String filename = Configuration.configuration.getBaseDirectory() +
+                        Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
+                        Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                         "_runners.xml";
                 try {
                     getValid =
@@ -411,8 +411,8 @@ public class ServerActions extends ConnectionActions {
                 if (isPurge) {
                     // purge in same interval all runners with globallaststep
                     // as ALLDONETASK or ERRORTASK
-                    if (Configuration.configuration.r66Mib != null) {
-                        Configuration.configuration.r66Mib.notifyWarning(
+                    if (Configuration.configuration.getR66Mib() != null) {
+                        Configuration.configuration.getR66Mib().notifyWarning(
                                 "Purge Log Order received", session.getAuth().getUser());
                     }
                     try {
@@ -427,7 +427,7 @@ public class ServerActions extends ConnectionActions {
                 }
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
                 // Now answer
-                ValidPacket valid = new ValidPacket(filename + " " + nb, result.code.getCode(),
+                ValidPacket valid = new ValidPacket(filename + " " + nb, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -453,7 +453,7 @@ public class ServerActions extends ConnectionActions {
                     result = new R66Result(session, true, ErrorCode.TransferError, null);
                 }
                 // Now answer
-                ValidPacket valid = new ValidPacket(shost + " " + srule, result.code.getCode(),
+                ValidPacket valid = new ValidPacket(shost + " " + srule, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -478,8 +478,8 @@ public class ServerActions extends ConnectionActions {
                     throw new OpenR66ProtocolNotAuthenticatedException(
                             "Not correctly authenticated since SSL is not supported", e1);
                 }
-                if (Configuration.configuration.r66Mib != null) {
-                    Configuration.configuration.r66Mib.notifyWarning(
+                if (Configuration.configuration.getR66Mib() != null) {
+                    Configuration.configuration.getR66Mib().notifyWarning(
                             "Import Configuration Order received", session.getAuth().getUser());
                 }
                 String shost = packet.getSheader();
@@ -578,7 +578,7 @@ public class ServerActions extends ConnectionActions {
                     result = new R66Result(session, true, ErrorCode.TransferError, null);
                 }
                 // Now answer
-                ValidPacket valid = new ValidPacket(shost + " " + srule, result.code.getCode(),
+                ValidPacket valid = new ValidPacket(shost + " " + srule, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -594,7 +594,7 @@ public class ServerActions extends ConnectionActions {
                 // Validate user request
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                resulttest.other = packet;
+                resulttest.setOther(packet);
                 localChannelReference.validateRequest(resulttest);
                 channel.close();
                 break;
@@ -612,14 +612,14 @@ public class ServerActions extends ConnectionActions {
                     long[] lresult = bandwidth(false, 0, 0, 0, 0);
                     // Now answer
                     valid = new ValidPacket(lresult[0] + " " + lresult[1] +
-                            " " + lresult[2] + " " + lresult[3], result.code.getCode(),
+                            " " + lresult[2] + " " + lresult[3], result.getCode().getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
                 } else {
                     session.newState(VALIDOTHER);
                     bandwidth(true, Long.parseLong(splitglobal[0]), Long.parseLong(splitglobal[1]),
                             Long.parseLong(splitsession[0]), Long.parseLong(splitsession[1]));
                     // Now answer
-                    valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
+                    valid = new ValidPacket("Bandwidth changed", result.getCode().getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
                 }
                 localChannelReference.validateRequest(result);
@@ -636,7 +636,7 @@ public class ServerActions extends ConnectionActions {
                 logger.info("Valid TEST MESSAGE: " + packet.toString());
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                resulttest.other = packet;
+                resulttest.setOther(packet);
                 localChannelReference.validateRequest(resulttest);
                 channel.close();
                 break;
@@ -681,9 +681,9 @@ public class ServerActions extends ConnectionActions {
             json = new JsonPacket();
             json.setComment("Invalid command");
             json.setRequestUserPacket(packet.getTypeValid());
-            JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
+            JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.getCode().getCode(),
                     LocalPacketFactory.REQUESTUSERPACKET);
-            resulttest.other = packet;
+            resulttest.setOther(packet);
             localChannelReference.validateRequest(resulttest);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -706,11 +706,11 @@ public class ServerActions extends ConnectionActions {
                 R66Result result = new R66Result(
                         new OpenR66ProtocolShutdownException(), session, true,
                         ErrorCode.Shutdown, session.getRunner());
-                result.other = packet;
+                result.setOther(packet);
                 rank = shutdownRequest(result, rank);
                 if (rank >= 0) {
                     node.setRank(rank);
-                    JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+                    JsonCommandPacket valid = new JsonCommandPacket(node, result.getCode().getCode(),
                             LocalPacketFactory.SHUTDOWNPACKET);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid,
@@ -732,7 +732,7 @@ public class ServerActions extends ConnectionActions {
                     // Block
                     R66Result result = blockRequest(key, node.isRestartOrBlock());
                     node.setComment((node.isRestartOrBlock() ? "Block" : "Unblock") + " new request");
-                    JsonCommandPacket valid = new JsonCommandPacket(json, result.code.getCode(),
+                    JsonCommandPacket valid = new JsonCommandPacket(json, result.getCode().getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -756,13 +756,13 @@ public class ServerActions extends ConnectionActions {
                         result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
                     }
                     logger.info("Task in Error:" + node.getClassName() + " " + result);
-                    if (!result.isAnswered) {
+                    if (!result.isAnswered()) {
                         node.setValidated(false);
                         session.newState(ERROR);
                         ErrorPacket error = new ErrorPacket(
                                 "BusinessRequest in error: for " + node.toString() + " since " +
                                         result.getMessage(),
-                                result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                         session.setStatus(203);
                     }
@@ -794,10 +794,10 @@ public class ServerActions extends ConnectionActions {
             case LocalPacketFactory.REQUESTPACKET: {
                 TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
                 R66Result result = transferRequest(node);
-                if (isCodeValid(result.code)) {
-                    JsonCommandPacket valid = new JsonCommandPacket(json, result.code.getCode(),
+                if (isCodeValid(result.getCode())) {
+                    JsonCommandPacket valid = new JsonCommandPacket(json, result.getCode().getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
-                    result.other = packet;
+                    result.setOther(packet);
                     localChannelReference.validateRequest(result);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -807,12 +807,12 @@ public class ServerActions extends ConnectionActions {
                     session.setStatus(27);
                     channel.close();
                 } else {
-                    result.other = packet;
+                    result.setOther(packet);
                     localChannelReference.invalidateRequest(result);
                     ErrorPacket error = new ErrorPacket(
                             "TransferRequest in error: for " + node.toString() + " since " +
                                     result.getMessage(),
-                            result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                            result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                     ChannelCloseTimer.closeFutureChannel(channel);
                 }
@@ -835,9 +835,9 @@ public class ServerActions extends ConnectionActions {
                     resulttest = stopOrCancel(packet.getTypeValid(), reqd, reqr, id);
                 }
                 // inform back the requester
-                JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
+                JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
-                resulttest.other = packet;
+                resulttest.setOther(packet);
                 localChannelReference.validateRequest(resulttest);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -853,11 +853,11 @@ public class ServerActions extends ConnectionActions {
                 session.newState(VALIDOTHER);
                 R66Result result = requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(),
                         node.getRestarttime());
-                result.other = packet;
+                result.setOther(packet);
                 JsonCommandPacket valid = new JsonCommandPacket(node,
-                        result.code.getCode(),
+                        result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
-                if (isCodeValid(result.code)) {
+                if (isCodeValid(result.getCode())) {
                     localChannelReference.validateRequest(result);
                 } else {
                     localChannelReference.invalidateRequest(result);
@@ -876,8 +876,8 @@ public class ServerActions extends ConnectionActions {
                 // Validate user request
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.getFromCode(packet.getResult()), null);
-                resulttest.other = packet;
-                switch (resulttest.code) {
+                resulttest.setOther(packet);
+                switch (resulttest.getCode()) {
                     case CompleteOk:
                     case InitOk:
                     case PostProcessingOk:
@@ -927,7 +927,7 @@ public class ServerActions extends ConnectionActions {
                 newjson.setExported(Long.parseLong(sresult[1]));
                 newjson.setPurged(Long.parseLong(sresult[2]));
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-                JsonCommandPacket valid = new JsonCommandPacket(newjson, result.code.getCode(),
+                JsonCommandPacket valid = new JsonCommandPacket(newjson, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -964,7 +964,7 @@ public class ServerActions extends ConnectionActions {
                 } else {
                     result = new R66Result(session, true, ErrorCode.TransferError, null);
                 }
-                JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
+                JsonCommandPacket valid = new JsonCommandPacket(resp, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -985,7 +985,7 @@ public class ServerActions extends ConnectionActions {
                 } else {
                     result = new R66Result(session, true, ErrorCode.TransferError, null);
                 }
-                JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
+                JsonCommandPacket valid = new JsonCommandPacket(resp, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 logger.debug(valid.getRequest());
                 localChannelReference.validateRequest(result);
@@ -1012,7 +1012,7 @@ public class ServerActions extends ConnectionActions {
                 node.setWritesession(lresult[2]);
                 node.setReadsession(lresult[3]);
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-                JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+                JsonCommandPacket valid = new JsonCommandPacket(node, result.getCode().getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {
@@ -1028,7 +1028,7 @@ public class ServerActions extends ConnectionActions {
                 logger.info("Valid TEST MESSAGE: " + packet.toString());
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                resulttest.other = packet;
+                resulttest.setOther(packet);
                 localChannelReference.validateRequest(resulttest);
                 channel.close();
                 break;
@@ -1128,40 +1128,40 @@ public class ServerActions extends ConnectionActions {
         if (!setter) {
             // request of current values
             // Now answer
-            return new long[] { Configuration.configuration.serverGlobalWriteLimit,
-                    Configuration.configuration.serverGlobalReadLimit,
-                    Configuration.configuration.serverChannelWriteLimit,
-                    Configuration.configuration.serverChannelReadLimit };
+            return new long[] { Configuration.configuration.getServerGlobalWriteLimit(),
+                    Configuration.configuration.getServerGlobalReadLimit(),
+                    Configuration.configuration.getServerChannelWriteLimit(),
+                    Configuration.configuration.getServerChannelReadLimit() };
         } else {
             long wgl = (writeglobal / 10) * 10;
             long rgl = (readglobal / 10) * 10;
             long wsl = (writesession / 10) * 10;
             long rsl = (readsession / 10) * 10;
             if (wgl < 0) {
-                wgl = Configuration.configuration.serverGlobalWriteLimit;
+                wgl = Configuration.configuration.getServerGlobalWriteLimit();
             }
             if (rgl < 0) {
-                rgl = Configuration.configuration.serverGlobalReadLimit;
+                rgl = Configuration.configuration.getServerGlobalReadLimit();
             }
             if (wsl < 0) {
-                wsl = Configuration.configuration.serverChannelWriteLimit;
+                wsl = Configuration.configuration.getServerChannelWriteLimit();
             }
             if (rsl < 0) {
-                rsl = Configuration.configuration.serverChannelReadLimit;
+                rsl = Configuration.configuration.getServerChannelReadLimit();
             }
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyWarning(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyWarning(
                         "Change Bandwidth Limit Order received: Global " +
                                 wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
                         session.getAuth().getUser());
             }
             Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
-                    Configuration.configuration.delayLimit);
+                    Configuration.configuration.getDelayLimit());
             // Now answer
-            return new long[] { Configuration.configuration.serverGlobalWriteLimit,
-                    Configuration.configuration.serverGlobalReadLimit,
-                    Configuration.configuration.serverChannelWriteLimit,
-                    Configuration.configuration.serverChannelReadLimit };
+            return new long[] { Configuration.configuration.getServerGlobalWriteLimit(),
+                    Configuration.configuration.getServerGlobalReadLimit(),
+                    Configuration.configuration.getServerChannelWriteLimit(),
+                    Configuration.configuration.getServerChannelReadLimit() };
         }
     }
 
@@ -1188,8 +1188,8 @@ public class ServerActions extends ConnectionActions {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not correctly authenticated since SSL is not supported", e1);
         }
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyWarning(
+        if (Configuration.configuration.getR66Mib() != null) {
+            Configuration.configuration.getR66Mib().notifyWarning(
                     "Import Configuration Order received", session.getAuth().getUser());
         }
         //purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles
@@ -1212,7 +1212,7 @@ public class ServerActions extends ConnectionActions {
         long roleid = node.getRolesid();
 
         DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                : DbConstant.admin.session;
+                : DbConstant.admin.getSession();
 
         String remote = session.getAuth().getUser();
         String local = null;
@@ -1337,7 +1337,7 @@ public class ServerActions extends ConnectionActions {
                 roleid != DbConstant.ILLEGALVALUE) && local != null)) {
             DbHostConfiguration host = null;
             try {
-                host = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+                host = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
                 DbTaskRunner runner = null;
                 if (businessid != DbConstant.ILLEGALVALUE && local != null) {
                     // need to find the local filename
@@ -1482,14 +1482,14 @@ public class ServerActions extends ConnectionActions {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not correctly authenticated since SSL is not supported", e1);
         }
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyWarning(
+        if (Configuration.configuration.getR66Mib() != null) {
+            Configuration.configuration.getR66Mib().notifyWarning(
                     "Export Configuration Order received", session.getAuth().getUser());
         }
-        String dir = Configuration.configuration.baseDirectory +
-                Configuration.configuration.archivePath;
+        String dir = Configuration.configuration.getBaseDirectory() +
+                Configuration.configuration.getArchivePath();
         DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                : DbConstant.admin.session;
+                : DbConstant.admin.getSession();
         return staticConfigExport(dbSession, dir, bhost, brule, bbusiness, balias, broles);
     }
 
@@ -1508,7 +1508,7 @@ public class ServerActions extends ConnectionActions {
     public static String[] staticConfigExport(DbSession dbSession, String dir, boolean bhost, boolean brule,
             boolean bbusiness, boolean balias, boolean broles) {
         String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
-        String hostname = Configuration.configuration.HOST_ID;
+        String hostname = Configuration.configuration.getHOST_ID();
         if (bhost) {
             String filename = dir + File.separator + hostname + "_Authentications.xml";
             try {
@@ -1548,7 +1548,7 @@ public class ServerActions extends ConnectionActions {
         }
         if (bbusiness || balias || broles) {
             try {
-                DbHostConfiguration host = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+                DbHostConfiguration host = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
                 if (bbusiness) {
                     sbusiness = host.getBusiness();
                     if (sbusiness != null) {
@@ -1643,9 +1643,9 @@ public class ServerActions extends ConnectionActions {
         }
         // Try to validate a restarting transfer
         // validLimit on requested side
-        if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+        if (Configuration.configuration.getConstraintLimitHandler().checkConstraints()) {
             logger.error("Limit exceeded {} while asking to relaunch a task"
-                    + reqd + ":" + reqr + ":" + id, Configuration.configuration.constraintLimitHandler.lastAlert);
+                    + reqd + ":" + reqr + ":" + id, Configuration.configuration.getConstraintLimitHandler().lastAlert);
             session.setStatus(100);
             returnCode = ErrorCode.ServerOverloaded;
             resulttest = new R66Result(null, session, true,
@@ -1664,7 +1664,7 @@ public class ServerActions extends ConnectionActions {
                 DbTaskRunner taskRunner = null;
                 try {
                     DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                            : DbConstant.admin.session;
+                            : DbConstant.admin.getSession();
                     taskRunner = new DbTaskRunner(dbSession, session,
                             null, id, reqr, reqd);
                     Timestamp timestart = null;
@@ -1680,7 +1680,7 @@ public class ServerActions extends ConnectionActions {
                     // since it comes from a request transfer, cannot redo it
                     logger.info("Will try to restart: " + taskRunner.toShortString());
                     resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-                    returnCode = resulttest.code;
+                    returnCode = resulttest.getCode();
                 } catch (WaarpDatabaseException e1) {
                     returnCode = ErrorCode.Internal;
                     resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
@@ -1777,7 +1777,7 @@ public class ServerActions extends ConnectionActions {
                     "Not correctly authenticated since SSL is not supported", e1);
         }
         DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                : DbConstant.admin.session;
+                : DbConstant.admin.getSession();
         // first clean if ask
         if (clean) {
             // Update all UpdatedInfo to DONE
@@ -1790,9 +1790,9 @@ public class ServerActions extends ConnectionActions {
         }
         // create export of log and optionally purge them from database
         DbPreparedStatement getValid = null;
-        String filename = Configuration.configuration.baseDirectory +
-                Configuration.configuration.archivePath + R66Dir.SEPARATOR +
-                Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
+        String filename = Configuration.configuration.getBaseDirectory() +
+                Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
+                Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                 "_runners.xml";
         NbAndSpecialId nb = null;
         try {
@@ -1815,8 +1815,8 @@ public class ServerActions extends ConnectionActions {
         if (nb != null && nb.nb > 0 && isPurge) {
             // purge in same interval all runners with globallaststep
             // as ALLDONETASK or ERRORTASK
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyWarning(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyWarning(
                         "Purge Log Order received", session.getAuth().getUser());
             }
             try {
@@ -1921,7 +1921,7 @@ public class ServerActions extends ConnectionActions {
     private final boolean stopOrCancelRunner(long id, String reqd, String reqr, ErrorCode code) {
         try {
             DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                    : DbConstant.admin.session;
+                    : DbConstant.admin.getSession();
             DbTaskRunner taskRunner =
                     new DbTaskRunner(dbSession, session,
                             null, id, reqr, reqd);
@@ -1970,13 +1970,13 @@ public class ServerActions extends ConnectionActions {
         boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
         boolean isKeyValid = Configuration.configuration.isKeyValid(key);
         if (isAdmin && isKeyValid) {
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyStartStop(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyStartStop(
                         "Shutdown Order received effective in " +
-                                Configuration.configuration.TIMEOUTCON + " ms",
+                                Configuration.configuration.getTIMEOUTCON() + " ms",
                         session.getAuth().getUser());
             }
-            if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+            if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
                 logger.warn("R66 started as a service, Windows Services might not shown it as stopped");
             }
             if (isRestart) {
@@ -2015,13 +2015,13 @@ public class ServerActions extends ConnectionActions {
                 result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
             }
             logger.info("Task in Error:" + argRule + " " + result);
-            if (!result.isAnswered) {
+            if (!result.isAnswered()) {
                 packet.invalidate();
                 session.newState(ERROR);
                 ErrorPacket error = new ErrorPacket(
                         "BusinessRequest in error: for " + packet.toString() + " since " +
                                 result.getMessage(),
-                        result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 session.setStatus(203);
             }
@@ -2055,7 +2055,7 @@ public class ServerActions extends ConnectionActions {
                     "Not authenticated while BusinessRequest received");
         }
         boolean argTransfer = isToApplied;
-        if (argTransfer && !Configuration.configuration.businessWhiteSet.contains(session.getAuth().getUser())) {
+        if (argTransfer && !Configuration.configuration.getBusinessWhiteSet().contains(session.getAuth().getUser())) {
             logger.warn("Not allow to execute a BusinessRequest: " + session.getAuth().getUser());
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not allow to execute a BusinessRequest");
@@ -2090,7 +2090,7 @@ public class ServerActions extends ConnectionActions {
             throws OpenR66ProtocolPacketException, OpenR66ProtocolBusinessException {
         R66Result result = blockRequest(packet.getKey(), packet.getBlock());
         ValidPacket valid = new ValidPacket((packet.getBlock() ? "Block" : "Unblock") + " new request",
-                result.code.getCode(),
+                result.getCode().getCode(),
                 LocalPacketFactory.REQUESTUSERPACKET);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -2122,13 +2122,13 @@ public class ServerActions extends ConnectionActions {
         boolean isKeyValid = Configuration.configuration.isKeyValid(key);
         if (isAdmin && isKeyValid) {
             boolean block = isBlocking;
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyWarning(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyWarning(
                         (block ? "Block" : "Unblock") + " Order received",
                         session.getAuth().getUser());
             }
             logger.debug((block ? "Block" : "Unblock") + " Order received");
-            Configuration.configuration.isShutdown = block;
+            Configuration.configuration.setShutdown(block);
             // inform back the requester
             // request of current values
             R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
@@ -2166,7 +2166,7 @@ public class ServerActions extends ConnectionActions {
                     "Not authenticated while Information received");
         }
         DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                : DbConstant.admin.session;
+                : DbConstant.admin.getSession();
         DbRule rule;
         try {
             rule = new DbRule(dbSession, rulename);
@@ -2208,7 +2208,7 @@ public class ServerActions extends ConnectionActions {
                         LocalPacketFactory.INFORMATIONPACKET);
                 R66Result result = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                result.other = validPacket;
+                result.setOther(validPacket);
                 if (localChannelReference != null) {
                     localChannelReference.validateEndTransfer(result);
                     localChannelReference.validateRequest(result);
@@ -2247,7 +2247,7 @@ public class ServerActions extends ConnectionActions {
                         LocalPacketFactory.INFORMATIONPACKET);
                 R66Result result = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                result.other = validPacket;
+                result.setOther(validPacket);
                 if (localChannelReference != null) {
                     localChannelReference.validateEndTransfer(result);
                     localChannelReference.validateRequest(result);
@@ -2287,7 +2287,7 @@ public class ServerActions extends ConnectionActions {
                     "Not authenticated while Information received");
         }
         DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
-                : DbConstant.admin.session;
+                : DbConstant.admin.getSession();
         String remote = session.getAuth().getUser();
         if (jsonOutput && remoteHost != null && !remoteHost.isEmpty()) {
             remote = remoteHost;
@@ -2335,7 +2335,7 @@ public class ServerActions extends ConnectionActions {
         }
         R66Result result = new R66Result(session, true,
                 ErrorCode.CompleteOk, null);
-        result.other = validPacket;
+        result.setOther(validPacket);
         if (localChannelReference != null) {
             localChannelReference.validateEndTransfer(result);
             localChannelReference.validateRequest(result);
@@ -2398,12 +2398,12 @@ public class ServerActions extends ConnectionActions {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.session, request.getRulename());
+            rule = new DbRule(DbConstant.admin.getSession(), request.getRulename());
         } catch (WaarpDatabaseException e) {
             logger.warn("Cannot get Rule: " + request.getRulename(), e);
             return null;
         }
-        int mode = rule.mode;
+        int mode = rule.getMode();
         if (RequestPacket.isMD5Mode(request.getMode())) {
             mode = RequestPacket.getModeMD5(mode);
         }
@@ -2414,7 +2414,7 @@ public class ServerActions extends ConnectionActions {
         }
         if (tid != DbConstant.ILLEGALVALUE) {
             try {
-                taskRunner = new DbTaskRunner(DbConstant.admin.session, tid,
+                taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), tid,
                         request.getRequested());
                 // requested
                 taskRunner.setSenderByRequestToValidate(true);
@@ -2431,7 +2431,7 @@ public class ServerActions extends ConnectionActions {
             boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
             try {
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, requestPacket,
+                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isRetrieve, requestPacket,
                                 request.getRequested(), ttimestart);
             } catch (WaarpDatabaseException e) {
                 logger.warn("Cannot get task", e);

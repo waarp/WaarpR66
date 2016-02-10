@@ -104,7 +104,7 @@ public class AuthentPacket extends AbstractLocalPacket {
         this.key = key;
         localId = newId;
         way = valid;
-        Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId, version));
+        Configuration.configuration.getVersions().put(hostId, new PartnerConfiguration(hostId, version));
         this.version = version;
     }
 
@@ -118,8 +118,8 @@ public class AuthentPacket extends AbstractLocalPacket {
         this.key = key;
         localId = newId;
         way = ASKVALIDATE;
-        Configuration.configuration.versions.putIfAbsent(hostId, new PartnerConfiguration(hostId));
-        version = Configuration.configuration.versions.get(hostId).toString();
+        Configuration.configuration.getVersions().putIfAbsent(hostId, new PartnerConfiguration(hostId));
+        version = Configuration.configuration.getVersions().get(hostId).toString();
     }
 
     @Override
@@ -154,10 +154,6 @@ public class AuthentPacket extends AbstractLocalPacket {
         return LocalPacketFactory.AUTHENTPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "AuthentPacket: " + hostId + " " + localId + " " + way + " " + version;
@@ -196,16 +192,16 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     public void validate(boolean isSSL) {
         way = ANSWERVALIDATE;
-        DbHostAuth auth = isSSL ? Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
+        DbHostAuth auth = isSSL ? Configuration.configuration.getHOST_SSLAUTH() : Configuration.configuration.getHOST_AUTH();
         try {
             hostId = Configuration.configuration.getHostId(isSSL);
         } catch (OpenR66ProtocolNoSslException e) {
-            hostId = Configuration.configuration.HOST_ID;
-            auth = Configuration.configuration.HOST_AUTH;
+            hostId = Configuration.configuration.getHOST_ID();
+            auth = Configuration.configuration.getHOST_AUTH();
         }
         key = FilesystemBasedDigest.passwdCrypt(auth.getHostkey());
-        Configuration.configuration.versions.putIfAbsent(hostId, new PartnerConfiguration(hostId));
-        version = Configuration.configuration.versions.get(hostId).toString();
+        Configuration.configuration.getVersions().putIfAbsent(hostId, new PartnerConfiguration(hostId));
+        version = Configuration.configuration.getVersions().get(hostId).toString();
         header = null;
         middle = null;
         end = null;

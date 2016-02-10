@@ -105,8 +105,8 @@ public abstract class AbstractTransfer implements Runnable {
         this.rulename = rulename;
         this.fileinfo = fileinfo;
         this.isMD5 = isMD5;
-        if (Configuration.configuration.aliases.containsKey(remoteHost)) {
-            this.remoteHost = Configuration.configuration.aliases.get(remoteHost);
+        if (Configuration.configuration.getAliases().containsKey(remoteHost)) {
+            this.remoteHost = Configuration.configuration.getAliases().get(remoteHost);
         } else {
             this.remoteHost = remoteHost;
         }
@@ -123,7 +123,7 @@ public abstract class AbstractTransfer implements Runnable {
     protected DbTaskRunner initRequest() {
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
+            rule = new DbRule(DbConstant.admin.getSession(), rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -131,14 +131,14 @@ public abstract class AbstractTransfer implements Runnable {
             future.setFailure(e);
             return null;
         }
-        int mode = rule.mode;
+        int mode = rule.getMode();
         if (isMD5) {
             mode = RequestPacket.getModeMD5(mode);
         }
         DbTaskRunner taskRunner = null;
         if (id != DbConstant.ILLEGALVALUE) {
             try {
-                taskRunner = new DbTaskRunner(DbConstant.admin.session, id,
+                taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), id,
                         remoteHost);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
@@ -162,7 +162,7 @@ public abstract class AbstractTransfer implements Runnable {
                 // Change dir
                 try {
                     R66Session session = new R66Session();
-                    session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+                    session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
                     session.getDir().changeDirectory(rule.getSendPath());
                     R66File filer66 = FileUtils.getFile(logger, session, filename, true, true, false, null);
                     file = filer66.getTrueFile();
@@ -185,7 +185,7 @@ public abstract class AbstractTransfer implements Runnable {
             boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
             try {
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, request,
+                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isRetrieve, request,
                                 remoteHost, startTime);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
@@ -237,7 +237,7 @@ public abstract class AbstractTransfer implements Runnable {
             return false;
         }
         // Now set default values from configuration
-        block = Configuration.configuration.BLOCKSIZE;
+        block = Configuration.configuration.getBLOCKSIZE();
         int i = 1;
         try {
             for (i = 1; i < args.length; i++) {
@@ -303,7 +303,7 @@ public abstract class AbstractTransfer implements Runnable {
             return true;
         } else if (idt != DbConstant.ILLEGALVALUE && rhost != null) {
             try {
-                DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.session, idt,
+                DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.getSession(), idt,
                         rhost);
                 rule = runner.getRuleId();
                 localFilename = runner.getOriginalFilename();

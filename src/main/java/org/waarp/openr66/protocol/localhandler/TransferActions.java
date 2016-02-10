@@ -165,7 +165,7 @@ public class TransferActions extends ServerActions {
         }
         // XXX validLimit only on requested side
         if (packet.isToValidate()) {
-            if (Configuration.configuration.isShutdown) {
+            if (Configuration.configuration.isShutdown()) {
                 logger.warn(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
                         + packet.getRulename() + " from " + session.getAuth().toString());
                 session.setStatus(100);
@@ -176,23 +176,23 @@ public class TransferActions extends ServerActions {
                 session.setStatus(100);
                 return;
             }
-            if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-                if (Configuration.configuration.r66Mib != null) {
-                    Configuration.configuration.r66Mib.
+            if (Configuration.configuration.getConstraintLimitHandler().checkConstraints()) {
+                if (Configuration.configuration.getR66Mib() != null) {
+                    Configuration.configuration.getR66Mib().
                             notifyOverloaded("Rule: " + packet.getRulename() + " from "
                                     + session.getAuth().toString(),
-                                    Configuration.configuration.constraintLimitHandler.lastAlert);
+                                    Configuration.configuration.getConstraintLimitHandler().lastAlert);
                 }
                 logger.warn(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
                         + packet.getRulename()
                         + " while "
-                        + Configuration.configuration.constraintLimitHandler.lastAlert +
+                        + Configuration.configuration.getConstraintLimitHandler().lastAlert +
                         " from " + session.getAuth().toString());
                 session.setStatus(100);
                 endInitRequestInError(channel,
                         ErrorCode.ServerOverloaded, null,
                         new OpenR66ProtocolNotYetConnectionException(
-                                "Limit exceeded " + Configuration.configuration.constraintLimitHandler.lastAlert),
+                                "Limit exceeded " + Configuration.configuration.getConstraintLimitHandler().lastAlert),
                         packet);
                 session.setStatus(100);
                 return;
@@ -227,18 +227,18 @@ public class TransferActions extends ServerActions {
                         Messages.getString("LocalServerHandler.10")); //$NON-NLS-1$
             }
             // Check if the blocksize is greater than local value
-            if (Configuration.configuration.BLOCKSIZE < blocksize) {
-                blocksize = Configuration.configuration.BLOCKSIZE;
+            if (Configuration.configuration.getBLOCKSIZE() < blocksize) {
+                blocksize = Configuration.configuration.getBLOCKSIZE();
                 String sep = localChannelReference.getPartner().getSeperator();
                 packet = new RequestPacket(packet.getRulename(), packet.getMode(),
                         packet.getFilename(), blocksize, packet.getRank(),
                         packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize(), sep);
             }
         }
-        if (!RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
+        if (!RequestPacket.isCompatibleMode(rule.getMode(), packet.getMode())) {
             // not compatible Rule and mode in request
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    Messages.getString("LocalServerHandler.12") + rule.mode + " vs " //$NON-NLS-1$
+                    Messages.getString("LocalServerHandler.12") + rule.getMode() + " vs " //$NON-NLS-1$
                             + packet.getMode());
         }
         session.setBlockSize(blocksize);
@@ -418,7 +418,7 @@ public class TransferActions extends ServerActions {
         try {
             session.setRunner(runner);
             // Fix to ensure that recv request are not trying to access to not chroot files
-            if (Configuration.configuration.chrootChecked && packet.isToValidate() && runner.isSender()) {
+            if (Configuration.configuration.isChrootChecked() && packet.isToValidate() && runner.isSender()) {
                 session.startup(true);
             } else {
                 session.startup(false);
@@ -483,8 +483,8 @@ public class TransferActions extends ServerActions {
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
         // inform back
         if (packet.isToValidate()) {
-            if (Configuration.configuration.monitoring != null) {
-                Configuration.configuration.monitoring.lastInActiveTransfer =
+            if (Configuration.configuration.getMonitoring() != null) {
+                Configuration.configuration.getMonitoring().lastInActiveTransfer =
                         System.currentTimeMillis();
             }
             if (runner.isSender()) {
@@ -504,10 +504,10 @@ public class TransferActions extends ServerActions {
             session.newState(REQUESTD);
             // requester => might be a client
             // Save the runner into the session and validate the request so begin transfer
-            session.getLocalChannelReference().getFutureRequest().runner = runner;
+            session.getLocalChannelReference().getFutureRequest().setRunner(runner);
             localChannelReference.getFutureValidRequest().setSuccess();
-            if (Configuration.configuration.monitoring != null) {
-                Configuration.configuration.monitoring.lastOutActiveTransfer =
+            if (Configuration.configuration.getMonitoring() != null) {
+                Configuration.configuration.getMonitoring().lastOutActiveTransfer =
                         System.currentTimeMillis();
             }
         }
@@ -710,7 +710,7 @@ public class TransferActions extends ServerActions {
                 return;
             }
         }
-        if (Configuration.configuration.globalDigest) {
+        if (Configuration.configuration.isGlobalDigest()) {
             if (globalDigest == null) {
                 try {
                     // check if first block, since if not, digest will be only partial
@@ -720,14 +720,14 @@ public class TransferActions extends ServerActions {
                     if (localChannelReference.getPartner() != null) {
                         if (localChannelReference.getPartner().useFinalHash()) {
                             DigestAlgo algo = localChannelReference.getPartner().getDigestAlgo();
-                            if (algo != Configuration.configuration.digest) {
+                            if (algo != Configuration.configuration.getDigest()) {
                                 globalDigest = new FilesystemBasedDigest(algo);
-                                localDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+                                localDigest = new FilesystemBasedDigest(Configuration.configuration.getDigest());
                             }
                         }
                     }
                     if (globalDigest == null) {
-                        globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+                        globalDigest = new FilesystemBasedDigest(Configuration.configuration.getDigest());
                         localDigest = null;
                     }
                 } catch (NoSuchAlgorithmException e) {
@@ -885,7 +885,7 @@ public class TransferActions extends ServerActions {
                         result = localChannelReference.getFutureRequest().getResult();
                         error = new ErrorPacket(
                                 "Error while finalizing transfer: " + result.getMessage(),
-                                result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                     } else {
                         error = new ErrorPacket(
                                 "Error while finalizing transfer",
@@ -906,7 +906,7 @@ public class TransferActions extends ServerActions {
                         result = localChannelReference.getFutureRequest().getResult();
                         error = new ErrorPacket(
                                 "Error while finalizing transfer: " + result.getMessage(),
-                                result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                     } else {
                         error = new ErrorPacket(
                                 "Error while finalizing transfer",
@@ -952,7 +952,7 @@ public class TransferActions extends ServerActions {
                         result = localChannelReference.getFutureRequest().getResult();
                         error = new ErrorPacket(
                                 "Error while finalizing transfer: " + result.getMessage(),
-                                result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                     } else {
                         error = new ErrorPacket(
                                 "Error while finalizing transfer",
@@ -973,7 +973,7 @@ public class TransferActions extends ServerActions {
                         result = localChannelReference.getFutureRequest().getResult();
                         error = new ErrorPacket(
                                 "Error while finalizing transfer: " + result.getMessage(),
-                                result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
                     } else {
                         error = new ErrorPacket(
                                 "Error while finalizing transfer",
@@ -1029,16 +1029,16 @@ public class TransferActions extends ServerActions {
             }
             if (transfer.isSuccess()) {
                 if (session.getExtendedProtocol() && session.getBusinessObject() != null) {
-                    if (session.getBusinessObject().getInfo() == null) {
-                        session.getBusinessObject().setInfo(optional);
+                    if (session.getBusinessObject().getInfo(session) == null) {
+                        session.getBusinessObject().setInfo(session, optional);
                     } else {
-                        String temp = session.getBusinessObject().getInfo();
-                        session.getBusinessObject().setInfo(optional);
+                        String temp = session.getBusinessObject().getInfo(session);
+                        session.getBusinessObject().setInfo(session, optional);
                         optional = temp;
                     }
                 } else if (session.getExtendedProtocol() &&
-                        transfer.getResult().other == null && optional != null) {
-                    transfer.getResult().other = optional;
+                        transfer.getResult().getOther() == null && optional != null) {
+                    transfer.getResult().setOther(optional);
                 }
                 localChannelReference.validateRequest(transfer.getResult());
             }
@@ -1124,7 +1124,7 @@ public class TransferActions extends ServerActions {
             if (newSize > 0) {
                 runner.setOriginalSize(newSize);
                 // Check if a CHKFILE task was supposely needed to run
-                String[][] rpretasks = runner.getRule().rpreTasksArray;
+                String[][] rpretasks = runner.getRule().getRpreTasksArray();
                 if (rpretasks != null) {
                     for (String[] strings : rpretasks) {
                         AbstractTask task = runner.getTask(strings, session);

@@ -90,10 +90,6 @@ public class ValidPacket extends AbstractLocalPacket {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "ValidPacket: " + sheader + ":" + smiddle + ":" + send;

@@ -124,7 +124,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     private final StringBuilder responseContent = new StringBuilder();
     private String uriRequest;
     private Map<String, List<String>> params;
-    private String lang = Messages.slocale;
+    private String lang = Messages.getSlocale();
     private boolean forceClose = false;
     private boolean shutdown = false;
 
@@ -193,27 +193,27 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
          * @return the content of the unique file
          */
         public String readFileUnique(HttpSslHandler handler) {
-            return handler.readFileHeader(Configuration.configuration.httpBasePath + this.header);
+            return handler.readFileHeader(Configuration.configuration.getHttpBasePath() + this.header);
         }
 
         public String readHeader(HttpSslHandler handler) {
-            return handler.readFileHeader(Configuration.configuration.httpBasePath + this.header);
+            return handler.readFileHeader(Configuration.configuration.getHttpBasePath() + this.header);
         }
 
         public String readBodyHeader() {
-            return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.headerBody);
+            return WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + this.headerBody);
         }
 
         public String readBody() {
-            return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.body);
+            return WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + this.body);
         }
 
         public String readBodyEnd() {
-            return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.endBody);
+            return WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + this.endBody);
         }
 
         public String readEnd() {
-            return WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + this.end);
+            return WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + this.end);
         }
     }
 
@@ -231,7 +231,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     public static final String sLIMITROW = "LIMITROW";
     private static final String XXXRESULTXXX = "XXXRESULTXXX";
 
-    public int LIMITROW = 48; // better if it can
+    private int LIMITROW = 48; // better if it can
                                      // be divided by 4
 
     /**
@@ -266,9 +266,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                 getNumberLocalChannel()) + " " + Thread.activeCount());
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
-                        DbAdmin.getNbConnection() - Configuration.NBDBSESSION));
+                        DbAdmin.getNbConnection() - Configuration.getNBDBSESSION()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-                Configuration.configuration.HOST_ID);
+                Configuration.configuration.getHOST_ID());
         if (authentHttp.isAuthenticated()) {
             WaarpStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                     Messages.getString("HttpSslHandler.1")); //$NON-NLS-1$
@@ -285,7 +285,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 (trafficCounter.lastWriteThroughput() >> 20) +
                 Messages.getString("HttpSslHandler.MOPS")); //$NON-NLS-1$
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
-                "" + LIMITROW);
+                "" + getLIMITROW());
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
         return builder.toString();
     }
@@ -310,7 +310,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         String index = REQUEST.index.readFileUnique(this);
         StringBuilder builder = new StringBuilder(index);
         WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-                Configuration.configuration.HOST_ID);
+                Configuration.configuration.getHOST_ID());
         WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 Messages.getString("HttpSslHandler.2")); //$NON-NLS-1$
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
@@ -364,7 +364,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
             DbHostConfiguration dbhc;
             try {
-                dbhc = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+                dbhc = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
             } catch (WaarpDatabaseException e) {
                 return null;
             }
@@ -432,7 +432,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
-                            DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+                            DbTaskRunner.getFilterPrepareStatement(dbSession, getLIMITROW(), false,
                                     startid, stopid, tstart, tstop, rule, req,
                                     pending, transfer, error, done, all, seeAll);
                     preparedStatement.executeQuery();
@@ -457,7 +457,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                     body,
                                     lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
                                             .getString("HttpSslHandler.NotActive")));
-                            if (i > LIMITROW) {
+                            if (i > getLIMITROW()) {
                                 break;
                             }
                         } catch (WaarpDatabaseException e) {
@@ -550,7 +550,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
-                            DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+                            DbTaskRunner.getFilterPrepareStatement(dbSession, getLIMITROW(), false,
                                     startid, stopid, tstart, tstop, rule, req,
                                     pending, transfer, error, done, all, seeAll);
                     preparedStatement.executeQuery();
@@ -575,7 +575,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                     body,
                                     lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
                                             .getString("HttpSslHandler.NotActive")));
-                            if (i > LIMITROW) {
+                            if (i > getLIMITROW()) {
                                 break;
                             }
                         } catch (WaarpDatabaseException e) {
@@ -666,7 +666,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                                 getFromRequest(taskRunner.getKey());
                                 R66Result finalResult = TransferUtils.restartTransfer(taskRunner,
                                         lcr);
-                                ErrorCode result = finalResult.code;
+                                ErrorCode result = finalResult.getCode();
                                 ErrorCode last = taskRunner.getErrorInfo();
                                 taskRunner.setErrorExecutionStatus(result);
                                 builder.append(taskRunner.toSpecializedHtml(
@@ -807,7 +807,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             Configuration.configuration.getLocalTransaction().
                                     getFromRequest(taskRunner.getKey());
                     R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
-                    comment = (String) finalResult.other;
+                    comment = (String) finalResult.getOther();
                     body = REQUEST.CancelRestart.readBody();
                     body = taskRunner
                             .toSpecializedHtml(
@@ -890,9 +890,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         // create export of log and optionally purge them from database
         DbPreparedStatement getValid = null;
         NbAndSpecialId nbAndSpecialId = null;
-        String filename = Configuration.configuration.baseDirectory +
-                Configuration.configuration.archivePath + R66Dir.SEPARATOR +
-                Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
+        String filename = Configuration.configuration.getBaseDirectory() +
+                Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
+                Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                 "_runners.xml";
         String errorMsg = "";
         String seeAll = checkAuthorizedToSeeAll();
@@ -1043,7 +1043,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                         i++;
                         DbHostAuth dbhost = DbHostAuth.getFromStatement(preparedStatement);
                         builder.append(dbhost.toSpecializedHtml(authentHttp, body, false));
-                        if (i > LIMITROW) {
+                        if (i > getLIMITROW()) {
                             break;
                         }
                     }
@@ -1126,7 +1126,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                         Configuration.configuration.getInternalRunner().getNetworkTransaction(),
                         result, dbhost, packet);
                 transaction.run();
-                result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON / 2);
+                result.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON() / 2);
                 head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
                 body = REQUEST.Hosts.readBody();
                 if (result.isSuccess()) {
@@ -1136,7 +1136,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
                             +
-                            result.getResult().code.mesg + "</b></center></p>";
+                            result.getResult().getCode().mesg + "</b></center></p>";
                 }
             } else if ("CloseConn".equalsIgnoreCase(parm)) {
                 String host = getTrimValue("host");
@@ -1392,8 +1392,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("recv")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMODE;
@@ -1401,8 +1401,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("sendmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
@@ -1410,8 +1410,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("recvmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
@@ -1419,8 +1419,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("sendth")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
@@ -1428,8 +1428,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("recvth")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
@@ -1437,8 +1437,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("sendthmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
@@ -1446,8 +1446,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (params.containsKey("recvthmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
@@ -1455,45 +1455,45 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
-                    start += LIMITROW / 4 + 1;
+                            RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                    start += getLIMITROW() / 4 + 1;
                 }
                 if (!specific) {
                     if (gmode == -1) {
                         // recv
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
                                 RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(),
-                                LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                     } else if (gmode == -2) {
                         // send
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                         createExport(body, builder, rule,
                                 RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(),
-                                LIMITROW / 4, start);
-                        start += LIMITROW / 4 + 1;
+                                getLIMITROW() / 4, start);
+                        start += getLIMITROW() / 4 + 1;
                     } else {
                         // all
                         createExport(body, builder, rule,
-                                -1, LIMITROW, start);
-                        start += LIMITROW + 1;
+                                -1, getLIMITROW(), start);
+                        start += getLIMITROW() + 1;
                     }
                 }
                 body = builder.toString();
@@ -1592,9 +1592,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURLANGFRXXX.name(), lang.equalsIgnoreCase("fr") ? "checked"
                 : "");
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGENXXX.name(),
-                Messages.slocale.equalsIgnoreCase("en") ? "checked" : "");
+                Messages.getSlocale().equalsIgnoreCase("en") ? "checked" : "");
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGFRXXX.name(),
-                Messages.slocale.equalsIgnoreCase("fr") ? "checked" : "");
+                Messages.getSlocale().equalsIgnoreCase("fr") ? "checked" : "");
     }
 
     private String SystemLimitedSource() {
@@ -1609,9 +1609,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         getParams();
         DbHostConfiguration config = null;
         try {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
         } catch (WaarpDatabaseException e2) {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID, "", "", "", "");
+            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID(), "", "", "", "");
             try {
                 config.insert();
             } catch (WaarpDatabaseException e) {
@@ -1630,7 +1630,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             for (String act : action) {
                 if (act.equalsIgnoreCase("Language")) {
                     lang = getTrimValue("change");
-                    extraInformation = Messages.getString("HttpSslHandler.LangIs") + "Web: " + lang + " OpenR66: " + Messages.slocale; //$NON-NLS-1$
+                    extraInformation = Messages.getString("HttpSslHandler.LangIs") + "Web: " + lang + " OpenR66: " + Messages.getSlocale(); //$NON-NLS-1$
                 } else if (act.equalsIgnoreCase("Disconnect")) {
                     String logon = Logon();
                     logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
@@ -1666,20 +1666,20 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
                 config.getOthers());
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-                Long.toString(Configuration.configuration.serverChannelWriteLimit));
+                Long.toString(Configuration.configuration.getServerChannelWriteLimit()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-                Long.toString(Configuration.configuration.serverChannelReadLimit));
+                Long.toString(Configuration.configuration.getServerChannelReadLimit()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELATRAFFICXXX.toString(),
-                Long.toString(Configuration.configuration.delayLimit));
+                Long.toString(Configuration.configuration.getDelayLimit()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-                Long.toString(Configuration.configuration.delayCommander));
+                Long.toString(Configuration.configuration.getDelayCommander()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-                Long.toString(Configuration.configuration.delayRetry));
+                Long.toString(Configuration.configuration.getDelayRetry()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-                Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+                Long.toString(Configuration.configuration.getServerGlobalWriteLimit()));
         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-                Long.toString(Configuration.configuration.serverGlobalReadLimit));
-        WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+                Long.toString(Configuration.configuration.getServerGlobalReadLimit()));
+        WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown() ? "checked" : "");
         switch (WaarpLoggerFactory.getLogLevel()) {
             case DEBUG:
                 WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "checked");
@@ -1729,9 +1729,9 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         getParams();
         DbHostConfiguration config = null;
         try {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
         } catch (WaarpDatabaseException e2) {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID, "", "", "", "");
+            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID(), "", "", "", "");
             try {
                 config.insert();
             } catch (WaarpDatabaseException e) {
@@ -1752,7 +1752,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     lang = getTrimValue("change");
                     String sys = getTrimValue("changesys");
                     Messages.init(new Locale(sys));
-                    extraInformation = Messages.getString("HttpSslHandler.LangIs") + "Web: " + lang + " OpenR66: " + Messages.slocale; //$NON-NLS-1$
+                    extraInformation = Messages.getString("HttpSslHandler.LangIs") + "Web: " + lang + " OpenR66: " + Messages.getSlocale(); //$NON-NLS-1$
                 } else if (act.equalsIgnoreCase("Level")) {
                     String loglevel = getTrimValue("loglevel");
                     WaarpLogLevel level = WaarpLogLevel.WARN;
@@ -1768,8 +1768,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     WaarpLoggerFactory.setLogLevel(level);
                     extraInformation = Messages.getString("HttpSslHandler.LangIs") + level.name(); //$NON-NLS-1$
                 } else if (act.equalsIgnoreCase("ExportConfig")) {
-                    String directory = Configuration.configuration.baseDirectory +
-                            R66Dir.SEPARATOR + Configuration.configuration.archivePath;
+                    String directory = Configuration.configuration.getBaseDirectory() +
+                            R66Dir.SEPARATOR + Configuration.configuration.getArchivePath();
                     extraInformation = Messages.getString("HttpSslHandler.ExportDir") + directory + "<br>"; //$NON-NLS-1$
                     String[] filenames = ServerActions.staticConfigExport(dbSession, directory, true, true, true, true,
                             true);
@@ -1798,10 +1798,10 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     } else {
                         extraInformation = Messages.getString("HttpSslHandler.35"); //$NON-NLS-1$
                     }
-                    Configuration.configuration.isShutdown = block;
+                    Configuration.configuration.setShutdown(block);
                 } else if (act.equalsIgnoreCase("Shutdown")) {
                     String error;
-                    if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+                    if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
                         error = error(Messages.getString("HttpSslHandler.38")); //$NON-NLS-1$
                     } else {
                         error = error(Messages.getString("HttpSslHandler.37")); //$NON-NLS-1$
@@ -1814,13 +1814,13 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     return error;
                 } else if (act.equalsIgnoreCase("Restart")) {
                     String error;
-                    if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+                    if (Configuration.configuration.getShutdownConfiguration().serviceFuture != null) {
                         error = error(Messages.getString("HttpSslHandler.38")); //$NON-NLS-1$
                     } else {
-                        error = error(Messages.getString("HttpSslHandler.39") + (Configuration.configuration.TIMEOUTCON * 2 / 1000) + Messages.getString("HttpSslHandler.40")); //$NON-NLS-1$ //$NON-NLS-2$
+                        error = error(Messages.getString("HttpSslHandler.39") + (Configuration.configuration.getTIMEOUTCON() * 2 / 1000) + Messages.getString("HttpSslHandler.40")); //$NON-NLS-1$ //$NON-NLS-2$
                     }
                     error = error.replace("XXXRELOADHTTPXXX", "HTTP-EQUIV=\"refresh\" CONTENT=\""
-                            + (Configuration.configuration.TIMEOUTCON * 2 / 1000) + "\"");
+                            + (Configuration.configuration.getTIMEOUTCON() * 2 / 1000) + "\"");
                     R66ShutdownHook.setRestart(true);
                     newSession = true;
                     clearSession();
@@ -1829,7 +1829,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     return error;
                 } else if (act.equalsIgnoreCase("Validate")) {
                     String bsessionr = getTrimValue("BSESSR");
-                    long lsessionr = Configuration.configuration.serverChannelReadLimit;
+                    long lsessionr = Configuration.configuration.getServerChannelReadLimit();
                     long lglobalr;
                     long lsessionw;
                     long lglobalw;
@@ -1839,22 +1839,22 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                             lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
                         }
                         String bglobalr = getTrimValue("BGLOBR");
-                        lglobalr = Configuration.configuration.serverGlobalReadLimit;
+                        lglobalr = Configuration.configuration.getServerGlobalReadLimit();
                         if (bglobalr != null) {
                             lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
                         }
                         String bsessionw = getTrimValue("BSESSW");
-                        lsessionw = Configuration.configuration.serverChannelWriteLimit;
+                        lsessionw = Configuration.configuration.getServerChannelWriteLimit();
                         if (bsessionw != null) {
                             lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
                         }
                         String bglobalw = getTrimValue("BGLOBW");
-                        lglobalw = Configuration.configuration.serverGlobalWriteLimit;
+                        lglobalw = Configuration.configuration.getServerGlobalWriteLimit();
                         if (bglobalw != null) {
                             lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
                         }
                         String dtra = getTrimValue("DTRA");
-                        delay = Configuration.configuration.delayLimit;
+                        delay = Configuration.configuration.getDelayLimit();
                         if (dtra != null) {
                             delay = (Long.parseLong(dtra) / 10) * 10;
                             if (delay < 100) {
@@ -1866,17 +1866,17 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                                 delay);
                         String dcomm = getTrimValue("DCOM");
                         if (dcomm != null) {
-                            Configuration.configuration.delayCommander = Long.parseLong(dcomm);
-                            if (Configuration.configuration.delayCommander <= 100) {
-                                Configuration.configuration.delayCommander = 100;
+                            Configuration.configuration.setDelayCommander(Long.parseLong(dcomm));
+                            if (Configuration.configuration.getDelayCommander() <= 100) {
+                                Configuration.configuration.setDelayCommander(100);
                             }
                             Configuration.configuration.reloadCommanderDelay();
                         }
                         String dret = getTrimValue("DRET");
                         if (dret != null) {
-                            Configuration.configuration.delayRetry = Long.parseLong(dret);
-                            if (Configuration.configuration.delayRetry <= 1000) {
-                                Configuration.configuration.delayRetry = 1000;
+                            Configuration.configuration.setDelayRetry(Long.parseLong(dret));
+                            if (Configuration.configuration.getDelayRetry() <= 1000) {
+                                Configuration.configuration.setDelayRetry(1000);
                             }
                         }
                         extraInformation = Messages.getString("HttpSslHandler.41"); //$NON-NLS-1$
@@ -1920,10 +1920,10 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     String snb = getTrimValue(sLIMITROW);
                     if (snb != null) {
                         try {
-                            int old = LIMITROW;
-                            LIMITROW = Integer.parseInt(snb);
-                            if (LIMITROW < 5) {
-                                LIMITROW = old;
+                            int old = getLIMITROW();
+                            setLIMITROW(Integer.parseInt(snb));
+                            if (getLIMITROW() < 5) {
+                                setLIMITROW(old);
                             }
                         } catch (Exception e1) {
                         }
@@ -1946,7 +1946,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             }
             if (ldbsession != null) {
                 ldbsession.forceDisconnect();
-                DbAdmin.nbHttpSession--;
+                DbAdmin.decHttpSession();
             }
         }
     }
@@ -2011,18 +2011,18 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             }
             if (!getMenu) {
                 logger.debug("Name? "
-                        + name.equals(Configuration.configuration.ADMINNAME) +
+                        + name.equals(Configuration.configuration.getADMINNAME()) +
                         " Passwd? " + Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
                                 Configuration.configuration.getSERVERADMINKEY()));
-                if (name.equals(Configuration.configuration.ADMINNAME) &&
+                if (name.equals(Configuration.configuration.getADMINNAME()) &&
                         Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
                                 Configuration.configuration.getSERVERADMINKEY())) {
                     authentHttp.getAuth().specialNoSessionAuth(true,
-                            Configuration.configuration.HOST_ID);
+                            Configuration.configuration.getHOST_ID());
                     authentHttp.setStatus(70);
                 } else {
                     try {
-                        authentHttp.getAuth().connectionHttps(DbConstant.admin.session, name,
+                        authentHttp.getAuth().connectionHttps(DbConstant.admin.getSession(), name,
                                 FilesystemBasedDigest.passwdCrypt(password.getBytes(WaarpStringUtils.UTF8)));
                     } catch (Reply530Exception e1) {
                         getMenu = true;
@@ -2056,22 +2056,22 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             }
             if (this.dbSession == null) {
                 try {
-                    if (DbConstant.admin.isActive) {
+                    if (DbConstant.admin.isActive()) {
                         this.dbSession = new DbSession(DbConstant.admin, false);
-                        DbAdmin.nbHttpSession++;
+                        DbAdmin.incHttpSession();
                         this.isPrivateDbSession = true;
                     }
                 } catch (WaarpDatabaseNoConnectionException e1) {
                     // Cannot connect so use default connection
                     logger.warn("Use default database connection");
-                    this.dbSession = DbConstant.admin.session;
+                    this.dbSession = DbConstant.admin.getSession();
                 }
             }
             String index = index();
             responseContent.append(index);
             clearSession();
-            admin = new DefaultCookie(R66SESSION + Configuration.configuration.HOST_ID,
-                    Configuration.configuration.HOST_ID +
+            admin = new DefaultCookie(R66SESSION + Configuration.configuration.getHOST_ID(),
+                    Configuration.configuration.getHOST_ID() +
                             Long.toHexString(random.nextLong()));
             sessions.put(admin.value(), this.authentHttp);
             authentHttp.setStatus(72);
@@ -2092,8 +2092,8 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
                 uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
             HttpWriteCacheEnable.writeFile(request,
-                    ctx, Configuration.configuration.httpBasePath + uriRequest,
-                    R66SESSION + Configuration.configuration.HOST_ID);
+                    ctx, Configuration.configuration.getHttpBasePath() + uriRequest,
+                    R66SESSION + Configuration.configuration.getHOST_ID());
             return;
         }
         checkSession(ctx.channel());
@@ -2186,7 +2186,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             if (!cookies.isEmpty()) {
                 for (Cookie elt : cookies) {
-                    if (elt.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.HOST_ID)) {
+                    if (elt.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.getHOST_ID())) {
                         logger.debug("Found session: " + elt);
                         admin = elt;
                         R66Session session = sessions.get(admin.value());
@@ -2199,7 +2199,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                         }
                         DbSession dbSession = dbSessions.get(admin.value());
                         if (dbSession != null) {
-                            if (dbSession.isDisActive) {
+                            if (dbSession.isDisActive()) {
                                 clearSession();
                             }
                             this.dbSession = dbSession;
@@ -2228,7 +2228,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 // Reset the sessions if necessary.
                 boolean findSession = false;
                 for (Cookie cookie : cookies) {
-                    if (cookie.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.HOST_ID)) {
+                    if (cookie.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.getHOST_ID())) {
                         if (newSession) {
                             findSession = false;
                         } else {
@@ -2357,6 +2357,20 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         Channel channel = ctx.channel();
         Configuration.configuration.getHttpChannelGroup().add(channel);
         super.channelActive(ctx);
+    }
+
+    /**
+     * @return the lIMITROW
+     */
+    public int getLIMITROW() {
+        return LIMITROW;
+    }
+
+    /**
+     * @param lIMITROW the lIMITROW to set
+     */
+    private void setLIMITROW(int lIMITROW) {
+        LIMITROW = lIMITROW;
     }
 
 }

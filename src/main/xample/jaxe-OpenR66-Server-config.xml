@@ -34,6 +34,7 @@
 <MENU_INSERTION nom="minimaldelay"/>
 <MENU_INSERTION nom="snmpconfig"/>
 <MENU_INSERTION nom="multiplemonitors"/>
+<MENU_INSERTION nom="businessfactory"/>
 <MENU_INSERTION nom="serverport"/>
 <MENU_INSERTION nom="serversslport"/>
 <MENU_INSERTION nom="serverhttpport"/>
@@ -136,6 +137,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="minimaldelay"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="snmpconfig"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="multiplemonitors"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="businessfactory"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serversslport"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverhttpport"/>
@@ -369,6 +371,12 @@ Configuration XML File for SNMP service
 <TITRE>multiplemonitors</TITRE>
 <DOCUMENTATION>
 Set the number of servers that act in the same group as a single instance of a OpenR66 File Transfer Monitor
+                        </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="businessfactory">
+<TITRE>businessfactory</TITRE>
+<DOCUMENTATION>
+If you need a special Business Factory, you must specify the full class name here. Default is: org.waarp.openr66.context.R66DefaultBusinessFactory which only logs in DEBUG mode.
                         </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="serverport">

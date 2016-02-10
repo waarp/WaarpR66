@@ -79,7 +79,7 @@ public class ChangeBandwidthLimits implements Runnable {
         this.writeSessionLimit = wsl;
         this.readSessionLimit = rsl;
         this.networkTransaction = networkTransaction;
-        this.host = Configuration.configuration.HOST_SSLAUTH;
+        this.host = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     public void setHost(DbHostAuth host) {
@@ -103,7 +103,7 @@ public class ChangeBandwidthLimits implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             host = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         boolean isSSL = host.isSsl();
@@ -116,7 +116,7 @@ public class ChangeBandwidthLimits implements Runnable {
             future.setResult(new R66Result(
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + host.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -219,7 +219,7 @@ public class ChangeBandwidthLimits implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -235,14 +235,14 @@ public class ChangeBandwidthLimits implements Runnable {
                     networkTransaction);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("Bandwidth in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();
                     System.exit(10);
                 }
             } else {
-                stohost = Configuration.configuration.HOST_SSLID;
+                stohost = Configuration.configuration.getHOST_SSLID();
             }
             transaction.run();
             future.awaitUninterruptibly();
@@ -253,16 +253,16 @@ public class ChangeBandwidthLimits implements Runnable {
             logger.debug("UseJson: " + useJson);
             if (future.isSuccess()) {
                 String sresult = null;
-                if (result.other != null) {
+                if (result.getOther() != null) {
                     if (useJson) {
-                        sresult = ((JsonCommandPacket) result.other).getRequest();
+                        sresult = ((JsonCommandPacket) result.getOther()).getRequest();
                     } else {
-                        sresult = ((ValidPacket) result.other).getSheader();
+                        sresult = ((ValidPacket) result.getOther()).getSheader();
                     }
                 } else {
                     sresult = "no result";
                 }
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("WARNED on bandwidth:     " + sresult
                             + "     delay: " + delay);
                 } else {
@@ -270,14 +270,14 @@ public class ChangeBandwidthLimits implements Runnable {
                             + "     delay: " + delay);
                 }
             } else {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("Bandwidth is     WARNED", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("Bandwidth in     FAILURE", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

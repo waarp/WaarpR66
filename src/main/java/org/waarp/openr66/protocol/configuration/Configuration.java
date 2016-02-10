@@ -137,7 +137,7 @@ public class Configuration {
     /**
      * Hack to say Windows or Unix (USR1 not OK on Windows)
      */
-    public static boolean ISUNIX;
+    private static boolean ISUNIX;
 
     /**
      * Default size for buffers (NIO)
@@ -157,59 +157,59 @@ public class Configuration {
     /**
      * Rank to redo when a restart occurs
      */
-    public static int RANKRESTART = 30;
+    private static int RANKRESTART = 30;
     /**
      * Number of DbSession for internal needs
      */
-    public static int NBDBSESSION = 0;
+    private static int NBDBSESSION = 0;
     /**
      * FileParameter
      */
     private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
 
-    public final R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
+    private R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
     // Global Dynamic values
     /**
      * Version validation
      */
-    public boolean extendedProtocol = true;
+    private boolean extendedProtocol = true;
     /**
      * Global digest
      */
-    public boolean globalDigest = true;
+    private boolean globalDigest = true;
     /**
      * White List of allowed Partners to use Business Requests
      */
-    public final HashSet<String> businessWhiteSet = new HashSet<String>();
+    private final HashSet<String> businessWhiteSet = new HashSet<String>();
     /**
      * Roles list for identified partners
      */
-    public final HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
+    private final HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
     /**
      * Aliases list for identified partners
      */
-    public final HashMap<String, String> aliases = new HashMap<String, String>();
+    private final HashMap<String, String> aliases = new HashMap<String, String>();
     /**
      * reverse Aliases list for identified partners
      */
-    public final HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
+    private final HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
     /**
      * Versions for each HostID
      */
-    public final ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
+    private final ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
     /**
      * Actual Host ID
      */
-    public String HOST_ID;
+    private String HOST_ID;
     /**
      * Actual SSL Host ID
      */
-    public String HOST_SSLID;
+    private String HOST_SSLID;
 
     /**
      * Server Administration user name
      */
-    public String ADMINNAME = null;
+    private String ADMINNAME = null;
     /**
      * Server Administration Key
      */
@@ -217,185 +217,185 @@ public class Configuration {
     /**
      * Server Administration Key file
      */
-    public String serverKeyFile = null;
+    private String serverKeyFile = null;
     /**
      * Server Actual Authentication
      */
-    public DbHostAuth HOST_AUTH;
+    private DbHostAuth HOST_AUTH;
     /**
      * Server Actual SSL Authentication
      */
-    public DbHostAuth HOST_SSLAUTH;
+    private DbHostAuth HOST_SSLAUTH;
 
     /**
      * Default number of threads in pool for Server (true network listeners). Server will change
      * this value on startup if not set. The value should be closed to the number of CPU.
      */
-    public int SERVER_THREAD = 0;
+    private int SERVER_THREAD = 0;
 
     /**
      * Default number of threads in pool for Client. The value is for true client for Executor in
      * the Pipeline for Business logic. The value does not indicate a limit of concurrent clients,
      * but a limit on truly packet concurrent actions.
      */
-    public int CLIENT_THREAD = 10;
+    private int CLIENT_THREAD = 10;
 
     /**
      * Default session limit 64Mbit, so up to 16 full simultaneous clients
      */
-    public final long DEFAULT_SESSION_LIMIT = 0x800000L;
+    private final long DEFAULT_SESSION_LIMIT = 0x800000L;
 
     /**
      * Default global limit 1024Mbit
      */
-    public final long DEFAULT_GLOBAL_LIMIT = 0x8000000L;
+    private final long DEFAULT_GLOBAL_LIMIT = 0x8000000L;
 
     /**
      * Default server port
      */
-    public int SERVER_PORT = 6666;
+    private int SERVER_PORT = 6666;
 
     /**
      * Default SSL server port
      */
-    public int SERVER_SSLPORT = 6667;
+    private int SERVER_SSLPORT = 6667;
 
     /**
      * Default HTTP server port
      */
-    public int SERVER_HTTPPORT = 8066;
+    private int SERVER_HTTPPORT = 8066;
 
     /**
      * Default HTTP server port
      */
-    public int SERVER_HTTPSPORT = 8067;
+    private int SERVER_HTTPSPORT = 8067;
 
     /**
      * Nb of milliseconds after connection is in timeout
      */
-    public long TIMEOUTCON = 30000;
+    private long TIMEOUTCON = 30000;
 
     /**
      * Size by default of block size for receive/sending files. Should be a multiple of 8192
      * (maximum = 2^30K due to block limitation to 4 bytes)
      */
-    public int BLOCKSIZE = 0x10000; // 64K
+    private int BLOCKSIZE = 0x10000; // 64K
 
     /**
      * Max global memory limit: default is 4GB
      */
-    public long maxGlobalMemory = 0x100000000L;
+    private long maxGlobalMemory = 0x100000000L;
 
     /**
      * Rest configuration list
      */
-    public final List<RestConfiguration> restConfigurations = new ArrayList<RestConfiguration>();
+    private final List<RestConfiguration> restConfigurations = new ArrayList<RestConfiguration>();
 
     /**
      * Base Directory
      */
-    public String baseDirectory;
+    private String baseDirectory;
 
     /**
      * In path (receive)
      */
-    public String inPath = null;
+    private String inPath = null;
 
     /**
      * Out path (send, copy, pending)
      */
-    public String outPath = null;
+    private String outPath = null;
 
     /**
      * Archive path
      */
-    public String archivePath = null;
+    private String archivePath = null;
 
     /**
      * Working path
      */
-    public String workingPath = null;
+    private String workingPath = null;
 
     /**
      * Config path
      */
-    public String configPath = null;
+    private String configPath = null;
 
     /**
      * Http Admin base
      */
-    public String httpBasePath = "src/main/admin/";
+    private String httpBasePath = "src/main/admin/";
 
     /**
      * Model for Http Admin: 0 = standard (i18n only), 1 = responsive (i18n + bootstrap + dynamic table + refresh)
      */
-    public int httpModel = 1;
+    private int httpModel = 1;
 
     /**
      * True if the service is going to shutdown
      */
-    public volatile boolean isShutdown = false;
+    private volatile boolean isShutdown = false;
 
     /**
      * Limit in Write byte/s to apply globally to the FTP Server
      */
-    public long serverGlobalWriteLimit = DEFAULT_GLOBAL_LIMIT;
+    private long serverGlobalWriteLimit = getDEFAULT_GLOBAL_LIMIT();
 
     /**
      * Limit in Read byte/s to apply globally to the FTP Server
      */
-    public long serverGlobalReadLimit = DEFAULT_GLOBAL_LIMIT;
+    private long serverGlobalReadLimit = getDEFAULT_GLOBAL_LIMIT();
 
     /**
      * Limit in Write byte/s to apply by session to the FTP Server
      */
-    public long serverChannelWriteLimit = DEFAULT_SESSION_LIMIT;
+    private long serverChannelWriteLimit = getDEFAULT_SESSION_LIMIT();
 
     /**
      * Limit in Read byte/s to apply by session to the FTP Server
      */
-    public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
+    private long serverChannelReadLimit = getDEFAULT_SESSION_LIMIT();
 
     /**
      * Any limitation on bandwidth active?
      */
-    public boolean anyBandwidthLimitation = false;
+    private boolean anyBandwidthLimitation = false;
     /**
      * Delay in ms between two checks
      */
-    public long delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+    private long delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
 
     /**
      * Does this OpenR66 server will use and accept SSL connections
      */
-    public boolean useSSL = false;
+    private boolean useSSL = false;
     /**
      * Does this OpenR66 server will use and accept non SSL connections
      */
-    public boolean useNOSSL = true;
+    private boolean useNOSSL = true;
     /**
      * Algorithm to use for Digest
      */
-    public FilesystemBasedDigest.DigestAlgo digest = DigestAlgo.MD5;
+    private FilesystemBasedDigest.DigestAlgo digest = DigestAlgo.MD5;
 
     /**
      * Does this OpenR66 server will try to compress HTTP connections
      */
-    public boolean useHttpCompression = false;
+    private boolean useHttpCompression = false;
 
     /**
      * Does this OpenR66 server will use Waarp LocalExec Daemon for ExecTask and ExecMoveTask
      */
-    public boolean useLocalExec = false;
+    private boolean useLocalExec = false;
 
     /**
      * Crypto Key
      */
-    public Des cryptoKey = null;
+    private Des cryptoKey = null;
     /**
      * Associated file for CryptoKey
      */
-    public String cryptoFile = null;
+    private String cryptoFile = null;
 
     /**
      * List of all Server Channels to enable the close call on them using Netty ChannelGroup
@@ -413,7 +413,7 @@ public class Configuration {
     /**
      * Does the current program running as Server
      */
-    public boolean isServer = false;
+    private boolean isServer = false;
 
     /**
      * ExecutorService Other Worker
@@ -492,99 +492,99 @@ public class Configuration {
     /**
      * Maximum number of concurrent active transfer by submission.
      */
-    public int RUNNER_THREAD = 1000;
+    private int RUNNER_THREAD = 1000;
     /**
      * Delay in ms between two steps of Commander
      */
-    public long delayCommander = 5000;
+    private long delayCommander = 5000;
     /**
      * Delay in ms between two retries
      */
-    public long delayRetry = 30000;
+    private long delayRetry = 30000;
     /**
      * Constraint Limit Handler on CPU usage and Connection limitation
      */
-    public R66ConstraintLimitHandler constraintLimitHandler = new R66ConstraintLimitHandler();
+    private R66ConstraintLimitHandler constraintLimitHandler = new R66ConstraintLimitHandler();
     /**
      * Do we check Remote Address from DbHost
      */
-    public boolean checkRemoteAddress = false;
+    private boolean checkRemoteAddress = false;
     /**
      * Do we check address even for Client
      */
-    public boolean checkClientAddress = false;
+    private boolean checkClientAddress = false;
     /**
      * For No Db client, do we saved TaskRunner in a XML
      */
-    public boolean saveTaskRunnerWithNoDb = false;
+    private boolean saveTaskRunnerWithNoDb = false;
     /**
      * In case of Multiple OpenR66 monitor servers behing a load balancer (HA solution)
      */
-    public int multipleMonitors = 1;
+    private int multipleMonitors = 1;
     /**
      * Monitoring object
      */
-    public Monitoring monitoring = null;
+    private Monitoring monitoring = null;
     /**
      * Monitoring: how long in ms to get back in monitoring
      */
-    public long pastLimit = 86400000; // 24H
+    private long pastLimit = 86400000; // 24H
     /**
      * Monitoring: minimal interval in ms before redo real monitoring
      */
-    public long minimalDelay = 5000; // 5 seconds
+    private long minimalDelay = 5000; // 5 seconds
     /**
      * Monitoring: snmp configuration file (empty means no snmp support)
      */
-    public String snmpConfig = null;
+    private String snmpConfig = null;
     /**
      * SNMP Agent (if any)
      */
-    public WaarpSnmpAgent agentSnmp = null;
+    private WaarpSnmpAgent agentSnmp = null;
     /**
      * Associated MIB
      */
-    public R66PrivateMib r66Mib = null;
+    private R66PrivateMib r66Mib = null;
 
     protected volatile boolean configured = false;
 
-    public static WaarpSecureKeyStore waarpSecureKeyStore;
+    private static WaarpSecureKeyStore waarpSecureKeyStore;
 
-    public static WaarpSslContextFactory waarpSslContextFactory;
+    private static WaarpSslContextFactory waarpSslContextFactory;
     /**
      * Thrift support
      */
-    public R66ThriftServerService thriftService;
-    public int thriftport = -1;
+    private R66ThriftServerService thriftService;
+    private int thriftport = -1;
 
-    public boolean isExecuteErrorBeforeTransferAllowed = true;
+    private boolean isExecuteErrorBeforeTransferAllowed = true;
 
-    public final ShutdownConfiguration shutdownConfiguration = new ShutdownConfiguration();
+    private final ShutdownConfiguration shutdownConfiguration = new ShutdownConfiguration();
 
-    public boolean isHostProxyfied = false;
+    private boolean isHostProxyfied = false;
 
-    public boolean warnOnStartup = true;
+    private boolean warnOnStartup = true;
 
-    public boolean chrootChecked = true;
+    private boolean chrootChecked = true;
 
-    public boolean blacklistBadAuthent = false;
+    private boolean blacklistBadAuthent = false;
 
-    public int maxfilenamelength = 255;
+    private int maxfilenamelength = 255;
 
-    public int timeStat = 0;
+    private int timeStat = 0;
 
-    public int limitCache = 20000;
+    private int limitCache = 20000;
 
-    public long timeLimitCache = 180000;
+    private long timeLimitCache = 180000;
 
     public Configuration() {
         // Init signal handler
-        shutdownConfiguration.timeout = TIMEOUTCON;
+        getShutdownConfiguration().timeout = getTIMEOUTCON();
         if (WaarpShutdownHook.shutdownHook == null) {
-            new R66ShutdownHook(shutdownConfiguration);
+            new R66ShutdownHook(getShutdownConfiguration());
         }
         computeNbThreads();
-        scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory(
+        scheduledExecutorService = Executors.newScheduledThreadPool(this.getSERVER_THREAD(), new WaarpThreadFactory(
                 "ScheduledTask"));
         // Init FiniteStates
         R66FiniteDualStates.initR66FiniteStates();
@@ -592,39 +592,39 @@ public class Configuration {
             logger.error("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument");
             logger.warn("Currently file.encoding is: " + SystemPropertyUtil.get(SystemPropertyUtil.FILE_ENCODING));
         }
-        isExecuteErrorBeforeTransferAllowed = SystemPropertyUtil.getBoolean(
-                R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
+        setExecuteErrorBeforeTransferAllowed(SystemPropertyUtil.getBoolean(
+                R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true));
         boolean useSpaceSeparator = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_USESPACESEPARATOR, false);
         if (useSpaceSeparator) {
-            PartnerConfiguration.SEPARATOR_FIELD = PartnerConfiguration.BLANK_SEPARATOR_FIELD;
+            PartnerConfiguration.setSEPARATOR_FIELD(PartnerConfiguration.BLANK_SEPARATOR_FIELD);
         }
-        isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
-        warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
+        setHostProxyfied(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false));
+        setWarnOnStartup(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true));
         FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, true);
-        chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
-        blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
-        maxfilenamelength = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255);
-        timeStat = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_TRACE_STATS, 0);
-        limitCache = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_CACHE_LIMIT, 20000);
-        if (limitCache <= 100) {
-            limitCache = 100;
+        setChrootChecked(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true));
+        setBlacklistBadAuthent(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true));
+        setMaxfilenamelength(SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255));
+        setTimeStat(SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_TRACE_STATS, 0));
+        setLimitCache(SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_CACHE_LIMIT, 20000));
+        if (getLimitCache() <= 100) {
+            setLimitCache(100);
         }
-        timeLimitCache = SystemPropertyUtil.getLong(R66SystemProperties.OPENR66_CACHE_TIMELIMIT, 180000);
-        if (timeLimitCache < 1000) {
-            timeLimitCache = 1000;
+        setTimeLimitCache(SystemPropertyUtil.getLong(R66SystemProperties.OPENR66_CACHE_TIMELIMIT, 180000));
+        if (getTimeLimitCache() < 1000) {
+            setTimeLimitCache(1000);
         }
-        DbTaskRunner.createLruCache(limitCache, timeLimitCache);
-        if (limitCache > 0 && timeLimitCache > 1000) {
-            launchInFixedDelay(new CleanLruCache(), timeLimitCache, TimeUnit.MILLISECONDS);
+        DbTaskRunner.createLruCache(getLimitCache(), getTimeLimitCache());
+        if (getLimitCache() > 0 && getTimeLimitCache() > 1000) {
+            launchInFixedDelay(new CleanLruCache(), getTimeLimitCache(), TimeUnit.MILLISECONDS);
         }
-        if (isHostProxyfied) {
-            blacklistBadAuthent = false;
+        if (isHostProxyfied()) {
+            setBlacklistBadAuthent(false);
         }
     }
 
     public String toString() {
         String rest = null;
-        for (RestConfiguration config : restConfigurations) {
+        for (RestConfiguration config : getRestConfigurations()) {
             if (rest == null) {
                 rest = (config.REST_ADDRESS != null ? "'" + config.REST_ADDRESS + ":" : "'All:") + config.REST_PORT
                         + "'";
@@ -633,15 +633,15 @@ public class Configuration {
                         + config.REST_PORT + "'";
             }
         }
-        return "Config: { ServerPort: " + SERVER_PORT + ", ServerSslPort: " + SERVER_SSLPORT + ", ServerView: "
-                + SERVER_HTTPPORT + ", ServerAdmin: " + SERVER_HTTPSPORT +
-                ", ThriftPort: " + (thriftport > 0 ? thriftport : "'NoThriftSupport'") + ", RestAddress: ["
+        return "Config: { ServerPort: " + getSERVER_PORT() + ", ServerSslPort: " + getSERVER_SSLPORT() + ", ServerView: "
+                + getSERVER_HTTPPORT() + ", ServerAdmin: " + getSERVER_HTTPSPORT() +
+                ", ThriftPort: " + (getThriftport() > 0 ? getThriftport() : "'NoThriftSupport'") + ", RestAddress: ["
                 + (rest != null ? rest : "'NoRestSupport'") + "]" +
-                ", TimeOut: " + TIMEOUTCON + ", BaseDir: '" + baseDirectory + "', DigestAlgo: '" + digest.name
-                + "', checkRemote: " + checkRemoteAddress +
-                ", checkClient: " + checkClientAddress + ", snmpActive: " + (agentSnmp != null) + ", chrootChecked: "
-                + chrootChecked +
-                ", blacklist: " + blacklistBadAuthent + ", isHostProxified: " + isHostProxyfied + "}";
+                ", TimeOut: " + getTIMEOUTCON() + ", BaseDir: '" + getBaseDirectory() + "', DigestAlgo: '" + getDigest().name
+                + "', checkRemote: " + isCheckRemoteAddress() +
+                ", checkClient: " + isCheckClientAddress() + ", snmpActive: " + (getAgentSnmp() != null) + ", chrootChecked: "
+                + isChrootChecked() +
+                ", blacklist: " + isBlacklistBadAuthent() + ", isHostProxified: " + isHostProxyfied() + "}";
     }
 
     /**
@@ -651,31 +651,31 @@ public class Configuration {
         if (configured) {
             return;
         }
-        workerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Worker"));
-        handlerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("Handler"));
-        subTaskGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("SubTask"));
-        localBossGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalBoss"));
-        localWorkerGroup = new NioEventLoopGroup(CLIENT_THREAD, new WaarpThreadFactory("LocalWorker"));
+        workerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("Worker"));
+        handlerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("Handler"));
+        subTaskGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("SubTask"));
+        localBossGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalBoss"));
+        localWorkerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalWorker"));
         localTransaction = new LocalTransaction();
         WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
-        if (warnOnStartup) {
-            logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
-                    + " Runner Thread: " + RUNNER_THREAD);
+        if (isWarnOnStartup()) {
+            logger.warn("Server Thread: " + getSERVER_THREAD() + " Client Thread: " + getCLIENT_THREAD()
+                    + " Runner Thread: " + getRUNNER_THREAD());
         } else {
-            logger.info("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
-                    + " Runner Thread: " + RUNNER_THREAD);
+            logger.info("Server Thread: " + getSERVER_THREAD() + " Client Thread: " + getCLIENT_THREAD()
+                    + " Runner Thread: " + getRUNNER_THREAD());
         }
         logger.info("Current launched threads: " + ManagementFactory.getThreadMXBean().getThreadCount());
-        if (useLocalExec) {
+        if (isUseLocalExec()) {
             LocalExecClient.initialize();
         }
         configured = true;
     }
 
     public void serverPipelineInit() {
-        bossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("Boss", false));
-        httpBossGroup = new NioEventLoopGroup(SERVER_THREAD, new WaarpThreadFactory("HttpBoss"));
-        httpWorkerGroup = new NioEventLoopGroup(SERVER_THREAD * 10, new WaarpThreadFactory("HttpWorker"));
+        bossGroup = new NioEventLoopGroup(getSERVER_THREAD(), new WaarpThreadFactory("Boss", false));
+        httpBossGroup = new NioEventLoopGroup(getSERVER_THREAD(), new WaarpThreadFactory("HttpBoss"));
+        httpWorkerGroup = new NioEventLoopGroup(getSERVER_THREAD() * 10, new WaarpThreadFactory("HttpWorker"));
     }
 
     /**
@@ -686,18 +686,18 @@ public class Configuration {
      */
     public void serverStartup() throws WaarpDatabaseNoConnectionException,
             WaarpDatabaseSqlException {
-        isServer = true;
-        if (blacklistBadAuthent) {
-            blacklistBadAuthent = !DbHostAuth.hasProxifiedHosts(DbConstant.admin.session);
+        setServer(true);
+        if (isBlacklistBadAuthent()) {
+            setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts(DbConstant.admin.getSession()));
         }
-        shutdownConfiguration.timeout = TIMEOUTCON;
-        if (timeLimitCache < TIMEOUTCON * 10) {
-            timeLimitCache = TIMEOUTCON * 10;
-            DbTaskRunner.updateLruCacheTimeout(timeLimitCache);
+        getShutdownConfiguration().timeout = getTIMEOUTCON();
+        if (getTimeLimitCache() < getTIMEOUTCON() * 10) {
+            setTimeLimitCache(getTIMEOUTCON() * 10);
+            DbTaskRunner.updateLruCacheTimeout(getTimeLimitCache());
         }
         R66ShutdownHook.addShutdownHook();
-        logger.debug("Use NoSSL: " + useNOSSL + " Use SSL: " + useSSL);
-        if ((!useNOSSL) && (!useSSL)) {
+        logger.debug("Use NoSSL: " + isUseNOSSL() + " Use SSL: " + isUseSSL());
+        if ((!isUseNOSSL()) && (!isUseSSL())) {
             logger.error(Messages.getString("Configuration.NoSSL")); //$NON-NLS-1$
             System.exit(-1);
         }
@@ -716,24 +716,24 @@ public class Configuration {
      * Used to log statistics information regularly
      */
     public void launchStatistics() {
-        if (timeStat > 0) {
-            launchInFixedDelay(new UsageStatistic(), timeStat, TimeUnit.SECONDS);
+        if (getTimeStat() > 0) {
+            launchInFixedDelay(new UsageStatistic(), getTimeStat(), TimeUnit.SECONDS);
         }
     }
 
     public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        logger.info(Messages.getString("Configuration.Start") + SERVER_PORT + ":" + useNOSSL + ":" + HOST_ID + //$NON-NLS-1$
-                " " + SERVER_SSLPORT + ":" + useSSL + ":" + HOST_SSLID);
+        logger.info(Messages.getString("Configuration.Start") + getSERVER_PORT() + ":" + isUseNOSSL() + ":" + getHOST_ID() + //$NON-NLS-1$
+                " " + getSERVER_SSLPORT() + ":" + isUseSSL() + ":" + getHOST_SSLID());
         // add into configuration
-        this.constraintLimitHandler.setServer(true);
+        this.getConstraintLimitHandler().setServer(true);
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66", subTaskGroup.next());
-        if (useNOSSL) {
+        if (isUseNOSSL()) {
             serverBootstrap = new ServerBootstrap();
-            WaarpNettyUtil.setServerBootstrap(serverBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
+            WaarpNettyUtil.setServerBootstrap(serverBootstrap, bossGroup, workerGroup, (int) getTIMEOUTCON());
             networkServerInitializer = new NetworkServerInitializer(true);
             serverBootstrap.childHandler(networkServerInitializer);
-            ChannelFuture future = serverBootstrap.bind(new InetSocketAddress(SERVER_PORT)).awaitUninterruptibly();
+            ChannelFuture future = serverBootstrap.bind(new InetSocketAddress(getSERVER_PORT())).awaitUninterruptibly();
             if (future.isSuccess()) {
                 bindNoSSL = future.channel();
                 serverChannelGroup.add(bindNoSSL);
@@ -745,12 +745,12 @@ public class Configuration {
             logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
         }
 
-        if (useSSL && HOST_SSLID != null) {
+        if (isUseSSL() && getHOST_SSLID() != null) {
             serverSslBootstrap = new ServerBootstrap();
-            WaarpNettyUtil.setServerBootstrap(serverSslBootstrap, bossGroup, workerGroup, (int) TIMEOUTCON);
+            WaarpNettyUtil.setServerBootstrap(serverSslBootstrap, bossGroup, workerGroup, (int) getTIMEOUTCON());
             networkSslServerInitializer = new NetworkSslServerInitializer(false);
             serverSslBootstrap.childHandler(networkSslServerInitializer);
-            ChannelFuture future = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT))
+            ChannelFuture future = serverSslBootstrap.bind(new InetSocketAddress(getSERVER_SSLPORT()))
                     .awaitUninterruptibly();
             if (future.isSuccess()) {
                 bindSSL = future.channel();
@@ -764,35 +764,35 @@ public class Configuration {
         }
 
         // Factory for TrafficShapingHandler
-        globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, serverGlobalWriteLimit,
-                serverGlobalReadLimit, serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
-        this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
+        globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, getServerGlobalWriteLimit(),
+                getServerGlobalReadLimit(), getServerChannelWriteLimit(), getServerChannelReadLimit(), getDelayLimit());
+        this.getConstraintLimitHandler().setHandler(globalTrafficShapingHandler);
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();
 
-        if (thriftport > 0) {
-            thriftService = new R66ThriftServerService(new WaarpFuture(true), thriftport);
-            execOtherWorker.execute(thriftService);
-            thriftService.awaitInitialization();
+        if (getThriftport() > 0) {
+            setThriftService(new R66ThriftServerService(new WaarpFuture(true), getThriftport()));
+            execOtherWorker.execute(getThriftService());
+            getThriftService().awaitInitialization();
         } else {
-            thriftService = null;
+            setThriftService(null);
         }
     }
 
     public void startHttpSupport() {
         // Now start the HTTP support
-        logger.info(Messages.getString("Configuration.HTTPStart") + SERVER_HTTPPORT + //$NON-NLS-1$
-                " HTTPS: " + SERVER_HTTPSPORT);
+        logger.info(Messages.getString("Configuration.HTTPStart") + getSERVER_HTTPPORT() + //$NON-NLS-1$
+                " HTTPS: " + getSERVER_HTTPSPORT());
         httpChannelGroup = new DefaultChannelGroup("HttpOpenR66", subTaskGroup.next());
         // Configure the server.
         httpBootstrap = new ServerBootstrap();
-        WaarpNettyUtil.setServerBootstrap(httpBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);
+        WaarpNettyUtil.setServerBootstrap(httpBootstrap, httpBossGroup, httpWorkerGroup, (int) getTIMEOUTCON());
         // Set up the event pipeline factory.
-        httpBootstrap.childHandler(new HttpInitializer(useHttpCompression));
+        httpBootstrap.childHandler(new HttpInitializer(isUseHttpCompression()));
         // Bind and start to accept incoming connections.
-        if (SERVER_HTTPPORT > 0) {
-            ChannelFuture future = httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)).awaitUninterruptibly();
+        if (getSERVER_HTTPPORT() > 0) {
+            ChannelFuture future = httpBootstrap.bind(new InetSocketAddress(getSERVER_HTTPPORT())).awaitUninterruptibly();
             if (future.isSuccess()) {
                 httpChannelGroup.add(future.channel());
             }
@@ -801,16 +801,16 @@ public class Configuration {
         // Configure the server.
         httpsBootstrap = new ServerBootstrap();
         // Set up the event pipeline factory.
-        WaarpNettyUtil.setServerBootstrap(httpsBootstrap, httpBossGroup, httpWorkerGroup, (int) TIMEOUTCON);
-        if (httpModel == 0) {
-            httpsBootstrap.childHandler(new HttpSslInitializer(useHttpCompression, false));
+        WaarpNettyUtil.setServerBootstrap(httpsBootstrap, httpBossGroup, httpWorkerGroup, (int) getTIMEOUTCON());
+        if (getHttpModel() == 0) {
+            httpsBootstrap.childHandler(new HttpSslInitializer(isUseHttpCompression()));
         } else {
             // Default
-            httpsBootstrap.childHandler(new HttpReponsiveSslInitializer(useHttpCompression, false));
+            httpsBootstrap.childHandler(new HttpReponsiveSslInitializer(isUseHttpCompression()));
         }
         // Bind and start to accept incoming connections.
-        if (SERVER_HTTPSPORT > 0) {
-            ChannelFuture future = httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)).awaitUninterruptibly();
+        if (getSERVER_HTTPSPORT() > 0) {
+            ChannelFuture future = httpsBootstrap.bind(new InetSocketAddress(getSERVER_HTTPSPORT())).awaitUninterruptibly();
             if (future.isSuccess()) {
                 httpChannelGroup.add(future.channel());
             }
@@ -818,18 +818,18 @@ public class Configuration {
     }
 
     public void startRestSupport() {
-        HttpRestR66Handler.initialize(baseDirectory + "/" + workingPath + "/httptemp");
-        for (RestConfiguration config : restConfigurations) {
+        HttpRestR66Handler.initialize(getBaseDirectory() + "/" + getWorkingPath() + "/httptemp");
+        for (RestConfiguration config : getRestConfigurations()) {
             HttpRestR66Handler.initializeService(config);
             logger.info(Messages.getString("Configuration.HTTPStart") + " (REST Support) " + config.toString());
         }
     }
 
     public void startMonitoring() throws WaarpDatabaseSqlException {
-        monitoring = new Monitoring(pastLimit, minimalDelay, null);
-        NBDBSESSION++;
-        if (snmpConfig != null) {
-            int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
+        setMonitoring(new Monitoring(getPastLimit(), getMinimalDelay(), null));
+        setNBDBSESSION(getNBDBSESSION() + 1);
+        if (getSnmpConfig() != null) {
+            int snmpPortShow = (isUseNOSSL() ? getSERVER_PORT() : getSERVER_SSLPORT());
             R66PrivateMib r66Mib =
                     new R66PrivateMib(SnmpName,
                             snmpPortShow,
@@ -839,14 +839,14 @@ public class Configuration {
                             SnmpVersion,
                             SnmpDefaultLocalization,
                             SnmpService);
-            WaarpMOFactory.factory = new R66VariableFactory();
-            agentSnmp = new WaarpSnmpAgent(new File(snmpConfig), monitoring, r66Mib);
+            WaarpMOFactory.setFactory(new R66VariableFactory());
+            setAgentSnmp(new WaarpSnmpAgent(new File(getSnmpConfig()), getMonitoring(), r66Mib));
             try {
-                agentSnmp.start();
+                getAgentSnmp().start();
             } catch (IOException e) {
                 throw new WaarpDatabaseSqlException(Messages.getString("Configuration.SNMPError"), e); //$NON-NLS-1$
             }
-            this.r66Mib = r66Mib;
+            this.setR66Mib(r66Mib);
         }
     }
 
@@ -860,8 +860,8 @@ public class Configuration {
      * To be called early before other stuff will be closed
      */
     public void prepareServerStop() {
-        if (thriftService != null) {
-            thriftService.releaseResources();
+        if (getThriftService() != null) {
+            getThriftService().releaseResources();
         }
         if (internalRunner != null) {
             internalRunner.prepareStopInternalRunner();
@@ -955,11 +955,11 @@ public class Configuration {
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdown();
         }
-        if (agentSnmp != null) {
-            agentSnmp.stop();
-        } else if (monitoring != null) {
-            monitoring.releaseResources();
-            monitoring = null;
+        if (getAgentSnmp() != null) {
+            getAgentSnmp().stop();
+        } else if (getMonitoring() != null) {
+            getMonitoring().releaseResources();
+            setMonitoring(null);
         }
         shutdownGracefully();
         if (execOtherWorker != null) {
@@ -982,7 +982,7 @@ public class Configuration {
      */
     public void clientStop(boolean shutdownQuickly) {
         WaarpSslUtility.forceCloseAllSslChannels();
-        if (!Configuration.configuration.isServer) {
+        if (!Configuration.configuration.isServer()) {
             ChannelUtils.stopLogger();
         }
         if (scheduledExecutorService != null) {
@@ -997,13 +997,13 @@ public class Configuration {
         } else {
             shutdownGracefully();
         }
-        if (useLocalExec) {
+        if (isUseLocalExec()) {
             LocalExecClient.releaseResources();
         }
         if (timerCloseOperations != null) {
             timerCloseOperations.stop();
         }
-        r66BusinessFactory.releaseResources();
+        getR66BusinessFactory().releaseResources();
     }
 
     /**
@@ -1046,38 +1046,38 @@ public class Configuration {
     public void changeNetworkLimit(long writeGlobalLimit, long readGlobalLimit,
             long writeSessionLimit, long readSessionLimit, long delayLimit) {
         long newWriteLimit = writeGlobalLimit > 1024 ? writeGlobalLimit
-                : serverGlobalWriteLimit;
+                : getServerGlobalWriteLimit();
         if (writeGlobalLimit <= 0) {
             newWriteLimit = 0;
         }
-        long newReadLimit = readGlobalLimit > 1024 ? readGlobalLimit : serverGlobalReadLimit;
+        long newReadLimit = readGlobalLimit > 1024 ? readGlobalLimit : getServerGlobalReadLimit();
         if (readGlobalLimit <= 0) {
             newReadLimit = 0;
         }
-        serverGlobalReadLimit = newReadLimit;
-        serverGlobalWriteLimit = newWriteLimit;
-        this.delayLimit = delayLimit;
+        setServerGlobalReadLimit(newReadLimit);
+        setServerGlobalWriteLimit(newWriteLimit);
+        this.setDelayLimit(delayLimit);
         if (globalTrafficShapingHandler != null) {
-            globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
+            globalTrafficShapingHandler.configure(getServerGlobalWriteLimit(), getServerGlobalReadLimit(), delayLimit);
             logger.warn(Messages.getString("Configuration.BandwidthChange"), globalTrafficShapingHandler); //$NON-NLS-1$
         }
         newWriteLimit = writeSessionLimit > 1024 ? writeSessionLimit
-                : serverChannelWriteLimit;
+                : getServerChannelWriteLimit();
         if (writeSessionLimit <= 0) {
             newWriteLimit = 0;
         }
         newReadLimit = readSessionLimit > 1024 ? readSessionLimit
-                : serverChannelReadLimit;
+                : getServerChannelReadLimit();
         if (readSessionLimit <= 0) {
             newReadLimit = 0;
         }
-        serverChannelReadLimit = newReadLimit;
-        serverChannelWriteLimit = newWriteLimit;
+        setServerChannelReadLimit(newReadLimit);
+        setServerChannelWriteLimit(newWriteLimit);
         if (globalTrafficShapingHandler != null && globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
-            ((GlobalChannelTrafficShapingHandler) globalTrafficShapingHandler).configureChannel(serverChannelWriteLimit, serverChannelReadLimit);
+            ((GlobalChannelTrafficShapingHandler) globalTrafficShapingHandler).configureChannel(getServerChannelWriteLimit(), getServerChannelReadLimit());
         }
-        anyBandwidthLimitation = (serverGlobalReadLimit > 0 || serverGlobalWriteLimit > 0 ||
-                serverChannelReadLimit > 0 || serverChannelWriteLimit > 0);
+        setAnyBandwidthLimitation((getServerGlobalReadLimit() > 0 || getServerGlobalWriteLimit() > 0 ||
+                getServerChannelReadLimit() > 0 || getServerChannelWriteLimit() > 0));
     }
 
     /**
@@ -1089,12 +1089,12 @@ public class Configuration {
         if (nb > 32) {
             nb = Runtime.getRuntime().availableProcessors() + 1;
         }
-        if (SERVER_THREAD <= 0 || SERVER_THREAD > nb) {
+        if (getSERVER_THREAD() <= 0 || getSERVER_THREAD() > nb) {
             logger.info(Messages.getString("Configuration.ThreadNumberChange") + nb); //$NON-NLS-1$
-            SERVER_THREAD = nb;
-            CLIENT_THREAD = SERVER_THREAD * 10;
-        } else if (CLIENT_THREAD < nb) {
-            CLIENT_THREAD = nb;
+            setSERVER_THREAD(nb);
+            setCLIENT_THREAD(getSERVER_THREAD() * 10);
+        } else if (getCLIENT_THREAD() < nb) {
+            setCLIENT_THREAD(nb);
         }
     }
 
@@ -1104,13 +1104,13 @@ public class Configuration {
      */
     public ChannelTrafficShapingHandler newChannelTrafficShapingHandler()
             throws OpenR66ProtocolNoDataException {
-        if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
+        if (getServerChannelReadLimit() == 0 && getServerChannelWriteLimit() == 0) {
             throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
         }
         if (globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
             throw new OpenR66ProtocolNoDataException("Already included through GlobalChannelTSH");
         }
-        return new ChannelTrafficHandler(serverChannelWriteLimit, serverChannelReadLimit, delayLimit);
+        return new ChannelTrafficHandler(getServerChannelWriteLimit(), getServerChannelReadLimit(), getDelayLimit());
     }
 
     /**
@@ -1246,12 +1246,12 @@ public class Configuration {
      */
     public String getHostId(boolean isSSL) throws OpenR66ProtocolNoSslException {
         if (isSSL) {
-            if (HOST_SSLID == null) {
+            if (getHOST_SSLID() == null) {
                 throw new OpenR66ProtocolNoSslException(Messages.getString("Configuration.ExcNoSSL")); //$NON-NLS-1$
             }
-            return HOST_SSLID;
+            return getHOST_SSLID();
         } else {
-            return HOST_ID;
+            return getHOST_ID();
         }
     }
 
@@ -1311,13 +1311,1070 @@ public class Configuration {
         return result;
     }
 
+    /**
+     * @return the nBDBSESSION
+     */
+    public static int getNBDBSESSION() {
+        return NBDBSESSION;
+    }
+
+    /**
+     * @param nBDBSESSION the nBDBSESSION to set
+     */
+    public static void setNBDBSESSION(int nBDBSESSION) {
+        NBDBSESSION = nBDBSESSION;
+    }
+
+    /**
+     * @return the rANKRESTART
+     */
+    public static int getRANKRESTART() {
+        return RANKRESTART;
+    }
+
+    /**
+     * @param rANKRESTART the rANKRESTART to set
+     */
+    public static void setRANKRESTART(int rANKRESTART) {
+        RANKRESTART = rANKRESTART;
+    }
+
+    /**
+     * @return the iSUNIX
+     */
+    public static boolean isISUNIX() {
+        return ISUNIX;
+    }
+
+    /**
+     * @param iSUNIX the iSUNIX to set
+     */
+    public static void setISUNIX(boolean iSUNIX) {
+        ISUNIX = iSUNIX;
+    }
+
+    /**
+     * @return the r66BusinessFactory
+     */
+    public R66BusinessFactoryInterface getR66BusinessFactory() {
+        return r66BusinessFactory;
+    }
+
+    /**
+     * @return the extendedProtocol
+     */
+    public boolean isExtendedProtocol() {
+        return extendedProtocol;
+    }
+
+    /**
+     * @param extendedProtocol the extendedProtocol to set
+     */
+    public void setExtendedProtocol(boolean extendedProtocol) {
+        this.extendedProtocol = extendedProtocol;
+    }
+
+    /**
+     * @return the globalDigest
+     */
+    public boolean isGlobalDigest() {
+        return globalDigest;
+    }
+
+    /**
+     * @param globalDigest the globalDigest to set
+     */
+    public void setGlobalDigest(boolean globalDigest) {
+        this.globalDigest = globalDigest;
+    }
+
+    /**
+     * @return the businessWhiteSet
+     */
+    public HashSet<String> getBusinessWhiteSet() {
+        return businessWhiteSet;
+    }
+
+    /**
+     * @return the roles
+     */
+    public HashMap<String, RoleDefault> getRoles() {
+        return roles;
+    }
+
+    /**
+     * @return the aliases
+     */
+    public HashMap<String, String> getAliases() {
+        return aliases;
+    }
+
+    /**
+     * @return the reverseAliases
+     */
+    public HashMap<String, String[]> getReverseAliases() {
+        return reverseAliases;
+    }
+
+    /**
+     * @return the versions
+     */
+    public ConcurrentHashMap<String, PartnerConfiguration> getVersions() {
+        return versions;
+    }
+
+    /**
+     * @return the hOST_ID
+     */
+    public String getHOST_ID() {
+        return HOST_ID;
+    }
+
+    /**
+     * @param hOST_ID the hOST_ID to set
+     */
+    public void setHOST_ID(String hOST_ID) {
+        HOST_ID = hOST_ID;
+    }
+
+    /**
+     * @return the hOST_SSLID
+     */
+    public String getHOST_SSLID() {
+        return HOST_SSLID;
+    }
+
+    /**
+     * @param hOST_SSLID the hOST_SSLID to set
+     */
+    public void setHOST_SSLID(String hOST_SSLID) {
+        HOST_SSLID = hOST_SSLID;
+    }
+
+    /**
+     * @return the aDMINNAME
+     */
+    public String getADMINNAME() {
+        return ADMINNAME;
+    }
+
+    /**
+     * @param aDMINNAME the aDMINNAME to set
+     */
+    public void setADMINNAME(String aDMINNAME) {
+        ADMINNAME = aDMINNAME;
+    }
+
+    /**
+     * @return the serverKeyFile
+     */
+    public String getServerKeyFile() {
+        return serverKeyFile;
+    }
+
+    /**
+     * @param serverKeyFile the serverKeyFile to set
+     */
+    public void setServerKeyFile(String serverKeyFile) {
+        this.serverKeyFile = serverKeyFile;
+    }
+
+    /**
+     * @return the hOST_AUTH
+     */
+    public DbHostAuth getHOST_AUTH() {
+        return HOST_AUTH;
+    }
+
+    /**
+     * @param hOST_AUTH the hOST_AUTH to set
+     */
+    public void setHOST_AUTH(DbHostAuth hOST_AUTH) {
+        HOST_AUTH = hOST_AUTH;
+    }
+
+    /**
+     * @return the hOST_SSLAUTH
+     */
+    public DbHostAuth getHOST_SSLAUTH() {
+        return HOST_SSLAUTH;
+    }
+
+    /**
+     * @param hOST_SSLAUTH the hOST_SSLAUTH to set
+     */
+    public void setHOST_SSLAUTH(DbHostAuth hOST_SSLAUTH) {
+        HOST_SSLAUTH = hOST_SSLAUTH;
+    }
+
+    /**
+     * @return the sERVER_THREAD
+     */
+    public int getSERVER_THREAD() {
+        return SERVER_THREAD;
+    }
+
+    /**
+     * @param sERVER_THREAD the sERVER_THREAD to set
+     */
+    public void setSERVER_THREAD(int sERVER_THREAD) {
+        SERVER_THREAD = sERVER_THREAD;
+    }
+
+    /**
+     * @return the cLIENT_THREAD
+     */
+    public int getCLIENT_THREAD() {
+        return CLIENT_THREAD;
+    }
+
+    /**
+     * @param cLIENT_THREAD the cLIENT_THREAD to set
+     */
+    public void setCLIENT_THREAD(int cLIENT_THREAD) {
+        CLIENT_THREAD = cLIENT_THREAD;
+    }
+
+    /**
+     * @return the dEFAULT_SESSION_LIMIT
+     */
+    public long getDEFAULT_SESSION_LIMIT() {
+        return DEFAULT_SESSION_LIMIT;
+    }
+
+    /**
+     * @return the dEFAULT_GLOBAL_LIMIT
+     */
+    public long getDEFAULT_GLOBAL_LIMIT() {
+        return DEFAULT_GLOBAL_LIMIT;
+    }
+
+    /**
+     * @return the sERVER_PORT
+     */
+    public int getSERVER_PORT() {
+        return SERVER_PORT;
+    }
+
+    /**
+     * @param sERVER_PORT the sERVER_PORT to set
+     */
+    public void setSERVER_PORT(int sERVER_PORT) {
+        SERVER_PORT = sERVER_PORT;
+    }
+
+    /**
+     * @return the sERVER_SSLPORT
+     */
+    public int getSERVER_SSLPORT() {
+        return SERVER_SSLPORT;
+    }
+
+    /**
+     * @param sERVER_SSLPORT the sERVER_SSLPORT to set
+     */
+    public void setSERVER_SSLPORT(int sERVER_SSLPORT) {
+        SERVER_SSLPORT = sERVER_SSLPORT;
+    }
+
+    /**
+     * @return the sERVER_HTTPPORT
+     */
+    public int getSERVER_HTTPPORT() {
+        return SERVER_HTTPPORT;
+    }
+
+    /**
+     * @param sERVER_HTTPPORT the sERVER_HTTPPORT to set
+     */
+    public void setSERVER_HTTPPORT(int sERVER_HTTPPORT) {
+        SERVER_HTTPPORT = sERVER_HTTPPORT;
+    }
+
+    /**
+     * @return the sERVER_HTTPSPORT
+     */
+    public int getSERVER_HTTPSPORT() {
+        return SERVER_HTTPSPORT;
+    }
+
+    /**
+     * @param sERVER_HTTPSPORT the sERVER_HTTPSPORT to set
+     */
+    public void setSERVER_HTTPSPORT(int sERVER_HTTPSPORT) {
+        SERVER_HTTPSPORT = sERVER_HTTPSPORT;
+    }
+
+    /**
+     * @return the tIMEOUTCON
+     */
+    public long getTIMEOUTCON() {
+        return TIMEOUTCON;
+    }
+
+    /**
+     * @param tIMEOUTCON the tIMEOUTCON to set
+     */
+    public void setTIMEOUTCON(long tIMEOUTCON) {
+        TIMEOUTCON = tIMEOUTCON;
+    }
+
+    /**
+     * @return the bLOCKSIZE
+     */
+    public int getBLOCKSIZE() {
+        return BLOCKSIZE;
+    }
+
+    /**
+     * @param bLOCKSIZE the bLOCKSIZE to set
+     */
+    public void setBLOCKSIZE(int bLOCKSIZE) {
+        BLOCKSIZE = bLOCKSIZE;
+    }
+
+    /**
+     * @return the maxGlobalMemory
+     */
+    public long getMaxGlobalMemory() {
+        return maxGlobalMemory;
+    }
+
+    /**
+     * @param maxGlobalMemory the maxGlobalMemory to set
+     */
+    public void setMaxGlobalMemory(long maxGlobalMemory) {
+        this.maxGlobalMemory = maxGlobalMemory;
+    }
+
+    /**
+     * @return the restConfigurations
+     */
+    public List<RestConfiguration> getRestConfigurations() {
+        return restConfigurations;
+    }
+
+    /**
+     * @return the baseDirectory
+     */
+    public String getBaseDirectory() {
+        return baseDirectory;
+    }
+
+    /**
+     * @param baseDirectory the baseDirectory to set
+     */
+    public void setBaseDirectory(String baseDirectory) {
+        this.baseDirectory = baseDirectory;
+    }
+
+    /**
+     * @return the inPath
+     */
+    public String getInPath() {
+        return inPath;
+    }
+
+    /**
+     * @param inPath the inPath to set
+     */
+    public void setInPath(String inPath) {
+        this.inPath = inPath;
+    }
+
+    /**
+     * @return the outPath
+     */
+    public String getOutPath() {
+        return outPath;
+    }
+
+    /**
+     * @param outPath the outPath to set
+     */
+    public void setOutPath(String outPath) {
+        this.outPath = outPath;
+    }
+
+    /**
+     * @return the archivePath
+     */
+    public String getArchivePath() {
+        return archivePath;
+    }
+
+    /**
+     * @param archivePath the archivePath to set
+     */
+    public void setArchivePath(String archivePath) {
+        this.archivePath = archivePath;
+    }
+
+    /**
+     * @return the workingPath
+     */
+    public String getWorkingPath() {
+        return workingPath;
+    }
+
+    /**
+     * @param workingPath the workingPath to set
+     */
+    public void setWorkingPath(String workingPath) {
+        this.workingPath = workingPath;
+    }
+
+    /**
+     * @return the configPath
+     */
+    public String getConfigPath() {
+        return configPath;
+    }
+
+    /**
+     * @param configPath the configPath to set
+     */
+    public void setConfigPath(String configPath) {
+        this.configPath = configPath;
+    }
+
+    /**
+     * @return the httpBasePath
+     */
+    public String getHttpBasePath() {
+        return httpBasePath;
+    }
+
+    /**
+     * @param httpBasePath the httpBasePath to set
+     */
+    public void setHttpBasePath(String httpBasePath) {
+        this.httpBasePath = httpBasePath;
+    }
+
+    /**
+     * @return the httpModel
+     */
+    public int getHttpModel() {
+        return httpModel;
+    }
+
+    /**
+     * @param httpModel the httpModel to set
+     */
+    public void setHttpModel(int httpModel) {
+        this.httpModel = httpModel;
+    }
+
+    /**
+     * @return the isShutdown
+     */
+    public boolean isShutdown() {
+        return isShutdown;
+    }
+
+    /**
+     * @param isShutdown the isShutdown to set
+     */
+    public void setShutdown(boolean isShutdown) {
+        this.isShutdown = isShutdown;
+    }
+
+    /**
+     * @return the serverGlobalWriteLimit
+     */
+    public long getServerGlobalWriteLimit() {
+        return serverGlobalWriteLimit;
+    }
+
+    /**
+     * @param serverGlobalWriteLimit the serverGlobalWriteLimit to set
+     */
+    public void setServerGlobalWriteLimit(long serverGlobalWriteLimit) {
+        this.serverGlobalWriteLimit = serverGlobalWriteLimit;
+    }
+
+    /**
+     * @return the serverGlobalReadLimit
+     */
+    public long getServerGlobalReadLimit() {
+        return serverGlobalReadLimit;
+    }
+
+    /**
+     * @param serverGlobalReadLimit the serverGlobalReadLimit to set
+     */
+    public void setServerGlobalReadLimit(long serverGlobalReadLimit) {
+        this.serverGlobalReadLimit = serverGlobalReadLimit;
+    }
+
+    /**
+     * @return the serverChannelWriteLimit
+     */
+    public long getServerChannelWriteLimit() {
+        return serverChannelWriteLimit;
+    }
+
+    /**
+     * @param serverChannelWriteLimit the serverChannelWriteLimit to set
+     */
+    public void setServerChannelWriteLimit(long serverChannelWriteLimit) {
+        this.serverChannelWriteLimit = serverChannelWriteLimit;
+    }
+
+    /**
+     * @return the serverChannelReadLimit
+     */
+    public long getServerChannelReadLimit() {
+        return serverChannelReadLimit;
+    }
+
+    /**
+     * @param serverChannelReadLimit the serverChannelReadLimit to set
+     */
+    public void setServerChannelReadLimit(long serverChannelReadLimit) {
+        this.serverChannelReadLimit = serverChannelReadLimit;
+    }
+
+    /**
+     * @return the anyBandwidthLimitation
+     */
+    public boolean isAnyBandwidthLimitation() {
+        return anyBandwidthLimitation;
+    }
+
+    /**
+     * @param anyBandwidthLimitation the anyBandwidthLimitation to set
+     */
+    public void setAnyBandwidthLimitation(boolean anyBandwidthLimitation) {
+        this.anyBandwidthLimitation = anyBandwidthLimitation;
+    }
+
+    /**
+     * @return the delayLimit
+     */
+    public long getDelayLimit() {
+        return delayLimit;
+    }
+
+    /**
+     * @param delayLimit the delayLimit to set
+     */
+    public void setDelayLimit(long delayLimit) {
+        this.delayLimit = delayLimit;
+    }
+
+    /**
+     * @return the useSSL
+     */
+    public boolean isUseSSL() {
+        return useSSL;
+    }
+
+    /**
+     * @param useSSL the useSSL to set
+     */
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
+    /**
+     * @return the useNOSSL
+     */
+    public boolean isUseNOSSL() {
+        return useNOSSL;
+    }
+
+    /**
+     * @param useNOSSL the useNOSSL to set
+     */
+    public void setUseNOSSL(boolean useNOSSL) {
+        this.useNOSSL = useNOSSL;
+    }
+
+    /**
+     * @return the digest
+     */
+    public FilesystemBasedDigest.DigestAlgo getDigest() {
+        return digest;
+    }
+
+    /**
+     * @param digest the digest to set
+     */
+    public void setDigest(FilesystemBasedDigest.DigestAlgo digest) {
+        this.digest = digest;
+    }
+
+    /**
+     * @return the useHttpCompression
+     */
+    public boolean isUseHttpCompression() {
+        return useHttpCompression;
+    }
+
+    /**
+     * @param useHttpCompression the useHttpCompression to set
+     */
+    public void setUseHttpCompression(boolean useHttpCompression) {
+        this.useHttpCompression = useHttpCompression;
+    }
+
+    /**
+     * @return the cryptoKey
+     */
+    public Des getCryptoKey() {
+        return cryptoKey;
+    }
+
+    /**
+     * @param cryptoKey the cryptoKey to set
+     */
+    public void setCryptoKey(Des cryptoKey) {
+        this.cryptoKey = cryptoKey;
+    }
+
+    /**
+     * @return the cryptoFile
+     */
+    public String getCryptoFile() {
+        return cryptoFile;
+    }
+
+    /**
+     * @param cryptoFile the cryptoFile to set
+     */
+    public void setCryptoFile(String cryptoFile) {
+        this.cryptoFile = cryptoFile;
+    }
+
+    /**
+     * @return the useLocalExec
+     */
+    public boolean isUseLocalExec() {
+        return useLocalExec;
+    }
+
+    /**
+     * @param useLocalExec the useLocalExec to set
+     */
+    public void setUseLocalExec(boolean useLocalExec) {
+        this.useLocalExec = useLocalExec;
+    }
+
+    /**
+     * @return the isServer
+     */
+    public boolean isServer() {
+        return isServer;
+    }
+
+    /**
+     * @param isServer the isServer to set
+     */
+    protected void setServer(boolean isServer) {
+        this.isServer = isServer;
+    }
+
+    /**
+     * @return the rUNNER_THREAD
+     */
+    public int getRUNNER_THREAD() {
+        return RUNNER_THREAD;
+    }
+
+    /**
+     * @param rUNNER_THREAD the rUNNER_THREAD to set
+     */
+    public void setRUNNER_THREAD(int rUNNER_THREAD) {
+        RUNNER_THREAD = rUNNER_THREAD;
+    }
+
+    /**
+     * @return the delayCommander
+     */
+    public long getDelayCommander() {
+        return delayCommander;
+    }
+
+    /**
+     * @param delayCommander the delayCommander to set
+     */
+    public void setDelayCommander(long delayCommander) {
+        this.delayCommander = delayCommander;
+    }
+
+    /**
+     * @return the delayRetry
+     */
+    public long getDelayRetry() {
+        return delayRetry;
+    }
+
+    /**
+     * @param delayRetry the delayRetry to set
+     */
+    public void setDelayRetry(long delayRetry) {
+        this.delayRetry = delayRetry;
+    }
+
+    /**
+     * @return the constraintLimitHandler
+     */
+    public R66ConstraintLimitHandler getConstraintLimitHandler() {
+        return constraintLimitHandler;
+    }
+
+    /**
+     * @param constraintLimitHandler the constraintLimitHandler to set
+     */
+    public void setConstraintLimitHandler(R66ConstraintLimitHandler constraintLimitHandler) {
+        this.constraintLimitHandler = constraintLimitHandler;
+    }
+
+    /**
+     * @return the checkRemoteAddress
+     */
+    public boolean isCheckRemoteAddress() {
+        return checkRemoteAddress;
+    }
+
+    /**
+     * @param checkRemoteAddress the checkRemoteAddress to set
+     */
+    public void setCheckRemoteAddress(boolean checkRemoteAddress) {
+        this.checkRemoteAddress = checkRemoteAddress;
+    }
+
+    /**
+     * @return the checkClientAddress
+     */
+    public boolean isCheckClientAddress() {
+        return checkClientAddress;
+    }
+
+    /**
+     * @param checkClientAddress the checkClientAddress to set
+     */
+    public void setCheckClientAddress(boolean checkClientAddress) {
+        this.checkClientAddress = checkClientAddress;
+    }
+
+    /**
+     * @return the saveTaskRunnerWithNoDb
+     */
+    public boolean isSaveTaskRunnerWithNoDb() {
+        return saveTaskRunnerWithNoDb;
+    }
+
+    /**
+     * @param saveTaskRunnerWithNoDb the saveTaskRunnerWithNoDb to set
+     */
+    public void setSaveTaskRunnerWithNoDb(boolean saveTaskRunnerWithNoDb) {
+        this.saveTaskRunnerWithNoDb = saveTaskRunnerWithNoDb;
+    }
+
+    /**
+     * @return the multipleMonitors
+     */
+    public int getMultipleMonitors() {
+        return multipleMonitors;
+    }
+
+    /**
+     * @param multipleMonitors the multipleMonitors to set
+     */
+    public void setMultipleMonitors(int multipleMonitors) {
+        this.multipleMonitors = multipleMonitors;
+    }
+
+    /**
+     * @return the monitoring
+     */
+    public Monitoring getMonitoring() {
+        return monitoring;
+    }
+
+    /**
+     * @param monitoring the monitoring to set
+     */
+    public void setMonitoring(Monitoring monitoring) {
+        this.monitoring = monitoring;
+    }
+
+    /**
+     * @return the pastLimit
+     */
+    public long getPastLimit() {
+        return pastLimit;
+    }
+
+    /**
+     * @param pastLimit the pastLimit to set
+     */
+    public void setPastLimit(long pastLimit) {
+        this.pastLimit = pastLimit;
+    }
+
+    /**
+     * @return the minimalDelay
+     */
+    public long getMinimalDelay() {
+        return minimalDelay;
+    }
+
+    /**
+     * @param minimalDelay the minimalDelay to set
+     */
+    public void setMinimalDelay(long minimalDelay) {
+        this.minimalDelay = minimalDelay;
+    }
+
+    /**
+     * @return the snmpConfig
+     */
+    public String getSnmpConfig() {
+        return snmpConfig;
+    }
+
+    /**
+     * @param snmpConfig the snmpConfig to set
+     */
+    public void setSnmpConfig(String snmpConfig) {
+        this.snmpConfig = snmpConfig;
+    }
+
+    /**
+     * @return the agentSnmp
+     */
+    public WaarpSnmpAgent getAgentSnmp() {
+        return agentSnmp;
+    }
+
+    /**
+     * @param agentSnmp the agentSnmp to set
+     */
+    public void setAgentSnmp(WaarpSnmpAgent agentSnmp) {
+        this.agentSnmp = agentSnmp;
+    }
+
+    /**
+     * @return the r66Mib
+     */
+    public R66PrivateMib getR66Mib() {
+        return r66Mib;
+    }
+
+    /**
+     * @param r66Mib the r66Mib to set
+     */
+    public void setR66Mib(R66PrivateMib r66Mib) {
+        this.r66Mib = r66Mib;
+    }
+
+    /**
+     * @return the waarpSecureKeyStore
+     */
+    public static WaarpSecureKeyStore getWaarpSecureKeyStore() {
+        return waarpSecureKeyStore;
+    }
+
+    /**
+     * @param waarpSecureKeyStore the waarpSecureKeyStore to set
+     */
+    public static void setWaarpSecureKeyStore(WaarpSecureKeyStore waarpSecureKeyStore) {
+        Configuration.waarpSecureKeyStore = waarpSecureKeyStore;
+    }
+
+    /**
+     * @return the waarpSslContextFactory
+     */
+    public static WaarpSslContextFactory getWaarpSslContextFactory() {
+        return waarpSslContextFactory;
+    }
+
+    /**
+     * @param waarpSslContextFactory the waarpSslContextFactory to set
+     */
+    public static void setWaarpSslContextFactory(WaarpSslContextFactory waarpSslContextFactory) {
+        Configuration.waarpSslContextFactory = waarpSslContextFactory;
+    }
+
+    /**
+     * @return the thriftService
+     */
+    public R66ThriftServerService getThriftService() {
+        return thriftService;
+    }
+
+    /**
+     * @param thriftService the thriftService to set
+     */
+    public void setThriftService(R66ThriftServerService thriftService) {
+        this.thriftService = thriftService;
+    }
+
+    /**
+     * @return the thriftport
+     */
+    public int getThriftport() {
+        return thriftport;
+    }
+
+    /**
+     * @param thriftport the thriftport to set
+     */
+    public void setThriftport(int thriftport) {
+        this.thriftport = thriftport;
+    }
+
+    /**
+     * @return the isExecuteErrorBeforeTransferAllowed
+     */
+    public boolean isExecuteErrorBeforeTransferAllowed() {
+        return isExecuteErrorBeforeTransferAllowed;
+    }
+
+    /**
+     * @param isExecuteErrorBeforeTransferAllowed the isExecuteErrorBeforeTransferAllowed to set
+     */
+    public void setExecuteErrorBeforeTransferAllowed(boolean isExecuteErrorBeforeTransferAllowed) {
+        this.isExecuteErrorBeforeTransferAllowed = isExecuteErrorBeforeTransferAllowed;
+    }
+
+    /**
+     * @return the shutdownConfiguration
+     */
+    public ShutdownConfiguration getShutdownConfiguration() {
+        return shutdownConfiguration;
+    }
+
+    /**
+     * @return the isHostProxyfied
+     */
+    public boolean isHostProxyfied() {
+        return isHostProxyfied;
+    }
+
+    /**
+     * @param isHostProxyfied the isHostProxyfied to set
+     */
+    public void setHostProxyfied(boolean isHostProxyfied) {
+        this.isHostProxyfied = isHostProxyfied;
+    }
+
+    /**
+     * @return the warnOnStartup
+     */
+    public boolean isWarnOnStartup() {
+        return warnOnStartup;
+    }
+
+    /**
+     * @param warnOnStartup the warnOnStartup to set
+     */
+    public void setWarnOnStartup(boolean warnOnStartup) {
+        this.warnOnStartup = warnOnStartup;
+    }
+
+    /**
+     * @return the chrootChecked
+     */
+    public boolean isChrootChecked() {
+        return chrootChecked;
+    }
+
+    /**
+     * @param chrootChecked the chrootChecked to set
+     */
+    public void setChrootChecked(boolean chrootChecked) {
+        this.chrootChecked = chrootChecked;
+    }
+
+    /**
+     * @return the blacklistBadAuthent
+     */
+    public boolean isBlacklistBadAuthent() {
+        return blacklistBadAuthent;
+    }
+
+    /**
+     * @param blacklistBadAuthent the blacklistBadAuthent to set
+     */
+    public void setBlacklistBadAuthent(boolean blacklistBadAuthent) {
+        this.blacklistBadAuthent = blacklistBadAuthent;
+    }
+
+    /**
+     * @return the maxfilenamelength
+     */
+    public int getMaxfilenamelength() {
+        return maxfilenamelength;
+    }
+
+    /**
+     * @param maxfilenamelength the maxfilenamelength to set
+     */
+    public void setMaxfilenamelength(int maxfilenamelength) {
+        this.maxfilenamelength = maxfilenamelength;
+    }
+
+    /**
+     * @return the timeStat
+     */
+    public int getTimeStat() {
+        return timeStat;
+    }
+
+    /**
+     * @param timeStat the timeStat to set
+     */
+    public void setTimeStat(int timeStat) {
+        this.timeStat = timeStat;
+    }
+
+    /**
+     * @return the limitCache
+     */
+    public int getLimitCache() {
+        return limitCache;
+    }
+
+    /**
+     * @param limitCache the limitCache to set
+     */
+    public void setLimitCache(int limitCache) {
+        this.limitCache = limitCache;
+    }
+
+    /**
+     * @return the timeLimitCache
+     */
+    public long getTimeLimitCache() {
+        return timeLimitCache;
+    }
+
+    /**
+     * @param timeLimitCache the timeLimitCache to set
+     */
+    public void setTimeLimitCache(long timeLimitCache) {
+        this.timeLimitCache = timeLimitCache;
+    }
+
+    /**
+     * @param r66BusinessFactory the r66BusinessFactory to set
+     */
+    public void setR66BusinessFactory(R66BusinessFactoryInterface r66BusinessFactory) {
+        this.r66BusinessFactory = r66BusinessFactory;
+    }
+
     private static class CleanLruCache extends Thread {
 
         @Override
         public void run() {
             int nb = DbTaskRunner.clearCache();
             logger.info("Clear Cache: " + nb);
-            Configuration.configuration.launchInFixedDelay(this, Configuration.configuration.timeLimitCache,
+            Configuration.configuration.launchInFixedDelay(this, Configuration.configuration.getTimeLimitCache(),
                     TimeUnit.MILLISECONDS);
         }
 

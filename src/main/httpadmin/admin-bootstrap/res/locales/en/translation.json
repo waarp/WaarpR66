@@ -7,12 +7,21 @@
     "menu5": "SYSTEM",
     "menu6": "LOGON",
     "menu7": "LOGOUT",
+    "menu8": "SPOOLED-DIRECTORY",
     "haut1": "Local:",
     "haut2": "Network:",
     "haut3": "Host:",
     "haut4": "Authent:",
     "erreur": "An event occurs that forces to close the connection...",
-	"erreur2": "Your profile does not allow this function."
+	"erreur2": "Your profile does not allow this function.",
+	"search": "Search",
+	"searchhelp": "Search based on Transfer Id",
+	"help1": "Resets the values to the ones at page load",
+	"help2": "Only valid for new Id",
+	"help3": "Only valid for existing Id",
+	"help4": "Filters for search",
+	"help5": "Reload keeps the current filter on Ids for next request - even empty -",
+	"help6": "Refresh rate filter: 0 = disabled"
   },
   "menu1": {
   	"titre": "Start",
@@ -106,7 +115,26 @@
 	"entete22": "Block size",
 	"entete23": "Src Size",
 	"entete24": "Mode",
-	"entete25": "Way"
+	"entete25": "Way",
+	"spooled1": "Name",
+	"spooled2": "Server",
+	"spooled3": "Last Update",
+	"spooled4": "OK Global",
+	"spooled5": "Error Global",
+	"spooled6": "OK Day",
+	"spooled7": "Error Day",
+	"spooled8": "Interval",
+	"spooled9": "File Stop",
+	"spooled10": "File Status",
+	"spooled11": "Recursive",
+	"spooled12": "Directories",
+	"spooled13": "Files",
+	"subspooled1": "File",
+	"subspooled2": "Hash",
+	"subspooled3": "Find Date",
+	"subspooled4": "Transfer Date",
+	"subspooled5": "Transfered",
+	"subspooled6": "Id"
   },
   "menu3": {
   	"titre": "Hosts",
@@ -225,7 +253,9 @@
 	"text18": "INFO",
 	"text19": "WARN",
 	"text20": "ERROR",
-	"text21": "You can change dynamically the Logging level of the program from here (in addition to being able to fixing it in configuration file)."
+	"text21": "You can change dynamically the Logging level of the program from here (in addition to being able to fixing it in configuration file).",
+	"text22": "You can clean all the local storage in your browser in order to clean the translation and states in cache by hitting this button.",
+	"text23": "Clean Browser Local Cache"
   },    
   "menu6": {
   	"titre": "Logon",

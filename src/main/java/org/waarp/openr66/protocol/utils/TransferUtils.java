@@ -71,8 +71,8 @@ public class TransferUtils {
             throws WaarpDatabaseException {
         R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
         if (lcr != null) {
-            finalResult.code = ErrorCode.QueryStillRunning;
-            finalResult.other = Messages.getString("TransferUtils.0"); //$NON-NLS-1$
+            finalResult.setCode(ErrorCode.QueryStillRunning);
+            finalResult.setOther(Messages.getString("TransferUtils.0")); //$NON-NLS-1$
         } else {
             if (taskRunner.isSendThrough()) {
                 // XXX FIXME TODO cannot be restarted... Really?
@@ -87,18 +87,18 @@ public class TransferUtils {
             try {
                 if (taskRunner.restart(true)) {
                     taskRunner.forceSaveStatus();
-                    finalResult.code = ErrorCode.PreProcessingOk;
-                    finalResult.other = Messages.getString("TransferUtils.1"); //$NON-NLS-1$
+                    finalResult.setCode(ErrorCode.PreProcessingOk);
+                    finalResult.setOther(Messages.getString("TransferUtils.1")); //$NON-NLS-1$
                 } else {
                     if (taskRunner.isSelfRequested() &&
                             (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
                         // send a VALID packet with VALID code to the requester except if client
-                        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+                        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
                                 taskRunner.getRequester());
                         if (host == null || host.isClient()) {
                             // cannot be relaunch from there
-                            finalResult.code = ErrorCode.ConnectionImpossible;
-                            finalResult.other = Messages.getString("TransferUtils.2"); //$NON-NLS-1$
+                            finalResult.setCode(ErrorCode.ConnectionImpossible);
+                            finalResult.setOther(Messages.getString("TransferUtils.2")); //$NON-NLS-1$
                             logger.warn(Messages.getString("TransferUtils.3")); //$NON-NLS-1$
                         } else {
                             R66Future result = new R66Future(true);
@@ -112,40 +112,40 @@ public class TransferUtils {
                             requestTransfer.run();
                             result.awaitUninterruptibly();
                             R66Result finalValue = result.getResult();
-                            switch (finalValue.code) {
+                            switch (finalValue.getCode()) {
                                 case QueryStillRunning:
-                                    finalResult.code = ErrorCode.QueryStillRunning;
-                                    finalResult.other = Messages.getString("TransferUtils.5"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.QueryStillRunning);
+                                    finalResult.setOther(Messages.getString("TransferUtils.5")); //$NON-NLS-1$
                                     break;
                                 case Running:
-                                    finalResult.code = ErrorCode.Running;
-                                    finalResult.other = Messages.getString("TransferUtils.6"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.Running);
+                                    finalResult.setOther(Messages.getString("TransferUtils.6")); //$NON-NLS-1$
                                     break;
                                 case PreProcessingOk:
-                                    finalResult.code = ErrorCode.PreProcessingOk;
-                                    finalResult.other = Messages.getString("TransferUtils.7"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.PreProcessingOk);
+                                    finalResult.setOther(Messages.getString("TransferUtils.7")); //$NON-NLS-1$
                                     break;
                                 case CompleteOk:
-                                    finalResult.code = ErrorCode.CompleteOk;
-                                    finalResult.other = Messages.getString("TransferUtils.8"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.CompleteOk);
+                                    finalResult.setOther(Messages.getString("TransferUtils.8")); //$NON-NLS-1$
                                     taskRunner.setPostTask();
                                     TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
                                     taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
                                     taskRunner.forceSaveStatus();
                                     break;
                                 case RemoteError:
-                                    finalResult.code = ErrorCode.RemoteError;
-                                    finalResult.other = Messages.getString("TransferUtils.9"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.RemoteError);
+                                    finalResult.setOther(Messages.getString("TransferUtils.9")); //$NON-NLS-1$
                                     break;
                                 default:
-                                    finalResult.code = ErrorCode.Internal;
-                                    finalResult.other = Messages.getString("TransferUtils.10"); //$NON-NLS-1$
+                                    finalResult.setCode(ErrorCode.Internal);
+                                    finalResult.setOther(Messages.getString("TransferUtils.10")); //$NON-NLS-1$
                                     break;
                             }
                         }
                     } else {
-                        finalResult.code = ErrorCode.CompleteOk;
-                        finalResult.other = Messages.getString("TransferUtils.11"); //$NON-NLS-1$
+                        finalResult.setCode(ErrorCode.CompleteOk);
+                        finalResult.setOther(Messages.getString("TransferUtils.11")); //$NON-NLS-1$
                         taskRunner.setPostTask();
                         TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
                         taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
@@ -153,8 +153,8 @@ public class TransferUtils {
                     }
                 }
             } catch (OpenR66RunnerErrorException e) {
-                finalResult.code = ErrorCode.PreProcessingOk;
-                finalResult.other = Messages.getString("TransferUtils.1"); //$NON-NLS-1$
+                finalResult.setCode(ErrorCode.PreProcessingOk);
+                finalResult.setOther(Messages.getString("TransferUtils.1")); //$NON-NLS-1$
             }
         }
         return finalResult;
@@ -210,8 +210,8 @@ public class TransferUtils {
         }
         R66File file = session.getFile();
         R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
-        finalValue.file = file;
-        finalValue.runner = taskRunner;
+        finalValue.setFile(file);
+        finalValue.setRunner(taskRunner);
         taskRunner.finishTransferTask(ErrorCode.TransferOk);
         try {
             taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
@@ -310,7 +310,7 @@ public class TransferUtils {
             Object map, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
             String req, boolean pending, boolean transfer, boolean error, String host) {
-        if (dbSession == null || dbSession.isDisActive) {
+        if (dbSession == null || dbSession.isDisActive()) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {
                 for (ClientRunner runner : ClientRunner.activeRunners) {
@@ -432,7 +432,7 @@ public class TransferUtils {
             Object map, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
             String req, boolean pending, boolean transfer, boolean error, String host) {
-        if (dbSession == null || dbSession.isDisActive) {
+        if (dbSession == null || dbSession.isDisActive()) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {
                 for (ClientRunner runner : ClientRunner.activeRunners) {

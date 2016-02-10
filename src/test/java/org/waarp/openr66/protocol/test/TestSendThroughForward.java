@@ -90,13 +90,6 @@ public class TestSendThroughForward extends SendThroughClient {
     public static class TestRecvThroughForwardHandler extends RecvThroughHandler {
 
         protected TestSendThroughForward client;
-
-        /*
-         * (non-Javadoc)
-         * @see
-         * org.waarp.openr66.client.RecvThroughHandler#writeByteBuf(io.netty.buffer
-         * .ByteBuf)
-         */
         @Override
         public void writeByteBuf(ByteBuf buffer)
                 throws OpenR66ProtocolBusinessException {
@@ -108,7 +101,7 @@ public class TestSendThroughForward extends SendThroughClient {
                 block.setBlock(buffer);
             }
             try {
-                client.writeWhenPossible(block).await(Configuration.configuration.TIMEOUTCON);
+                client.writeWhenPossible(block).await(Configuration.configuration.getTIMEOUTCON());
             } catch (OpenR66RunnerErrorException e) {
                 client.transferInError(e);
             } catch (OpenR66ProtocolPacketException e) {
@@ -153,10 +146,6 @@ public class TestSendThroughForward extends SendThroughClient {
         this.sourceRunner = runner;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.client.SendThroughClient#initiateRequest()
-     */
     @Override
     public boolean initiateRequest() {
         if (logger == null) {
@@ -164,7 +153,7 @@ public class TestSendThroughForward extends SendThroughClient {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
+            rule = new DbRule(DbConstant.admin.getSession(), rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -172,7 +161,7 @@ public class TestSendThroughForward extends SendThroughClient {
             future.setFailure(e);
             return false;
         }
-        int mode = rule.mode;
+        int mode = rule.getMode();
         if (isMD5) {
             mode = RequestPacket.getModeMD5(mode);
         }
@@ -186,7 +175,7 @@ public class TestSendThroughForward extends SendThroughClient {
             try {
                 // no delay
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.session, rule, isSender, request,
+                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isSender, request,
                                 remoteHost, null);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
@@ -262,10 +251,6 @@ public class TestSendThroughForward extends SendThroughClient {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.client.SendThroughClient#finalizeRequest()
-     */
     @Override
     public void finalizeRequest() {
         if (foundEOF) {
@@ -274,12 +259,6 @@ public class TestSendThroughForward extends SendThroughClient {
         super.finalizeRequest();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * org.waarp.openr66.client.SendThroughClient#transferInError(org.waarp.openr66.protocol.exception
-     * .OpenR66Exception)
-     */
     @Override
     public void transferInError(OpenR66Exception e) {
         super.transferInError(e);

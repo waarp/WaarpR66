@@ -51,7 +51,7 @@ public class SnmpTask extends AbstractTask {
 
     @Override
     public void run() {
-        if (Configuration.configuration.r66Mib == null) {
+        if (Configuration.configuration.getR66Mib() == null) {
             logger.warn("SNMP support is not active");
             futureCompletion.setSuccess();
             return;
@@ -60,11 +60,11 @@ public class SnmpTask extends AbstractTask {
         finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
         switch (delay) {
             case 0:
-                Configuration.configuration.r66Mib.notifyWarning(
+                Configuration.configuration.getR66Mib().notifyWarning(
                         finalValue, "TransferId:" + this.session.getRunner().getSpecialId());
                 break;
             case 1:
-                Configuration.configuration.r66Mib.notifyInternalTask(
+                Configuration.configuration.getR66Mib().notifyInternalTask(
                         finalValue, this.session.getRunner());
                 break;
             default:

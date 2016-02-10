@@ -72,13 +72,13 @@ public class ServerExportConfiguration {
                 return;
             }
             String directory = args[1];
-            String hostname = Configuration.configuration.HOST_ID;
+            String hostname = Configuration.configuration.getHOST_ID();
             logger.info("Start of Export");
             File dir = new File(directory);
             if (!dir.isDirectory()) {
                 dir.mkdirs();
             }
-            String[] filenames = ServerActions.staticConfigExport(DbConstant.admin.session, dir.getAbsolutePath(),
+            String[] filenames = ServerActions.staticConfigExport(DbConstant.admin.getSession(), dir.getAbsolutePath(),
                     true, true, true, true, true);
             for (String string : filenames) {
                 if (string != null) {

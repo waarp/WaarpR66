@@ -33,20 +33,17 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpReponsiveSslInitializer extends ChannelInitializer<SocketChannel> {
-    public boolean useHttpCompression = false;
-    public boolean enableRenegotiation = false;
+    private boolean useHttpCompression = false;
 
-    public HttpReponsiveSslInitializer(boolean useHttpCompression,
-            boolean enableRenegotiation) {
+    public HttpReponsiveSslInitializer(boolean useHttpCompression) {
         this.useHttpCompression = useHttpCompression;
-        this.enableRenegotiation = enableRenegotiation;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         final ChannelPipeline pipeline = ch.pipeline();
         // Add SSL handler first to encrypt and decrypt everything.
-        SslHandler sslhandler = Configuration.waarpSslContextFactory.initInitializer(true, false);
+        SslHandler sslhandler = Configuration.getWaarpSslContextFactory().initInitializer(true, false);
         pipeline.addLast("ssl", sslhandler);
 
         pipeline.addLast("decoder", new HttpServerCodec());

@@ -215,7 +215,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
         node1.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
         DbValue[] values = DbTaskRunner.getAllType();
         for (DbValue dbValue : values) {
-            node1.put(dbValue.column, dbValue.getType());
+            node1.put(dbValue.getColumn(), dbValue.getType());
         }
 
         ObjectNode node2;
@@ -245,10 +245,10 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
             node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
             node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
             for (DbValue dbValue : values) {
-                if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
+                if (dbValue.getColumn().equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
                     continue;
                 }
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
                     node3, node1);
@@ -267,7 +267,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
         if (this.methods.contains(METHOD.POST)) {
             node3 = JsonHandler.createObjectNode();
             for (DbValue dbValue : values) {
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
                     node3, node1);
@@ -288,7 +288,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
     protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
             RestArgument result, METHOD method) throws HttpForbiddenRequestException {
         HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
-        R66Session session = r66handler.serverHandler.getSession();
+        R66Session session = r66handler.getServerHandler().getSession();
         if (!session.getAuth().isValidRole(ROLE.SYSTEM)) {
             throw new HttpForbiddenRequestException("Partner must have System role");
         }

@@ -43,7 +43,7 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 /**
  * @author frederic bregier
  */
-public class LocalClientHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
+class LocalClientHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
     /**
      * Internal Logger
      */

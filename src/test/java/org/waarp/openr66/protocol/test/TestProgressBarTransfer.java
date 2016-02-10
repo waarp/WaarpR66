@@ -55,10 +55,6 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
                 blocksize, id, networkTransaction, callbackdelay);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.client.ProgressBarTransfer#callBack(int, int)
-     */
     @Override
     public void callBack(int currentBlock, int blocksize) {
         if (filesize == 0) {
@@ -69,10 +65,6 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.client.ProgressBarTransfer#lastCallBack(boolean, int, int)
-     */
     @Override
     public void lastCallBack(boolean success, int currentBlock, int blocksize) {
         if (filesize == 0) {
@@ -93,7 +85,7 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
         }
         if (!getParams(args, false)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
@@ -115,9 +107,9 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Transfer in status: WARNED     "
-                            + result.runner.toShortString()
+                            + result.getRunner().toShortString()
                             +
                             "     <REMOTE>"
                             + rhost
@@ -125,12 +117,12 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
                             +
                             "     <FILEFINAL>"
                             +
-                            (result.file != null ? result.file.toString() + "</FILEFINAL>"
+                            (result.getFile() != null ? result.getFile().toString() + "</FILEFINAL>"
                                     : "no file")
                             + "     delay: " + delay);
                 } else {
                     logger.info("Transfer in status: SUCCESS     "
-                            + result.runner.toShortString()
+                            + result.getRunner().toShortString()
                             +
                             "     <REMOTE>"
                             + rhost
@@ -138,35 +130,35 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
                             +
                             "     <FILEFINAL>"
                             +
-                            (result.file != null ? result.file.toString() + "</FILEFINAL>"
+                            (result.getFile() != null ? result.getFile().toString() + "</FILEFINAL>"
                                     : "no file")
                             + "     delay: " + delay);
                 }
-                if (nolog || result.runner.shallIgnoreSave()) {
+                if (nolog || result.getRunner().shallIgnoreSave()) {
                     // In case of success, delete the runner
                     try {
-                        result.runner.delete();
+                        result.getRunner().delete();
                     } catch (WaarpDatabaseException e) {
-                        logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
+                        logger.warn("Cannot apply nolog to     " + result.getRunner().toShortString(),
                                 e);
                     }
                 }
             } else {
-                if (result == null || result.runner == null) {
+                if (result == null || result.getRunner() == null) {
                     logger.error("Transfer in     FAILURE with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
+                    logger.warn("Transfer is     WARNED     " + result.getRunner().toShortString() +
                             "     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
-                    logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
+                    logger.error("Transfer in     FAILURE     " + result.getRunner().toShortString() +
                             "     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

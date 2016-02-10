@@ -142,10 +142,6 @@ public class DbConfiguration extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?) ";
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#initObject()
-     */
     @Override
     protected void initObject() {
         primaryKey = new DbValue[] { new DbValue(hostid, Columns.HOSTID
@@ -162,37 +158,21 @@ public class DbConfiguration extends AbstractDbData {
                 otherFields[4], otherFields[5], primaryKey[0] };
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getSelectAllFields()
-     */
     @Override
     protected String getSelectAllFields() {
         return selectAllFields;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getTable()
-     */
     @Override
     protected String getTable() {
         return table;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getInsertAllValues()
-     */
     @Override
     protected String getInsertAllValues() {
         return insertAllValues;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getUpdateAllFields()
-     */
     @Override
     protected String getUpdateAllFields() {
         return updateAllFields;
@@ -228,19 +208,11 @@ public class DbConfiguration extends AbstractDbData {
                 .getValue();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#getWherePrimaryKey()
-     */
     @Override
     protected String getWherePrimaryKey() {
-        return primaryKey[0].column + " = ? ";
+        return primaryKey[0].getColumn() + " = ? ";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.database.data.AbstractDbData#setPrimaryKey()
-     */
     @Override
     protected void setPrimaryKey() {
         primaryKey[0].setValue(hostid);
@@ -314,10 +286,6 @@ public class DbConfiguration extends AbstractDbData {
         select();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#delete()
-     */
     @Override
     public void delete() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -328,10 +296,6 @@ public class DbConfiguration extends AbstractDbData {
         super.delete();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#insert()
-     */
     @Override
     public void insert() throws WaarpDatabaseException {
         if (isSaved) {
@@ -348,10 +312,6 @@ public class DbConfiguration extends AbstractDbData {
         super.insert();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#exist()
-     */
     @Override
     public boolean exist() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -360,10 +320,6 @@ public class DbConfiguration extends AbstractDbData {
         return super.exist();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#select()
-     */
     @Override
     public void select() throws WaarpDatabaseException {
         if (dbSession == null) {
@@ -373,7 +329,7 @@ public class DbConfiguration extends AbstractDbData {
             } else {
                 // copy info
                 for (int i = 0; i < allFields.length; i++) {
-                    allFields[i].value = conf.allFields[i].value;
+                    allFields[i].setValue(conf.allFields[i].getValue());
                 }
                 setFromArray();
                 isSaved = true;
@@ -383,10 +339,6 @@ public class DbConfiguration extends AbstractDbData {
         super.select();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()
-     */
     @Override
     public void update() throws WaarpDatabaseException {
         if (isSaved) {
@@ -439,7 +391,7 @@ public class DbConfiguration extends AbstractDbData {
         request += " FROM " + table +
                 " WHERE " + Columns.UPDATEDINFO.name() + " = " +
                 AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal() +
-                " AND " + Columns.HOSTID.name() + " = '" + Configuration.configuration.HOST_ID
+                " AND " + Columns.HOSTID.name() + " = '" + Configuration.configuration.getHOST_ID()
                 + "'";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
         return prep;
@@ -490,10 +442,6 @@ public class DbConfiguration extends AbstractDbData {
         return preparedStatement;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
-     */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
         if (updatedInfo != info.ordinal()) {
@@ -516,7 +464,7 @@ public class DbConfiguration extends AbstractDbData {
      * @return True if this Configuration refers to the current host
      */
     public boolean isOwnConfiguration() {
-        return this.hostid.equals(Configuration.configuration.HOST_ID);
+        return this.hostid.equals(Configuration.configuration.getHOST_ID());
     }
 
     /**

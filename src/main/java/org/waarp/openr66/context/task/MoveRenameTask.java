@@ -48,10 +48,6 @@ public class MoveRenameTask extends AbstractTask {
         super(TaskType.MOVERENAME, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         String finalname = argRule;

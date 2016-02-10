@@ -12,22 +12,22 @@ public class Messages {
     private static final String BUNDLE_NAME = "messages"; //$NON-NLS-1$
 
     private static ResourceBundle RESOURCE_BUNDLE = null;
-    public static String slocale = "en";
+    private static String slocale = "en";
 
     static {
-        slocale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, "en");
-        if (slocale == null || slocale.isEmpty()) {
-            slocale = "en";
+        setSlocale(SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, "en"));
+        if (getSlocale() == null || getSlocale().isEmpty()) {
+            setSlocale("en");
         }
-        init(new Locale(slocale));
+        init(new Locale(getSlocale()));
     }
 
     public static void init(Locale locale) {
         if (locale == null) {
-            slocale = "en";
-            locale = new Locale(slocale);
+            setSlocale("en");
+            locale = new Locale(getSlocale());
         } else {
-            slocale = locale.getLanguage();
+            setSlocale(locale.getLanguage());
         }
         RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, locale);
         ErrorCode.updateLang();
@@ -48,5 +48,19 @@ public class Messages {
         } catch (MissingResourceException e) {
             return '!' + key + '!';
         }
+    }
+
+    /**
+     * @return the slocale
+     */
+    public static String getSlocale() {
+        return slocale;
+    }
+
+    /**
+     * @param slocale the slocale to set
+     */
+    public static void setSlocale(String slocale) {
+        Messages.slocale = slocale;
     }
 }

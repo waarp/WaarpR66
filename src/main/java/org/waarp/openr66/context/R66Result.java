@@ -31,27 +31,27 @@ public class R66Result {
     /**
      * The exception associated in case of error (if any exception)
      */
-    public OpenR66Exception exception = null;
+    private OpenR66Exception exception = null;
     /**
      * The file if any
      */
-    public R66File file = null;
+    private R66File file = null;
     /**
      * The runner if any
      */
-    public DbTaskRunner runner = null;
+    private DbTaskRunner runner = null;
     /**
      * Does this result already have been transfered to the remote server
      */
-    public boolean isAnswered = false;
+    private boolean isAnswered = false;
     /**
      * The code (error or not)
      */
-    public ErrorCode code;
+    private ErrorCode code;
     /**
      * Any other object for special operations (test or shutdown for instance)
      */
-    public Object other = null;
+    private Object other = null;
 
     /**
      * @param exception
@@ -62,14 +62,14 @@ public class R66Result {
      */
     public R66Result(OpenR66Exception exception, R66Session session,
             boolean isAnswered, ErrorCode code, DbTaskRunner runner) {
-        this.exception = exception;
-        this.runner = runner;
+        this.setException(exception);
+        this.setRunner(runner);
         if (session != null) {
-            file = session.getFile();
-            this.runner = session.getRunner();
+            setFile(session.getFile());
+            this.setRunner(session.getRunner());
         }
-        this.isAnswered = isAnswered;
-        this.code = code;
+        this.setAnswered(isAnswered);
+        this.setCode(code);
     }
 
     /**
@@ -80,21 +80,21 @@ public class R66Result {
      */
     public R66Result(R66Session session, boolean isAnswered, ErrorCode code,
             DbTaskRunner runner) {
-        this.runner = runner;
+        this.setRunner(runner);
         if (session != null) {
-            file = session.getFile();
-            this.runner = session.getRunner();
+            setFile(session.getFile());
+            this.setRunner(session.getRunner());
         }
-        this.isAnswered = isAnswered;
-        this.code = code;
+        this.setAnswered(isAnswered);
+        this.setCode(code);
     }
 
     @Override
     public String toString() {
-        return (exception != null ? "Exception: " + exception.toString() : "") +
-                (file != null ? file.toString() : " no file") + "     " +
-                (runner != null ? runner.toShortString() : " no runner") +
-                " isAnswered: " + isAnswered + " Code: " + code.mesg;
+        return (getException() != null ? "Exception: " + getException().toString() : "") +
+                (getFile() != null ? getFile().toString() : " no file") + "     " +
+                (getRunner() != null ? getRunner().toShortString() : " no runner") +
+                " isAnswered: " + isAnswered() + " Code: " + getCode().mesg;
     }
 
     /**
@@ -102,10 +102,94 @@ public class R66Result {
      * @return the associated message with this Result
      */
     public String getMessage() {
-        if (exception != null) {
-            return exception.getMessage();
+        if (getException() != null) {
+            return getException().getMessage();
         } else {
-            return code.mesg;
+            return getCode().mesg;
         }
+    }
+
+    /**
+     * @return the exception
+     */
+    public OpenR66Exception getException() {
+        return exception;
+    }
+
+    /**
+     * @param exception the exception to set
+     */
+    public void setException(OpenR66Exception exception) {
+        this.exception = exception;
+    }
+
+    /**
+     * @return the file
+     */
+    public R66File getFile() {
+        return file;
+    }
+
+    /**
+     * @param file the file to set
+     */
+    public void setFile(R66File file) {
+        this.file = file;
+    }
+
+    /**
+     * @return the runner
+     */
+    public DbTaskRunner getRunner() {
+        return runner;
+    }
+
+    /**
+     * @param runner the runner to set
+     */
+    public void setRunner(DbTaskRunner runner) {
+        this.runner = runner;
+    }
+
+    /**
+     * @return the isAnswered
+     */
+    public boolean isAnswered() {
+        return isAnswered;
+    }
+
+    /**
+     * @param isAnswered the isAnswered to set
+     */
+    public void setAnswered(boolean isAnswered) {
+        this.isAnswered = isAnswered;
+    }
+
+    /**
+     * @return the code
+     */
+    public ErrorCode getCode() {
+        return code;
+    }
+
+    /**
+     * @param code the code to set
+     */
+    public void setCode(ErrorCode code) {
+        this.code = code;
+    }
+
+    /**
+     * @return the other
+     */
+    public Object getOther() {
+        return other;
+    }
+
+    /**
+     * @param other the other to set
+     */
+    public void setOther(Object other) {
+        this.other = other;
     }
 }

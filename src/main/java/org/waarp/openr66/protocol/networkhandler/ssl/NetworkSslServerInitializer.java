@@ -25,7 +25,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.util.HashedWheelTimer;
 
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -41,12 +40,8 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  */
 public class NetworkSslServerInitializer extends ChannelInitializer<SocketChannel> {
     protected final boolean isClient;
-    public static WaarpSslContextFactory waarpSslContextFactory;
-    public static WaarpSecureKeyStore waarpSecureKeyStore;
-    /**
-     * Global HashedWheelTimer
-     */
-    public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
+    private static WaarpSslContextFactory waarpSslContextFactory;
+    private static WaarpSecureKeyStore waarpSecureKeyStore;
 
     /**
      * 
@@ -66,18 +61,18 @@ public class NetworkSslServerInitializer extends ChannelInitializer<SocketChanne
         if (isClient) {
             // Not server: no clientAuthent, no renegotiation
             sslHandler =
-                    waarpSslContextFactory.initInitializer(false, false);
+                    getWaarpSslContextFactory().initInitializer(false, false);
         } else {
             // Server: no renegotiation still, but possible clientAuthent
             sslHandler =
-                    waarpSslContextFactory.initInitializer(true,
-                            waarpSslContextFactory.needClientAuthentication());
+                    getWaarpSslContextFactory().initInitializer(true,
+                            getWaarpSslContextFactory().needClientAuthentication());
         }
         pipeline.addLast("ssl", sslHandler);
 
         pipeline.addLast("codec", new NetworkPacketCodec());
         pipeline.addLast(NetworkServerInitializer.TIMEOUT,
-                new IdleStateHandler(0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
+                new IdleStateHandler(0, 0, Configuration.configuration.getTIMEOUTCON(), TimeUnit.MILLISECONDS));
         GlobalTrafficHandler handler = Configuration.configuration
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
@@ -93,5 +88,33 @@ public class NetworkSslServerInitializer extends ChannelInitializer<SocketChanne
         }
         pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler", new NetworkSslServerHandler(
                 !this.isClient));
+    }
+
+    /**
+     * @return the waarpSslContextFactory
+     */
+    public static WaarpSslContextFactory getWaarpSslContextFactory() {
+        return waarpSslContextFactory;
+    }
+
+    /**
+     * @param waarpSslContextFactory the waarpSslContextFactory to set
+     */
+    public static void setWaarpSslContextFactory(WaarpSslContextFactory waarpSslContextFactory) {
+        NetworkSslServerInitializer.waarpSslContextFactory = waarpSslContextFactory;
+    }
+
+    /**
+     * @return the waarpSecureKeyStore
+     */
+    public static WaarpSecureKeyStore getWaarpSecureKeyStore() {
+        return waarpSecureKeyStore;
+    }
+
+    /**
+     * @param waarpSecureKeyStore the waarpSecureKeyStore to set
+     */
+    public static void setWaarpSecureKeyStore(WaarpSecureKeyStore waarpSecureKeyStore) {
+        NetworkSslServerInitializer.waarpSecureKeyStore = waarpSecureKeyStore;
     }
 }

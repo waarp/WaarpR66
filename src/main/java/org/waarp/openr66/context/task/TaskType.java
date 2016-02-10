@@ -35,9 +35,9 @@ public enum TaskType {
     VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
     RENAME, RESTART, UNZEROED, CHMOD, CHKFILE;
 
-    public int type;
+    int type;
 
-    public String name;
+    String name;
     /**
      * Internal Logger
      */

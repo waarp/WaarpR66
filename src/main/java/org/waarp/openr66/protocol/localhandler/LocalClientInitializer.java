@@ -28,7 +28,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
  * 
  * @author Frederic Bregier
  */
-public class LocalClientInitializer extends ChannelInitializer<LocalChannel> {
+class LocalClientInitializer extends ChannelInitializer<LocalChannel> {
 
     @Override
     protected void initChannel(LocalChannel ch) throws Exception {

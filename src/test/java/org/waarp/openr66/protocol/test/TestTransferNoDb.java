@@ -74,13 +74,13 @@ public class TestTransferNoDb extends DirectTransfer {
         }
         if (!getParams(args, false)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
         }
         getSpecialParams(args, 1);
-        Configuration.configuration.CLIENT_THREAD = nb;
+        Configuration.configuration.setCLIENT_THREAD(nb);
         Configuration.configuration.pipelineInit();
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
@@ -109,14 +109,14 @@ public class TestTransferNoDb extends DirectTransfer {
                 arrayFuture[i].awaitUninterruptibly();
                 R66Result result = arrayFuture[i].getResult();
                 if (arrayFuture[i].isSuccess()) {
-                    if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                    if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                         warn++;
                     } else {
                         success++;
                     }
                 } else {
-                    if (result.runner != null &&
-                            result.runner.getErrorInfo() == ErrorCode.Warning) {
+                    if (result.getRunner() != null &&
+                            result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                         warn++;
                     } else {
                         error++;
@@ -128,9 +128,9 @@ public class TestTransferNoDb extends DirectTransfer {
             // Get the first result as testing only
             R66Result result = arrayFuture[0].getResult();
             logger.warn("Final file: " +
-                    (result.file != null ? result.file.toString() : "no file"));
+                    (result.getFile() != null ? result.getFile().toString() : "no file"));
             try {
-                length = result.file != null ? result.file.length() : 0L;
+                length = result.getFile() != null ? result.getFile().length() : 0L;
             } catch (CommandAbstractException e) {
             }
             long delay = time2 - time1;
