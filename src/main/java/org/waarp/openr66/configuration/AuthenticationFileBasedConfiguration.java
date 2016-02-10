@@ -194,7 +194,7 @@ public class AuthenticationFileBasedConfiguration {
                     // key is crypted
                     if (!skey.isEmpty()) {
                         try {
-                            byteKeys = config.cryptoKey.decryptHexInBytes(skey);
+                            byteKeys = config.getCryptoKey().decryptHexInBytes(skey);
                         } catch (Exception e) {
                             logger.error("Cannot read key for hostId " + refHostId + ":" + skey);
                             continue;
@@ -212,7 +212,7 @@ public class AuthenticationFileBasedConfiguration {
                     continue;
                 }
                 try {
-                    byteKeys = config.cryptoKey.decryptHexFile(key);
+                    byteKeys = config.getCryptoKey().decryptHexFile(key);
                 } catch (Exception e2) {
                     logger.error("Cannot read key for hostId " + refHostId, e2);
                     continue;
@@ -255,7 +255,7 @@ public class AuthenticationFileBasedConfiguration {
             if (value != null && (!value.isEmpty())) {
                 isProxified = value.getBoolean();
             }
-            DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
+            DbHostAuth auth = new DbHostAuth(DbConstant.admin.getSession(),
                     refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
             auth.setActive(isActive);
             auth.setProxified(isProxified);
@@ -303,7 +303,7 @@ public class AuthenticationFileBasedConfiguration {
             WaarpDatabaseSqlException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
-        DbHostAuth[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
+        DbHostAuth[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.getSession());
         logger.debug("Will write DbHostAuth: " + hosts.length + " in " + filename);
         for (DbHostAuth auth : hosts) {
             logger.debug("Will write DbHostAuth: " + auth.getHostid());
@@ -312,7 +312,7 @@ public class AuthenticationFileBasedConfiguration {
             byte[] key = auth.getHostkey();
             String encode;
             try {
-                encode = config.cryptoKey.cryptToHex(key);
+                encode = config.getCryptoKey().cryptToHex(key);
             } catch (Exception e) {
                 encode = "";
             }

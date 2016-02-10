@@ -94,7 +94,7 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
             if (localChannelReference != null) {
                 R66Result result = new R66Result(session, true,
                         ErrorCode.CompleteOk, null);
-                result.other = object;
+                result.setOther(object);
                 localChannelReference.validateRequest(result);
                 ChannelUtils.close(localChannelReference.getLocalChannel());
             } else {

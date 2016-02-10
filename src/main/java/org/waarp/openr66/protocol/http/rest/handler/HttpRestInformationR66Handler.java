@@ -76,7 +76,7 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
             logger.debug("Obj: {}", body);
         }
         handler.setWillClose(false);
-        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
         // now action according to body
         JsonPacket json = (JsonPacket) body;
         if (json == null) {
@@ -160,7 +160,7 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
             node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
             DbValue[] values = DbTaskRunner.getAllType();
             for (DbValue dbValue : values) {
-                node1b.put(dbValue.column, dbValue.getType());
+                node1b.put(dbValue.getColumn(), dbValue.getType());
             }
             node1.add(node1b);
             try {

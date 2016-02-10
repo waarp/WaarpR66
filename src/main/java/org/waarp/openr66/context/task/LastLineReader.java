@@ -34,7 +34,7 @@ class LastLineReader implements Runnable {
     /**
      * This will be the result at the end
      */
-    public String lastLine = null;
+    private String lastLine = null;
 
     public LastLineReader(PipedInputStream inputStream) {
         reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -46,7 +46,7 @@ class LastLineReader implements Runnable {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (!line.isEmpty()) {
-                    lastLine = line;
+                    setLastLine(line);
                 }
             }
         } catch (IOException e) {
@@ -58,6 +58,20 @@ class LastLineReader implements Runnable {
             reader.close();
         } catch (IOException e) {
         }
+    }
+
+    /**
+     * @return the lastLine
+     */
+    public String getLastLine() {
+        return lastLine;
+    }
+
+    /**
+     * @param lastLine the lastLine to set
+     */
+    private void setLastLine(String lastLine) {
+        this.lastLine = lastLine;
     }
 
 }

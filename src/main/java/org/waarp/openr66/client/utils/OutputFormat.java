@@ -47,7 +47,7 @@ public class OutputFormat extends JsonHandler {
         CSV
     }
 
-    public static OUTPUTFORMAT defaultOutput = OUTPUTFORMAT.JSON;
+    static OUTPUTFORMAT defaultOutput = OUTPUTFORMAT.JSON;
 
     public static enum FIELDS {
         command, args, status, statusTxt, transfer, error, remote

@@ -24,23 +24,82 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  * 
  */
 public interface R66BusinessInterface {
+    /**
+     * Called once the connection is opened
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
+    public void checkAtConnection(R66Session session) throws OpenR66RunnerErrorException;
 
+    /**
+     * Called once the authentication is done
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
+    public void checkAtAuthentication(R66Session session) throws OpenR66RunnerErrorException;
+
+    /**
+     * Called once the DbTaskRunner is created/loaded and before pre tasks
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
     public void checkAtStartup(R66Session session) throws OpenR66RunnerErrorException;
 
+    /**
+     * Called once the pre tasks are over in success
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
     public void checkAfterPreCommand(R66Session session) throws OpenR66RunnerErrorException;
 
+    /**
+     * Called once the transfer is done in success but before the post tasks
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
     public void checkAfterTransfer(R66Session session) throws OpenR66RunnerErrorException;
 
+    /**
+     * Called once the post tasks are over in success
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
     public void checkAfterPost(R66Session session) throws OpenR66RunnerErrorException;
 
-    public void checkAtError(R66Session session) throws OpenR66RunnerErrorException;
+    /**
+     * Called once any error occurs
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
+    public void checkAtError(R66Session session);
 
+    /**
+     * Called once after pre tasks, while filename could be changed (or not)
+     * @param session
+     * @throws OpenR66RunnerErrorException
+     */
     public void checkAtChangeFilename(R66Session session) throws OpenR66RunnerErrorException;
 
-    public void releaseResources();
+    /**
+     * Called when the session is to be closed in order to release resources
+     * @param session
+     */
+    public void releaseResources(R66Session session);
 
-    public String getInfo();
+    /**
+     * Called to get the current extra "Information" from Business side to transmit, 
+     * valid in extended protocol (> 2.4)
+     * @param session
+     * @return the current "session" info
+     */
+    public String getInfo(R66Session session);
 
-    public void setInfo(String info);
+    /**
+     * Set optional info to be set within extra information of PacketValid as "Info" 
+     * or R66Result as "Other", valid in extended protocol (> 2.4)
+     * @param session
+     * @param info
+     */
+    public void setInfo(R66Session session, String info);
 
 }

@@ -110,10 +110,6 @@ public class InformationPacket extends AbstractLocalPacket {
         return LocalPacketFactory.INFORMATIONPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "InformationPacket: " + requestedInfo + " " + rulename + " " + filename;

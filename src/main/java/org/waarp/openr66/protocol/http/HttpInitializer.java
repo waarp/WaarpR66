@@ -32,7 +32,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * 
  */
 public class HttpInitializer extends ChannelInitializer<SocketChannel> {
-    public boolean useHttpCompression = false;
+    private boolean useHttpCompression = false;
 
     public HttpInitializer(boolean useHttpCompression) {
         this.useHttpCompression = useHttpCompression;

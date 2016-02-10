@@ -43,7 +43,7 @@ public class R66Engine extends EngineAbstract {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(R66Engine.class);
 
-    public static WaarpFuture closeFuture = new WaarpFuture(true);
+    static WaarpFuture closeFuture = new WaarpFuture(true);
 
     @Override
     public void run() {
@@ -54,7 +54,7 @@ public class R66Engine extends EngineAbstract {
             shutdown();
             return;
         }
-        Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
+        Configuration.configuration.getShutdownConfiguration().serviceFuture = closeFuture;
         try {
             if (!R66Server.initialize(config)) {
                 throw new Exception("Initialization in error");

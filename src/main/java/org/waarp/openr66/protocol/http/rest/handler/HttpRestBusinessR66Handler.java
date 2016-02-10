@@ -77,7 +77,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
             logger.debug("Obj: {}", body);
         }
         handler.setWillClose(false);
-        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
         R66Session session = serverHandler.getSession();
         // now action according to body
         JsonPacket json = (JsonPacket) body;
@@ -99,7 +99,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
                         r66result = new R66Result(session, false, ErrorCode.ExternalOp, null);
                     }
                     logger.info("Task in Error:" + node.getClassName() + " " + r66result);
-                    if (!r66result.isAnswered) {
+                    if (!r66result.isAnswered()) {
                         node.setValidated(false);
                         session.newState(ERROR);
                     }
@@ -107,9 +107,9 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
                     setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
                 } else {
                     R66Result r66result = future.getResult();
-                    if (r66result != null && r66result.other != null) {
-                        result.setDetail(r66result.other.toString());
-                        node.setArguments(r66result.other.toString());
+                    if (r66result != null && r66result.getOther() != null) {
+                        result.setDetail(r66result.getOther().toString());
+                        node.setArguments(r66result.getOther().toString());
                     }
                     setOk(handler, result, json, HttpResponseStatus.OK);
                 }

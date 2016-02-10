@@ -34,7 +34,7 @@ class AllLineReader implements Runnable {
     /**
      * This will be the result at the end
      */
-    public StringBuilder lastLine = new StringBuilder();
+    private StringBuilder lastLine = new StringBuilder();
 
     public AllLineReader(PipedInputStream inputStream) {
         reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -46,7 +46,7 @@ class AllLineReader implements Runnable {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (!line.isEmpty()) {
-                    lastLine.append(line).append('\n');
+                    getLastLine().append(line).append('\n');
                 }
             }
         } catch (IOException e) {
@@ -58,6 +58,13 @@ class AllLineReader implements Runnable {
             reader.close();
         } catch (IOException e) {
         }
+    }
+
+    /**
+     * @return the lastLine
+     */
+    public StringBuilder getLastLine() {
+        return lastLine;
     }
 
 }

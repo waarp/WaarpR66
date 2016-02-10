@@ -100,9 +100,9 @@ public class ServerShutdown {
         }
         DbHostAuth host = null;
         if (useSsl) {
-            host = Configuration.configuration.HOST_SSLAUTH;
+            host = Configuration.configuration.getHOST_SSLAUTH();
         } else {
-            host = Configuration.configuration.HOST_AUTH;
+            host = Configuration.configuration.getHOST_AUTH();
         }
         if (host == null) {
             logger.error("Host id not found while SSL mode is : " + useSsl);
@@ -172,7 +172,7 @@ public class ServerShutdown {
                 logger.error("Cannot " + (isblock ? "Blocking" : "Unblocking") + ": " + result.toString(),
                         localChannelReference
                                 .getFutureRequest().getCause());
-                value = result.code.ordinal();
+                value = result.getCode().ordinal();
             }
         } else {
             if (localChannelReference.getFutureRequest().isSuccess()) {
@@ -181,18 +181,18 @@ public class ServerShutdown {
             } else {
                 R66Result result = localChannelReference.getFutureRequest()
                         .getResult();
-                if (result.other instanceof ValidPacket
+                if (result.getOther() instanceof ValidPacket
                         &&
-                        ((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
+                        ((ValidPacket) result.getOther()).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                     logger.warn("Shutdown command OK");
                     value = 0;
-                } else if (result.code == ErrorCode.Shutdown) {
+                } else if (result.getCode() == ErrorCode.Shutdown) {
                     logger.warn("Shutdown command done");
                     value = 0;
                 } else {
                     logger.error("Cannot Shutdown: " + result.toString(), localChannelReference
                             .getFutureRequest().getCause());
-                    value = result.code.ordinal();
+                    value = result.getCode().ordinal();
                 }
             }
         }

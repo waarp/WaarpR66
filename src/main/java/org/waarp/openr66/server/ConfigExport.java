@@ -83,7 +83,7 @@ public class ConfigExport implements Runnable {
         this.alias = false;
         this.role = false;
         this.networkTransaction = networkTransaction;
-        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+        this.dbhost = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     public ConfigExport(R66Future future, boolean host, boolean rule,
@@ -96,7 +96,7 @@ public class ConfigExport implements Runnable {
         this.alias = alias;
         this.role = role;
         this.networkTransaction = networkTransaction;
-        this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+        this.dbhost = Configuration.configuration.getHOST_SSLAUTH();
     }
 
     public void setHost(DbHostAuth host) {
@@ -116,7 +116,7 @@ public class ConfigExport implements Runnable {
             future.setResult(new R66Result(
                     new OpenR66ProtocolNoDataException("No action required"),
                     null, true, ErrorCode.IncorrectCommand, null));
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         SocketAddress socketAddress;
@@ -128,7 +128,7 @@ public class ConfigExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             dbhost = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         boolean isSSL = dbhost.isSsl();
@@ -142,7 +142,7 @@ public class ConfigExport implements Runnable {
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server " + dbhost.getHostid()),
                     null, true, ErrorCode.ConnectionImpossible, null));
             dbhost = null;
-            future.setFailure(future.getResult().exception);
+            future.setFailure(future.getResult().getException());
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -177,9 +177,9 @@ public class ConfigExport implements Runnable {
         dbhost = null;
         future.awaitUninterruptibly();
         String sresult = "no information";
-        if (future.isSuccess() && future.getResult() != null && future.getResult().other != null) {
-            sresult = (useJson ? ((JsonCommandPacket) future.getResult().other).getRequest() :
-                    ((ValidPacket) future.getResult().other).toString());
+        if (future.isSuccess() && future.getResult() != null && future.getResult().getOther() != null) {
+            sresult = (useJson ? ((JsonCommandPacket) future.getResult().getOther()).getRequest() :
+                    ((ValidPacket) future.getResult().getOther()).toString());
         }
         logger.info("Config Export done with " + (future.isSuccess() ? "success" : "error") + " (" + sresult + ")");
         localChannelReference.getLocalChannel().close();
@@ -233,7 +233,7 @@ public class ConfigExport implements Runnable {
         }
         if (!getParams(args)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -249,14 +249,14 @@ public class ConfigExport implements Runnable {
                     networkTransaction);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("COnfigExport in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();
                     System.exit(10);
                 }
             } else {
-                stohost = Configuration.configuration.HOST_SSLID;
+                stohost = Configuration.configuration.getHOST_SSLID();
             }
             transaction.run();
             future.awaitUninterruptibly();
@@ -268,13 +268,13 @@ public class ConfigExport implements Runnable {
                 logger.debug("UseJson: " + useJson);
                 String message = null;
                 if (useJson) {
-                    message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+                    message = (result.getOther() != null ? ((JsonCommandPacket) result.getOther()).getRequest() :
                             "no file");
                 } else {
-                    message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
+                    message = (result.getOther() != null ? ((ValidPacket) result.getOther()).getSheader() :
                             "no file");
                 }
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("WARNED on files:     " +
                             message
                             + "     delay: " + delay);
@@ -284,14 +284,14 @@ public class ConfigExport implements Runnable {
                             + "     delay: " + delay);
                 }
             } else {
-                if (result.code == ErrorCode.Warning) {
+                if (result.getCode() == ErrorCode.Warning) {
                     logger.warn("ConfigExport is     WARNED", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("ConfigExport in     FAILURE", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

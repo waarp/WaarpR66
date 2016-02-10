@@ -52,10 +52,6 @@ public class TarTask extends AbstractTask {
         super(TaskType.TAR, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("TAR with " + argRule + ":" + argTransfer + ":" + delay + " and {}",

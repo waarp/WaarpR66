@@ -67,10 +67,6 @@ public class R66PrivateMib extends WaarpPrivateMib {
                 scontactName, stextualName, saddress, iservice);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.snmp.WaarpPrivateMib#agentRegisterWaarpMib()
-     */
     @Override
     protected void agentRegisterWaarpMib()
             throws DuplicateRegistrationException {
@@ -81,7 +77,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
         rowInfo.setValue(WaarpDefinitionIndex.applName.ordinal(),
                 "Waarp OpenR66");
         rowInfo.setValue(WaarpDefinitionIndex.applServerName.ordinal(),
-                Configuration.configuration.HOST_ID);
+                Configuration.configuration.getHOST_ID());
         rowInfo.setValue(WaarpDefinitionIndex.applVersion.ordinal(),
                 Version.ID);
         rowInfo.setValue(WaarpDefinitionIndex.applDescription.ordinal(),
@@ -95,15 +91,15 @@ public class R66PrivateMib extends WaarpPrivateMib {
         // register General info
         rowGlobal = new WaarpMORow(this, rootOIDWaarpGlobal, WaarpGlobalValues,
                 MibLevel.globalInfo.ordinal());
-        WaarpMOScalar memoryScalar = rowGlobal.row[WaarpGlobalValuesIndex.memoryTotal.ordinal()];
+        WaarpMOScalar memoryScalar = rowGlobal.getRow()[WaarpGlobalValuesIndex.memoryTotal.ordinal()];
         memoryScalar.setValue(new MemoryGauge32(MemoryType.TotalMemory));
-        memoryScalar = rowGlobal.row[WaarpGlobalValuesIndex.memoryFree.ordinal()];
+        memoryScalar = rowGlobal.getRow()[WaarpGlobalValuesIndex.memoryFree.ordinal()];
         memoryScalar.setValue(new MemoryGauge32(MemoryType.FreeMemory));
-        memoryScalar = rowGlobal.row[WaarpGlobalValuesIndex.memoryUsed.ordinal()];
+        memoryScalar = rowGlobal.getRow()[WaarpGlobalValuesIndex.memoryUsed.ordinal()];
         memoryScalar.setValue(new MemoryGauge32(MemoryType.UsedMemory));
         rowGlobal.registerMOs(agent.getServer(), null);
         // setup UpTime to SysUpTime and change status
-        scalarUptime = rowGlobal.row[WaarpGlobalValuesIndex.applUptime.ordinal()];
+        scalarUptime = rowGlobal.getRow()[WaarpGlobalValuesIndex.applUptime.ordinal()];
         scalarUptime.setValue(new WaarpUptime(upTime));
         changeStatus(OperStatus.restarting);
         changeStatus(OperStatus.up);
@@ -124,7 +120,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param message2
      */
     public void notifyStartStop(String message, String message2) {
-        if (!TrapLevel.StartStop.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.StartStop.isLevelValid(agent.getTrapLevel()))
             return;
         notify(NotificationElements.TrapShutdown, message, message2);
     }
@@ -136,7 +132,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param message2
      */
     public void notifyError(String message, String message2) {
-        if (!TrapLevel.Alert.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.Alert.isLevelValid(agent.getTrapLevel()))
             return;
         notify(NotificationElements.TrapError, message, message2);
     }
@@ -148,7 +144,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param message2
      */
     public void notifyOverloaded(String message, String message2) {
-        if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.Warning.isLevelValid(agent.getTrapLevel()))
             return;
         notify(NotificationElements.TrapOverloaded, message, message2);
     }
@@ -160,7 +156,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param message2
      */
     public void notifyWarning(String message, String message2) {
-        if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.Warning.isLevelValid(agent.getTrapLevel()))
             return;
         notify(NotificationElements.TrapWarning, message, message2);
     }
@@ -300,7 +296,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param runner
      */
     public void notifyInfoTask(String message, DbTaskRunner runner) {
-        if (!TrapLevel.All.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.All.isLevelValid(agent.getTrapLevel()))
             return;
         if (logger.isDebugEnabled())
             logger.debug("Notify: " + NotificationElements.InfoTask + ":" + message +
@@ -315,7 +311,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
      * @param runner
      */
     public void notifyTask(String message, DbTaskRunner runner) {
-        if (!TrapLevel.AllEvents.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.AllEvents.isLevelValid(agent.getTrapLevel()))
             return;
         if (logger.isDebugEnabled())
             logger.debug("Notify: " + NotificationElements.InfoTask + ":" + message +

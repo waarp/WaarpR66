@@ -67,10 +67,6 @@ public class ExecMoveTask extends AbstractTask {
         super(TaskType.EXECMOVE, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         /*
@@ -87,13 +83,13 @@ public class ExecMoveTask extends AbstractTask {
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         // Force the WaitForValidation
         waitForValidation = true;
-        if (Configuration.configuration.useLocalExec && useLocalExec) {
+        if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
                 localExecClient
                         .runOneCommand(finalname, delay, waitForValidation, futureCompletion);
                 LocalExecResult result = localExecClient.getLocalExecResult();
-                move(result.status, result.result, finalname);
+                move(result.getStatus(), result.getResult(), finalname);
                 localExecClient.disconnect();
                 return;
             } // else continue
@@ -265,7 +261,7 @@ public class ExecMoveTask extends AbstractTask {
             status = -1;
             newname = "TimeOut";
         } else {
-            newname = lastLineReader.lastLine;
+            newname = lastLineReader.getLastLine();
             if (status == 0 && (newname == null || newname.isEmpty())) {
                 status = 1;
             }
@@ -297,7 +293,7 @@ public class ExecMoveTask extends AbstractTask {
             }
             session.getRunner().setFileMoved(newname, true);
             R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, this.session.getRunner());
-            result.other = newname;
+            result.setOther(newname);
             futureCompletion.setResult(result);
             futureCompletion.setSuccess();
             logger.info("Exec OK with {} returns {}", commandLine,
@@ -307,7 +303,7 @@ public class ExecMoveTask extends AbstractTask {
                     " returns " + newname);
             session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
             R66Result result = new R66Result(session, true, ErrorCode.Warning, this.session.getRunner());
-            result.other = newname;
+            result.setOther(newname);
             futureCompletion.setResult(result);
             futureCompletion.setSuccess();
         } else {

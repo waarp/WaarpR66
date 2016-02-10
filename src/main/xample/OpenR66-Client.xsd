@@ -29,6 +29,20 @@
                     	</xsd:appinfo>
                     	<xsd:documentation>When client with no DB, do R66 will use XML files as permanent information on Transfer Tasks</xsd:documentation></xsd:annotation>
 				  </xsd:element>
+                  <xsd:element
+                        name="businessfactory"
+                        maxOccurs="1"
+                        minOccurs="0"
+                        type="nonEmptyString" >
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <fg:node-info message="If you need a special Business Factory, you must specify the full class name here. Default is: org.waarp.openr66.context.R66DefaultBusinessFactory which only logs in DEBUG mode." />
+                            </xsd:appinfo>
+                            <xsd:documentation>
+    If you need a special Business Factory, you must specify the full class name here. Default is: org.waarp.openr66.context.R66DefaultBusinessFactory which only logs in DEBUG mode.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                  </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>

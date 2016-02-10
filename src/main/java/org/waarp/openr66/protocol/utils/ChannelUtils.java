@@ -212,7 +212,7 @@ public class ChannelUtils extends Thread {
         ByteBuf md5 = Unpooled.EMPTY_BUFFER;
         DbTaskRunner runner = localChannelReference.getSession().getRunner();
         if (RequestPacket.isMD5Mode(runner.getMode())) {
-            md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
+            md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.getDigest());
         }
         if (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
             localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
@@ -279,7 +279,7 @@ public class ChannelUtils extends Thread {
             ChannelFuture future = localChannelReference.getNetworkChannel().writeAndFlush(networkPacket);
             localChannelReference.getNetworkChannelObject().use();
             try {
-                future.await(Configuration.configuration.TIMEOUTCON);
+                future.await(Configuration.configuration.getTIMEOUTCON());
                 return future;
             } catch (InterruptedException e) {
                 return future;
@@ -325,10 +325,10 @@ public class ChannelUtils extends Thread {
      */
     public static final long willBeWaitingWriting(ChannelTrafficShapingHandler cts, int size) {
         long currentTime = System.currentTimeMillis();
-        if (cts != null && Configuration.configuration.serverChannelWriteLimit > 0) {
+        if (cts != null && Configuration.configuration.getServerChannelWriteLimit() > 0) {
             TrafficCounter tc = cts.trafficCounter();
             if (tc != null) {
-                long wait = waitTraffic(Configuration.configuration.serverChannelWriteLimit,
+                long wait = waitTraffic(Configuration.configuration.getServerChannelWriteLimit(),
                         tc.currentWrittenBytes() + size,
                         tc.lastTime(), currentTime);
                 if (wait > 0) {
@@ -336,13 +336,13 @@ public class ChannelUtils extends Thread {
                 }
             }
         }
-        if (Configuration.configuration.serverGlobalWriteLimit > 0) {
+        if (Configuration.configuration.getServerGlobalWriteLimit() > 0) {
             GlobalTrafficHandler gts = Configuration.configuration
                     .getGlobalTrafficShapingHandler();
             if (gts != null) {
                 TrafficCounter tc = gts.trafficCounter();
                 if (tc != null) {
-                    long wait = waitTraffic(Configuration.configuration.serverGlobalWriteLimit,
+                    long wait = waitTraffic(Configuration.configuration.getServerGlobalWriteLimit(),
                             tc.currentWrittenBytes() + size,
                             tc.lastTime(), currentTime);
                     if (wait > 0) {
@@ -369,15 +369,15 @@ public class ChannelUtils extends Thread {
      */
     public static void exit() {
         logger.info("Current launched threads before exit: " + ManagementFactory.getThreadMXBean().getThreadCount());
-        if (Configuration.configuration.constraintLimitHandler != null) {
-            Configuration.configuration.constraintLimitHandler.release();
+        if (Configuration.configuration.getConstraintLimitHandler() != null) {
+            Configuration.configuration.getConstraintLimitHandler().release();
         }
         // First try to StopAll
-        TransferUtils.stopSelectedTransfers(DbConstant.admin.session, 0,
+        TransferUtils.stopSelectedTransfers(DbConstant.admin.getSession(), 0,
                 null, null, null, null, null, null, null, null, null, true, true, true);
-        Configuration.configuration.isShutdown = true;
+        Configuration.configuration.setShutdown(true);
         Configuration.configuration.prepareServerStop();
-        final long delay = Configuration.configuration.TIMEOUTCON;
+        final long delay = Configuration.configuration.getTIMEOUTCON();
         // Inform others that shutdown
         if (Configuration.configuration.getLocalTransaction() != null) {
             Configuration.configuration.getLocalTransaction().shutdownLocalChannels();
@@ -403,7 +403,7 @@ public class ChannelUtils extends Thread {
             Configuration.configuration.getLocalTransaction().closeAll();
         }
         logger.info("Exit Shutdown LocalExec");
-        if (Configuration.configuration.useLocalExec) {
+        if (Configuration.configuration.isUseLocalExec()) {
             LocalExecClient.releaseResources();
         }
         logger.info("Exit Shutdown Command");

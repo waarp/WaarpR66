@@ -64,10 +64,6 @@ public class ExecJavaTask extends AbstractTask {
         this.businessRequest = businessRequest;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         /*
@@ -158,7 +154,7 @@ public class ExecJavaTask extends AbstractTask {
         if (status == 0) {
             if (waitForValidation) {
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-                result.other = runnable.toString();
+                result.setOther(runnable.toString());
                 futureCompletion.setResult(result);
                 futureCompletion.setSuccess();
             }
@@ -171,7 +167,7 @@ public class ExecJavaTask extends AbstractTask {
             logger.warn("Exec in warning with " + runnable);
             if (waitForValidation) {
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-                result.other = runnable.toString();
+                result.setOther(runnable.toString());
                 futureCompletion.setResult(result);
                 futureCompletion.setSuccess();
             }

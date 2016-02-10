@@ -52,10 +52,6 @@ public class ZipTask extends AbstractTask {
         super(TaskType.ZIP, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("ZIP with " + argRule + ":" + argTransfer + ":" + delay + " and {}",

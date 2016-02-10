@@ -163,8 +163,8 @@ public class OpenR66ExceptionTrappedFactory {
             final OpenR66ProtocolShutdownException e2 = new OpenR66ProtocolShutdownException(
                     "Restart since OOME raized", e1);
             logger.debug("Force Shutdown and Restart : {}", e2.getMessage());
-            if (Configuration.configuration.r66Mib != null) {
-                Configuration.configuration.r66Mib.notifyWarning(
+            if (Configuration.configuration.getR66Mib() != null) {
+                Configuration.configuration.getR66Mib().notifyWarning(
                         "OOME so shutdown and restart", e1.getMessage());
             }
             R66ShutdownHook.setRestart(true);
@@ -173,8 +173,8 @@ public class OpenR66ExceptionTrappedFactory {
             logger.error("Unexpected exception from Outband" +
                     " Ref Channel: " + channel.toString(), e1);
         }
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyWarning(
+        if (Configuration.configuration.getR66Mib() != null) {
+            Configuration.configuration.getR66Mib().notifyWarning(
                     "Unexpected exception", e1.getMessage());
         }
         return new OpenR66ProtocolSystemException("Unexpected exception: " + e1.getMessage(), e1);

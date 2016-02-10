@@ -50,10 +50,6 @@ public class DeleteTask extends AbstractTask {
         super(TaskType.DELETE, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         logger.info("Delete file from session {}",

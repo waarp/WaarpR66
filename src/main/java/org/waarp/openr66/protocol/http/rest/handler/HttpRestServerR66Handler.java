@@ -78,12 +78,12 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
             logger.debug("Obj: {}", body);
         }
         handler.setWillClose(false);
-        ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+        ServerActions serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
         if (arguments.getMethod() == METHOD.GET) {
             // status Json
             result.setCommand(ACTIONS_TYPE.GetStatus.name());
-            Configuration.configuration.monitoring.run(0, true);
-            ObjectNode node = Configuration.configuration.monitoring.exportAsJson(true);
+            Configuration.configuration.getMonitoring().run(0, true);
+            ObjectNode node = Configuration.configuration.getMonitoring().exportAsJson(true);
             result.setDetail("Current Waarp R66 status");
             result.addResult(node);
             setOk(handler, result, null, HttpResponseStatus.OK);
@@ -151,7 +151,7 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
         }
         if (this.methods.contains(METHOD.GET)) {
             ArrayNode node1 = JsonHandler.createArrayNode();
-            node1.add(Configuration.configuration.monitoring.exportAsJson(true));
+            node1.add(Configuration.configuration.getMonitoring().exportAsJson(true));
             ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetStatus.name(),
                     null, node1);
             node.add(node2);

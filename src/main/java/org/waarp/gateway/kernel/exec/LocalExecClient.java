@@ -48,7 +48,7 @@ public class LocalExecClient {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(LocalExecClient.class);
 
-    static public InetSocketAddress address;
+    private static InetSocketAddress address;
     // Configure the client.
     static private Bootstrap bootstrapLocalExec;
     // Configure the pipeline factory.
@@ -64,7 +64,7 @@ public class LocalExecClient {
         // Configure the client.
         bootstrapLocalExec = new Bootstrap();
         WaarpNettyUtil.setBootstrap(bootstrapLocalExec, localPipelineExecutor,
-                (int) Configuration.configuration.TIMEOUTCON);
+                (int) Configuration.configuration.getTIMEOUTCON());
         // Configure the pipeline factory.
         localExecClientInitializer = new LocalExecClientInitializer();
         bootstrapLocalExec.handler(localExecClientInitializer);
@@ -113,15 +113,15 @@ public class LocalExecClient {
         if (futureCompletion == null) {
             return;
         }
-        if (result.status == 0) {
+        if (result.getStatus() == 0) {
             futureCompletion.setSuccess();
             logger.info("Exec OK with {}", command);
-        } else if (result.status == 1) {
+        } else if (result.getStatus() == 1) {
             logger.warn("Exec in warning with {}", command);
             futureCompletion.setSuccess();
         } else {
-            logger.error("Status: " + result.status + " Exec in error with " +
-                    command + "\n" + result.result);
+            logger.error("Status: " + result.getStatus() + " Exec in error with " +
+                    command + "\n" + result.getResult());
             futureCompletion.cancel();
         }
     }
@@ -131,7 +131,7 @@ public class LocalExecClient {
      */
     public boolean connect() {
         // Start the connection attempt.
-        ChannelFuture future = bootstrapLocalExec.connect(address);
+        ChannelFuture future = bootstrapLocalExec.connect(getAddress());
 
         // Wait until the connection attempt succeeds or fails.
         try {
@@ -152,8 +152,22 @@ public class LocalExecClient {
         // Close the connection. Make sure the close operation ends because
         // all I/O operations are asynchronous in Netty.
         try {
-            WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.TIMEOUTCON);
+            WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.getTIMEOUTCON());
         } catch (InterruptedException e) {
         }
+    }
+
+    /**
+     * @return the address
+     */
+    public static InetSocketAddress getAddress() {
+        return address;
+    }
+
+    /**
+     * @param address the address to set
+     */
+    public static void setAddress(InetSocketAddress address) {
+        LocalExecClient.address = address;
     }
 }

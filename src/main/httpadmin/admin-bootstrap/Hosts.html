@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>	 <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
-<!--[if IE 7]>	   <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
-<!--[if IE 8]>	   <html class="no-js lt-ie9" lang=""> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang=""> <!--<![endif]-->
+<!--[if lt IE 7]>	 <html class="no-js lt-ie9 lt-ie8 lt-ie7 lt-ie10 ie ie6 ie-lt10 ie-lt9 ie-lt8 ie-lt7" lang=""> <![endif]-->
+<!--[if IE 7]>	   <html class="no-js lt-ie10 lt-ie9 lt-ie8 ie ie-lt10 ie-lt9 ie-lt8" lang=""> <![endif]-->
+<!--[if IE 8]>	   <html class="no-js lt-ie10 lt-ie9 ie ie-lt10 ie-lt9" lang=""> <![endif]-->
+<!--[if IE 9 ]>    <html class="no-js lt-ie10 ie ie9 ie-lt10" lang=""> <![endif]-->
+<!--[if gt IE 9]><!--><html class="no-js" lang=""><!--<![endif]-->
 <head>
 	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="Cache-Control" content="no-cache" />
@@ -13,31 +14,27 @@
 	<meta name="robots" content="noindex,nofollow" />
 	<meta http-equiv="Pragma" content="no-cache" />
 	<!-- Datatable -->
-	<link rel="stylesheet" href="datatable/css/dataTables.tableTools.min.css">
+	<link rel="stylesheet" href="datatable/datatables.min.css">
 	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" href="css/magic-bootstrap-min.css">
 	<link rel="stylesheet" href="datatable/css/jquery.dataTables.min.css">
-	<!-- special CSS -->
-	<style type="text/css">
-	@-moz-document url-prefix() { fieldset { display: table-cell; } }
-	table.dataTable select{font-size:x-small;}
-	table.dataTable thead th{font-size:x-small;}
-	table.dataTable tbody th,table.dataTable tbody td{font-size:x-small;}
-	</style>
 	<!-- JQuery -->
-	<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery-1.12.0.min.js"></script>
 	<!-- I18NEXT -->
-	<script type="text/javascript" src="res/i18next-1.8.0.min.js"></script>
+	<script type="text/javascript" src="res/i18next-1.11.2.min.js"></script>
 	<script type="text/javascript">
 var setLng="XXXLANGXXX";
 if (setLng.length > 4) { setLng = "en"; }
+var EdgeWindows10=navigator.userAgent.search('Windows NT 10') > 0 && navigator.userAgent.search('Edge/') > 0;
 	</script>
+	<script src="js/modernizr-3.3.1-respond-1.4.2.min.js"></script>
 	<!-- Bootstrap -->
-	<script src="js/modernizr-2.8.3-respond-1.4.2.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="datatable/js/jquery.dataTables.min.js"></script>
-	<script type="text/javascript" src="datatable/js/dataTables.tableTools.min.js"></script>
+	<script type="text/javascript" src="datatable/datatables.min.js"></script>
+	<script type="text/javascript" src="datatable/pdfmake-0.1.20/pdfmake.min.js"></script>
+	<script type="text/javascript" src="datatable/pdfmake-0.1.20/vfs_fonts.js"></script>
     <script type="text/javascript" src="res/tooltip.js"></script>
+
 	<!-- special Javascript -->
 	<script type="text/javascript">
 var table;
@@ -68,12 +65,9 @@ function validButton(rank) {
 	return false;
 }
 var prepareTable = function() {
-	var renderSubmit = function (data, type, full, meta) {
-		return '<button type="submit" class="btn btn-default btn-xs" id="submit-rank-button" onclick="validButton('+meta.row+')">Edit</button>';
-	};
 	var renderGeneric = function (data, type, full, meta) {return changeValueColumn(data, meta.col);};
 	var myData = 'XXXDATAJSONXXX';
-	var myColumns = [{ data: "@model", title :"Actions", orderable: false, render: renderSubmit},
+	var myColumns = [
 					  { data: "HOSTID", title :"Id"},
 					  { data: "ADDRESS", title :"Address"},
 					  { data: "PORT", title :"Port", width:"40px"},
@@ -87,11 +81,12 @@ var prepareTable = function() {
 					  { data: "Version", title :"Version"}
 					];
 	var nbcol = myColumns.length;
-	var range=[];for(var i=1;i < nbcol;i++){range[i-1]=i}
+	var range=[];for(var i=0;i < nbcol;i++){range[i]=i}
 	var row = document.getElementById("myTable4").createTFoot().insertRow(0);
 	for (var i = 0; i < nbcol; i++) {
 		row.insertCell(0);
 	}
+	var printButton = printButtonFunction(EdgeWindows10, "Page", "XXXHOSTIDXXX-", i18n.t("app.menu3"), { page: 'current'}, ':visible');
 	table = $('#myTable4').DataTable({
 		"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 		"pagingType": "full_numbers",
@@ -99,40 +94,27 @@ var prepareTable = function() {
 		stateSave: true,// shall be true
 		"data" : $.parseJSON(myData),
 		"columns": myColumns,
-		"dom": 'T<"clear">lfrtip',
-		  "tableTools": {
-			  "sSwfPath": "datatable/swf/copy_csv_xls.swf",
-			  "aButtons": [
-			  {"sExtends": "copy",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu3"),
-			  "sMessage": i18n.t("app.menu3")+" (WaarpR66)"},
-			  {"sExtends": "print",
-			  "bFooter": false,
-			  "sTitle": i18n.t("app.menu3"),
-			  "fnClick": function (nButton, oConfig, oFlash) { table.column(0).visible(false);
-				this.fnPrint( true, oConfig ); $(window).keyup(function(){table.column(0).visible(true);});},
-			  "sMessage": i18n.t("app.menu3")+" (WaarpR66)"},
-			  {"sExtends": "print", "bShowAll": false, "sButtonText": "Print Selected",
-			  "bFooter": false,
-			  "sTitle": i18n.t("app.menu3"),
-			  "fnClick": function (nButton, oConfig, oFlash) { table.column(0).visible(false);
-				this.fnPrint( true, oConfig ); $(window).keyup(function(){table.column(0).visible(true);});},
-			  "sMessage": i18n.t("app.menu3")+" (WaarpR66)"},
-			  {"sExtends": "csv",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu3"), "sFileName": "XXXHOSTIDXXX-*-csv.csv",
-			  "sMessage": i18n.t("app.menu3")+" (WaarpR66)"},
-			  {"sExtends": "xls",
-			  "bFooter": false, "mColumns": range,
-			  "sTitle": i18n.t("app.menu3"), "sFileName": "XXXHOSTIDXXX-*-xls.csv",
-			  "sMessage": i18n.t("app.menu3")+" (WaarpR66)"}
-			  ]
-		  },
+		fixedHeader: true,
+		dom: 'B<"clear">lfrtip',
+		select: { style: 'single' },
+		buttons: [
+			{ extend: 'colvis' },
+			{ text: 'Edit', enabled: false, action: function () { var id = table.rows( { selected: true } ); if (id.length > 0) {validButton( id[0] );} }
+            },
+			{ extend: 'copy', exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			{ extend: 'excel', title: "XXXHOSTIDXXX-"+i18n.t("app.menu3"),
+			  exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			{ extend: 'csv', title: "XXXHOSTIDXXX-"+i18n.t("app.menu3"),
+			  exportOptions: { orthogonal: 'export', columns: ':visible' }
+			},
+			printButton[0], printButton[1], printButton[2], printButton[3]
+		],
 		initComplete: function () {
 			this.api().columns().every( function () {
 				var column = this;
-				if (column.index() == 0 || column.index() == nbcol-1 || column.index() == 5) {
+				if (column.index() == nbcol-1 || column.index() == 4) {
 					return;
 				}
 				var select = $('<select><option value=""></option></select>')
@@ -151,6 +133,14 @@ var prepareTable = function() {
 			} );
 		}
 	 });
+	 table.on( 'select', function ( e, dt, type, indexes ) {
+		var selectedRows = table.rows( { selected: true } ).count();
+		table.button( 1 ).enable( selectedRows === 1 );
+	} )
+	.on( 'deselect', function ( e, dt, type, indexes ) {
+		var selectedRows = table.rows( { selected: true } ).count();
+		table.button( 1 ).enable( selectedRows === 1 );
+	} );
 };
 </script>
 </head>
@@ -202,7 +192,7 @@ var prepareTable = function() {
 							<input type="hidden" name="LIMITROW" value="XXXLIMITROWXXX">
 							<small><label class="control-label" for="transferId0" data-i18n="menu2.entete1">Transfer Id</label>&nbsp;</small><input type="text" class="form-control input-sm" id="transferId0" name="startid" placeholder="TransferId">
 						</div>
-						<button type="submit" class="btn btn-default btn-sm" value="Search" name="ACTION">Search</button>
+						<button type="submit" class="btn btn-default btn-sm" value="Search" name="ACTION" data-i18n="[title]app.searchhelp"><label class="control-label" data-i18n="app.search">Search</label></button>
 					</form>
 				</div>
 			</div>
@@ -258,11 +248,11 @@ var prepareTable = function() {
 	  </div>
 	</div><div class="row">
 	  <div class="form-group col-md-3 text-right">
-		<input type="reset" value="Clear" class="btn btn-default btn-sm" onclick="$('#delete-button').addClass('disabled');$('#update-button').addClass('disabled');" title="Resets the values to the ones at page load">
+		<input type="reset" value="Clear" class="btn btn-default btn-sm" onclick="$('#delete-button').addClass('disabled');$('#update-button').addClass('disabled');" data-i18n="[title]app.help1">
 	  </div><div class="form-group col-md-3 text-right">
-		<button type="submit" class="btn btn-warning btn-sm" id="create-button" value="Create" name="ACTION" title="Only valid for new Host Id">Create</button>
-		<button type="submit" class="btn btn-primary btn-sm disabled" id="update-button" value="Update" name="ACTION" title="Only valid for existing Host Id">Update</button>
-		<button type="submit" class="btn btn-danger btn-sm disabled" id="delete-button" value="Delete" name="ACTION" title="Only valid for existing Host Id">Delete</button>
+		<button type="submit" class="btn btn-warning btn-sm" id="create-button" value="Create" name="ACTION" data-i18n="[title]app.help2">Create</button>
+		<button type="submit" class="btn btn-primary btn-sm disabled" id="update-button" value="Update" name="ACTION" data-i18n="[title]app.help3">Update</button>
+		<button type="submit" class="btn btn-danger btn-sm disabled" id="delete-button" value="Delete" name="ACTION" data-i18n="[title]app.help3">Delete</button>
 	  </div>
 	</div>
 	</form></small></div><div class="panel-footer"><small>
@@ -293,9 +283,9 @@ var prepareTable = function() {
 		<label class="control-label" for="LIMITROW" data-i18n="menu2.text16">Limit rows to</label>
 		<input type="number" class="form-control input-sm" id="LIMITROW" name="LIMITROW" size="4" value="XXXLIMITROWXXX"> <label data-i18n="menu2.text17">first results.</label>
 	  </div><div class="form-group col-md-1 text-right">
-		<input type="reset" value="Clear" class="btn btn-default btn-sm" name="ACTION" title="Resets the values to the ones at page load">
+		<input type="reset" value="Clear" class="btn btn-default btn-sm" name="ACTION" data-i18n="[title]app.help4">
 	  </div><div class="form-group col-md-1 text-right">
-		<input type="submit" value="Filter" class="btn btn-primary btn-sm" name="ACTION" title="Filter uses results to limit Ids in future filtering requests">
+		<input type="submit" value="Filter" class="btn btn-primary btn-sm" name="ACTION" data-i18n="[title]app.help4">
 	  </div>
 	</div>
 	</form></small></div></div>

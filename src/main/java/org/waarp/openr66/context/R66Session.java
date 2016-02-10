@@ -59,7 +59,7 @@ public class R66Session implements SessionInterface {
     /**
      * Block size used during file transfer
      */
-    private int blockSize = Configuration.configuration.BLOCKSIZE;
+    private int blockSize = Configuration.configuration.getBLOCKSIZE();
     /**
      * The local channel reference
      */
@@ -117,9 +117,9 @@ public class R66Session implements SessionInterface {
     /**
      * Extended protocol or not
      */
-    private boolean extendedProtocol = Configuration.configuration.extendedProtocol;
+    private boolean extendedProtocol = Configuration.configuration.isExtendedProtocol();
 
-    public HashMap<String, R66Dir> dirsFromSession = new HashMap<String, R66Dir>();
+    private final HashMap<String, R66Dir> dirsFromSession = new HashMap<String, R66Dir>();
 
     /**
      * Create the session
@@ -196,7 +196,7 @@ public class R66Session implements SessionInterface {
                     R66Result result = new R66Result(new OpenR66RunnerErrorException(
                             "Close before ending"), this, true,
                             ErrorCode.Disconnection, runner);// True since called from closed
-                    result.runner = runner;
+                    result.setRunner(runner);
                     try {
                         setFinalizeTransfer(false, result);
                     } catch (OpenR66RunnerErrorException e) {
@@ -224,7 +224,7 @@ public class R66Session implements SessionInterface {
         // No clean of file since it can be used after channel is closed
         isReady = false;
         if (businessObject != null) {
-            businessObject.releaseResources();
+            businessObject.releaseResources(this);
             businessObject = null;
         }
     }
@@ -237,7 +237,7 @@ public class R66Session implements SessionInterface {
                     R66Result result = new R66Result(new OpenR66RunnerErrorException(
                             "Close before ending"), this, true,
                             ErrorCode.Disconnection, runner);// True since called from closed
-                    result.runner = runner;
+                    result.setRunner(runner);
                     try {
                         setFinalizeTransfer(false, result);
                     } catch (OpenR66RunnerErrorException e) {
@@ -260,7 +260,7 @@ public class R66Session implements SessionInterface {
         // No clean of file since it can be used after channel is closed
         isReady = false;
         if (businessObject != null) {
-            businessObject.releaseResources();
+            businessObject.releaseResources(this);
             businessObject = null;
         }
     }
@@ -379,7 +379,7 @@ public class R66Session implements SessionInterface {
                     false);
         } catch (CommandAbstractException e1) {
         }
-        this.auth.specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+        this.auth.specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
         this.localChannelReference = localChannelReference;
         if (this.localChannelReference == null) {
             if (this.runner.getLocalChannelReference() != null) {
@@ -570,10 +570,7 @@ public class R66Session implements SessionInterface {
                 }
             }
             if (this.businessObject != null) {
-                try {
-                    this.businessObject.checkAtError(this);
-                } catch (OpenR66RunnerErrorException e) {
-                }
+                this.businessObject.checkAtError(this);
             }
             this.runner.setPostTask();
             try {
@@ -597,7 +594,6 @@ public class R66Session implements SessionInterface {
             throws OpenR66RunnerErrorException {
         this.runner = runner;
         logger.debug("Runner to set: {} {}", runner.shallIgnoreSave(), runner);
-        setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
         this.runner.checkThroughMode();
         if (this.businessObject != null) {
             this.businessObject.checkAtStartup(this);
@@ -751,7 +747,7 @@ public class R66Session implements SessionInterface {
                         restart.setSet(true);
                         if (oldPosition > length) {
                             int newRank = ((int) (length / this.runner.getBlocksize()))
-                                    - Configuration.RANKRESTART;
+                                    - Configuration.getRANKRESTART();
                             if (newRank <= 0) {
                                 newRank = 1;
                             }
@@ -774,7 +770,7 @@ public class R66Session implements SessionInterface {
                 }
             } else {
                 try {
-                    this.localChannelReference.getFutureRequest().filesize = file.length();
+                    this.localChannelReference.getFutureRequest().setFilesize(file.length());
                 } catch (CommandAbstractException e1) {
                 }
                 try {
@@ -875,30 +871,30 @@ public class R66Session implements SessionInterface {
         }
         if (!status) {
             this.runner.deleteTempFile();
-            runner.setErrorExecutionStatus(finalValue.code);
+            runner.setErrorExecutionStatus(finalValue.getCode());
         }
         if (status) {
             runner.finishTransferTask(ErrorCode.TransferOk);
         } else {
-            runner.finishTransferTask(finalValue.code);
+            runner.finishTransferTask(finalValue.getCode());
         }
         runner.saveStatus();
         logger.debug("Transfer " + status + " on {} and {}", file, runner);
         if (!runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;
-            if (!status && finalValue.exception != null) {
+            if (!status && finalValue.getException() != null) {
                 runnerErrorException = new OpenR66RunnerErrorException(
                         "Pre task in error (or even before)",
-                        finalValue.exception);
+                        finalValue.getException());
             } else {
                 runnerErrorException = new OpenR66RunnerErrorException(
                         "Pre task in error (or even before)");
             }
-            finalValue.exception = runnerErrorException;
+            finalValue.setException(runnerErrorException);
             logger.debug("Pre task in error (or even before) : " +
                     runnerErrorException.getMessage());
-            if (Configuration.configuration.isExecuteErrorBeforeTransferAllowed) {
+            if (Configuration.configuration.isExecuteErrorBeforeTransferAllowed()) {
                 runner.finalizeTransfer(localChannelReference, file, finalValue, status);
             }
             localChannelReference.invalidateRequest(finalValue);
@@ -915,7 +911,7 @@ public class R66Session implements SessionInterface {
                         this, false, ErrorCode.Internal, runner);
             }
             localChannelReference.invalidateRequest(result);
-            throw (OpenR66RunnerErrorException) result.exception;
+            throw (OpenR66RunnerErrorException) result.getException();
         }
         runner.finalizeTransfer(localChannelReference, file, finalValue, status);
         if (this.businessObject != null) {
@@ -951,7 +947,7 @@ public class R66Session implements SessionInterface {
             localChannelReference.validateRequest(
                     new R66Result(this, true, ErrorCode.CompleteOk, runner));
         } else if (runner.getStatus() == ErrorCode.TransferOk &&
-                ((!runner.isSender()) || errorValue.code == ErrorCode.QueryAlreadyFinished)) {
+                ((!runner.isSender()) || errorValue.getCode() == ErrorCode.QueryAlreadyFinished)) {
             // Try to finalize it
             // status = true;
             try {
@@ -962,13 +958,13 @@ public class R66Session implements SessionInterface {
             } catch (OpenR66ProtocolSystemException e) {
                 logger.error("Cannot validate runner:     {}", runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                runner.setErrorExecutionStatus(errorValue.code);
+                runner.setErrorExecutionStatus(errorValue.getCode());
                 runner.forceSaveStatus();
                 this.setFinalizeTransfer(false, errorValue);
             } catch (OpenR66RunnerErrorException e) {
                 logger.error("Cannot validate runner:     {}", runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                runner.setErrorExecutionStatus(errorValue.code);
+                runner.setErrorExecutionStatus(errorValue.getCode());
                 runner.forceSaveStatus();
                 this.setFinalizeTransfer(false, errorValue);
             }
@@ -1007,4 +1003,10 @@ public class R66Session implements SessionInterface {
         return Configuration.EXT_R66;
     }
 
+    /**
+     * @return the dirsFromSession
+     */
+    public HashMap<String, R66Dir> getDirsFromSession() {
+        return dirsFromSession;
+    }
 }

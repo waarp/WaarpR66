@@ -63,7 +63,7 @@ public class InternalRunner {
      * @throws WaarpDatabaseSqlException
      */
     public InternalRunner() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        if (DbConstant.admin.isActive) {
+        if (DbConstant.admin.isActive()) {
             commander = new Commander(this, true);
         } else {
             commander = new CommanderNoDb(this, true);
@@ -71,11 +71,11 @@ public class InternalRunner {
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new WaarpThreadFactory("InternalRunner"));
         isRunning = true;
         BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
-        threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
+        threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.getRUNNER_THREAD(),
                 1000, TimeUnit.MILLISECONDS, workQueue);
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-                Configuration.configuration.delayCommander,
-                Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+                Configuration.configuration.getDelayCommander(),
+                Configuration.configuration.getDelayCommander(), TimeUnit.MILLISECONDS);
         networkTransaction = new NetworkTransaction();
     }
 
@@ -89,8 +89,8 @@ public class InternalRunner {
      * @param taskRunner
      */
     public void submitTaskRunner(DbTaskRunner taskRunner) {
-        if (isRunning || !Configuration.configuration.isShutdown) {
-            if (threadPoolExecutor.getActiveCount() + 5 > Configuration.configuration.RUNNER_THREAD) {
+        if (isRunning || !Configuration.configuration.isShutdown()) {
+            if (threadPoolExecutor.getActiveCount() > Configuration.configuration.getRUNNER_THREAD()) {
                 // too many current active threads
                 taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
                 taskRunner.forceSaveStatus();
@@ -143,13 +143,13 @@ public class InternalRunner {
         if (commander != null) {
             commander.finalize();
         }
-        if (DbConstant.admin.isActive) {
+        if (DbConstant.admin.isActive()) {
             commander = new Commander(this);
         } else {
             commander = new CommanderNoDb(this);
         }
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-                Configuration.configuration.delayCommander,
-                Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+                Configuration.configuration.getDelayCommander(),
+                Configuration.configuration.getDelayCommander(), TimeUnit.MILLISECONDS);
     }
 }

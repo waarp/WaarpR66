@@ -16,7 +16,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 /**
- * Package for an example of Java Task for ExecJava
+ * Package for an example of Java Task for ExecJava and for BusinessFactory
  * 
  * @author "Frederic Bregier"
  * 

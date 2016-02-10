@@ -59,7 +59,7 @@ public class LocalExecClient {
         // Configure the client.
         bootstrapLocalExec = new Bootstrap();
         WaarpNettyUtil.setBootstrap(bootstrapLocalExec, Configuration.configuration.getSubTaskGroup(),
-                (int) Configuration.configuration.TIMEOUTCON);
+                (int) Configuration.configuration.getTIMEOUTCON());
         // Configure the pipeline factory.
         localExecClientInitializer = new LocalExecClientInitializer();
         bootstrapLocalExec.handler(localExecClientInitializer);
@@ -113,19 +113,19 @@ public class LocalExecClient {
         if (futureCompletion == null) {
             return;
         }
-        if (result.status == 0) {
+        if (result.getStatus() == 0) {
             if (waitFor) {
                 futureCompletion.setSuccess();
             }
             logger.info("Exec OK with {}", command);
-        } else if (result.status == 1) {
+        } else if (result.getStatus() == 1) {
             logger.warn("Exec in warning with {}", command);
             if (waitFor) {
                 futureCompletion.setSuccess();
             }
         } else {
-            logger.error("Status: " + result.status + " Exec in error with " +
-                    command + " " + result.result);
+            logger.error("Status: " + result.getStatus() + " Exec in error with " +
+                    command + " " + result.getResult());
             if (waitFor) {
                 futureCompletion.cancel();
             }
@@ -158,7 +158,7 @@ public class LocalExecClient {
         // Close the connection. Make sure the close operation ends because
         // all I/O operations are asynchronous in Netty.
         try {
-            WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.TIMEOUTCON);
+            WaarpSslUtility.closingSslChannel(channel).await(Configuration.configuration.getTIMEOUTCON());
         } catch (InterruptedException e) {
         }
     }

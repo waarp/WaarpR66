@@ -147,7 +147,7 @@ public class TestSendThroughClient extends SendThroughClient {
         }
         if (!getParams(args, false)) {
             logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isActive) {
+            if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
             System.exit(1);
@@ -176,41 +176,41 @@ public class TestSendThroughClient extends SendThroughClient {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Warning with Id: " +
-                            result.runner.getSpecialId() + " on file: " +
-                            (result.file != null ? result.file.toString() : "no file")
+                            result.getRunner().getSpecialId() + " on file: " +
+                            (result.getFile() != null ? result.getFile().toString() : "no file")
                             + " delay: " + delay);
                 } else {
                     logger.warn("Success with Id: " +
-                            result.runner.getSpecialId() + " on Final file: " +
-                            (result.file != null ? result.file.toString() : "no file")
+                            result.getRunner().getSpecialId() + " on Final file: " +
+                            (result.getFile() != null ? result.getFile().toString() : "no file")
                             + " delay: " + delay);
                 }
-                if (nolog || result.runner.shallIgnoreSave()) {
+                if (nolog || result.getRunner().shallIgnoreSave()) {
                     // In case of success, delete the runner
                     try {
-                        result.runner.delete();
+                        result.getRunner().delete();
                     } catch (WaarpDatabaseException e) {
-                        logger.warn("Cannot apply nolog to " + result.runner.toString(), e);
+                        logger.warn("Cannot apply nolog to " + result.getRunner().toString(), e);
                     }
                 }
             } else {
-                if (result == null || result.runner == null) {
+                if (result == null || result.getRunner() == null) {
                     logger.warn("Transfer in Error with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(1);
                 }
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+                if (result.getRunner().getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Transfer in Warning with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                            result.getRunner().getSpecialId(), future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 } else {
                     logger.error("Transfer in Error with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                            result.getRunner().getSpecialId(), future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
+                    System.exit(result.getCode().ordinal());
                 }
             }
         } finally {

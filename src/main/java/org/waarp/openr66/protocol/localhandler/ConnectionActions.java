@@ -104,6 +104,11 @@ public abstract class ConnectionActions {
         this.session = handler.session;
     }
 
+    void businessError() {
+        if (session.getBusinessObject() != null) {
+            session.getBusinessObject().checkAtError(session);
+        }
+    }
     /**
      * @return the session
      */
@@ -154,13 +159,13 @@ public abstract class ConnectionActions {
                 if (localChannelReference != null) {
                     R66Future fvr = localChannelReference.getFutureValidRequest();
                     try {
-                        fvr.await(Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
+                        fvr.await(Configuration.configuration.getTIMEOUTCON() * 2, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e1) {
                     }
                     if (fvr.isDone()) {
                         if (!fvr.isSuccess()) {
                             // test if remote server was Overloaded
-                            if (fvr.getResult() != null && fvr.getResult().code == ErrorCode.ServerOverloaded) {
+                            if (fvr.getResult() != null && fvr.getResult().getCode() == ErrorCode.ServerOverloaded) {
                                 // ignore
                                 mustFinalize = false;
                             }
@@ -246,6 +251,7 @@ public abstract class ConnectionActions {
     public void newSession() {
         session = new R66Session();
         session.setStatus(60);
+        session.setBusinessObject(Configuration.configuration.getR66BusinessFactory().getBusinessInterface(session));
     }
 
     /**
@@ -276,6 +282,17 @@ public abstract class ConnectionActions {
             }
             return;
         }
+        if (session.getBusinessObject() != null) {
+            try {
+                session.getBusinessObject().checkAtConnection(session);
+            } catch (OpenR66RunnerErrorException e) {
+                ErrorPacket error = new ErrorPacket("Connection refused by business logic",
+                        ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                channel.writeAndFlush(error).addListener(ChannelFutureListener.CLOSE);
+                session.setStatus(40);
+                return;
+            }
+        }
         session.newState(STARTUP);
         localChannelReference.validateStartup(true);
         session.setLocalChannelReference(localChannelReference);
@@ -299,8 +316,8 @@ public abstract class ConnectionActions {
         logger.debug(Messages.getString("LocalServerHandler.6") + //$NON-NLS-1$
                 localChannelReference.getNetworkChannel().remoteAddress() +
                 " : " + packet.getHostId(), e1);
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyError(
+        if (Configuration.configuration.getR66Mib() != null) {
+            Configuration.configuration.getR66Mib().notifyError(
                     "Connection not allowed from " +
                             localChannelReference.getNetworkChannel().remoteAddress()
                             + " since " + e1.getMessage(), packet.getHostId());
@@ -330,6 +347,7 @@ public abstract class ConnectionActions {
                 + valid);
         ChannelCloseTimer.closeFutureChannel(channel);
         ChannelCloseTimer.closeFutureChannel(networkchannel);
+        businessError();
     }
 
     /**
@@ -364,6 +382,7 @@ public abstract class ConnectionActions {
             localChannelReference.validateConnection(false, result);
             ChannelCloseTimer.closeFutureChannel(channel);
             session.setStatus(43);
+            businessError();
             return;
         }
         try {
@@ -388,17 +407,18 @@ public abstract class ConnectionActions {
             localChannelReference.validateConnection(false, result);
             ChannelCloseTimer.closeFutureChannel(channel);
             session.setStatus(43);
+            businessError();
             return;
         }
         localChannelReference.setPartner(packet.getHostId());
         // Now if configuration say to do so: check remote ip address
-        if (Configuration.configuration.checkRemoteAddress && !localChannelReference.getPartner().isProxified()) {
+        if (Configuration.configuration.isCheckRemoteAddress() && !localChannelReference.getPartner().isProxified()) {
             DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
                     packet.getHostId());
             boolean toTest = false;
             if (!host.isProxified()) {
                 if (host.isClient()) {
-                    if (Configuration.configuration.checkClientAddress) {
+                    if (Configuration.configuration.isCheckClientAddress()) {
                         if (host.isNoAddress()) {
                             // 0.0.0.0 so nothing
                             toTest = false;
@@ -442,6 +462,16 @@ public abstract class ConnectionActions {
                 }
             }
         }
+        if (session.getBusinessObject() != null) {
+            try {
+                session.getBusinessObject().checkAtAuthentication(session);
+            } catch (OpenR66RunnerErrorException e) {
+                refusedConnection(channel, packet,
+                        new OpenR66ProtocolNotAuthenticatedException(e.getMessage()));
+                session.setStatus(104);
+                return;
+            }
+        }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk, null);
         session.newState(AUTHENTD);
         localChannelReference.validateConnection(true, result);
@@ -456,7 +486,7 @@ public abstract class ConnectionActions {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
             session.setStatus(98);
         }
-        logger.debug("Partner: {} from {}", localChannelReference.getPartner(), Configuration.configuration.versions);
+        logger.debug("Partner: {} from {}", localChannelReference.getPartner(), Configuration.configuration.getVersions());
     }
 
     /**
@@ -479,6 +509,7 @@ public abstract class ConnectionActions {
         session.newState(ERROR);
         session.setStatus(45);
         channel.close();
+        businessError();
     }
 
     /**

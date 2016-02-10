@@ -153,7 +153,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
         node1.put(DbHostAuth.JSON_MODEL, DbHostAuth.class.getSimpleName());
         DbValue[] values = DbHostAuth.getAllType();
         for (DbValue dbValue : values) {
-            node1.put(dbValue.column, dbValue.getType());
+            node1.put(dbValue.getColumn(), dbValue.getType());
         }
 
         ObjectNode node2, node3;
@@ -178,10 +178,10 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
             node3 = JsonHandler.createObjectNode();
             node3.put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as " + this.path + "/id");
             for (DbValue dbValue : values) {
-                if (dbValue.column.equalsIgnoreCase(DbHostAuth.Columns.HOSTID.name())) {
+                if (dbValue.getColumn().equalsIgnoreCase(DbHostAuth.Columns.HOSTID.name())) {
                     continue;
                 }
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
                     node3, node1);
@@ -197,7 +197,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
         if (this.methods.contains(METHOD.POST)) {
             node3 = JsonHandler.createObjectNode();
             for (DbValue dbValue : values) {
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
                     node3, node1);
@@ -218,7 +218,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
     protected void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
             RestArgument result, METHOD method) throws HttpForbiddenRequestException {
         HttpRestR66Handler r66handler = (HttpRestR66Handler) handler;
-        R66Session session = r66handler.serverHandler.getSession();
+        R66Session session = r66handler.getServerHandler().getSession();
         if (!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
             throw new HttpForbiddenRequestException("Partner must have ConfigAdmin role");
         }

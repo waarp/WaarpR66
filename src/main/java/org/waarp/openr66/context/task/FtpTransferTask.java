@@ -220,7 +220,7 @@ public class FtpTransferTask extends AbstractTask {
         }
         WaarpFtp4jClient ftpClient =
                 new WaarpFtp4jClient(requested, port, user, pwd, acct, isPassive, ssl,
-                        5000, (int) Configuration.configuration.TIMEOUTCON);
+                        5000, (int) Configuration.configuration.getTIMEOUTCON());
         boolean status = false;
         for (int i = 0; i < Configuration.RETRYNB; i++) {
             if (ftpClient.connect()) {

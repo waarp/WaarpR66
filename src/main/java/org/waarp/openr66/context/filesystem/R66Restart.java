@@ -37,10 +37,6 @@ public class R66Restart extends FilesystemBasedRestartImpl {
         super(session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.common.file.Restart#restartMarker(java.lang.String)
-     */
     @Override
     public boolean restartMarker(String marker) throws CommandAbstractException {
         long newposition = 0;

@@ -80,8 +80,8 @@ public class CommanderNoDb implements CommanderInterface {
              * this.requesterHostId+"_"+this.requestedHostId+"_"+this.ruleId+"_"+this.specialId
              * +XMLEXTENSION;
              */
-            File directory = new File(Configuration.configuration.baseDirectory +
-                    Configuration.configuration.archivePath);
+            File directory = new File(Configuration.configuration.getBaseDirectory() +
+                    Configuration.configuration.getArchivePath());
             File[] files = FileUtils.getFiles(directory,
                     new ExtensionFilter(DbTaskRunner.XMLEXTENSION));
             for (File file : files) {

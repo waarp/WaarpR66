@@ -67,10 +67,6 @@ public class ChModTask extends AbstractTask {
         super(TaskType.CHMOD, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         String finalname = argRule;

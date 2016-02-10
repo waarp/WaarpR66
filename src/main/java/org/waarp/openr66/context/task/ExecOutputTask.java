@@ -74,10 +74,6 @@ public class ExecOutputTask extends AbstractTask {
         super(TaskType.EXECOUTPUT, delay, argRule, argTransfer, session);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.context.task.AbstractTask#run()
-     */
     @Override
     public void run() {
         /*
@@ -93,13 +89,13 @@ public class ExecOutputTask extends AbstractTask {
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         // Force the WaitForValidation
         waitForValidation = true;
-        if (Configuration.configuration.useLocalExec && useLocalExec) {
+        if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
                 localExecClient
                         .runOneCommand(finalname, delay, waitForValidation, futureCompletion);
                 LocalExecResult result = localExecClient.getLocalExecResult();
-                finalize(result.status, result.result, finalname);
+                finalize(result.getStatus(), result.getResult(), finalname);
                 localExecClient.disconnect();
                 return;
             } // else continue
@@ -255,7 +251,7 @@ public class ExecOutputTask extends AbstractTask {
             status = -1;
             newname = "TimeOut";
         } else {
-            newname = allLineReader.lastLine.toString();
+            newname = allLineReader.getLastLine().toString();
         }
         finalize(status, newname, commandLine.toString());
     }
@@ -264,14 +260,14 @@ public class ExecOutputTask extends AbstractTask {
         String newname = newName;
         if (status == 0) {
             R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, this.session.getRunner());
-            result.other = newName;
+            result.setOther(newName);
             futureCompletion.setResult(result);
             futureCompletion.setSuccess();
             logger.info("Exec OK with {} returns {}", commandLine,
                     newname);
         } else if (status == 1) {
             R66Result result = new R66Result(session, true, ErrorCode.Warning, this.session.getRunner());
-            result.other = newName;
+            result.setOther(newName);
             futureCompletion.setResult(result);
             logger.warn("Exec in warning with " + commandLine +
                     " returns " + newname);
@@ -349,7 +345,7 @@ public class ExecOutputTask extends AbstractTask {
             Thread.sleep(Configuration.RETRYINMS);
         } catch (InterruptedException e) {
         }
-        String result = allLineReader.lastLine.toString();
+        String result = allLineReader.getLastLine().toString();
         logger.error("Status: " + status + " Exec in error with " +
                 commandLine + " returns " + result);
         OpenR66RunnerErrorException exc =

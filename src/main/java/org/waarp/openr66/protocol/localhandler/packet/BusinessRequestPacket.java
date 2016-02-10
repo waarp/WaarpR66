@@ -95,10 +95,6 @@ public class BusinessRequestPacket extends AbstractLocalPacket {
         return LocalPacketFactory.BUSINESSREQUESTPACKET;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
-     */
     @Override
     public String toString() {
         return "BusinessRequestPacket: " + sheader + ":" + delay + ":" + way;

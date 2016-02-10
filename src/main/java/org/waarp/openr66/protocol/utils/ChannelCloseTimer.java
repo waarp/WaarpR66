@@ -48,7 +48,7 @@ public class ChannelCloseTimer implements TimerTask {
 
     public void run(Timeout timeout) throws Exception {
         if (this.future != null) {
-            this.future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+            this.future.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON());
         }
         WaarpSslUtility.closingSslChannel(channel);
     }

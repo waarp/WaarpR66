@@ -185,7 +185,7 @@ public class LocalChannelReference {
         }
         cts = (ChannelTrafficShapingHandler) networkChannelRef.channel().pipeline()
                 .get(NetworkServerInitializer.LIMITCHANNEL);
-        if (DbConstant.admin.isActive && !DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+        if (DbConstant.admin.isActive() && !DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
             try {
                 this.noconcurrencyDbSession = new DbSession(DbConstant.admin, false);
             } catch (WaarpDatabaseNoConnectionException e) {
@@ -217,8 +217,8 @@ public class LocalChannelReference {
     public void close() {
         Configuration.configuration.getLocalTransaction().remove(this);
         // Now force the close of the database after a wait
-        if (noconcurrencyDbSession != null && DbConstant.admin != null && DbConstant.admin.session != null
-                && !noconcurrencyDbSession.equals(DbConstant.admin.session)) {
+        if (noconcurrencyDbSession != null && DbConstant.admin != null && DbConstant.admin.getSession() != null
+                && !noconcurrencyDbSession.equals(DbConstant.admin.getSession())) {
             noconcurrencyDbSession.forceDisconnect();
             noconcurrencyDbSession = null;
         }
@@ -285,7 +285,7 @@ public class LocalChannelReference {
             return networkServerHandler.getDbSession();
         }
         logger.info("SHOULD NOT BE");
-        return DbConstant.admin.session;
+        return DbConstant.admin.getSession();
     }
 
     /**
@@ -356,7 +356,7 @@ public class LocalChannelReference {
      */
     public R66Future getFutureValidateStartup() {
         try {
-            if (!futureStartup.await(Configuration.configuration.TIMEOUTCON)) {
+            if (!futureStartup.await(Configuration.configuration.getTIMEOUTCON())) {
                 validateStartup(false);
                 return futureStartup;
             }
@@ -391,7 +391,7 @@ public class LocalChannelReference {
             futureConnection.setSuccess();
         } else {
             futureConnection.setResult(result);
-            setErrorMessage(result.getMessage(), result.code);
+            setErrorMessage(result.getMessage(), result.getCode());
             futureConnection.cancel();
         }
     }
@@ -406,7 +406,7 @@ public class LocalChannelReference {
             for (int i = 0; i < Configuration.RETRYNB; i++) {
                 Channel channel = this.networkChannelRef.channel();
                 if (channel != null && channel.isActive()) {
-                    if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
+                    if (!futureConnection.await(Configuration.configuration.getTIMEOUTCON())) {
                         if (futureConnection.isDone()) {
                             return futureConnection;
                         } else {
@@ -456,8 +456,8 @@ public class LocalChannelReference {
         } else {
             logger.debug("Could not validate since Already validated: " +
                     futureEndTransfer.isSuccess() + " " + finalValue);
-            if (!futureEndTransfer.getResult().isAnswered) {
-                futureEndTransfer.getResult().isAnswered = finalValue.isAnswered;
+            if (!futureEndTransfer.getResult().isAnswered()) {
+                futureEndTransfer.getResult().setAnswered(finalValue.isAnswered());
             }
         }
     }
@@ -485,7 +485,7 @@ public class LocalChannelReference {
             // reset since transfer will start now
             this.futureEndTransfer = new R66Future(true);
         } else {
-            throw this.futureEndTransfer.getResult().exception;
+            throw this.futureEndTransfer.getResult().getException();
         }
     }
 
@@ -521,28 +521,28 @@ public class LocalChannelReference {
                 finalValue.getMessage());
         if (!futureEndTransfer.isDone()) {
             futureEndTransfer.setResult(finalValue);
-            if (finalValue.exception != null) {
-                futureEndTransfer.setFailure(finalValue.exception);
+            if (finalValue.getException() != null) {
+                futureEndTransfer.setFailure(finalValue.getException());
             } else {
                 futureEndTransfer.cancel();
             }
         }
         if (!futureValidRequest.isDone()) {
             futureValidRequest.setResult(finalValue);
-            if (finalValue.exception != null) {
-                futureValidRequest.setFailure(finalValue.exception);
+            if (finalValue.getException() != null) {
+                futureValidRequest.setFailure(finalValue.getException());
             } else {
                 futureValidRequest.cancel();
             }
         }
         logger.debug("Invalidate Request", new Exception(
                 "Trace for Invalidation"));
-        if (finalValue.code != ErrorCode.ServerOverloaded) {
+        if (finalValue.getCode() != ErrorCode.ServerOverloaded) {
             if (!futureRequest.isDone()) {
-                setErrorMessage(finalValue.getMessage(), finalValue.code);
+                setErrorMessage(finalValue.getMessage(), finalValue.getCode());
                 futureRequest.setResult(finalValue);
-                if (finalValue.exception != null) {
-                    futureRequest.setFailure(finalValue.exception);
+                if (finalValue.getException() != null) {
+                    futureRequest.setFailure(finalValue.getException());
                 } else {
                     futureRequest.cancel();
                 }
@@ -551,7 +551,7 @@ public class LocalChannelReference {
                         futureEndTransfer.getResult());
             }
         } else {
-            setErrorMessage(finalValue.getMessage(), finalValue.code);
+            setErrorMessage(finalValue.getMessage(), finalValue.getCode());
             logger.debug("Overloaded");
         }
         if (this.session != null) {
@@ -581,18 +581,18 @@ public class LocalChannelReference {
         }
         logger.debug("Validate Request");
         if (!futureRequest.isDone()) {
-            if (finalValue.other == null &&
+            if (finalValue.getOther() == null &&
                     session.getBusinessObject() != null &&
-                    session.getBusinessObject().getInfo() != null) {
-                finalValue.other = session.getBusinessObject().getInfo();
+                    session.getBusinessObject().getInfo(session) != null) {
+                finalValue.setOther(session.getBusinessObject().getInfo(session));
             }
             futureRequest.setResult(finalValue);
             futureRequest.setSuccess();
         } else {
             logger.info("Already validated: " + futureRequest.isSuccess() +
                     " " + finalValue);
-            if (!futureRequest.getResult().isAnswered) {
-                futureRequest.getResult().isAnswered = finalValue.isAnswered;
+            if (!futureRequest.getResult().isAnswered()) {
+                futureRequest.getResult().setAnswered(finalValue.isAnswered());
             }
         }
     }
@@ -720,7 +720,7 @@ public class LocalChannelReference {
      */
     public void setPartner(String hostId) {
         logger.debug("host:" + hostId);
-        partner = Configuration.configuration.versions.get(hostId);
+        partner = Configuration.configuration.getVersions().get(hostId);
         if (partner == null) {
             partner = new PartnerConfiguration(hostId, R66Versions.V2_4_12.getVersion());
         }

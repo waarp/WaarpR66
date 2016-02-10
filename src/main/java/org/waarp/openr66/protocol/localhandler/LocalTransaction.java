@@ -104,7 +104,7 @@ public class LocalTransaction {
                 Configuration.configuration.getLocalWorkerGroup());
         serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
-        serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
+        serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.getTIMEOUTCON());
         serverBootstrap.childHandler(new LocalServerInitializer());
         try {
             serverChannel = serverBootstrap.bind(socketLocalServerAddress).sync().channel();
@@ -116,7 +116,7 @@ public class LocalTransaction {
         clientBootstrap.channel(LocalChannel.class);
         // Same Group than Network final handler 
         clientBootstrap.group(Configuration.configuration.getLocalWorkerGroup());
-        clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.TIMEOUTCON);
+        clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.getTIMEOUTCON());
         clientBootstrap.handler(new LocalClientInitializer());
     }
 
@@ -314,7 +314,7 @@ public class LocalTransaction {
      * @return the LocalChannelReference
      */
     public LocalChannelReference getFromId(Integer id) {
-        int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
+        int maxtry = (int) (Configuration.configuration.getTIMEOUTCON() / Configuration.RETRYINMS) / 2;
         maxtry = 100;
         for (int i = 0; i < maxtry; i++) {
             LocalChannelReference lcr = localChannelHashMap.get(id);
@@ -432,7 +432,7 @@ public class LocalTransaction {
                     R66Result result = new R66Result(
                             new OpenR66ProtocolShutdownException(), session,
                             true, ErrorCode.Shutdown, runner);
-                    result.other = packet;
+                    result.setOther(packet);
                     try {
                         buffer = packet.getLocalPacket(localChannelReference);
                     } catch (OpenR66ProtocolPacketException e1) {

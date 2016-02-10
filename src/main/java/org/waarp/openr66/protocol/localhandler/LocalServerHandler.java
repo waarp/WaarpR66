@@ -83,7 +83,7 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * 
  * @author frederic bregier
  */
-public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
+class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket> {
     /**
      * Internal Logger
      */
@@ -120,8 +120,8 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                         ErrorCode.ConnectionImpossible.getCode(),
                         ErrorPacket.FORWARDCLOSECODE);
                 ctx.channel().writeAndFlush(errorPacket).addListener(ChannelFutureListener.CLOSE);
-                if (Configuration.configuration.r66Mib != null) {
-                    Configuration.configuration.r66Mib.notifyWarning(
+                if (Configuration.configuration.getR66Mib() != null) {
+                    Configuration.configuration.getR66Mib().notifyWarning(
                             "No LocalChannelReference", packet.getClass().getSimpleName());
                 }
                 packet.clear();
@@ -271,9 +271,9 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                         json = new JsonPacket();
                         json.setComment("Invalid command");
                         json.setRequestUserPacket(((JsonCommandPacket) packet).getTypeValid());
-                        JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
+                        JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.getCode().getCode(),
                                 LocalPacketFactory.REQUESTUSERPACKET);
-                        resulttest.other = packet;
+                        resulttest.setOther(packet);
                         serverHandler.getLocalChannelReference().validateRequest(resulttest);
                         try {
                             ChannelUtils.writeAbstractLocalPacket(serverHandler.getLocalChannelReference(),
@@ -385,7 +385,7 @@ public class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLoca
                         R66Result result = serverHandler.getLocalChannelReference().getFutureRequest()
                                 .getResult();
                         if (result != null) {
-                            isAnswered = result.isAnswered;
+                            isAnswered = result.isAnswered();
                         }
                     }
                 }

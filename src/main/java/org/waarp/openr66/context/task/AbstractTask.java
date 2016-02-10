@@ -327,7 +327,7 @@ public abstract class AbstractTask implements Runnable {
             } catch (OpenR66ProtocolNoSslException e) {
                 // replace by standard name
                 WaarpStringUtils.replaceAll(builder, LOCALHOST,
-                        Configuration.configuration.HOST_ID);
+                        Configuration.configuration.getHOST_ID());
             }
         }
         if (session.getRemoteAddress() != null) {
@@ -404,30 +404,30 @@ public abstract class AbstractTask implements Runnable {
             }
         } else {
             try {
-                dir.changeDirectory(Configuration.configuration.inPath);
+                dir.changeDirectory(Configuration.configuration.getInPath());
                 WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
             } catch (CommandAbstractException e) {
             }
             dir = new R66Dir(session);
             try {
-                dir.changeDirectory(Configuration.configuration.outPath);
+                dir.changeDirectory(Configuration.configuration.getOutPath());
                 WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
             } catch (CommandAbstractException e) {
             }
             dir = new R66Dir(session);
             try {
-                dir.changeDirectory(Configuration.configuration.workingPath);
+                dir.changeDirectory(Configuration.configuration.getWorkingPath());
                 WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
             } catch (CommandAbstractException e) {
             }
             dir = new R66Dir(session);
             try {
-                dir.changeDirectory(Configuration.configuration.archivePath);
+                dir.changeDirectory(Configuration.configuration.getArchivePath());
                 WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
             } catch (CommandAbstractException e) {
             }
         }
-        WaarpStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
+        WaarpStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.getBaseDirectory());
         if (session.getLocalChannelReference() == null) {
             WaarpStringUtils.replaceAll(builder, ERRORMSG, "NoError");
             WaarpStringUtils.replaceAll(builder, ERRORCODE, "-");

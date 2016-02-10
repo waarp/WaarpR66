@@ -69,7 +69,7 @@ public class RestartServerTask extends AbstractTask {
                             session.getAuth().getUser()));
             return;
         }
-        if (!Configuration.configuration.isServer) {
+        if (!Configuration.configuration.isServer()) {
             logger.error("Shutdown order asked through task but this is a client, not a server");
             futureCompletion.setFailure(new OpenR66ProtocolSystemException(
                     "Shutdown order asked through task but this is a client, not a server"));

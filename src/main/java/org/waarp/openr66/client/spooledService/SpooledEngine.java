@@ -50,7 +50,7 @@ public class SpooledEngine extends EngineAbstract {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(SpooledEngine.class);
 
-    public static final WaarpFuture closeFuture = new WaarpFuture(true);
+    static final WaarpFuture closeFuture = new WaarpFuture(true);
 
     @Override
     public void run() {
@@ -61,7 +61,7 @@ public class SpooledEngine extends EngineAbstract {
             shutdown();
             return;
         }
-        Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
+        Configuration.configuration.getShutdownConfiguration().serviceFuture = closeFuture;
         try {
             Properties prop = new Properties();
             FileInputStream in = new FileInputStream(config);
@@ -106,18 +106,18 @@ public class SpooledEngine extends EngineAbstract {
         for (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
             spooled.stop();
         }
-        Configuration.configuration.TIMEOUTCON /= 10;
+        Configuration.configuration.setTIMEOUTCON(Configuration.configuration.getTIMEOUTCON() / 10);
         try {
-            while (!SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.TIMEOUTCON,
+            while (!SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(),
                     TimeUnit.MILLISECONDS)) {
-                Thread.sleep(Configuration.configuration.TIMEOUTCON);
+                Thread.sleep(Configuration.configuration.getTIMEOUTCON());
             }
         } catch (InterruptedException e) {
         }
         for (SpooledDirectoryTransfer spooledDirectoryTransfer : SpooledDirectoryTransfer.list) {
             logger.warn(Messages.getString("SpooledDirectoryTransfer.58") + spooledDirectoryTransfer.name + ": "
-                    + spooledDirectoryTransfer.sent
-                    + " success, " + spooledDirectoryTransfer.error
+                    + spooledDirectoryTransfer.getSent()
+                    + " success, " + spooledDirectoryTransfer.getError()
                     + Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
         }
         SpooledDirectoryTransfer.list.clear();
