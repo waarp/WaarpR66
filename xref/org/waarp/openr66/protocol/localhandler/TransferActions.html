@@ -173,7 +173,7 @@
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>         }
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>         <em class="jxr_comment">// XXX validLimit only on requested side</em>
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>         <strong class="jxr_keyword">if</strong> (packet.isToValidate()) {
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.isShutdown) {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.isShutdown()) {
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>                 logger.warn(Messages.getString(<span class="jxr_string">"LocalServerHandler.7"</span>) <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>                         + packet.getRulename() + <span class="jxr_string">" from "</span> + session.getAuth().toString());
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>                 session.setStatus(100);
@@ -184,23 +184,23 @@
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>                 session.setStatus(100);
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>             }
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 <strong class="jxr_keyword">if</strong> (Configuration.configuration.r66Mib != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>                     Configuration.configuration.r66Mib.
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getConstraintLimitHandler().checkConstraints()) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 <strong class="jxr_keyword">if</strong> (Configuration.configuration.getR66Mib() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>                     Configuration.configuration.getR66Mib().
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>                             notifyOverloaded(<span class="jxr_string">"Rule: "</span> + packet.getRulename() + <span class="jxr_string">" from "</span>
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>                                     + session.getAuth().toString(),
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>                                     Configuration.configuration.constraintLimitHandler.lastAlert);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>                                     Configuration.configuration.getConstraintLimitHandler().lastAlert);
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>                 }
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>                 logger.warn(Messages.getString(<span class="jxr_string">"LocalServerHandler.8"</span>) <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                         + packet.getRulename()
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>                         + <span class="jxr_string">" while "</span>
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>                         + Configuration.configuration.constraintLimitHandler.lastAlert +
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                         + Configuration.configuration.getConstraintLimitHandler().lastAlert +
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>                         <span class="jxr_string">" from "</span> + session.getAuth().toString());
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>                 session.setStatus(100);
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>                 endInitRequestInError(channel,
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>                         ErrorCode.ServerOverloaded, <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNotYetConnectionException.html">OpenR66ProtocolNotYetConnectionException</a>(
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>                                 <span class="jxr_string">"Limit exceeded "</span> + Configuration.configuration.constraintLimitHandler.lastAlert),
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                                 <span class="jxr_string">"Limit exceeded "</span> + Configuration.configuration.getConstraintLimitHandler().lastAlert),
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>                         packet);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>                 session.setStatus(100);
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>                 <strong class="jxr_keyword">return</strong>;
@@ -235,18 +235,18 @@
 <a class="jxr_linenumber" name="L227" href="#L227">227</a>                         Messages.getString(<span class="jxr_string">"LocalServerHandler.10"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>             }
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>             <em class="jxr_comment">// Check if the blocksize is greater than local value</em>
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.BLOCKSIZE &lt; blocksize) {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>                 blocksize = Configuration.configuration.BLOCKSIZE;
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getBLOCKSIZE() &lt; blocksize) {
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                 blocksize = Configuration.configuration.getBLOCKSIZE();
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>                 String sep = localChannelReference.getPartner().getSeperator();
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>                 packet = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/RequestPacket.html">RequestPacket</a>(packet.getRulename(), packet.getMode(),
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>                         packet.getFilename(), blocksize, packet.getRank(),
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>                         packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize(), sep);
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>             }
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>         }
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>         <strong class="jxr_keyword">if</strong> (!RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         <strong class="jxr_keyword">if</strong> (!RequestPacket.isCompatibleMode(rule.getMode(), packet.getMode())) {
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>             <em class="jxr_comment">// not compatible Rule and mode in request</em>
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNotAuthenticatedException.html">OpenR66ProtocolNotAuthenticatedException</a>(
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     Messages.getString(<span class="jxr_string">"LocalServerHandler.12"</span>) + rule.mode + <span class="jxr_string">" vs "</span> <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     Messages.getString(<span class="jxr_string">"LocalServerHandler.12"</span>) + rule.getMode() + <span class="jxr_string">" vs "</span> <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>                             + packet.getMode());
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>         }
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>         session.setBlockSize(blocksize);
@@ -426,7 +426,7 @@
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>             session.setRunner(runner);
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>             <em class="jxr_comment">// Fix to ensure that recv request are not trying to access to not chroot files</em>
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.chrootChecked &amp;&amp; packet.isToValidate() &amp;&amp; runner.isSender()) {
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.isChrootChecked() &amp;&amp; packet.isToValidate() &amp;&amp; runner.isSender()) {
 <a class="jxr_linenumber" name="L422" href="#L422">422</a>                 session.startup(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>                 session.startup(false);
@@ -491,8 +491,8 @@
 <a class="jxr_linenumber" name="L483" href="#L483">483</a>         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
 <a class="jxr_linenumber" name="L484" href="#L484">484</a>         <em class="jxr_comment">// inform back</em>
 <a class="jxr_linenumber" name="L485" href="#L485">485</a>         <strong class="jxr_keyword">if</strong> (packet.isToValidate()) {
-<a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.monitoring != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 Configuration.configuration.monitoring.lastInActiveTransfer =
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getMonitoring() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 Configuration.configuration.getMonitoring().lastInActiveTransfer =
 <a class="jxr_linenumber" name="L488" href="#L488">488</a>                         System.currentTimeMillis();
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>             }
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>             <strong class="jxr_keyword">if</strong> (runner.isSender()) {
@@ -512,10 +512,10 @@
 <a class="jxr_linenumber" name="L504" href="#L504">504</a>             session.newState(REQUESTD);
 <a class="jxr_linenumber" name="L505" href="#L505">505</a>             <em class="jxr_comment">// requester =&gt; might be a client</em>
 <a class="jxr_linenumber" name="L506" href="#L506">506</a>             <em class="jxr_comment">// Save the runner into the session and validate the request so begin transfer</em>
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>             session.getLocalChannelReference().getFutureRequest().runner = runner;
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>             session.getLocalChannelReference().getFutureRequest().setRunner(runner);
 <a class="jxr_linenumber" name="L508" href="#L508">508</a>             localChannelReference.getFutureValidRequest().setSuccess();
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.monitoring != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>                 Configuration.configuration.monitoring.lastOutActiveTransfer =
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getMonitoring() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>                 Configuration.configuration.getMonitoring().lastOutActiveTransfer =
 <a class="jxr_linenumber" name="L511" href="#L511">511</a>                         System.currentTimeMillis();
 <a class="jxr_linenumber" name="L512" href="#L512">512</a>             }
 <a class="jxr_linenumber" name="L513" href="#L513">513</a>         }
@@ -718,7 +718,7 @@
 <a class="jxr_linenumber" name="L710" href="#L710">710</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L711" href="#L711">711</a>             }
 <a class="jxr_linenumber" name="L712" href="#L712">712</a>         }
-<a class="jxr_linenumber" name="L713" href="#L713">713</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.globalDigest) {
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.isGlobalDigest()) {
 <a class="jxr_linenumber" name="L714" href="#L714">714</a>             <strong class="jxr_keyword">if</strong> (globalDigest == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L715" href="#L715">715</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L716" href="#L716">716</a>                     <em class="jxr_comment">// check if first block, since if not, digest will be only partial</em>
@@ -728,14 +728,14 @@
 <a class="jxr_linenumber" name="L720" href="#L720">720</a>                     <strong class="jxr_keyword">if</strong> (localChannelReference.getPartner() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L721" href="#L721">721</a>                         <strong class="jxr_keyword">if</strong> (localChannelReference.getPartner().useFinalHash()) {
 <a class="jxr_linenumber" name="L722" href="#L722">722</a>                             DigestAlgo algo = localChannelReference.getPartner().getDigestAlgo();
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>                             <strong class="jxr_keyword">if</strong> (algo != Configuration.configuration.digest) {
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>                             <strong class="jxr_keyword">if</strong> (algo != Configuration.configuration.getDigest()) {
 <a class="jxr_linenumber" name="L724" href="#L724">724</a>                                 globalDigest = <strong class="jxr_keyword">new</strong> FilesystemBasedDigest(algo);
-<a class="jxr_linenumber" name="L725" href="#L725">725</a>                                 localDigest = <strong class="jxr_keyword">new</strong> FilesystemBasedDigest(Configuration.configuration.digest);
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>                                 localDigest = <strong class="jxr_keyword">new</strong> FilesystemBasedDigest(Configuration.configuration.getDigest());
 <a class="jxr_linenumber" name="L726" href="#L726">726</a>                             }
 <a class="jxr_linenumber" name="L727" href="#L727">727</a>                         }
 <a class="jxr_linenumber" name="L728" href="#L728">728</a>                     }
 <a class="jxr_linenumber" name="L729" href="#L729">729</a>                     <strong class="jxr_keyword">if</strong> (globalDigest == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L730" href="#L730">730</a>                         globalDigest = <strong class="jxr_keyword">new</strong> FilesystemBasedDigest(Configuration.configuration.digest);
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>                         globalDigest = <strong class="jxr_keyword">new</strong> FilesystemBasedDigest(Configuration.configuration.getDigest());
 <a class="jxr_linenumber" name="L731" href="#L731">731</a>                         localDigest = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L732" href="#L732">732</a>                     }
 <a class="jxr_linenumber" name="L733" href="#L733">733</a>                 } <strong class="jxr_keyword">catch</strong> (NoSuchAlgorithmException e) {
@@ -893,7 +893,7 @@
 <a class="jxr_linenumber" name="L885" href="#L885">885</a>                         result = localChannelReference.getFutureRequest().getResult();
 <a class="jxr_linenumber" name="L886" href="#L886">886</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L887" href="#L887">887</a>                                 <span class="jxr_string">"Error while finalizing transfer: "</span> + result.getMessage(),
-<a class="jxr_linenumber" name="L888" href="#L888">888</a>                                 result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>                                 result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
 <a class="jxr_linenumber" name="L889" href="#L889">889</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L890" href="#L890">890</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L891" href="#L891">891</a>                                 <span class="jxr_string">"Error while finalizing transfer"</span>,
@@ -914,7 +914,7 @@
 <a class="jxr_linenumber" name="L906" href="#L906">906</a>                         result = localChannelReference.getFutureRequest().getResult();
 <a class="jxr_linenumber" name="L907" href="#L907">907</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L908" href="#L908">908</a>                                 <span class="jxr_string">"Error while finalizing transfer: "</span> + result.getMessage(),
-<a class="jxr_linenumber" name="L909" href="#L909">909</a>                                 result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+<a class="jxr_linenumber" name="L909" href="#L909">909</a>                                 result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
 <a class="jxr_linenumber" name="L910" href="#L910">910</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L911" href="#L911">911</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L912" href="#L912">912</a>                                 <span class="jxr_string">"Error while finalizing transfer"</span>,
@@ -960,7 +960,7 @@
 <a class="jxr_linenumber" name="L952" href="#L952">952</a>                         result = localChannelReference.getFutureRequest().getResult();
 <a class="jxr_linenumber" name="L953" href="#L953">953</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L954" href="#L954">954</a>                                 <span class="jxr_string">"Error while finalizing transfer: "</span> + result.getMessage(),
-<a class="jxr_linenumber" name="L955" href="#L955">955</a>                                 result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>                                 result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
 <a class="jxr_linenumber" name="L956" href="#L956">956</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L957" href="#L957">957</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L958" href="#L958">958</a>                                 <span class="jxr_string">"Error while finalizing transfer"</span>,
@@ -981,7 +981,7 @@
 <a class="jxr_linenumber" name="L973" href="#L973">973</a>                         result = localChannelReference.getFutureRequest().getResult();
 <a class="jxr_linenumber" name="L974" href="#L974">974</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L975" href="#L975">975</a>                                 <span class="jxr_string">"Error while finalizing transfer: "</span> + result.getMessage(),
-<a class="jxr_linenumber" name="L976" href="#L976">976</a>                                 result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>                                 result.getCode().getCode(), ErrorPacket.FORWARDCLOSECODE);
 <a class="jxr_linenumber" name="L977" href="#L977">977</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L978" href="#L978">978</a>                         error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(
 <a class="jxr_linenumber" name="L979" href="#L979">979</a>                                 <span class="jxr_string">"Error while finalizing transfer"</span>,
@@ -1037,16 +1037,16 @@
 <a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>             }
 <a class="jxr_linenumber" name="L1030" href="#L1030">1030</a>             <strong class="jxr_keyword">if</strong> (transfer.isSuccess()) {
 <a class="jxr_linenumber" name="L1031" href="#L1031">1031</a>                 <strong class="jxr_keyword">if</strong> (session.getExtendedProtocol() &amp;&amp; session.getBusinessObject() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a>                     <strong class="jxr_keyword">if</strong> (session.getBusinessObject().getInfo() == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a>                         session.getBusinessObject().setInfo(optional);
+<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a>                     <strong class="jxr_keyword">if</strong> (session.getBusinessObject().getInfo(session) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a>                         session.getBusinessObject().setInfo(session, optional);
 <a class="jxr_linenumber" name="L1034" href="#L1034">1034</a>                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a>                         String temp = session.getBusinessObject().getInfo();
-<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a>                         session.getBusinessObject().setInfo(optional);
+<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a>                         String temp = session.getBusinessObject().getInfo(session);
+<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a>                         session.getBusinessObject().setInfo(session, optional);
 <a class="jxr_linenumber" name="L1037" href="#L1037">1037</a>                         optional = temp;
 <a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>                     }
 <a class="jxr_linenumber" name="L1039" href="#L1039">1039</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (session.getExtendedProtocol() &amp;&amp;
-<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>                         transfer.getResult().other == <strong class="jxr_keyword">null</strong> &amp;&amp; optional != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>                     transfer.getResult().other = optional;
+<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>                         transfer.getResult().getOther() == <strong class="jxr_keyword">null</strong> &amp;&amp; optional != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>                     transfer.getResult().setOther(optional);
 <a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>                 }
 <a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>                 localChannelReference.validateRequest(transfer.getResult());
 <a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>             }
@@ -1132,7 +1132,7 @@
 <a class="jxr_linenumber" name="L1124" href="#L1124">1124</a>             <strong class="jxr_keyword">if</strong> (newSize &gt; 0) {
 <a class="jxr_linenumber" name="L1125" href="#L1125">1125</a>                 runner.setOriginalSize(newSize);
 <a class="jxr_linenumber" name="L1126" href="#L1126">1126</a>                 <em class="jxr_comment">// Check if a CHKFILE task was supposely needed to run</em>
-<a class="jxr_linenumber" name="L1127" href="#L1127">1127</a>                 String[][] rpretasks = runner.getRule().rpreTasksArray;
+<a class="jxr_linenumber" name="L1127" href="#L1127">1127</a>                 String[][] rpretasks = runner.getRule().getRpreTasksArray();
 <a class="jxr_linenumber" name="L1128" href="#L1128">1128</a>                 <strong class="jxr_keyword">if</strong> (rpretasks != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1129" href="#L1129">1129</a>                     <strong class="jxr_keyword">for</strong> (String[] strings : rpretasks) {
 <a class="jxr_linenumber" name="L1130" href="#L1130">1130</a>                         <a href="../../../../../org/waarp/openr66/context/task/AbstractTask.html">AbstractTask</a> task = runner.getTask(strings, session);
@@ -1224,6 +1224,6 @@
 <a class="jxr_linenumber" name="L1216" href="#L1216">1216</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

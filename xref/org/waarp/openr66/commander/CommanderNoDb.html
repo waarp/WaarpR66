@@ -88,8 +88,8 @@
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  <em class="jxr_comment">             * this.requesterHostId+"_"+this.requestedHostId+"_"+this.ruleId+"_"+this.specialId</em>
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_comment">             * +XMLEXTENSION;</em>
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_comment">             */</em>
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              File directory = <strong class="jxr_keyword">new</strong> File(Configuration.configuration.baseDirectory +
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>                      Configuration.configuration.archivePath);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              File directory = <strong class="jxr_keyword">new</strong> File(Configuration.configuration.getBaseDirectory() +
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                      Configuration.configuration.getArchivePath());
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>              File[] files = FileUtils.getFiles(directory,
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>                      <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/configuration/ExtensionFilter.html">ExtensionFilter</a>(DbTaskRunner.XMLEXTENSION));
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>              <strong class="jxr_keyword">for</strong> (File file : files) {
@@ -202,6 +202,6 @@
 <a class="jxr_linenumber" name="L194" href="#L194">194</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

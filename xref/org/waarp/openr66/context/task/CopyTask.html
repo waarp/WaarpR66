@@ -57,31 +57,27 @@
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">super</strong>(TaskType.COPY, delay, argRule, argTransfer, session);
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>      }
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_comment">     * (non-Javadoc)</em>
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_comment">     * @see org.waarp.openr66.context.task.AbstractTask#run()</em>
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_comment">     */</em>
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>      @Override
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          logger.info(<span class="jxr_string">"Copy with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>,
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>                  session);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          File from = session.getFile().getTrueFile();
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          String directory = argRule.replace('&#92;&#92;', '/');
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>          File to = <strong class="jxr_keyword">new</strong> File(directory, session.getFile().getBasename());
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>              FileUtils.copy(from, to, false, false);
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>          } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e1) {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>              logger.error(<span class="jxr_string">"Copy with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and "</span> +
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>                      session, e1);
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>              futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(e1));
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>              <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          }
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>      }
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      @Override
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          logger.info(<span class="jxr_string">"Copy with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>,
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                  session);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          File from = session.getFile().getTrueFile();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          String directory = argRule.replace('&#92;&#92;', '/');
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          File to = <strong class="jxr_keyword">new</strong> File(directory, session.getFile().getBasename());
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              FileUtils.copy(from, to, false, false);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e1) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              logger.error(<span class="jxr_string">"Copy with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and "</span> +
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>                      session, e1);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(e1));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -94,34 +94,34 @@
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          <strong class="jxr_keyword">this</strong>.internalConstructor(runner);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>          <strong class="jxr_keyword">if</strong> (fromStartup) {
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>              <em class="jxr_comment">// Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready</em>
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>              DbTaskRunner.resetToSubmit(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              DbTaskRunner.resetToSubmit(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>          }
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>  
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> internalConstructor(<a href="../../../../org/waarp/openr66/commander/InternalRunner.html">InternalRunner</a> runner)
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">if</strong> (Configuration.configuration.multipleMonitors &gt; 1) {
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">if</strong> (Configuration.configuration.getMultipleMonitors() &gt; 1) {
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>                  preparedStatementLock =
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>                          <a href="../../../../org/waarp/openr66/database/data/DbMultipleMonitor.html">DbMultipleMonitor</a>
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>                                  .getUpdatedPrepareStament(DbConstant.noCommitAdmin.session);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                                  .getUpdatedPrepareStament(DbConstant.noCommitAdmin.getSession());
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>                 preparedStatementLock = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>             }
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>             preparedStatementConfig =
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>                     DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>                     DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>             preparedStatementHostConfig =
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>                     DbHostConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>                     DbHostConfiguration.getUpdatedPrepareStament(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>             preparedStatementHost =
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>                     DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>                     DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>             preparedStatementRule =
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>                     DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                     DbRule.getUpdatedPrepareStament(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>             preparedStatementRunner =
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>                     DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                     DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>                             UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
 <a class="jxr_linenumber" name="L114" href="#L114">114</a> 
 <a class="jxr_linenumber" name="L115" href="#L115">115</a>             <em class="jxr_comment">// Clean tasks (CompleteOK and ALLDONE =&gt; DONE)</em>
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>             DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>             DbTaskRunner.changeFinishedToDone(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>             internalRunner = runner;
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>         } <strong class="jxr_keyword">finally</strong> {
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>             <strong class="jxr_keyword">if</strong> (internalRunner == <strong class="jxr_keyword">null</strong>) {
@@ -146,23 +146,23 @@
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>                 }
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementLock != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>                     DbConstant.noCommitAdmin.session
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                     DbConstant.noCommitAdmin.getSession()
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>                             .addLongTermPreparedStatement(preparedStatementLock);
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>                 }
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementConfig != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>                     DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementConfig);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                     DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementConfig);
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>                 }
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementHostConfig != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>                     DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHostConfig);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                     DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementHostConfig);
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>                 }
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementHost != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>                     DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHost);
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>                     DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementHost);
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>                 }
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementRule != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>                     DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRule);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>                     DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementRule);
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>                 }
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>                 <strong class="jxr_keyword">if</strong> (preparedStatementRunner != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>                     DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRunner);
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                     DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementRunner);
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>                 }
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>             }
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>         }
@@ -174,42 +174,42 @@
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> finalize() {
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>         <strong class="jxr_keyword">if</strong> (preparedStatementLock != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 DbConstant.noCommitAdmin.session.commit();
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 DbConstant.noCommitAdmin.getSession().commit();
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>             }
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>             preparedStatementLock.realClose();
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>             DbConstant.noCommitAdmin.session
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             DbConstant.noCommitAdmin.getSession()
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>                     .removeLongTermPreparedStatements(preparedStatementLock);
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>             <em class="jxr_comment">// DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();</em>
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>         }
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>         <strong class="jxr_keyword">if</strong> (preparedStatementConfig != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>             preparedStatementConfig.realClose();
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>             DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementConfig);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementConfig);
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>         }
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>         <strong class="jxr_keyword">if</strong> (preparedStatementHostConfig != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>             preparedStatementHostConfig.realClose();
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>             DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHostConfig);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementHostConfig);
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>         }
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         <strong class="jxr_keyword">if</strong> (preparedStatementHost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>             preparedStatementHost.realClose();
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>             DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHost);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementHost);
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>         }
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>         <strong class="jxr_keyword">if</strong> (preparedStatementRule != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>             preparedStatementRule.realClose();
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>             DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRule);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementRule);
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>         }
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">if</strong> (preparedStatementRunner != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>             preparedStatementRunner.realClose();
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRunner);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementRunner);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>         }
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>         <em class="jxr_comment">// DbConstant.admin.session.removeLongTermPreparedStatements();</em>
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
 <a class="jxr_linenumber" name="L200" href="#L200">200</a> 
 <a class="jxr_linenumber" name="L201" href="#L201">201</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>         Thread.currentThread().setName(<span class="jxr_string">"OpenR66Commander"</span>);
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session.isDisActive) {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             DbConstant.admin.session.checkConnectionNoException();
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.getSession().isDisActive()) {
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             DbConstant.admin.getSession().checkConnectionNoException();
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         <em class="jxr_comment">// each time it is runned, it parses all database for updates</em>
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>         <a href="../../../../org/waarp/openr66/database/data/DbMultipleMonitor.html">DbMultipleMonitor</a> multipleMonitor = <strong class="jxr_keyword">null</strong>;
@@ -225,14 +225,14 @@
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>                     DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>                     DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.getSession());
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>                 }
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>                     DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                     DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.getSession());
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>                 }
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>                 <strong class="jxr_keyword">return</strong>;
@@ -267,21 +267,21 @@
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>                 preparedStatementConfig.close();
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>                 }
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L271" href="#L271">271</a>                 }
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>                 }
 <a class="jxr_linenumber" name="L279" href="#L279">279</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
@@ -318,21 +318,21 @@
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>                 preparedStatementHostConfig.close();
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>                 }
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L322" href="#L322">322</a>                 }
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L324" href="#L324">324</a>                 <em class="jxr_comment">// XXX no return since table might not be initialized return;</em>
 <a class="jxr_linenumber" name="L325" href="#L325">325</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L326" href="#L326">326</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L328" href="#L328">328</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L329" href="#L329">329</a>                 }
 <a class="jxr_linenumber" name="L330" href="#L330">330</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
@@ -374,21 +374,21 @@
 <a class="jxr_linenumber" name="L366" href="#L366">366</a>                 }
 <a class="jxr_linenumber" name="L367" href="#L367">367</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L370" href="#L370">370</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L371" href="#L371">371</a>                 }
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L375" href="#L375">375</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>                 }
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L380" href="#L380">380</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>                 }
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
@@ -428,28 +428,28 @@
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>                 }
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L422" href="#L422">422</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>                 }
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L427" href="#L427">427</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L431" href="#L431">431</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>                 }
 <a class="jxr_linenumber" name="L433" href="#L433">433</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L434" href="#L434">434</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L435" href="#L435">435</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoDataException e) {
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L438" href="#L438">438</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L439" href="#L439">439</a>                 }
 <a class="jxr_linenumber" name="L440" href="#L440">440</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L441" href="#L441">441</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L442" href="#L442">442</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L443" href="#L443">443</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L445" href="#L445">445</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L446" href="#L446">446</a>                 }
 <a class="jxr_linenumber" name="L447" href="#L447">447</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
@@ -506,21 +506,21 @@
 <a class="jxr_linenumber" name="L498" href="#L498">498</a>                 }
 <a class="jxr_linenumber" name="L499" href="#L499">499</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L500" href="#L500">500</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L502" href="#L502">502</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L503" href="#L503">503</a>                 }
 <a class="jxr_linenumber" name="L504" href="#L504">504</a>                 logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L505" href="#L505">505</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L506" href="#L506">506</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L507" href="#L507">507</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L509" href="#L509">509</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L510" href="#L510">510</a>                 }
 <a class="jxr_linenumber" name="L511" href="#L511">511</a>                 logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
 <a class="jxr_linenumber" name="L512" href="#L512">512</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L513" href="#L513">513</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L514" href="#L514">514</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L516" href="#L516">516</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L517" href="#L517">517</a>                 }
 <a class="jxr_linenumber" name="L518" href="#L518">518</a>                 logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
@@ -535,10 +535,10 @@
 <a class="jxr_linenumber" name="L527" href="#L527">527</a>                     <em class="jxr_comment">// Now update and Commit so releasing the lock</em>
 <a class="jxr_linenumber" name="L528" href="#L528">528</a>                     logger.debug(<span class="jxr_string">"Update "</span> + multipleMonitor);
 <a class="jxr_linenumber" name="L529" href="#L529">529</a>                     multipleMonitor.update();
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>                     DbConstant.noCommitAdmin.session.commit();
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>                     DbConstant.noCommitAdmin.getSession().commit();
 <a class="jxr_linenumber" name="L531" href="#L531">531</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L532" href="#L532">532</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>                         DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.session);
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>                         DbConstant.noCommitAdmin.getDbModel().validConnection(DbConstant.noCommitAdmin.getSession());
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>                     } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>                     }
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>                 }
@@ -550,6 +550,6 @@
 <a class="jxr_linenumber" name="L542" href="#L542">542</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>                 i++;
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>                 rhost = srequested = args[i];
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>                     srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>                     srequester = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>                             srequested);
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>                     logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequested, e); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -143,7 +143,7 @@
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>                 i++;
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>                 rhost = srequester = args[i];
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>                     srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                     srequested = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>                             srequester);
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>                     logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequester, e); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -236,7 +236,7 @@
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>         }
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>             runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>                     specialId, requester, requested);
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>             logger.info(<span class="jxr_string">"Found previous Runner: "</span> + runner.toString());
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -249,7 +249,7 @@
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>             futureInfo.awaitUninterruptibly();
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>             <strong class="jxr_keyword">if</strong> (futureInfo.isSuccess()) {
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>                 <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = futureInfo.getResult();
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>                 <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a> info = (ValidPacket) r66result.other;
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>                 <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a> info = (ValidPacket) r66result.getOther();
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>                 String xml = info.getSheader();
 <a class="jxr_linenumber" name="L246" href="#L246">246</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L247" href="#L247">247</a>                     runner = DbTaskRunner.fromStringXml(xml, <strong class="jxr_keyword">true</strong>);
@@ -295,7 +295,7 @@
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>                     setDone(runner);
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>                     logger.info(<span class="jxr_string">"Transfer already finished: "</span> + runner.toString());
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>                     future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.TransferOk, runner));
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     future.getResult().runner = runner;
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     future.getResult().setRunner(runner);
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>                     future.setSuccess();
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>                     <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>                 } <strong class="jxr_keyword">else</strong> {
@@ -390,7 +390,7 @@
 <a class="jxr_linenumber" name="L382" href="#L382">382</a> 
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> sendValid(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner, byte code) {
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host;
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>         host = R66Auth.getServerAuth(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>                 <strong class="jxr_keyword">this</strong>.requester);
 <a class="jxr_linenumber" name="L387" href="#L387">387</a>         <strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>             logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.39"</span>) + <strong class="jxr_keyword">this</strong>.requester); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -420,14 +420,14 @@
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>                 logger.info(<span class="jxr_string">"Request done with "</span> + (transfer.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>));
 <a class="jxr_linenumber" name="L413" href="#L413">413</a>                 <strong class="jxr_keyword">if</strong> (transfer.isSuccess()) {
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>                     future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.PreProcessingOk, runner));
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>                     future.getResult().runner = runner;
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>                     future.getResult().setRunner(runner);
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>                     future.setSuccess();
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>                     <strong class="jxr_keyword">return</strong> ErrorCode.PreProcessingOk;
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>                     <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = transfer.getResult();
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>                     <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> error = ErrorCode.Internal;
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>                     <strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>                         error = result.code;
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                         error = result.getCode();
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>                     }
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>                     <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66Exception.html">OpenR66Exception</a> e =
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>                             <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Transfer in direct mode failed: "</span> + error.mesg);
@@ -436,7 +436,7 @@
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>                 }
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>                 <em class="jxr_comment">// get remote host instead</em>
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 host = R66Auth.getServerAuth(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>                         <strong class="jxr_keyword">this</strong>.requested);
 <a class="jxr_linenumber" name="L433" href="#L433">433</a>                 <strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L434" href="#L434">434</a>                     logger.error(Messages.getString(<span class="jxr_string">"Message.HostNotFound"</span>) + <strong class="jxr_keyword">this</strong>.requested); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -538,14 +538,14 @@
 <a class="jxr_linenumber" name="L530" href="#L530">530</a>         logger.info(<span class="jxr_string">"Request done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>));
 <a class="jxr_linenumber" name="L531" href="#L531">531</a>         <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = future.getResult();
 <a class="jxr_linenumber" name="L532" href="#L532">532</a>         <strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>             <strong class="jxr_keyword">return</strong> result.code;
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>             <strong class="jxr_keyword">return</strong> result.getCode();
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>         }
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>         <strong class="jxr_keyword">return</strong> ErrorCode.Internal;
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>     }
 <a class="jxr_linenumber" name="L537" href="#L537">537</a> 
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> sendStopOrCancel(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner, byte code) {
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host;
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>         host = R66Auth.getServerAuth(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L541" href="#L541">541</a>                 <strong class="jxr_keyword">this</strong>.requester);
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>         <strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>             logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.39"</span>) + <strong class="jxr_keyword">this</strong>.requester); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -624,7 +624,7 @@
 <a class="jxr_linenumber" name="L616" href="#L616">616</a>         logger.info(<span class="jxr_string">"Request done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>));
 <a class="jxr_linenumber" name="L617" href="#L617">617</a>         <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = future.getResult();
 <a class="jxr_linenumber" name="L618" href="#L618">618</a>         <strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>             <strong class="jxr_keyword">return</strong> result.code;
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>             <strong class="jxr_keyword">return</strong> result.getCode();
 <a class="jxr_linenumber" name="L620" href="#L620">620</a>         }
 <a class="jxr_linenumber" name="L621" href="#L621">621</a>         <strong class="jxr_keyword">return</strong> ErrorCode.Internal;
 <a class="jxr_linenumber" name="L622" href="#L622">622</a>     }
@@ -642,7 +642,7 @@
 <a class="jxr_linenumber" name="L634" href="#L634">634</a>             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L635" href="#L635">635</a>                 System.out.println(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L636" href="#L636">636</a>             }
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L638" href="#L638">638</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L639" href="#L639">639</a>             }
 <a class="jxr_linenumber" name="L640" href="#L640">640</a>             ChannelUtils.stopLogger();
@@ -669,7 +669,7 @@
 <a class="jxr_linenumber" name="L661" href="#L661">661</a>                         outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L662" href="#L662">662</a>                         outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.21"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L663" href="#L663">663</a>                         outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L664" href="#L664">664</a>                         outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>                         outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L665" href="#L665">665</a>                         <strong class="jxr_keyword">if</strong> (requestTransfer.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L666" href="#L666">666</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L667" href="#L667">667</a>                         } <strong class="jxr_keyword">else</strong> {
@@ -679,14 +679,14 @@
 <a class="jxr_linenumber" name="L671" href="#L671">671</a>                             outputFormat.sysout();
 <a class="jxr_linenumber" name="L672" href="#L672">672</a>                         }
 <a class="jxr_linenumber" name="L673" href="#L673">673</a>                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L674" href="#L674">674</a>                         <strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>                         <strong class="jxr_keyword">switch</strong> (finalValue.getCode()) {
 <a class="jxr_linenumber" name="L675" href="#L675">675</a>                             <strong class="jxr_keyword">case</strong> CompleteOk:
 <a class="jxr_linenumber" name="L676" href="#L676">676</a>                                 value = 0;
 <a class="jxr_linenumber" name="L677" href="#L677">677</a>                                 outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L678" href="#L678">678</a>                                 outputFormat
 <a class="jxr_linenumber" name="L679" href="#L679">679</a>                                         .setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.70"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L680" href="#L680">680</a>                                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L681" href="#L681">681</a>                                 outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>                                 outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L682" href="#L682">682</a>                                 logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L683" href="#L683">683</a>                                 <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L684" href="#L684">684</a>                                     outputFormat.sysout();
@@ -698,7 +698,7 @@
 <a class="jxr_linenumber" name="L690" href="#L690">690</a>                                 outputFormat
 <a class="jxr_linenumber" name="L691" href="#L691">691</a>                                         .setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.71"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L692" href="#L692">692</a>                                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>                                 outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>                                 outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L694" href="#L694">694</a>                                 logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L695" href="#L695">695</a>                                 <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L696" href="#L696">696</a>                                     outputFormat.sysout();
@@ -710,7 +710,7 @@
 <a class="jxr_linenumber" name="L702" href="#L702">702</a>                                 outputFormat
 <a class="jxr_linenumber" name="L703" href="#L703">703</a>                                         .setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.72"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L704" href="#L704">704</a>                                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L705" href="#L705">705</a>                                 outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>                                 outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L706" href="#L706">706</a>                                 <strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L707" href="#L707">707</a>                                     outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 <a class="jxr_linenumber" name="L708" href="#L708">708</a>                                 }
@@ -722,13 +722,13 @@
 <a class="jxr_linenumber" name="L714" href="#L714">714</a>                         }
 <a class="jxr_linenumber" name="L715" href="#L715">715</a>                     }
 <a class="jxr_linenumber" name="L716" href="#L716">716</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (sstop) {
-<a class="jxr_linenumber" name="L717" href="#L717">717</a>                     <strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>                     <strong class="jxr_keyword">switch</strong> (finalValue.getCode()) {
 <a class="jxr_linenumber" name="L718" href="#L718">718</a>                         <strong class="jxr_keyword">case</strong> CompleteOk:
 <a class="jxr_linenumber" name="L719" href="#L719">719</a>                             value = 0;
 <a class="jxr_linenumber" name="L720" href="#L720">720</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L721" href="#L721">721</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.73"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L722" href="#L722">722</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L724" href="#L724">724</a>                             <strong class="jxr_keyword">if</strong> (requestTransfer.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L725" href="#L725">725</a>                                 logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L726" href="#L726">726</a>                             } <strong class="jxr_keyword">else</strong> {
@@ -743,7 +743,7 @@
 <a class="jxr_linenumber" name="L735" href="#L735">735</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L736" href="#L736">736</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.74"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L737" href="#L737">737</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L738" href="#L738">738</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L739" href="#L739">739</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L740" href="#L740">740</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L741" href="#L741">741</a>                                 outputFormat.sysout();
@@ -754,7 +754,7 @@
 <a class="jxr_linenumber" name="L746" href="#L746">746</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L747" href="#L747">747</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.75"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L748" href="#L748">748</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L749" href="#L749">749</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L750" href="#L750">750</a>                             <strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L751" href="#L751">751</a>                                 outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 <a class="jxr_linenumber" name="L752" href="#L752">752</a>                             }
@@ -765,13 +765,13 @@
 <a class="jxr_linenumber" name="L757" href="#L757">757</a>                             <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L758" href="#L758">758</a>                     }
 <a class="jxr_linenumber" name="L759" href="#L759">759</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (srestart) {
-<a class="jxr_linenumber" name="L760" href="#L760">760</a>                     <strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>                     <strong class="jxr_keyword">switch</strong> (finalValue.getCode()) {
 <a class="jxr_linenumber" name="L761" href="#L761">761</a>                         <strong class="jxr_keyword">case</strong> QueryStillRunning:
 <a class="jxr_linenumber" name="L762" href="#L762">762</a>                             value = 0;
 <a class="jxr_linenumber" name="L763" href="#L763">763</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L764" href="#L764">764</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.76"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L765" href="#L765">765</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L766" href="#L766">766</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L767" href="#L767">767</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L768" href="#L768">768</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L769" href="#L769">769</a>                                 outputFormat.sysout();
@@ -782,7 +782,7 @@
 <a class="jxr_linenumber" name="L774" href="#L774">774</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L775" href="#L775">775</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.77"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L776" href="#L776">776</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L777" href="#L777">777</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L778" href="#L778">778</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L779" href="#L779">779</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L780" href="#L780">780</a>                                 outputFormat.sysout();
@@ -793,7 +793,7 @@
 <a class="jxr_linenumber" name="L785" href="#L785">785</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L786" href="#L786">786</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.78"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L787" href="#L787">787</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L788" href="#L788">788</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L789" href="#L789">789</a>                             <strong class="jxr_keyword">if</strong> (requestTransfer.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L790" href="#L790">790</a>                                 logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L791" href="#L791">791</a>                             } <strong class="jxr_keyword">else</strong> {
@@ -808,7 +808,7 @@
 <a class="jxr_linenumber" name="L800" href="#L800">800</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L801" href="#L801">801</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.79"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L802" href="#L802">802</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L803" href="#L803">803</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L804" href="#L804">804</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L805" href="#L805">805</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L806" href="#L806">806</a>                                 outputFormat.sysout();
@@ -819,7 +819,7 @@
 <a class="jxr_linenumber" name="L811" href="#L811">811</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L812" href="#L812">812</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.80"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L813" href="#L813">813</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L814" href="#L814">814</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L814" href="#L814">814</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L815" href="#L815">815</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L816" href="#L816">816</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L817" href="#L817">817</a>                                 outputFormat.sysout();
@@ -830,7 +830,7 @@
 <a class="jxr_linenumber" name="L822" href="#L822">822</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L823" href="#L823">823</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.81"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L824" href="#L824">824</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L825" href="#L825">825</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L825" href="#L825">825</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L826" href="#L826">826</a>                             logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L827" href="#L827">827</a>                             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L828" href="#L828">828</a>                                 outputFormat.sysout();
@@ -841,7 +841,7 @@
 <a class="jxr_linenumber" name="L833" href="#L833">833</a>                             outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L834" href="#L834">834</a>                             outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.82"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L835" href="#L835">835</a>                             outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L836" href="#L836">836</a>                             outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>                             outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L837" href="#L837">837</a>                             <strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L838" href="#L838">838</a>                                 outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 <a class="jxr_linenumber" name="L839" href="#L839">839</a>                             }
@@ -858,7 +858,7 @@
 <a class="jxr_linenumber" name="L850" href="#L850">850</a>                 outputFormat.setValue(FIELDS.status.name(), value);
 <a class="jxr_linenumber" name="L851" href="#L851">851</a>                 outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.83"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L852" href="#L852">852</a>                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L853" href="#L853">853</a>                 outputFormat.setValueString(result.runner.getJson());
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>                 outputFormat.setValueString(result.getRunner().getJson());
 <a class="jxr_linenumber" name="L854" href="#L854">854</a>                 <strong class="jxr_keyword">if</strong> (requestTransfer.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L855" href="#L855">855</a>                     logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L856" href="#L856">856</a>                 } <strong class="jxr_keyword">else</strong> {
@@ -879,6 +879,6 @@
 <a class="jxr_linenumber" name="L871" href="#L871">871</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

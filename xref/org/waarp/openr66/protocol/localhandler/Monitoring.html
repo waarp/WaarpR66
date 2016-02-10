@@ -189,14 +189,14 @@
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>         <strong class="jxr_keyword">if</strong> (session != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>             dbSession = session;
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>                     dbSession = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>                     dbSession = DbConstant.admin.session;
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                     dbSession = DbConstant.admin.getSession();
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>                 }
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 dbSession = DbConstant.admin.session;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 dbSession = DbConstant.admin.getSession();
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>             }
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>         }
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">this</strong>.initialize();
@@ -206,7 +206,7 @@
 <a class="jxr_linenumber" name="L198" href="#L198">198</a> <em class="jxr_javadoccomment">     * Initialize the Db Requests after constructor or after use of releaseResources</em>
 <a class="jxr_linenumber" name="L199" href="#L199">199</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> initialize() {
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>         <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>             logger.warn(<span class="jxr_string">"Cannot Initialize monitoring"</span>);
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L204" href="#L204">204</a>         }
@@ -273,7 +273,7 @@
 <a class="jxr_linenumber" name="L265" href="#L265">265</a> <em class="jxr_javadoccomment">     * Release all Db Requests</em>
 <a class="jxr_linenumber" name="L266" href="#L266">266</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> releaseResources() {
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>         <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>         }
 <a class="jxr_linenumber" name="L271" href="#L271">271</a>         <strong class="jxr_keyword">try</strong> {
@@ -310,7 +310,7 @@
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>             countStatus.realClose();
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>         }
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">if</strong> (!dbSession.equals(DbConstant.admin.session)) {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">if</strong> (!dbSession.equals(DbConstant.admin.getSession())) {
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>             dbSession.forceDisconnect();
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>             dbSession = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>         }
@@ -380,10 +380,10 @@
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>                 nbMs = nbSecond * 1000;
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>             }
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>             <strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             <strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L376" href="#L376">376</a>                 dbSession.checkConnectionNoException();
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>             }
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>                 nbNetworkConnection =
 <a class="jxr_linenumber" name="L380" href="#L380">380</a>                         Configuration.configuration.getHttpChannelGroup().size() +
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>                                 Configuration.configuration.getServerChannelGroup().size();
@@ -610,7 +610,7 @@
 <a class="jxr_linenumber" name="L602" href="#L602">602</a>         StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(<span class="jxr_string">"&lt;STATUS&gt;"</span>)
 <a class="jxr_linenumber" name="L603" href="#L603">603</a>                 <em class="jxr_comment">// Global Informations</em>
 <a class="jxr_linenumber" name="L604" href="#L604">604</a>                 .append(<span class="jxr_string">"&lt;HostID&gt;"</span>)
-<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 .append(Configuration.configuration.HOST_ID)
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 .append(Configuration.configuration.getHOST_ID())
 <a class="jxr_linenumber" name="L606" href="#L606">606</a>                 .append(<span class="jxr_string">"&lt;/HostID&gt;"</span>)
 <a class="jxr_linenumber" name="L607" href="#L607">607</a>                 .append(<span class="jxr_string">"&lt;Date&gt;"</span>)
 <a class="jxr_linenumber" name="L608" href="#L608">608</a>                 .append(<strong class="jxr_keyword">new</strong> DateTime().toString())
@@ -836,7 +836,7 @@
 <a class="jxr_linenumber" name="L828" href="#L828">828</a>         ObjectNode node = JsonHandler.createObjectNode();
 <a class="jxr_linenumber" name="L829" href="#L829">829</a>         node = node.putObject(<span class="jxr_string">"STATUS"</span>);
 <a class="jxr_linenumber" name="L830" href="#L830">830</a>         <em class="jxr_comment">// Global Informations</em>
-<a class="jxr_linenumber" name="L831" href="#L831">831</a>         node.put(<span class="jxr_string">"HostID"</span>, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L831" href="#L831">831</a>         node.put(<span class="jxr_string">"HostID"</span>, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L832" href="#L832">832</a>         node.put(<span class="jxr_string">"Date"</span>, <strong class="jxr_keyword">new</strong> DateTime().toString());
 <a class="jxr_linenumber" name="L833" href="#L833">833</a>         node.put(<span class="jxr_string">"LastRun"</span>, <strong class="jxr_keyword">new</strong> DateTime(lastTry).toString());
 <a class="jxr_linenumber" name="L834" href="#L834">834</a>         node.put(<span class="jxr_string">"FromDate"</span>, <strong class="jxr_keyword">new</strong> DateTime(currentLimit).toString());
@@ -930,19 +930,19 @@
 <a class="jxr_linenumber" name="L922" href="#L922">922</a> <em class="jxr_javadoccomment">     * @param entry</em>
 <a class="jxr_linenumber" name="L923" href="#L923">923</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L924" href="#L924">924</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">int</strong> type, <strong class="jxr_keyword">int</strong> entry) {
-<a class="jxr_linenumber" name="L925" href="#L925">925</a>         <strong class="jxr_keyword">long</strong> nbMs = Configuration.configuration.agentSnmp.getUptime() + 100;
+<a class="jxr_linenumber" name="L925" href="#L925">925</a>         <strong class="jxr_keyword">long</strong> nbMs = Configuration.configuration.getAgentSnmp().getUptime() + 100;
 <a class="jxr_linenumber" name="L926" href="#L926">926</a>         MibLevel level = MibLevel.values()[type];
 <a class="jxr_linenumber" name="L927" href="#L927">927</a>         <strong class="jxr_keyword">switch</strong> (level) {
 <a class="jxr_linenumber" name="L928" href="#L928">928</a>             <strong class="jxr_keyword">case</strong> globalInfo:<em class="jxr_comment">// Global</em>
-<a class="jxr_linenumber" name="L929" href="#L929">929</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.mib).rowGlobal != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L929" href="#L929">929</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowGlobal != <strong class="jxr_keyword">null</strong>)
 <a class="jxr_linenumber" name="L930" href="#L930">930</a>                     run(nbMs, WaarpGlobalValuesIndex.values()[entry]);
 <a class="jxr_linenumber" name="L931" href="#L931">931</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L932" href="#L932">932</a>             <strong class="jxr_keyword">case</strong> detailedInfo:<em class="jxr_comment">// Detailed</em>
-<a class="jxr_linenumber" name="L933" href="#L933">933</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.mib).rowDetailed != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowDetailed != <strong class="jxr_keyword">null</strong>)
 <a class="jxr_linenumber" name="L934" href="#L934">934</a>                     run(nbMs, WaarpDetailedValuesIndex.values()[entry]);
 <a class="jxr_linenumber" name="L935" href="#L935">935</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L936" href="#L936">936</a>             <strong class="jxr_keyword">case</strong> errorInfo:<em class="jxr_comment">// Error</em>
-<a class="jxr_linenumber" name="L937" href="#L937">937</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.mib).rowError != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>                 <strong class="jxr_keyword">if</strong> (((R66PrivateMib) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowError != <strong class="jxr_keyword">null</strong>)
 <a class="jxr_linenumber" name="L938" href="#L938">938</a>                     run(nbMs, WaarpErrorValuesIndex.values()[entry]);
 <a class="jxr_linenumber" name="L939" href="#L939">939</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L940" href="#L940">940</a>             <strong class="jxr_keyword">case</strong> staticInfo:
@@ -961,7 +961,7 @@
 <a class="jxr_linenumber" name="L953" href="#L953">953</a> <em class="jxr_javadoccomment">     * @param value</em>
 <a class="jxr_linenumber" name="L954" href="#L954">954</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L955" href="#L955">955</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> updateGlobalValue(<strong class="jxr_keyword">int</strong> rank, <strong class="jxr_keyword">long</strong> value) {
-<a class="jxr_linenumber" name="L956" href="#L956">956</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.mib).rowGlobal.setValue(rank, value);
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowGlobal.setValue(rank, value);
 <a class="jxr_linenumber" name="L957" href="#L957">957</a>     }
 <a class="jxr_linenumber" name="L958" href="#L958">958</a> 
 <a class="jxr_linenumber" name="L959" href="#L959">959</a>     <em class="jxr_javadoccomment">/**</em>
@@ -971,7 +971,7 @@
 <a class="jxr_linenumber" name="L963" href="#L963">963</a> <em class="jxr_javadoccomment">     * @param value</em>
 <a class="jxr_linenumber" name="L964" href="#L964">964</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L965" href="#L965">965</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> updateDetailedValue(<strong class="jxr_keyword">int</strong> rank, <strong class="jxr_keyword">long</strong> value) {
-<a class="jxr_linenumber" name="L966" href="#L966">966</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.mib).rowDetailed.setValue(rank, value);
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowDetailed.setValue(rank, value);
 <a class="jxr_linenumber" name="L967" href="#L967">967</a>     }
 <a class="jxr_linenumber" name="L968" href="#L968">968</a> 
 <a class="jxr_linenumber" name="L969" href="#L969">969</a>     <em class="jxr_javadoccomment">/**</em>
@@ -981,7 +981,7 @@
 <a class="jxr_linenumber" name="L973" href="#L973">973</a> <em class="jxr_javadoccomment">     * @param value</em>
 <a class="jxr_linenumber" name="L974" href="#L974">974</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L975" href="#L975">975</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> updateErrorValue(<strong class="jxr_keyword">int</strong> rank, <strong class="jxr_keyword">long</strong> value) {
-<a class="jxr_linenumber" name="L976" href="#L976">976</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.mib).rowError.setValue(rank, value);
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>         ((<a href="../../../../../org/waarp/openr66/protocol/snmp/R66PrivateMib.html">R66PrivateMib</a>) <strong class="jxr_keyword">this</strong>.agent.getMib()).rowError.setValue(rank, value);
 <a class="jxr_linenumber" name="L977" href="#L977">977</a>     }
 <a class="jxr_linenumber" name="L978" href="#L978">978</a> 
 <a class="jxr_linenumber" name="L979" href="#L979">979</a>     <em class="jxr_javadoccomment">/**</em>
@@ -994,7 +994,7 @@
 <a class="jxr_linenumber" name="L986" href="#L986">986</a>         <strong class="jxr_keyword">synchronized</strong> (trafficCounter) {
 <a class="jxr_linenumber" name="L987" href="#L987">987</a>             <strong class="jxr_keyword">long</strong> val = 0;
 <a class="jxr_linenumber" name="L988" href="#L988">988</a>             <strong class="jxr_keyword">long</strong> limitDate = System.currentTimeMillis() - nbMs;
-<a class="jxr_linenumber" name="L989" href="#L989">989</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L989" href="#L989">989</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L990" href="#L990">990</a>                 <strong class="jxr_keyword">switch</strong> (entry) {
 <a class="jxr_linenumber" name="L991" href="#L991">991</a>                     <strong class="jxr_keyword">case</strong> applUptime:
 <a class="jxr_linenumber" name="L992" href="#L992">992</a>                         <strong class="jxr_keyword">return</strong>;
@@ -1236,7 +1236,7 @@
 <a class="jxr_linenumber" name="L1228" href="#L1228">1228</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">long</strong> nbMs, WaarpDetailedValuesIndex entry) {
 <a class="jxr_linenumber" name="L1229" href="#L1229">1229</a>         <strong class="jxr_keyword">synchronized</strong> (trafficCounter) {
 <a class="jxr_linenumber" name="L1230" href="#L1230">1230</a>             <strong class="jxr_keyword">long</strong> limitDate = System.currentTimeMillis() - nbMs;
-<a class="jxr_linenumber" name="L1231" href="#L1231">1231</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L1231" href="#L1231">1231</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L1232" href="#L1232">1232</a>                 <strong class="jxr_keyword">switch</strong> (entry) {
 <a class="jxr_linenumber" name="L1233" href="#L1233">1233</a>                     <strong class="jxr_keyword">case</strong> nbStepNotask:
 <a class="jxr_linenumber" name="L1234" href="#L1234">1234</a>                         updateDetailedValue(entry.ordinal(), nbCountStepNotask);
@@ -1379,13 +1379,13 @@
 <a class="jxr_linenumber" name="L1371" href="#L1371">1371</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L1372" href="#L1372">1372</a>                 logger.info(<span class="jxr_string">"Database No Connection Error: Cannot execute Monitoring"</span>, e);
 <a class="jxr_linenumber" name="L1373" href="#L1373">1373</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1374" href="#L1374">1374</a>                     dbSession.admin.getDbModel().validConnection(dbSession);
+<a class="jxr_linenumber" name="L1374" href="#L1374">1374</a>                     dbSession.getAdmin().getDbModel().validConnection(dbSession);
 <a class="jxr_linenumber" name="L1375" href="#L1375">1375</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L1376" href="#L1376">1376</a>                 }
 <a class="jxr_linenumber" name="L1377" href="#L1377">1377</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="L1378" href="#L1378">1378</a>                 logger.info(<span class="jxr_string">"Database No Connection Error: Cannot execute Monitoring"</span>, e);
 <a class="jxr_linenumber" name="L1379" href="#L1379">1379</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1380" href="#L1380">1380</a>                     dbSession.admin.getDbModel().validConnection(dbSession);
+<a class="jxr_linenumber" name="L1380" href="#L1380">1380</a>                     dbSession.getAdmin().getDbModel().validConnection(dbSession);
 <a class="jxr_linenumber" name="L1381" href="#L1381">1381</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L1382" href="#L1382">1382</a>                 }
 <a class="jxr_linenumber" name="L1383" href="#L1383">1383</a>             }
@@ -1401,7 +1401,7 @@
 <a class="jxr_linenumber" name="L1393" href="#L1393">1393</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">long</strong> nbMs, WaarpErrorValuesIndex entry) {
 <a class="jxr_linenumber" name="L1394" href="#L1394">1394</a>         <strong class="jxr_keyword">synchronized</strong> (trafficCounter) {
 <a class="jxr_linenumber" name="L1395" href="#L1395">1395</a>             <strong class="jxr_keyword">long</strong> limitDate = System.currentTimeMillis() - nbMs;
-<a class="jxr_linenumber" name="L1396" href="#L1396">1396</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L1396" href="#L1396">1396</a>             <strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L1397" href="#L1397">1397</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L1398" href="#L1398">1398</a>             }
 <a class="jxr_linenumber" name="L1399" href="#L1399">1399</a>             <em class="jxr_comment">// Error</em>
@@ -1552,6 +1552,6 @@
 <a class="jxr_linenumber" name="L1544" href="#L1544">1544</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -193,7 +193,7 @@
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>         }
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         cts = (ChannelTrafficShapingHandler) networkChannelRef.channel().pipeline()
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                 .get(NetworkServerInitializer.LIMITCHANNEL);
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive &amp;&amp; !DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive() &amp;&amp; !DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>                 <strong class="jxr_keyword">this</strong>.noconcurrencyDbSession = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
@@ -225,8 +225,8 @@
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>         Configuration.configuration.getLocalTransaction().remove(<strong class="jxr_keyword">this</strong>);
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>         <em class="jxr_comment">// Now force the close of the database after a wait</em>
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">if</strong> (noconcurrencyDbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session != <strong class="jxr_keyword">null</strong>
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 &amp;&amp; !noconcurrencyDbSession.equals(DbConstant.admin.session)) {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">if</strong> (noconcurrencyDbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong>
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 &amp;&amp; !noconcurrencyDbSession.equals(DbConstant.admin.getSession())) {
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>             noconcurrencyDbSession.forceDisconnect();
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>             noconcurrencyDbSession = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>         }
@@ -293,7 +293,7 @@
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>             <strong class="jxr_keyword">return</strong> networkServerHandler.getDbSession();
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>         }
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>         logger.info(<span class="jxr_string">"SHOULD NOT BE"</span>);
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">return</strong> DbConstant.admin.session;
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">return</strong> DbConstant.admin.getSession();
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>     }
 <a class="jxr_linenumber" name="L290" href="#L290">290</a> 
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>     <em class="jxr_javadoccomment">/**</em>
@@ -364,7 +364,7 @@
 <a class="jxr_linenumber" name="L356" href="#L356">356</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L357" href="#L357">357</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> getFutureValidateStartup() {
 <a class="jxr_linenumber" name="L358" href="#L358">358</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>             <strong class="jxr_keyword">if</strong> (!futureStartup.await(Configuration.configuration.TIMEOUTCON)) {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>             <strong class="jxr_keyword">if</strong> (!futureStartup.await(Configuration.configuration.getTIMEOUTCON())) {
 <a class="jxr_linenumber" name="L360" href="#L360">360</a>                 validateStartup(false);
 <a class="jxr_linenumber" name="L361" href="#L361">361</a>                 <strong class="jxr_keyword">return</strong> futureStartup;
 <a class="jxr_linenumber" name="L362" href="#L362">362</a>             }
@@ -399,7 +399,7 @@
 <a class="jxr_linenumber" name="L391" href="#L391">391</a>             futureConnection.setSuccess();
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>             futureConnection.setResult(result);
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>             setErrorMessage(result.getMessage(), result.code);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             setErrorMessage(result.getMessage(), result.getCode());
 <a class="jxr_linenumber" name="L395" href="#L395">395</a>             futureConnection.cancel();
 <a class="jxr_linenumber" name="L396" href="#L396">396</a>         }
 <a class="jxr_linenumber" name="L397" href="#L397">397</a>     }
@@ -414,7 +414,7 @@
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; Configuration.RETRYNB; i++) {
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>                 Channel channel = <strong class="jxr_keyword">this</strong>.networkChannelRef.channel();
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>                 <strong class="jxr_keyword">if</strong> (channel != <strong class="jxr_keyword">null</strong> &amp;&amp; channel.isActive()) {
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>                     <strong class="jxr_keyword">if</strong> (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                     <strong class="jxr_keyword">if</strong> (!futureConnection.await(Configuration.configuration.getTIMEOUTCON())) {
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>                         <strong class="jxr_keyword">if</strong> (futureConnection.isDone()) {
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>                             <strong class="jxr_keyword">return</strong> futureConnection;
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>                         } <strong class="jxr_keyword">else</strong> {
@@ -464,8 +464,8 @@
 <a class="jxr_linenumber" name="L456" href="#L456">456</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L457" href="#L457">457</a>             logger.debug(<span class="jxr_string">"Could not validate since Already validated: "</span> +
 <a class="jxr_linenumber" name="L458" href="#L458">458</a>                     futureEndTransfer.isSuccess() + <span class="jxr_string">" "</span> + finalValue);
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>             <strong class="jxr_keyword">if</strong> (!futureEndTransfer.getResult().isAnswered) {
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>                 futureEndTransfer.getResult().isAnswered = finalValue.isAnswered;
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>             <strong class="jxr_keyword">if</strong> (!futureEndTransfer.getResult().isAnswered()) {
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>                 futureEndTransfer.getResult().setAnswered(finalValue.isAnswered());
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>             }
 <a class="jxr_linenumber" name="L462" href="#L462">462</a>         }
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>     }
@@ -493,7 +493,7 @@
 <a class="jxr_linenumber" name="L485" href="#L485">485</a>             <em class="jxr_comment">// reset since transfer will start now</em>
 <a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">this</strong>.futureEndTransfer = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L487" href="#L487">487</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">this</strong>.futureEndTransfer.getResult().exception;
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">this</strong>.futureEndTransfer.getResult().getException();
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>         }
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>     }
 <a class="jxr_linenumber" name="L491" href="#L491">491</a> 
@@ -529,28 +529,28 @@
 <a class="jxr_linenumber" name="L521" href="#L521">521</a>                 finalValue.getMessage());
 <a class="jxr_linenumber" name="L522" href="#L522">522</a>         <strong class="jxr_keyword">if</strong> (!futureEndTransfer.isDone()) {
 <a class="jxr_linenumber" name="L523" href="#L523">523</a>             futureEndTransfer.setResult(finalValue);
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>             <strong class="jxr_keyword">if</strong> (finalValue.exception != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>                 futureEndTransfer.setFailure(finalValue.exception);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>             <strong class="jxr_keyword">if</strong> (finalValue.getException() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                 futureEndTransfer.setFailure(finalValue.getException());
 <a class="jxr_linenumber" name="L526" href="#L526">526</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L527" href="#L527">527</a>                 futureEndTransfer.cancel();
 <a class="jxr_linenumber" name="L528" href="#L528">528</a>             }
 <a class="jxr_linenumber" name="L529" href="#L529">529</a>         }
 <a class="jxr_linenumber" name="L530" href="#L530">530</a>         <strong class="jxr_keyword">if</strong> (!futureValidRequest.isDone()) {
 <a class="jxr_linenumber" name="L531" href="#L531">531</a>             futureValidRequest.setResult(finalValue);
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>             <strong class="jxr_keyword">if</strong> (finalValue.exception != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>                 futureValidRequest.setFailure(finalValue.exception);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>             <strong class="jxr_keyword">if</strong> (finalValue.getException() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>                 futureValidRequest.setFailure(finalValue.getException());
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>                 futureValidRequest.cancel();
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>             }
 <a class="jxr_linenumber" name="L537" href="#L537">537</a>         }
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>         logger.debug(<span class="jxr_string">"Invalidate Request"</span>, <strong class="jxr_keyword">new</strong> Exception(
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>                 <span class="jxr_string">"Trace for Invalidation"</span>));
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">if</strong> (finalValue.code != ErrorCode.ServerOverloaded) {
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">if</strong> (finalValue.getCode() != ErrorCode.ServerOverloaded) {
 <a class="jxr_linenumber" name="L541" href="#L541">541</a>             <strong class="jxr_keyword">if</strong> (!futureRequest.isDone()) {
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>                 setErrorMessage(finalValue.getMessage(), finalValue.code);
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>                 setErrorMessage(finalValue.getMessage(), finalValue.getCode());
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>                 futureRequest.setResult(finalValue);
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 <strong class="jxr_keyword">if</strong> (finalValue.exception != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>                     futureRequest.setFailure(finalValue.exception);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 <strong class="jxr_keyword">if</strong> (finalValue.getException() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                     futureRequest.setFailure(finalValue.getException());
 <a class="jxr_linenumber" name="L546" href="#L546">546</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L547" href="#L547">547</a>                     futureRequest.cancel();
 <a class="jxr_linenumber" name="L548" href="#L548">548</a>                 }
@@ -559,7 +559,7 @@
 <a class="jxr_linenumber" name="L551" href="#L551">551</a>                         futureEndTransfer.getResult());
 <a class="jxr_linenumber" name="L552" href="#L552">552</a>             }
 <a class="jxr_linenumber" name="L553" href="#L553">553</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>             setErrorMessage(finalValue.getMessage(), finalValue.code);
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>             setErrorMessage(finalValue.getMessage(), finalValue.getCode());
 <a class="jxr_linenumber" name="L555" href="#L555">555</a>             logger.debug(<span class="jxr_string">"Overloaded"</span>);
 <a class="jxr_linenumber" name="L556" href="#L556">556</a>         }
 <a class="jxr_linenumber" name="L557" href="#L557">557</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.session != <strong class="jxr_keyword">null</strong>) {
@@ -589,18 +589,18 @@
 <a class="jxr_linenumber" name="L581" href="#L581">581</a>         }
 <a class="jxr_linenumber" name="L582" href="#L582">582</a>         logger.debug(<span class="jxr_string">"Validate Request"</span>);
 <a class="jxr_linenumber" name="L583" href="#L583">583</a>         <strong class="jxr_keyword">if</strong> (!futureRequest.isDone()) {
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>             <strong class="jxr_keyword">if</strong> (finalValue.other == <strong class="jxr_keyword">null</strong> &amp;&amp;
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>             <strong class="jxr_keyword">if</strong> (finalValue.getOther() == <strong class="jxr_keyword">null</strong> &amp;&amp;
 <a class="jxr_linenumber" name="L585" href="#L585">585</a>                     session.getBusinessObject() != <strong class="jxr_keyword">null</strong> &amp;&amp;
-<a class="jxr_linenumber" name="L586" href="#L586">586</a>                     session.getBusinessObject().getInfo() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>                 finalValue.other = session.getBusinessObject().getInfo();
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>                     session.getBusinessObject().getInfo(session) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>                 finalValue.setOther(session.getBusinessObject().getInfo(session));
 <a class="jxr_linenumber" name="L588" href="#L588">588</a>             }
 <a class="jxr_linenumber" name="L589" href="#L589">589</a>             futureRequest.setResult(finalValue);
 <a class="jxr_linenumber" name="L590" href="#L590">590</a>             futureRequest.setSuccess();
 <a class="jxr_linenumber" name="L591" href="#L591">591</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L592" href="#L592">592</a>             logger.info(<span class="jxr_string">"Already validated: "</span> + futureRequest.isSuccess() +
 <a class="jxr_linenumber" name="L593" href="#L593">593</a>                     <span class="jxr_string">" "</span> + finalValue);
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>             <strong class="jxr_keyword">if</strong> (!futureRequest.getResult().isAnswered) {
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>                 futureRequest.getResult().isAnswered = finalValue.isAnswered;
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>             <strong class="jxr_keyword">if</strong> (!futureRequest.getResult().isAnswered()) {
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>                 futureRequest.getResult().setAnswered(finalValue.isAnswered());
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>             }
 <a class="jxr_linenumber" name="L597" href="#L597">597</a>         }
 <a class="jxr_linenumber" name="L598" href="#L598">598</a>     }
@@ -728,7 +728,7 @@
 <a class="jxr_linenumber" name="L720" href="#L720">720</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L721" href="#L721">721</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setPartner(String hostId) {
 <a class="jxr_linenumber" name="L722" href="#L722">722</a>         logger.debug(<span class="jxr_string">"host:"</span> + hostId);
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>         partner = Configuration.configuration.versions.get(hostId);
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>         partner = Configuration.configuration.getVersions().get(hostId);
 <a class="jxr_linenumber" name="L724" href="#L724">724</a>         <strong class="jxr_keyword">if</strong> (partner == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L725" href="#L725">725</a>             partner = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/configuration/PartnerConfiguration.html">PartnerConfiguration</a>(hostId, R66Versions.V2_4_12.getVersion());
 <a class="jxr_linenumber" name="L726" href="#L726">726</a>         }
@@ -752,6 +752,6 @@
 <a class="jxr_linenumber" name="L744" href="#L744">744</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

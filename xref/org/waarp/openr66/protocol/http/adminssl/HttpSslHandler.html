@@ -132,7 +132,7 @@
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> StringBuilder responseContent = <strong class="jxr_keyword">new</strong> StringBuilder();
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>     <strong class="jxr_keyword">private</strong> String uriRequest;
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">private</strong> Map&lt;String, List&lt;String&gt;&gt; params;
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>     <strong class="jxr_keyword">private</strong> String lang = Messages.slocale;
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     <strong class="jxr_keyword">private</strong> String lang = Messages.getSlocale();
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> forceClose = false;
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> shutdown = false;
 <a class="jxr_linenumber" name="L130" href="#L130">130</a> 
@@ -201,27 +201,27 @@
 <a class="jxr_linenumber" name="L193" href="#L193">193</a> <em class="jxr_javadoccomment">         * @return the content of the unique file</em>
 <a class="jxr_linenumber" name="L194" href="#L194">194</a> <em class="jxr_javadoccomment">         */</em>
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>         <strong class="jxr_keyword">public</strong> String readFileUnique(<a href="../../../../../../org/waarp/openr66/protocol/http/adminssl/HttpSslHandler.html">HttpSslHandler</a> handler) {
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             <strong class="jxr_keyword">return</strong> handler.readFileHeader(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.header);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             <strong class="jxr_keyword">return</strong> handler.readFileHeader(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.header);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>         }
 <a class="jxr_linenumber" name="L198" href="#L198">198</a> 
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>         <strong class="jxr_keyword">public</strong> String readHeader(<a href="../../../../../../org/waarp/openr66/protocol/http/adminssl/HttpSslHandler.html">HttpSslHandler</a> handler) {
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <strong class="jxr_keyword">return</strong> handler.readFileHeader(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.header);
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <strong class="jxr_keyword">return</strong> handler.readFileHeader(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.header);
 <a class="jxr_linenumber" name="L201" href="#L201">201</a>         }
 <a class="jxr_linenumber" name="L202" href="#L202">202</a> 
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>         <strong class="jxr_keyword">public</strong> String readBodyHeader() {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.headerBody);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.headerBody);
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
 <a class="jxr_linenumber" name="L206" href="#L206">206</a> 
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>         <strong class="jxr_keyword">public</strong> String readBody() {
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.body);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.body);
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>         }
 <a class="jxr_linenumber" name="L210" href="#L210">210</a> 
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>         <strong class="jxr_keyword">public</strong> String readBodyEnd() {
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.endBody);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.endBody);
 <a class="jxr_linenumber" name="L213" href="#L213">213</a>         }
 <a class="jxr_linenumber" name="L214" href="#L214">214</a> 
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>         <strong class="jxr_keyword">public</strong> String readEnd() {
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.httpBasePath + <strong class="jxr_keyword">this</strong>.end);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <strong class="jxr_keyword">return</strong> WaarpStringUtils.readFile(Configuration.configuration.getHttpBasePath() + <strong class="jxr_keyword">this</strong>.end);
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>         }
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>     }
 <a class="jxr_linenumber" name="L219" href="#L219">219</a> 
@@ -239,7 +239,7 @@
 <a class="jxr_linenumber" name="L231" href="#L231">231</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String sLIMITROW = <span class="jxr_string">"LIMITROW"</span>;
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XXXRESULTXXX = <span class="jxr_string">"XXXRESULTXXX"</span>;
 <a class="jxr_linenumber" name="L233" href="#L233">233</a> 
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> LIMITROW = 48; <em class="jxr_comment">// better if it can</em>
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> LIMITROW = 48; <em class="jxr_comment">// better if it can</em>
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>                                      <em class="jxr_comment">// be divided by 4</em>
 <a class="jxr_linenumber" name="L236" href="#L236">236</a> 
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>     <em class="jxr_javadoccomment">/**</em>
@@ -274,9 +274,9 @@
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>                                 getNumberLocalChannel()) + <span class="jxr_string">" "</span> + Thread.activeCount());
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>                 Integer.toString(
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>                         DbAdmin.getNbConnection() - Configuration.NBDBSESSION));
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                         DbAdmin.getNbConnection() - Configuration.getNBDBSESSION()));
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>         <strong class="jxr_keyword">if</strong> (authentHttp.isAuthenticated()) {
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>             WaarpStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>                     Messages.getString(<span class="jxr_string">"HttpSslHandler.1"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -293,7 +293,7 @@
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>                 (trafficCounter.lastWriteThroughput() &gt;&gt; 20) +
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>                 Messages.getString(<span class="jxr_string">"HttpSslHandler.MOPS"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <span class="jxr_string">""</span> + LIMITROW);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <span class="jxr_string">""</span> + getLIMITROW());
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>         <strong class="jxr_keyword">return</strong> builder.toString();
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>     }
@@ -318,7 +318,7 @@
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>         String index = REQUEST.index.readFileUnique(<strong class="jxr_keyword">this</strong>);
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>         StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(index);
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>         WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>         WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>                 Messages.getString(<span class="jxr_string">"HttpSslHandler.2"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
@@ -372,7 +372,7 @@
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>         <strong class="jxr_keyword">if</strong> (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
 <a class="jxr_linenumber" name="L365" href="#L365">365</a>             <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a> dbhc;
 <a class="jxr_linenumber" name="L366" href="#L366">366</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 dbhc = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 dbhc = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L369" href="#L369">369</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L370" href="#L370">370</a>             }
@@ -440,7 +440,7 @@
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>                 DbPreparedStatement preparedStatement = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L433" href="#L433">433</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L434" href="#L434">434</a>                     preparedStatement =
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>                             DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>                             DbTaskRunner.getFilterPrepareStatement(dbSession, getLIMITROW(), false,
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>                                     startid, stopid, tstart, tstop, rule, req,
 <a class="jxr_linenumber" name="L437" href="#L437">437</a>                                     pending, transfer, error, done, all, seeAll);
 <a class="jxr_linenumber" name="L438" href="#L438">438</a>                     preparedStatement.executeQuery();
@@ -465,7 +465,7 @@
 <a class="jxr_linenumber" name="L457" href="#L457">457</a>                                     body,
 <a class="jxr_linenumber" name="L458" href="#L458">458</a>                                     lcr != <strong class="jxr_keyword">null</strong> ? Messages.getString(<span class="jxr_string">"HttpSslHandler.Active"</span>) : <a href="../../../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
 <a class="jxr_linenumber" name="L459" href="#L459">459</a>                                             .getString(<span class="jxr_string">"HttpSslHandler.NotActive"</span>)));
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>                             <strong class="jxr_keyword">if</strong> (i &gt; LIMITROW) {
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>                             <strong class="jxr_keyword">if</strong> (i &gt; getLIMITROW()) {
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>                                 <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L462" href="#L462">462</a>                             }
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>                         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -558,7 +558,7 @@
 <a class="jxr_linenumber" name="L550" href="#L550">550</a>                 DbPreparedStatement preparedStatement = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L551" href="#L551">551</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L552" href="#L552">552</a>                     preparedStatement =
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>                             DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>                             DbTaskRunner.getFilterPrepareStatement(dbSession, getLIMITROW(), false,
 <a class="jxr_linenumber" name="L554" href="#L554">554</a>                                     startid, stopid, tstart, tstop, rule, req,
 <a class="jxr_linenumber" name="L555" href="#L555">555</a>                                     pending, transfer, error, done, all, seeAll);
 <a class="jxr_linenumber" name="L556" href="#L556">556</a>                     preparedStatement.executeQuery();
@@ -583,7 +583,7 @@
 <a class="jxr_linenumber" name="L575" href="#L575">575</a>                                     body,
 <a class="jxr_linenumber" name="L576" href="#L576">576</a>                                     lcr != <strong class="jxr_keyword">null</strong> ? Messages.getString(<span class="jxr_string">"HttpSslHandler.Active"</span>) : <a href="../../../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
 <a class="jxr_linenumber" name="L577" href="#L577">577</a>                                             .getString(<span class="jxr_string">"HttpSslHandler.NotActive"</span>)));
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>                             <strong class="jxr_keyword">if</strong> (i &gt; LIMITROW) {
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>                             <strong class="jxr_keyword">if</strong> (i &gt; getLIMITROW()) {
 <a class="jxr_linenumber" name="L579" href="#L579">579</a>                                 <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L580" href="#L580">580</a>                             }
 <a class="jxr_linenumber" name="L581" href="#L581">581</a>                         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -674,7 +674,7 @@
 <a class="jxr_linenumber" name="L666" href="#L666">666</a>                                                 getFromRequest(taskRunner.getKey());
 <a class="jxr_linenumber" name="L667" href="#L667">667</a>                                 <a href="../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> finalResult = TransferUtils.restartTransfer(taskRunner,
 <a class="jxr_linenumber" name="L668" href="#L668">668</a>                                         lcr);
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>                                 <a href="../../../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> result = finalResult.code;
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>                                 <a href="../../../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> result = finalResult.getCode();
 <a class="jxr_linenumber" name="L670" href="#L670">670</a>                                 <a href="../../../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> last = taskRunner.getErrorInfo();
 <a class="jxr_linenumber" name="L671" href="#L671">671</a>                                 taskRunner.setErrorExecutionStatus(result);
 <a class="jxr_linenumber" name="L672" href="#L672">672</a>                                 builder.append(taskRunner.toSpecializedHtml(
@@ -815,7 +815,7 @@
 <a class="jxr_linenumber" name="L807" href="#L807">807</a>                             Configuration.configuration.getLocalTransaction().
 <a class="jxr_linenumber" name="L808" href="#L808">808</a>                                     getFromRequest(taskRunner.getKey());
 <a class="jxr_linenumber" name="L809" href="#L809">809</a>                     <a href="../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
-<a class="jxr_linenumber" name="L810" href="#L810">810</a>                     comment = (String) finalResult.other;
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>                     comment = (String) finalResult.getOther();
 <a class="jxr_linenumber" name="L811" href="#L811">811</a>                     body = REQUEST.CancelRestart.readBody();
 <a class="jxr_linenumber" name="L812" href="#L812">812</a>                     body = taskRunner
 <a class="jxr_linenumber" name="L813" href="#L813">813</a>                             .toSpecializedHtml(
@@ -898,9 +898,9 @@
 <a class="jxr_linenumber" name="L890" href="#L890">890</a>         <em class="jxr_comment">// create export of log and optionally purge them from database</em>
 <a class="jxr_linenumber" name="L891" href="#L891">891</a>         DbPreparedStatement getValid = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L892" href="#L892">892</a>         <a href="../../../../../../org/waarp/openr66/protocol/utils/NbAndSpecialId.html">NbAndSpecialId</a> nbAndSpecialId = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L893" href="#L893">893</a>         String filename = Configuration.configuration.baseDirectory +
-<a class="jxr_linenumber" name="L894" href="#L894">894</a>                 Configuration.configuration.archivePath + R66Dir.SEPARATOR +
-<a class="jxr_linenumber" name="L895" href="#L895">895</a>                 Configuration.configuration.HOST_ID + <span class="jxr_string">"_"</span> + System.currentTimeMillis() +
+<a class="jxr_linenumber" name="L893" href="#L893">893</a>         String filename = Configuration.configuration.getBaseDirectory() +
+<a class="jxr_linenumber" name="L894" href="#L894">894</a>                 Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
+<a class="jxr_linenumber" name="L895" href="#L895">895</a>                 Configuration.configuration.getHOST_ID() + <span class="jxr_string">"_"</span> + System.currentTimeMillis() +
 <a class="jxr_linenumber" name="L896" href="#L896">896</a>                 <span class="jxr_string">"_runners.xml"</span>;
 <a class="jxr_linenumber" name="L897" href="#L897">897</a>         String errorMsg = <span class="jxr_string">""</span>;
 <a class="jxr_linenumber" name="L898" href="#L898">898</a>         String seeAll = checkAuthorizedToSeeAll();
@@ -1051,7 +1051,7 @@
 <a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>                         i++;
 <a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>                         <a href="../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> dbhost = DbHostAuth.getFromStatement(preparedStatement);
 <a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>                         builder.append(dbhost.toSpecializedHtml(authentHttp, body, false));
-<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>                         <strong class="jxr_keyword">if</strong> (i &gt; LIMITROW) {
+<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>                         <strong class="jxr_keyword">if</strong> (i &gt; getLIMITROW()) {
 <a class="jxr_linenumber" name="L1047" href="#L1047">1047</a>                             <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L1048" href="#L1048">1048</a>                         }
 <a class="jxr_linenumber" name="L1049" href="#L1049">1049</a>                     }
@@ -1134,7 +1134,7 @@
 <a class="jxr_linenumber" name="L1126" href="#L1126">1126</a>                         Configuration.configuration.getInternalRunner().getNetworkTransaction(),
 <a class="jxr_linenumber" name="L1127" href="#L1127">1127</a>                         result, dbhost, packet);
 <a class="jxr_linenumber" name="L1128" href="#L1128">1128</a>                 transaction.run();
-<a class="jxr_linenumber" name="L1129" href="#L1129">1129</a>                 result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON / 2);
+<a class="jxr_linenumber" name="L1129" href="#L1129">1129</a>                 result.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON() / 2);
 <a class="jxr_linenumber" name="L1130" href="#L1130">1130</a>                 head = resetOptionHosts(head, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, dbhost.isSsl(), dbhost.isActive());
 <a class="jxr_linenumber" name="L1131" href="#L1131">1131</a>                 body = REQUEST.Hosts.readBody();
 <a class="jxr_linenumber" name="L1132" href="#L1132">1132</a>                 <strong class="jxr_keyword">if</strong> (result.isSuccess()) {
@@ -1144,7 +1144,7 @@
 <a class="jxr_linenumber" name="L1136" href="#L1136">1136</a>                     body = dbhost.toSpecializedHtml(authentHttp, body, false);
 <a class="jxr_linenumber" name="L1137" href="#L1137">1137</a>                     body += Messages.getString(<span class="jxr_string">"HttpSslHandler.19"</span>) <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1138" href="#L1138">1138</a>                             +
-<a class="jxr_linenumber" name="L1139" href="#L1139">1139</a>                             result.getResult().code.mesg + <span class="jxr_string">"&lt;/b&gt;&lt;/center&gt;&lt;/p&gt;"</span>;
+<a class="jxr_linenumber" name="L1139" href="#L1139">1139</a>                             result.getResult().getCode().mesg + <span class="jxr_string">"&lt;/b&gt;&lt;/center&gt;&lt;/p&gt;"</span>;
 <a class="jxr_linenumber" name="L1140" href="#L1140">1140</a>                 }
 <a class="jxr_linenumber" name="L1141" href="#L1141">1141</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"CloseConn"</span>.equalsIgnoreCase(parm)) {
 <a class="jxr_linenumber" name="L1142" href="#L1142">1142</a>                 String host = getTrimValue(<span class="jxr_string">"host"</span>);
@@ -1400,8 +1400,8 @@
 <a class="jxr_linenumber" name="L1392" href="#L1392">1392</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1393" href="#L1393">1393</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1394" href="#L1394">1394</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1395" href="#L1395">1395</a>                             RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1396" href="#L1396">1396</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1395" href="#L1395">1395</a>                             RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1396" href="#L1396">1396</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1397" href="#L1397">1397</a>                 }
 <a class="jxr_linenumber" name="L1398" href="#L1398">1398</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"recv"</span>)) {
 <a class="jxr_linenumber" name="L1399" href="#L1399">1399</a>                     tmode = RequestPacket.TRANSFERMODE.RECVMODE;
@@ -1409,8 +1409,8 @@
 <a class="jxr_linenumber" name="L1401" href="#L1401">1401</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1402" href="#L1402">1402</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1403" href="#L1403">1403</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1404" href="#L1404">1404</a>                             RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1405" href="#L1405">1405</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1404" href="#L1404">1404</a>                             RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1405" href="#L1405">1405</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1406" href="#L1406">1406</a>                 }
 <a class="jxr_linenumber" name="L1407" href="#L1407">1407</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"sendmd5"</span>)) {
 <a class="jxr_linenumber" name="L1408" href="#L1408">1408</a>                     tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
@@ -1418,8 +1418,8 @@
 <a class="jxr_linenumber" name="L1410" href="#L1410">1410</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1411" href="#L1411">1411</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1412" href="#L1412">1412</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1413" href="#L1413">1413</a>                             RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1414" href="#L1414">1414</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1413" href="#L1413">1413</a>                             RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1414" href="#L1414">1414</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1415" href="#L1415">1415</a>                 }
 <a class="jxr_linenumber" name="L1416" href="#L1416">1416</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"recvmd5"</span>)) {
 <a class="jxr_linenumber" name="L1417" href="#L1417">1417</a>                     tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
@@ -1427,8 +1427,8 @@
 <a class="jxr_linenumber" name="L1419" href="#L1419">1419</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1420" href="#L1420">1420</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1421" href="#L1421">1421</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1422" href="#L1422">1422</a>                             RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1423" href="#L1423">1423</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1422" href="#L1422">1422</a>                             RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1423" href="#L1423">1423</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1424" href="#L1424">1424</a>                 }
 <a class="jxr_linenumber" name="L1425" href="#L1425">1425</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"sendth"</span>)) {
 <a class="jxr_linenumber" name="L1426" href="#L1426">1426</a>                     tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
@@ -1436,8 +1436,8 @@
 <a class="jxr_linenumber" name="L1428" href="#L1428">1428</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1429" href="#L1429">1429</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1430" href="#L1430">1430</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1431" href="#L1431">1431</a>                             RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1432" href="#L1432">1432</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1431" href="#L1431">1431</a>                             RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1432" href="#L1432">1432</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1433" href="#L1433">1433</a>                 }
 <a class="jxr_linenumber" name="L1434" href="#L1434">1434</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"recvth"</span>)) {
 <a class="jxr_linenumber" name="L1435" href="#L1435">1435</a>                     tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
@@ -1445,8 +1445,8 @@
 <a class="jxr_linenumber" name="L1437" href="#L1437">1437</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1438" href="#L1438">1438</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1439" href="#L1439">1439</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1440" href="#L1440">1440</a>                             RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1441" href="#L1441">1441</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1440" href="#L1440">1440</a>                             RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1441" href="#L1441">1441</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1442" href="#L1442">1442</a>                 }
 <a class="jxr_linenumber" name="L1443" href="#L1443">1443</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"sendthmd5"</span>)) {
 <a class="jxr_linenumber" name="L1444" href="#L1444">1444</a>                     tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
@@ -1454,8 +1454,8 @@
 <a class="jxr_linenumber" name="L1446" href="#L1446">1446</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1447" href="#L1447">1447</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1448" href="#L1448">1448</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1449" href="#L1449">1449</a>                             RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1450" href="#L1450">1450</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1449" href="#L1449">1449</a>                             RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1450" href="#L1450">1450</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1451" href="#L1451">1451</a>                 }
 <a class="jxr_linenumber" name="L1452" href="#L1452">1452</a>                 <strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"recvthmd5"</span>)) {
 <a class="jxr_linenumber" name="L1453" href="#L1453">1453</a>                     tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
@@ -1463,45 +1463,45 @@
 <a class="jxr_linenumber" name="L1455" href="#L1455">1455</a>                             tmode, gmode);
 <a class="jxr_linenumber" name="L1456" href="#L1456">1456</a>                     specific = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1457" href="#L1457">1457</a>                     createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1458" href="#L1458">1458</a>                             RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1459" href="#L1459">1459</a>                     start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1458" href="#L1458">1458</a>                             RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1459" href="#L1459">1459</a>                     start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1460" href="#L1460">1460</a>                 }
 <a class="jxr_linenumber" name="L1461" href="#L1461">1461</a>                 <strong class="jxr_keyword">if</strong> (!specific) {
 <a class="jxr_linenumber" name="L1462" href="#L1462">1462</a>                     <strong class="jxr_keyword">if</strong> (gmode == -1) {
 <a class="jxr_linenumber" name="L1463" href="#L1463">1463</a>                         <em class="jxr_comment">// recv</em>
 <a class="jxr_linenumber" name="L1464" href="#L1464">1464</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1465" href="#L1465">1465</a>                                 RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1466" href="#L1466">1466</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1465" href="#L1465">1465</a>                                 RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1466" href="#L1466">1466</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1467" href="#L1467">1467</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1468" href="#L1468">1468</a>                                 RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1469" href="#L1469">1469</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1468" href="#L1468">1468</a>                                 RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1469" href="#L1469">1469</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1470" href="#L1470">1470</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1471" href="#L1471">1471</a>                                 RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1472" href="#L1472">1472</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1471" href="#L1471">1471</a>                                 RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1472" href="#L1472">1472</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1473" href="#L1473">1473</a>                         createExport(body, builder, rule,
 <a class="jxr_linenumber" name="L1474" href="#L1474">1474</a>                                 RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(),
-<a class="jxr_linenumber" name="L1475" href="#L1475">1475</a>                                 LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1476" href="#L1476">1476</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1475" href="#L1475">1475</a>                                 getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1476" href="#L1476">1476</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1477" href="#L1477">1477</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (gmode == -2) {
 <a class="jxr_linenumber" name="L1478" href="#L1478">1478</a>                         <em class="jxr_comment">// send</em>
 <a class="jxr_linenumber" name="L1479" href="#L1479">1479</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1480" href="#L1480">1480</a>                                 RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1481" href="#L1481">1481</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1480" href="#L1480">1480</a>                                 RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1481" href="#L1481">1481</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1482" href="#L1482">1482</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1483" href="#L1483">1483</a>                                 RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1484" href="#L1484">1484</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1483" href="#L1483">1483</a>                                 RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1484" href="#L1484">1484</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1485" href="#L1485">1485</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1486" href="#L1486">1486</a>                                 RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1487" href="#L1487">1487</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1486" href="#L1486">1486</a>                                 RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1487" href="#L1487">1487</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1488" href="#L1488">1488</a>                         createExport(body, builder, rule,
 <a class="jxr_linenumber" name="L1489" href="#L1489">1489</a>                                 RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(),
-<a class="jxr_linenumber" name="L1490" href="#L1490">1490</a>                                 LIMITROW / 4, start);
-<a class="jxr_linenumber" name="L1491" href="#L1491">1491</a>                         start += LIMITROW / 4 + 1;
+<a class="jxr_linenumber" name="L1490" href="#L1490">1490</a>                                 getLIMITROW() / 4, start);
+<a class="jxr_linenumber" name="L1491" href="#L1491">1491</a>                         start += getLIMITROW() / 4 + 1;
 <a class="jxr_linenumber" name="L1492" href="#L1492">1492</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L1493" href="#L1493">1493</a>                         <em class="jxr_comment">// all</em>
 <a class="jxr_linenumber" name="L1494" href="#L1494">1494</a>                         createExport(body, builder, rule,
-<a class="jxr_linenumber" name="L1495" href="#L1495">1495</a>                                 -1, LIMITROW, start);
-<a class="jxr_linenumber" name="L1496" href="#L1496">1496</a>                         start += LIMITROW + 1;
+<a class="jxr_linenumber" name="L1495" href="#L1495">1495</a>                                 -1, getLIMITROW(), start);
+<a class="jxr_linenumber" name="L1496" href="#L1496">1496</a>                         start += getLIMITROW() + 1;
 <a class="jxr_linenumber" name="L1497" href="#L1497">1497</a>                     }
 <a class="jxr_linenumber" name="L1498" href="#L1498">1498</a>                 }
 <a class="jxr_linenumber" name="L1499" href="#L1499">1499</a>                 body = builder.toString();
@@ -1600,9 +1600,9 @@
 <a class="jxr_linenumber" name="L1592" href="#L1592">1592</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURLANGFRXXX.name(), lang.equalsIgnoreCase(<span class="jxr_string">"fr"</span>) ? <span class="jxr_string">"checked"</span>
 <a class="jxr_linenumber" name="L1593" href="#L1593">1593</a>                 : <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1594" href="#L1594">1594</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGENXXX.name(),
-<a class="jxr_linenumber" name="L1595" href="#L1595">1595</a>                 Messages.slocale.equalsIgnoreCase(<span class="jxr_string">"en"</span>) ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L1595" href="#L1595">1595</a>                 Messages.getSlocale().equalsIgnoreCase(<span class="jxr_string">"en"</span>) ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1596" href="#L1596">1596</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGFRXXX.name(),
-<a class="jxr_linenumber" name="L1597" href="#L1597">1597</a>                 Messages.slocale.equalsIgnoreCase(<span class="jxr_string">"fr"</span>) ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L1597" href="#L1597">1597</a>                 Messages.getSlocale().equalsIgnoreCase(<span class="jxr_string">"fr"</span>) ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1598" href="#L1598">1598</a>     }
 <a class="jxr_linenumber" name="L1599" href="#L1599">1599</a> 
 <a class="jxr_linenumber" name="L1600" href="#L1600">1600</a>     <strong class="jxr_keyword">private</strong> String SystemLimitedSource() {
@@ -1617,9 +1617,9 @@
 <a class="jxr_linenumber" name="L1609" href="#L1609">1609</a>         getParams();
 <a class="jxr_linenumber" name="L1610" href="#L1610">1610</a>         <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a> config = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L1611" href="#L1611">1611</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1612" href="#L1612">1612</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L1612" href="#L1612">1612</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L1613" href="#L1613">1613</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e2) {
-<a class="jxr_linenumber" name="L1614" href="#L1614">1614</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.HOST_ID, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L1614" href="#L1614">1614</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.getHOST_ID(), <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1615" href="#L1615">1615</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L1616" href="#L1616">1616</a>                 config.insert();
 <a class="jxr_linenumber" name="L1617" href="#L1617">1617</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -1638,7 +1638,7 @@
 <a class="jxr_linenumber" name="L1630" href="#L1630">1630</a>             <strong class="jxr_keyword">for</strong> (String act : action) {
 <a class="jxr_linenumber" name="L1631" href="#L1631">1631</a>                 <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Language"</span>)) {
 <a class="jxr_linenumber" name="L1632" href="#L1632">1632</a>                     lang = getTrimValue(<span class="jxr_string">"change"</span>);
-<a class="jxr_linenumber" name="L1633" href="#L1633">1633</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.LangIs"</span>) + <span class="jxr_string">"Web: "</span> + lang + <span class="jxr_string">" OpenR66: "</span> + Messages.slocale; <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1633" href="#L1633">1633</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.LangIs"</span>) + <span class="jxr_string">"Web: "</span> + lang + <span class="jxr_string">" OpenR66: "</span> + Messages.getSlocale(); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1634" href="#L1634">1634</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Disconnect"</span>)) {
 <a class="jxr_linenumber" name="L1635" href="#L1635">1635</a>                     String logon = Logon();
 <a class="jxr_linenumber" name="L1636" href="#L1636">1636</a>                     logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
@@ -1674,20 +1674,20 @@
 <a class="jxr_linenumber" name="L1666" href="#L1666">1666</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
 <a class="jxr_linenumber" name="L1667" href="#L1667">1667</a>                 config.getOthers());
 <a class="jxr_linenumber" name="L1668" href="#L1668">1668</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-<a class="jxr_linenumber" name="L1669" href="#L1669">1669</a>                 Long.toString(Configuration.configuration.serverChannelWriteLimit));
+<a class="jxr_linenumber" name="L1669" href="#L1669">1669</a>                 Long.toString(Configuration.configuration.getServerChannelWriteLimit()));
 <a class="jxr_linenumber" name="L1670" href="#L1670">1670</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-<a class="jxr_linenumber" name="L1671" href="#L1671">1671</a>                 Long.toString(Configuration.configuration.serverChannelReadLimit));
+<a class="jxr_linenumber" name="L1671" href="#L1671">1671</a>                 Long.toString(Configuration.configuration.getServerChannelReadLimit()));
 <a class="jxr_linenumber" name="L1672" href="#L1672">1672</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELATRAFFICXXX.toString(),
-<a class="jxr_linenumber" name="L1673" href="#L1673">1673</a>                 Long.toString(Configuration.configuration.delayLimit));
+<a class="jxr_linenumber" name="L1673" href="#L1673">1673</a>                 Long.toString(Configuration.configuration.getDelayLimit()));
 <a class="jxr_linenumber" name="L1674" href="#L1674">1674</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-<a class="jxr_linenumber" name="L1675" href="#L1675">1675</a>                 Long.toString(Configuration.configuration.delayCommander));
+<a class="jxr_linenumber" name="L1675" href="#L1675">1675</a>                 Long.toString(Configuration.configuration.getDelayCommander()));
 <a class="jxr_linenumber" name="L1676" href="#L1676">1676</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-<a class="jxr_linenumber" name="L1677" href="#L1677">1677</a>                 Long.toString(Configuration.configuration.delayRetry));
+<a class="jxr_linenumber" name="L1677" href="#L1677">1677</a>                 Long.toString(Configuration.configuration.getDelayRetry()));
 <a class="jxr_linenumber" name="L1678" href="#L1678">1678</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-<a class="jxr_linenumber" name="L1679" href="#L1679">1679</a>                 Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+<a class="jxr_linenumber" name="L1679" href="#L1679">1679</a>                 Long.toString(Configuration.configuration.getServerGlobalWriteLimit()));
 <a class="jxr_linenumber" name="L1680" href="#L1680">1680</a>         WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-<a class="jxr_linenumber" name="L1681" href="#L1681">1681</a>                 Long.toString(Configuration.configuration.serverGlobalReadLimit));
-<a class="jxr_linenumber" name="L1682" href="#L1682">1682</a>         WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXBLOCKXXX"</span>, Configuration.configuration.isShutdown ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L1681" href="#L1681">1681</a>                 Long.toString(Configuration.configuration.getServerGlobalReadLimit()));
+<a class="jxr_linenumber" name="L1682" href="#L1682">1682</a>         WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXBLOCKXXX"</span>, Configuration.configuration.isShutdown() ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1683" href="#L1683">1683</a>         <strong class="jxr_keyword">switch</strong> (WaarpLoggerFactory.getLogLevel()) {
 <a class="jxr_linenumber" name="L1684" href="#L1684">1684</a>             <strong class="jxr_keyword">case</strong> DEBUG:
 <a class="jxr_linenumber" name="L1685" href="#L1685">1685</a>                 WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXLEVEL1XXX"</span>, <span class="jxr_string">"checked"</span>);
@@ -1737,9 +1737,9 @@
 <a class="jxr_linenumber" name="L1729" href="#L1729">1729</a>         getParams();
 <a class="jxr_linenumber" name="L1730" href="#L1730">1730</a>         <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a> config = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L1731" href="#L1731">1731</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1732" href="#L1732">1732</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L1732" href="#L1732">1732</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L1733" href="#L1733">1733</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e2) {
-<a class="jxr_linenumber" name="L1734" href="#L1734">1734</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.HOST_ID, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L1734" href="#L1734">1734</a>             config = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostConfiguration.html">DbHostConfiguration</a>(dbSession, Configuration.configuration.getHOST_ID(), <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>, <span class="jxr_string">""</span>);
 <a class="jxr_linenumber" name="L1735" href="#L1735">1735</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L1736" href="#L1736">1736</a>                 config.insert();
 <a class="jxr_linenumber" name="L1737" href="#L1737">1737</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -1760,7 +1760,7 @@
 <a class="jxr_linenumber" name="L1752" href="#L1752">1752</a>                     lang = getTrimValue(<span class="jxr_string">"change"</span>);
 <a class="jxr_linenumber" name="L1753" href="#L1753">1753</a>                     String sys = getTrimValue(<span class="jxr_string">"changesys"</span>);
 <a class="jxr_linenumber" name="L1754" href="#L1754">1754</a>                     Messages.init(<strong class="jxr_keyword">new</strong> Locale(sys));
-<a class="jxr_linenumber" name="L1755" href="#L1755">1755</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.LangIs"</span>) + <span class="jxr_string">"Web: "</span> + lang + <span class="jxr_string">" OpenR66: "</span> + Messages.slocale; <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1755" href="#L1755">1755</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.LangIs"</span>) + <span class="jxr_string">"Web: "</span> + lang + <span class="jxr_string">" OpenR66: "</span> + Messages.getSlocale(); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1756" href="#L1756">1756</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Level"</span>)) {
 <a class="jxr_linenumber" name="L1757" href="#L1757">1757</a>                     String loglevel = getTrimValue(<span class="jxr_string">"loglevel"</span>);
 <a class="jxr_linenumber" name="L1758" href="#L1758">1758</a>                     WaarpLogLevel level = WaarpLogLevel.WARN;
@@ -1776,8 +1776,8 @@
 <a class="jxr_linenumber" name="L1768" href="#L1768">1768</a>                     WaarpLoggerFactory.setLogLevel(level);
 <a class="jxr_linenumber" name="L1769" href="#L1769">1769</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.LangIs"</span>) + level.name(); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1770" href="#L1770">1770</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"ExportConfig"</span>)) {
-<a class="jxr_linenumber" name="L1771" href="#L1771">1771</a>                     String directory = Configuration.configuration.baseDirectory +
-<a class="jxr_linenumber" name="L1772" href="#L1772">1772</a>                             R66Dir.SEPARATOR + Configuration.configuration.archivePath;
+<a class="jxr_linenumber" name="L1771" href="#L1771">1771</a>                     String directory = Configuration.configuration.getBaseDirectory() +
+<a class="jxr_linenumber" name="L1772" href="#L1772">1772</a>                             R66Dir.SEPARATOR + Configuration.configuration.getArchivePath();
 <a class="jxr_linenumber" name="L1773" href="#L1773">1773</a>                     extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.ExportDir"</span>) + directory + <span class="jxr_string">"&lt;br&gt;"</span>; <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1774" href="#L1774">1774</a>                     String[] filenames = ServerActions.staticConfigExport(dbSession, directory, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L1775" href="#L1775">1775</a>                             <strong class="jxr_keyword">true</strong>);
@@ -1806,10 +1806,10 @@
 <a class="jxr_linenumber" name="L1798" href="#L1798">1798</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L1799" href="#L1799">1799</a>                         extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.35"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1800" href="#L1800">1800</a>                     }
-<a class="jxr_linenumber" name="L1801" href="#L1801">1801</a>                     Configuration.configuration.isShutdown = block;
+<a class="jxr_linenumber" name="L1801" href="#L1801">1801</a>                     Configuration.configuration.setShutdown(block);
 <a class="jxr_linenumber" name="L1802" href="#L1802">1802</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Shutdown"</span>)) {
 <a class="jxr_linenumber" name="L1803" href="#L1803">1803</a>                     String error;
-<a class="jxr_linenumber" name="L1804" href="#L1804">1804</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1804" href="#L1804">1804</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1805" href="#L1805">1805</a>                         error = error(Messages.getString(<span class="jxr_string">"HttpSslHandler.38"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1806" href="#L1806">1806</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L1807" href="#L1807">1807</a>                         error = error(Messages.getString(<span class="jxr_string">"HttpSslHandler.37"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -1822,13 +1822,13 @@
 <a class="jxr_linenumber" name="L1814" href="#L1814">1814</a>                     <strong class="jxr_keyword">return</strong> error;
 <a class="jxr_linenumber" name="L1815" href="#L1815">1815</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Restart"</span>)) {
 <a class="jxr_linenumber" name="L1816" href="#L1816">1816</a>                     String error;
-<a class="jxr_linenumber" name="L1817" href="#L1817">1817</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1817" href="#L1817">1817</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1818" href="#L1818">1818</a>                         error = error(Messages.getString(<span class="jxr_string">"HttpSslHandler.38"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1819" href="#L1819">1819</a>                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L1820" href="#L1820">1820</a>                         error = error(Messages.getString(<span class="jxr_string">"HttpSslHandler.39"</span>) + (Configuration.configuration.TIMEOUTCON * 2 / 1000) + Messages.getString(<span class="jxr_string">"HttpSslHandler.40"</span>)); <em class="jxr_comment">//$NON-NLS-1$ //$NON-NLS-2$</em>
+<a class="jxr_linenumber" name="L1820" href="#L1820">1820</a>                         error = error(Messages.getString(<span class="jxr_string">"HttpSslHandler.39"</span>) + (Configuration.configuration.getTIMEOUTCON() * 2 / 1000) + Messages.getString(<span class="jxr_string">"HttpSslHandler.40"</span>)); <em class="jxr_comment">//$NON-NLS-1$ //$NON-NLS-2$</em>
 <a class="jxr_linenumber" name="L1821" href="#L1821">1821</a>                     }
 <a class="jxr_linenumber" name="L1822" href="#L1822">1822</a>                     error = error.replace(<span class="jxr_string">"XXXRELOADHTTPXXX"</span>, <span class="jxr_string">"HTTP-EQUIV=\&quot;refresh\&quot; CONTENT=\&quot;"</span>
-<a class="jxr_linenumber" name="L1823" href="#L1823">1823</a>                             + (Configuration.configuration.TIMEOUTCON * 2 / 1000) + <span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L1823" href="#L1823">1823</a>                             + (Configuration.configuration.getTIMEOUTCON() * 2 / 1000) + <span class="jxr_string">"\&quot;"</span>);
 <a class="jxr_linenumber" name="L1824" href="#L1824">1824</a>                     R66ShutdownHook.setRestart(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L1825" href="#L1825">1825</a>                     newSession = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L1826" href="#L1826">1826</a>                     clearSession();
@@ -1837,7 +1837,7 @@
 <a class="jxr_linenumber" name="L1829" href="#L1829">1829</a>                     <strong class="jxr_keyword">return</strong> error;
 <a class="jxr_linenumber" name="L1830" href="#L1830">1830</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Validate"</span>)) {
 <a class="jxr_linenumber" name="L1831" href="#L1831">1831</a>                     String bsessionr = getTrimValue(<span class="jxr_string">"BSESSR"</span>);
-<a class="jxr_linenumber" name="L1832" href="#L1832">1832</a>                     <strong class="jxr_keyword">long</strong> lsessionr = Configuration.configuration.serverChannelReadLimit;
+<a class="jxr_linenumber" name="L1832" href="#L1832">1832</a>                     <strong class="jxr_keyword">long</strong> lsessionr = Configuration.configuration.getServerChannelReadLimit();
 <a class="jxr_linenumber" name="L1833" href="#L1833">1833</a>                     <strong class="jxr_keyword">long</strong> lglobalr;
 <a class="jxr_linenumber" name="L1834" href="#L1834">1834</a>                     <strong class="jxr_keyword">long</strong> lsessionw;
 <a class="jxr_linenumber" name="L1835" href="#L1835">1835</a>                     <strong class="jxr_keyword">long</strong> lglobalw;
@@ -1847,22 +1847,22 @@
 <a class="jxr_linenumber" name="L1839" href="#L1839">1839</a>                             lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
 <a class="jxr_linenumber" name="L1840" href="#L1840">1840</a>                         }
 <a class="jxr_linenumber" name="L1841" href="#L1841">1841</a>                         String bglobalr = getTrimValue(<span class="jxr_string">"BGLOBR"</span>);
-<a class="jxr_linenumber" name="L1842" href="#L1842">1842</a>                         lglobalr = Configuration.configuration.serverGlobalReadLimit;
+<a class="jxr_linenumber" name="L1842" href="#L1842">1842</a>                         lglobalr = Configuration.configuration.getServerGlobalReadLimit();
 <a class="jxr_linenumber" name="L1843" href="#L1843">1843</a>                         <strong class="jxr_keyword">if</strong> (bglobalr != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1844" href="#L1844">1844</a>                             lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
 <a class="jxr_linenumber" name="L1845" href="#L1845">1845</a>                         }
 <a class="jxr_linenumber" name="L1846" href="#L1846">1846</a>                         String bsessionw = getTrimValue(<span class="jxr_string">"BSESSW"</span>);
-<a class="jxr_linenumber" name="L1847" href="#L1847">1847</a>                         lsessionw = Configuration.configuration.serverChannelWriteLimit;
+<a class="jxr_linenumber" name="L1847" href="#L1847">1847</a>                         lsessionw = Configuration.configuration.getServerChannelWriteLimit();
 <a class="jxr_linenumber" name="L1848" href="#L1848">1848</a>                         <strong class="jxr_keyword">if</strong> (bsessionw != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1849" href="#L1849">1849</a>                             lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
 <a class="jxr_linenumber" name="L1850" href="#L1850">1850</a>                         }
 <a class="jxr_linenumber" name="L1851" href="#L1851">1851</a>                         String bglobalw = getTrimValue(<span class="jxr_string">"BGLOBW"</span>);
-<a class="jxr_linenumber" name="L1852" href="#L1852">1852</a>                         lglobalw = Configuration.configuration.serverGlobalWriteLimit;
+<a class="jxr_linenumber" name="L1852" href="#L1852">1852</a>                         lglobalw = Configuration.configuration.getServerGlobalWriteLimit();
 <a class="jxr_linenumber" name="L1853" href="#L1853">1853</a>                         <strong class="jxr_keyword">if</strong> (bglobalw != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1854" href="#L1854">1854</a>                             lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
 <a class="jxr_linenumber" name="L1855" href="#L1855">1855</a>                         }
 <a class="jxr_linenumber" name="L1856" href="#L1856">1856</a>                         String dtra = getTrimValue(<span class="jxr_string">"DTRA"</span>);
-<a class="jxr_linenumber" name="L1857" href="#L1857">1857</a>                         delay = Configuration.configuration.delayLimit;
+<a class="jxr_linenumber" name="L1857" href="#L1857">1857</a>                         delay = Configuration.configuration.getDelayLimit();
 <a class="jxr_linenumber" name="L1858" href="#L1858">1858</a>                         <strong class="jxr_keyword">if</strong> (dtra != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1859" href="#L1859">1859</a>                             delay = (Long.parseLong(dtra) / 10) * 10;
 <a class="jxr_linenumber" name="L1860" href="#L1860">1860</a>                             <strong class="jxr_keyword">if</strong> (delay &lt; 100) {
@@ -1874,17 +1874,17 @@
 <a class="jxr_linenumber" name="L1866" href="#L1866">1866</a>                                 delay);
 <a class="jxr_linenumber" name="L1867" href="#L1867">1867</a>                         String dcomm = getTrimValue(<span class="jxr_string">"DCOM"</span>);
 <a class="jxr_linenumber" name="L1868" href="#L1868">1868</a>                         <strong class="jxr_keyword">if</strong> (dcomm != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1869" href="#L1869">1869</a>                             Configuration.configuration.delayCommander = Long.parseLong(dcomm);
-<a class="jxr_linenumber" name="L1870" href="#L1870">1870</a>                             <strong class="jxr_keyword">if</strong> (Configuration.configuration.delayCommander &lt;= 100) {
-<a class="jxr_linenumber" name="L1871" href="#L1871">1871</a>                                 Configuration.configuration.delayCommander = 100;
+<a class="jxr_linenumber" name="L1869" href="#L1869">1869</a>                             Configuration.configuration.setDelayCommander(Long.parseLong(dcomm));
+<a class="jxr_linenumber" name="L1870" href="#L1870">1870</a>                             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getDelayCommander() &lt;= 100) {
+<a class="jxr_linenumber" name="L1871" href="#L1871">1871</a>                                 Configuration.configuration.setDelayCommander(100);
 <a class="jxr_linenumber" name="L1872" href="#L1872">1872</a>                             }
 <a class="jxr_linenumber" name="L1873" href="#L1873">1873</a>                             Configuration.configuration.reloadCommanderDelay();
 <a class="jxr_linenumber" name="L1874" href="#L1874">1874</a>                         }
 <a class="jxr_linenumber" name="L1875" href="#L1875">1875</a>                         String dret = getTrimValue(<span class="jxr_string">"DRET"</span>);
 <a class="jxr_linenumber" name="L1876" href="#L1876">1876</a>                         <strong class="jxr_keyword">if</strong> (dret != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1877" href="#L1877">1877</a>                             Configuration.configuration.delayRetry = Long.parseLong(dret);
-<a class="jxr_linenumber" name="L1878" href="#L1878">1878</a>                             <strong class="jxr_keyword">if</strong> (Configuration.configuration.delayRetry &lt;= 1000) {
-<a class="jxr_linenumber" name="L1879" href="#L1879">1879</a>                                 Configuration.configuration.delayRetry = 1000;
+<a class="jxr_linenumber" name="L1877" href="#L1877">1877</a>                             Configuration.configuration.setDelayRetry(Long.parseLong(dret));
+<a class="jxr_linenumber" name="L1878" href="#L1878">1878</a>                             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getDelayRetry() &lt;= 1000) {
+<a class="jxr_linenumber" name="L1879" href="#L1879">1879</a>                                 Configuration.configuration.setDelayRetry(1000);
 <a class="jxr_linenumber" name="L1880" href="#L1880">1880</a>                             }
 <a class="jxr_linenumber" name="L1881" href="#L1881">1881</a>                         }
 <a class="jxr_linenumber" name="L1882" href="#L1882">1882</a>                         extraInformation = Messages.getString(<span class="jxr_string">"HttpSslHandler.41"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -1928,10 +1928,10 @@
 <a class="jxr_linenumber" name="L1920" href="#L1920">1920</a>                     String snb = getTrimValue(sLIMITROW);
 <a class="jxr_linenumber" name="L1921" href="#L1921">1921</a>                     <strong class="jxr_keyword">if</strong> (snb != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1922" href="#L1922">1922</a>                         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1923" href="#L1923">1923</a>                             <strong class="jxr_keyword">int</strong> old = LIMITROW;
-<a class="jxr_linenumber" name="L1924" href="#L1924">1924</a>                             LIMITROW = Integer.parseInt(snb);
-<a class="jxr_linenumber" name="L1925" href="#L1925">1925</a>                             <strong class="jxr_keyword">if</strong> (LIMITROW &lt; 5) {
-<a class="jxr_linenumber" name="L1926" href="#L1926">1926</a>                                 LIMITROW = old;
+<a class="jxr_linenumber" name="L1923" href="#L1923">1923</a>                             <strong class="jxr_keyword">int</strong> old = getLIMITROW();
+<a class="jxr_linenumber" name="L1924" href="#L1924">1924</a>                             setLIMITROW(Integer.parseInt(snb));
+<a class="jxr_linenumber" name="L1925" href="#L1925">1925</a>                             <strong class="jxr_keyword">if</strong> (getLIMITROW() &lt; 5) {
+<a class="jxr_linenumber" name="L1926" href="#L1926">1926</a>                                 setLIMITROW(old);
 <a class="jxr_linenumber" name="L1927" href="#L1927">1927</a>                             }
 <a class="jxr_linenumber" name="L1928" href="#L1928">1928</a>                         } <strong class="jxr_keyword">catch</strong> (Exception e1) {
 <a class="jxr_linenumber" name="L1929" href="#L1929">1929</a>                         }
@@ -1954,7 +1954,7 @@
 <a class="jxr_linenumber" name="L1946" href="#L1946">1946</a>             }
 <a class="jxr_linenumber" name="L1947" href="#L1947">1947</a>             <strong class="jxr_keyword">if</strong> (ldbsession != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1948" href="#L1948">1948</a>                 ldbsession.forceDisconnect();
-<a class="jxr_linenumber" name="L1949" href="#L1949">1949</a>                 DbAdmin.nbHttpSession--;
+<a class="jxr_linenumber" name="L1949" href="#L1949">1949</a>                 DbAdmin.decHttpSession();
 <a class="jxr_linenumber" name="L1950" href="#L1950">1950</a>             }
 <a class="jxr_linenumber" name="L1951" href="#L1951">1951</a>         }
 <a class="jxr_linenumber" name="L1952" href="#L1952">1952</a>     }
@@ -2019,18 +2019,18 @@
 <a class="jxr_linenumber" name="L2011" href="#L2011">2011</a>             }
 <a class="jxr_linenumber" name="L2012" href="#L2012">2012</a>             <strong class="jxr_keyword">if</strong> (!getMenu) {
 <a class="jxr_linenumber" name="L2013" href="#L2013">2013</a>                 logger.debug(<span class="jxr_string">"Name? "</span>
-<a class="jxr_linenumber" name="L2014" href="#L2014">2014</a>                         + name.equals(Configuration.configuration.ADMINNAME) +
+<a class="jxr_linenumber" name="L2014" href="#L2014">2014</a>                         + name.equals(Configuration.configuration.getADMINNAME()) +
 <a class="jxr_linenumber" name="L2015" href="#L2015">2015</a>                         <span class="jxr_string">" Passwd? "</span> + Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
 <a class="jxr_linenumber" name="L2016" href="#L2016">2016</a>                                 Configuration.configuration.getSERVERADMINKEY()));
-<a class="jxr_linenumber" name="L2017" href="#L2017">2017</a>                 <strong class="jxr_keyword">if</strong> (name.equals(Configuration.configuration.ADMINNAME) &amp;&amp;
+<a class="jxr_linenumber" name="L2017" href="#L2017">2017</a>                 <strong class="jxr_keyword">if</strong> (name.equals(Configuration.configuration.getADMINNAME()) &amp;&amp;
 <a class="jxr_linenumber" name="L2018" href="#L2018">2018</a>                         Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
 <a class="jxr_linenumber" name="L2019" href="#L2019">2019</a>                                 Configuration.configuration.getSERVERADMINKEY())) {
 <a class="jxr_linenumber" name="L2020" href="#L2020">2020</a>                     authentHttp.getAuth().specialNoSessionAuth(<strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="L2021" href="#L2021">2021</a>                             Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L2021" href="#L2021">2021</a>                             Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L2022" href="#L2022">2022</a>                     authentHttp.setStatus(70);
 <a class="jxr_linenumber" name="L2023" href="#L2023">2023</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L2024" href="#L2024">2024</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L2025" href="#L2025">2025</a>                         authentHttp.getAuth().connectionHttps(DbConstant.admin.session, name,
+<a class="jxr_linenumber" name="L2025" href="#L2025">2025</a>                         authentHttp.getAuth().connectionHttps(DbConstant.admin.getSession(), name,
 <a class="jxr_linenumber" name="L2026" href="#L2026">2026</a>                                 FilesystemBasedDigest.passwdCrypt(password.getBytes(WaarpStringUtils.UTF8)));
 <a class="jxr_linenumber" name="L2027" href="#L2027">2027</a>                     } <strong class="jxr_keyword">catch</strong> (Reply530Exception e1) {
 <a class="jxr_linenumber" name="L2028" href="#L2028">2028</a>                         getMenu = <strong class="jxr_keyword">true</strong>;
@@ -2064,22 +2064,22 @@
 <a class="jxr_linenumber" name="L2056" href="#L2056">2056</a>             }
 <a class="jxr_linenumber" name="L2057" href="#L2057">2057</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.dbSession == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L2058" href="#L2058">2058</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L2059" href="#L2059">2059</a>                     <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L2059" href="#L2059">2059</a>                     <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L2060" href="#L2060">2060</a>                         <strong class="jxr_keyword">this</strong>.dbSession = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
-<a class="jxr_linenumber" name="L2061" href="#L2061">2061</a>                         DbAdmin.nbHttpSession++;
+<a class="jxr_linenumber" name="L2061" href="#L2061">2061</a>                         DbAdmin.incHttpSession();
 <a class="jxr_linenumber" name="L2062" href="#L2062">2062</a>                         <strong class="jxr_keyword">this</strong>.isPrivateDbSession = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L2063" href="#L2063">2063</a>                     }
 <a class="jxr_linenumber" name="L2064" href="#L2064">2064</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="L2065" href="#L2065">2065</a>                     <em class="jxr_comment">// Cannot connect so use default connection</em>
 <a class="jxr_linenumber" name="L2066" href="#L2066">2066</a>                     logger.warn(<span class="jxr_string">"Use default database connection"</span>);
-<a class="jxr_linenumber" name="L2067" href="#L2067">2067</a>                     <strong class="jxr_keyword">this</strong>.dbSession = DbConstant.admin.session;
+<a class="jxr_linenumber" name="L2067" href="#L2067">2067</a>                     <strong class="jxr_keyword">this</strong>.dbSession = DbConstant.admin.getSession();
 <a class="jxr_linenumber" name="L2068" href="#L2068">2068</a>                 }
 <a class="jxr_linenumber" name="L2069" href="#L2069">2069</a>             }
 <a class="jxr_linenumber" name="L2070" href="#L2070">2070</a>             String index = index();
 <a class="jxr_linenumber" name="L2071" href="#L2071">2071</a>             responseContent.append(index);
 <a class="jxr_linenumber" name="L2072" href="#L2072">2072</a>             clearSession();
-<a class="jxr_linenumber" name="L2073" href="#L2073">2073</a>             admin = <strong class="jxr_keyword">new</strong> DefaultCookie(R66SESSION + Configuration.configuration.HOST_ID,
-<a class="jxr_linenumber" name="L2074" href="#L2074">2074</a>                     Configuration.configuration.HOST_ID +
+<a class="jxr_linenumber" name="L2073" href="#L2073">2073</a>             admin = <strong class="jxr_keyword">new</strong> DefaultCookie(R66SESSION + Configuration.configuration.getHOST_ID(),
+<a class="jxr_linenumber" name="L2074" href="#L2074">2074</a>                     Configuration.configuration.getHOST_ID() +
 <a class="jxr_linenumber" name="L2075" href="#L2075">2075</a>                             Long.toHexString(random.nextLong()));
 <a class="jxr_linenumber" name="L2076" href="#L2076">2076</a>             sessions.put(admin.value(), <strong class="jxr_keyword">this</strong>.authentHttp);
 <a class="jxr_linenumber" name="L2077" href="#L2077">2077</a>             authentHttp.setStatus(72);
@@ -2100,8 +2100,8 @@
 <a class="jxr_linenumber" name="L2092" href="#L2092">2092</a>         <strong class="jxr_keyword">if</strong> (uriRequest.contains(<span class="jxr_string">"gre/"</span>) || uriRequest.contains(<span class="jxr_string">"img/"</span>) ||
 <a class="jxr_linenumber" name="L2093" href="#L2093">2093</a>                 uriRequest.contains(<span class="jxr_string">"res/"</span>) || uriRequest.contains(<span class="jxr_string">"favicon.ico"</span>)) {
 <a class="jxr_linenumber" name="L2094" href="#L2094">2094</a>             HttpWriteCacheEnable.writeFile(request,
-<a class="jxr_linenumber" name="L2095" href="#L2095">2095</a>                     ctx, Configuration.configuration.httpBasePath + uriRequest,
-<a class="jxr_linenumber" name="L2096" href="#L2096">2096</a>                     R66SESSION + Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L2095" href="#L2095">2095</a>                     ctx, Configuration.configuration.getHttpBasePath() + uriRequest,
+<a class="jxr_linenumber" name="L2096" href="#L2096">2096</a>                     R66SESSION + Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L2097" href="#L2097">2097</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L2098" href="#L2098">2098</a>         }
 <a class="jxr_linenumber" name="L2099" href="#L2099">2099</a>         checkSession(ctx.channel());
@@ -2194,7 +2194,7 @@
 <a class="jxr_linenumber" name="L2186" href="#L2186">2186</a>             Set&lt;Cookie&gt; cookies = ServerCookieDecoder.LAX.decode(cookieString);
 <a class="jxr_linenumber" name="L2187" href="#L2187">2187</a>             <strong class="jxr_keyword">if</strong> (!cookies.isEmpty()) {
 <a class="jxr_linenumber" name="L2188" href="#L2188">2188</a>                 <strong class="jxr_keyword">for</strong> (Cookie elt : cookies) {
-<a class="jxr_linenumber" name="L2189" href="#L2189">2189</a>                     <strong class="jxr_keyword">if</strong> (elt.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.HOST_ID)) {
+<a class="jxr_linenumber" name="L2189" href="#L2189">2189</a>                     <strong class="jxr_keyword">if</strong> (elt.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.getHOST_ID())) {
 <a class="jxr_linenumber" name="L2190" href="#L2190">2190</a>                         logger.debug(<span class="jxr_string">"Found session: "</span> + elt);
 <a class="jxr_linenumber" name="L2191" href="#L2191">2191</a>                         admin = elt;
 <a class="jxr_linenumber" name="L2192" href="#L2192">2192</a>                         <a href="../../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = sessions.get(admin.value());
@@ -2207,7 +2207,7 @@
 <a class="jxr_linenumber" name="L2199" href="#L2199">2199</a>                         }
 <a class="jxr_linenumber" name="L2200" href="#L2200">2200</a>                         DbSession dbSession = dbSessions.get(admin.value());
 <a class="jxr_linenumber" name="L2201" href="#L2201">2201</a>                         <strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L2202" href="#L2202">2202</a>                             <strong class="jxr_keyword">if</strong> (dbSession.isDisActive) {
+<a class="jxr_linenumber" name="L2202" href="#L2202">2202</a>                             <strong class="jxr_keyword">if</strong> (dbSession.isDisActive()) {
 <a class="jxr_linenumber" name="L2203" href="#L2203">2203</a>                                 clearSession();
 <a class="jxr_linenumber" name="L2204" href="#L2204">2204</a>                             }
 <a class="jxr_linenumber" name="L2205" href="#L2205">2205</a>                             <strong class="jxr_keyword">this</strong>.dbSession = dbSession;
@@ -2236,7 +2236,7 @@
 <a class="jxr_linenumber" name="L2228" href="#L2228">2228</a>                 <em class="jxr_comment">// Reset the sessions if necessary.</em>
 <a class="jxr_linenumber" name="L2229" href="#L2229">2229</a>                 <strong class="jxr_keyword">boolean</strong> findSession = false;
 <a class="jxr_linenumber" name="L2230" href="#L2230">2230</a>                 <strong class="jxr_keyword">for</strong> (Cookie cookie : cookies) {
-<a class="jxr_linenumber" name="L2231" href="#L2231">2231</a>                     <strong class="jxr_keyword">if</strong> (cookie.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.HOST_ID)) {
+<a class="jxr_linenumber" name="L2231" href="#L2231">2231</a>                     <strong class="jxr_keyword">if</strong> (cookie.name().equalsIgnoreCase(R66SESSION + Configuration.configuration.getHOST_ID())) {
 <a class="jxr_linenumber" name="L2232" href="#L2232">2232</a>                         <strong class="jxr_keyword">if</strong> (newSession) {
 <a class="jxr_linenumber" name="L2233" href="#L2233">2233</a>                             findSession = false;
 <a class="jxr_linenumber" name="L2234" href="#L2234">2234</a>                         } <strong class="jxr_keyword">else</strong> {
@@ -2367,9 +2367,23 @@
 <a class="jxr_linenumber" name="L2359" href="#L2359">2359</a>         <strong class="jxr_keyword">super</strong>.channelActive(ctx);
 <a class="jxr_linenumber" name="L2360" href="#L2360">2360</a>     }
 <a class="jxr_linenumber" name="L2361" href="#L2361">2361</a> 
-<a class="jxr_linenumber" name="L2362" href="#L2362">2362</a> }
+<a class="jxr_linenumber" name="L2362" href="#L2362">2362</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L2363" href="#L2363">2363</a> <em class="jxr_javadoccomment">     * @return the lIMITROW</em>
+<a class="jxr_linenumber" name="L2364" href="#L2364">2364</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L2365" href="#L2365">2365</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getLIMITROW() {
+<a class="jxr_linenumber" name="L2366" href="#L2366">2366</a>         <strong class="jxr_keyword">return</strong> LIMITROW;
+<a class="jxr_linenumber" name="L2367" href="#L2367">2367</a>     }
+<a class="jxr_linenumber" name="L2368" href="#L2368">2368</a> 
+<a class="jxr_linenumber" name="L2369" href="#L2369">2369</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L2370" href="#L2370">2370</a> <em class="jxr_javadoccomment">     * @param lIMITROW the lIMITROW to set</em>
+<a class="jxr_linenumber" name="L2371" href="#L2371">2371</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L2372" href="#L2372">2372</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setLIMITROW(<strong class="jxr_keyword">int</strong> lIMITROW) {
+<a class="jxr_linenumber" name="L2373" href="#L2373">2373</a>         LIMITROW = lIMITROW;
+<a class="jxr_linenumber" name="L2374" href="#L2374">2374</a>     }
+<a class="jxr_linenumber" name="L2375" href="#L2375">2375</a> 
+<a class="jxr_linenumber" name="L2376" href="#L2376">2376</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

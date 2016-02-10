@@ -113,8 +113,8 @@
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         <strong class="jxr_keyword">this</strong>.rulename = rulename;
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">this</strong>.fileinfo = fileinfo;
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">this</strong>.isMD5 = isMD5;
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.aliases.containsKey(remoteHost)) {
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>             <strong class="jxr_keyword">this</strong>.remoteHost = Configuration.configuration.aliases.get(remoteHost);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.getAliases().containsKey(remoteHost)) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>             <strong class="jxr_keyword">this</strong>.remoteHost = Configuration.configuration.getAliases().get(remoteHost);
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">this</strong>.remoteHost = remoteHost;
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>         }
@@ -131,7 +131,7 @@
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>     <strong class="jxr_keyword">protected</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> initRequest() {
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule;
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, rulename);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>             logger.error(<span class="jxr_string">"Cannot get Rule: "</span> + rulename, e);
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>             future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
@@ -139,14 +139,14 @@
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>             future.setFailure(e);
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>         }
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">int</strong> mode = rule.mode;
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">int</strong> mode = rule.getMode();
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>         <strong class="jxr_keyword">if</strong> (isMD5) {
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>             mode = RequestPacket.getModeMD5(mode);
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>         }
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>         <strong class="jxr_keyword">if</strong> (id != DbConstant.ILLEGALVALUE) {
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, id,
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), id,
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>                         remoteHost);
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
@@ -170,7 +170,7 @@
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>                 <em class="jxr_comment">// Change dir</em>
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>                     <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>                     session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                     session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>                     session.getDir().changeDirectory(rule.getSendPath());
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>                     <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> filer66 = FileUtils.getFile(logger, session, filename, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>                     file = filer66.getTrueFile();
@@ -193,7 +193,7 @@
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>             <strong class="jxr_keyword">boolean</strong> isRetrieve = !RequestPacket.isRecvMode(request.getMode());
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                 taskRunner =
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, rule, isRetrieve, request,
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), rule, isRetrieve, request,
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>                                 remoteHost, startTime);
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
@@ -245,7 +245,7 @@
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>             <strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>         }
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>         <em class="jxr_comment">// Now set default values from configuration</em>
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         block = Configuration.configuration.BLOCKSIZE;
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         block = Configuration.configuration.getBLOCKSIZE();
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">int</strong> i = 1;
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>             <strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
@@ -311,7 +311,7 @@
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (idt != DbConstant.ILLEGALVALUE &amp;&amp; rhost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, idt,
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), idt,
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>                         rhost);
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>                 rule = runner.getRuleId();
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>                 localFilename = runner.getOriginalFilename();
@@ -331,6 +331,6 @@
 <a class="jxr_linenumber" name="L323" href="#L323">323</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

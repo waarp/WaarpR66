@@ -76,8 +76,8 @@
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>              logger.warn(<span class="jxr_string">"Connection refused since Partner is in BlackListed from "</span>
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>                      + networkChannel.remoteAddress().toString());
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>              isBlackListed = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>              <strong class="jxr_keyword">if</strong> (Configuration.configuration.r66Mib != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  Configuration.configuration.r66Mib.notifyError(
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>              <strong class="jxr_keyword">if</strong> (Configuration.configuration.getR66Mib() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  Configuration.configuration.getR66Mib().notifyError(
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>                          <span class="jxr_string">"Black Listed connection temptative"</span>, <span class="jxr_string">"During Handshake"</span>);
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              }
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>              <em class="jxr_comment">// close immediately the connection</em>
@@ -92,8 +92,8 @@
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>              sslHandler.handshakeFuture().addListener(<strong class="jxr_keyword">new</strong> GenericFutureListener&lt;Future&lt;? <strong class="jxr_keyword">super</strong> Channel&gt;&gt;() {
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>                  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> operationComplete(Future&lt;? <strong class="jxr_keyword">super</strong> Channel&gt; future) <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>                      <strong class="jxr_keyword">if</strong> (!future.isSuccess()) {
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>                          <strong class="jxr_keyword">if</strong> (Configuration.configuration.r66Mib != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>                              Configuration.configuration.r66Mib.notifyError(
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>                          <strong class="jxr_keyword">if</strong> (Configuration.configuration.getR66Mib() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                              Configuration.configuration.getR66Mib().notifyError(
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>                                      <span class="jxr_string">"SSL Connection Error"</span>, <span class="jxr_string">"During Handshake"</span>);
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>                          }
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>                      }
@@ -107,6 +107,6 @@
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

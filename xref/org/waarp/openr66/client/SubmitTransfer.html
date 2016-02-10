@@ -62,12 +62,12 @@
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>              logger = WaarpLoggerFactory.getLogger(SubmitTransfer.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>              logger.debug(<span class="jxr_string">"Client not connected"</span>);
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>              <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(<span class="jxr_string">"No database connexion"</span>), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>                      ErrorCode.Internal, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>              future.setResult(result);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>              future.setFailure(result.exception);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              future.setFailure(result.getException());
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>              <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>          }
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">long</strong> srcId = id;
@@ -80,7 +80,7 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>              <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>                      ErrorCode.Internal, taskRunner);
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              future.setResult(result);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              future.setFailure(result.exception);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              future.setFailure(result.getException());
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>              <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>          }
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>          <strong class="jxr_keyword">if</strong> (srcId != DbConstant.ILLEGALVALUE) {
@@ -93,7 +93,7 @@
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>                          <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>                          ErrorCode.Internal, taskRunner);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>                  future.setResult(result);
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>                  future.setFailure(result.exception);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                  future.setFailure(result.getException());
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>                  <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>              }
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          } <strong class="jxr_keyword">else</strong> {
@@ -107,7 +107,7 @@
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>                              <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>                             ErrorCode.Internal, taskRunner);
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>                     future.setResult(result);
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     future.setFailure(result.exception);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     future.setFailure(result.getException());
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>                     <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>                 }
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -115,7 +115,7 @@
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>                 <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(<span class="jxr_string">"Cannot prepare Task"</span>), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>                         ErrorCode.Internal, taskRunner);
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>                 future.setResult(result);
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 future.setFailure(result.exception);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 future.setFailure(result.getException());
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>                 <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>             }
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>         }
@@ -141,7 +141,7 @@
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>                 System.out.println(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>             }
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>             }
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>             ChannelUtils.stopLogger();
@@ -154,7 +154,7 @@
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>         transaction.normalInfoAsWarn = snormalInfoAsWarn;
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>         transaction.run();
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>         future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = future.getResult().runner;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = future.getResult().getRunner();
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>         <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a> outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(SubmitTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), args);
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>         <strong class="jxr_keyword">if</strong> (future.isSuccess()) {
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>             outputFormat.setValue(FIELDS.status.name(), 0);
@@ -191,7 +191,7 @@
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>             }
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>             DbConstant.admin.close();
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>             ChannelUtils.stopLogger();
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>             System.exit(future.getResult().code.ordinal());
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             System.exit(future.getResult().getCode().ordinal());
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>         }
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>         DbConstant.admin.close();
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>         System.exit(0);
@@ -200,6 +200,6 @@
 <a class="jxr_linenumber" name="L192" href="#L192">192</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

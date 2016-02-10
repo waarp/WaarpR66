@@ -162,8 +162,8 @@
 <a class="jxr_linenumber" name="L154" href="#L154">154</a> 
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>     <strong class="jxr_keyword">protected</strong> FileMonitor monitor = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L156" href="#L156">156</a> 
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> sent = 0;
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> error = 0;
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> sent = 0;
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> error = 0;
 <a class="jxr_linenumber" name="L159" href="#L159">159</a> 
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L161" href="#L161">161</a> <em class="jxr_javadoccomment">     * @param future</em>
@@ -228,26 +228,26 @@
 <a class="jxr_linenumber" name="L220" href="#L220">220</a> 
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>     @Override
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">if</strong> (submit &amp;&amp; !DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">if</strong> (submit &amp;&amp; !DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.2"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>                         .getString(<span class="jxr_string">"SpooledDirectoryTransfer.2"</span>)));
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>             }
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L231" href="#L231">231</a>         }
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>         sent = 0;
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>         error = 0;
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         setSent(0);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         setError(0);
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>         <em class="jxr_comment">// first check if rule is for SEND</em>
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> dbrule = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>             dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, rulename);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>             logger.error(Messages.getString(<span class="jxr_string">"Transfer.18"</span>), e1); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">this</strong>.future.setFailure(e1);
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>                         .getString(<span class="jxr_string">"Transfer.18"</span>) + e1.getMessage()));
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>             }
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">return</strong>;
@@ -255,8 +255,8 @@
 <a class="jxr_linenumber" name="L247" href="#L247">247</a>         <strong class="jxr_keyword">if</strong> (dbrule.isRecvMode()) {
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.5"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>             <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>                         .getString(<span class="jxr_string">"SpooledDirectoryTransfer.5"</span>)));
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>             }
 <a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">return</strong>;
@@ -265,8 +265,8 @@
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>         <strong class="jxr_keyword">if</strong> (status.isDirectory()) {
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.6"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>             <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L262" href="#L262">262</a>                         .getString(<span class="jxr_string">"SpooledDirectoryTransfer.6"</span>)));
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>             }
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>             <strong class="jxr_keyword">return</strong>;
@@ -275,16 +275,16 @@
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>         <strong class="jxr_keyword">if</strong> (stop.isDirectory()) {
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.7"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>             <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>                         .getString(<span class="jxr_string">"SpooledDirectoryTransfer.7"</span>)));
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>             }
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L275" href="#L275">275</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (stop.exists()) {
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>             logger.warn(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.8"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>             <strong class="jxr_keyword">this</strong>.future.setSuccess();
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L280" href="#L280">280</a>                         .getString(<span class="jxr_string">"SpooledDirectoryTransfer.8"</span>)));
 <a class="jxr_linenumber" name="L281" href="#L281">281</a>             }
 <a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">return</strong>;
@@ -294,8 +294,8 @@
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>             <strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>                 logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.9"</span>) + <span class="jxr_string">" : "</span> + dir); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>                             .getString(<span class="jxr_string">"SpooledDirectoryTransfer.9"</span>)));
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>                 }
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>                 <strong class="jxr_keyword">return</strong>;
@@ -326,8 +326,8 @@
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>             <em class="jxr_comment">// wrong</em>
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>) + <span class="jxr_string">" : already running"</span>);
 <a class="jxr_linenumber" name="L320" href="#L320">320</a>             <strong class="jxr_keyword">this</strong>.future.cancel();
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>                 Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(<a href="../../../../org/waarp/openr66/protocol/configuration/Messages.html">Messages</a>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>                 Configuration.configuration.getShutdownConfiguration().serviceFuture.setFailure(<strong class="jxr_keyword">new</strong> Exception(Messages
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>                         .getString(<span class="jxr_string">"Configuration.WrongInit"</span>) + <span class="jxr_string">" : already running"</span>));
 <a class="jxr_linenumber" name="L324" href="#L324">324</a>             }
 <a class="jxr_linenumber" name="L325" href="#L325">325</a>             <strong class="jxr_keyword">return</strong>;
@@ -351,8 +351,8 @@
 <a class="jxr_linenumber" name="L343" href="#L343">343</a>                 <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run(FileItem notused) {
 <a class="jxr_linenumber" name="L344" href="#L344">344</a>                     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L345" href="#L345">345</a>                         Thread.currentThread().setName(<span class="jxr_string">"FileMonitorInformation_"</span> + name);
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>                         <strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session.isDisActive) {
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>                             DbConstant.admin.session.checkConnectionNoException();
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                         <strong class="jxr_keyword">if</strong> (DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.getSession().isDisActive()) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                             DbConstant.admin.getSession().checkConnectionNoException();
 <a class="jxr_linenumber" name="L348" href="#L348">348</a>                         }
 <a class="jxr_linenumber" name="L349" href="#L349">349</a>                         String status = monitorArg.getStatus();
 <a class="jxr_linenumber" name="L350" href="#L350">350</a>                         <strong class="jxr_keyword">if</strong> (normalInfoAsWarn) {
@@ -371,11 +371,11 @@
 <a class="jxr_linenumber" name="L363" href="#L363">363</a>                                 <a href="../../../../org/waarp/openr66/client/BusinessRequest.html">BusinessRequest</a> transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/BusinessRequest.html">BusinessRequest</a>(networkTransaction, future, host,
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>                                         packet);
 <a class="jxr_linenumber" name="L365" href="#L365">365</a>                                 transaction.run();
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>                                 future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON,
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                                 future.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON(),
 <a class="jxr_linenumber" name="L367" href="#L367">367</a>                                         TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>                                 <strong class="jxr_keyword">while</strong> (!future.isDone()) {
 <a class="jxr_linenumber" name="L369" href="#L369">369</a>                                     logger.warn(<span class="jxr_string">"Out of time during information to Waarp server: "</span> + host);
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>                                     future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON,
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                                     future.awaitUninterruptibly(Configuration.configuration.getTIMEOUTCON(),
 <a class="jxr_linenumber" name="L371" href="#L371">371</a>                                             TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>                                 }
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>                                 <strong class="jxr_keyword">if</strong> (!future.isSuccess()) {
@@ -385,7 +385,7 @@
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>                                     <strong class="jxr_keyword">if</strong> (result == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>                                         monitorArg.setNextAsFullStatus();
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>                                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>                                         status = (String) result.other;
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>                                         status = (String) result.getOther();
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>                                         <strong class="jxr_keyword">if</strong> (status == <strong class="jxr_keyword">null</strong> || status.equalsIgnoreCase(NEEDFULL)) {
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>                                             monitorArg.setNextAsFullStatus();
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>                                         }
@@ -417,8 +417,8 @@
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>         monitor.start();
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>         monitor.waitForStopFile();
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>         <strong class="jxr_keyword">this</strong>.future.setSuccess();
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>             Configuration.configuration.shutdownConfiguration.serviceFuture.setSuccess();
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.getShutdownConfiguration().serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>             Configuration.configuration.getShutdownConfiguration().serviceFuture.setSuccess();
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>         }
 <a class="jxr_linenumber" name="L415" href="#L415">415</a>     }
 <a class="jxr_linenumber" name="L416" href="#L416">416</a> 
@@ -438,9 +438,9 @@
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>         }
 <a class="jxr_linenumber" name="L431" href="#L431">431</a> 
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run(FileItem fileItem) {
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>             <strong class="jxr_keyword">this</strong>.fileItem = fileItem;
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session.isDisActive) {
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>                 DbConstant.admin.session.checkConnectionNoException();
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>             <strong class="jxr_keyword">this</strong>.setFileItem(fileItem);
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.getSession().isDisActive()) {
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>                 DbConstant.admin.getSession().checkConnectionNoException();
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>             }
 <a class="jxr_linenumber" name="L437" href="#L437">437</a>             <strong class="jxr_keyword">boolean</strong> finalStatus = false;
 <a class="jxr_linenumber" name="L438" href="#L438">438</a>             <strong class="jxr_keyword">int</strong> ko = 0;
@@ -467,7 +467,7 @@
 <a class="jxr_linenumber" name="L459" href="#L459">459</a>                                 <em class="jxr_comment">// Transfer try at least once</em>
 <a class="jxr_linenumber" name="L460" href="#L460">460</a>                                 text = <span class="jxr_string">"Request Transfer try Restart: "</span> + specialId + <span class="jxr_string">" "</span> + filename + <span class="jxr_string">" "</span>;
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>                                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>                                     String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>                                     String srequester = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>                                             host);
 <a class="jxr_linenumber" name="L464" href="#L464">464</a>                                     <em class="jxr_comment">// Try restart</em>
 <a class="jxr_linenumber" name="L465" href="#L465">465</a>                                     <a href="../../../../org/waarp/openr66/client/RequestTransfer.html">RequestTransfer</a> transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/RequestTransfer.html">RequestTransfer</a>(future, specialId, host,
@@ -492,14 +492,14 @@
 <a class="jxr_linenumber" name="L484" href="#L484">484</a>                                         transaction2.run();
 <a class="jxr_linenumber" name="L485" href="#L485">485</a>                                         <em class="jxr_comment">// special task</em>
 <a class="jxr_linenumber" name="L486" href="#L486">486</a>                                         future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>                                         <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                                         <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L488" href="#L488">488</a>                                             DbTaskRunner.removeNoDbSpecialId(specialId);
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>                                         }
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>                                     }
 <a class="jxr_linenumber" name="L491" href="#L491">491</a>                                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L492" href="#L492">492</a>                                     direct = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>                                     <strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>                                         DbConstant.admin.session.checkConnectionNoException();
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>                                     <strong class="jxr_keyword">if</strong> (DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>                                         DbConstant.admin.getSession().checkConnectionNoException();
 <a class="jxr_linenumber" name="L495" href="#L495">495</a>                                     }
 <a class="jxr_linenumber" name="L496" href="#L496">496</a>                                     logger.warn(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + host, e); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L497" href="#L497">497</a>                                 }
@@ -527,10 +527,10 @@
 <a class="jxr_linenumber" name="L519" href="#L519">519</a>                         <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = future.getResult();
 <a class="jxr_linenumber" name="L520" href="#L520">520</a>                         <strong class="jxr_keyword">if</strong> (future.isSuccess()) {
 <a class="jxr_linenumber" name="L521" href="#L521">521</a>                             finalStatus = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>                             sent++;
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>                             setSent(getSent() + 1);
 <a class="jxr_linenumber" name="L523" href="#L523">523</a>                             <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L524" href="#L524">524</a>                             <strong class="jxr_keyword">if</strong> (r66result != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>                                 runner = r66result.runner;
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                                 runner = r66result.getRunner();
 <a class="jxr_linenumber" name="L526" href="#L526">526</a>                                 <strong class="jxr_keyword">if</strong> (runner != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L527" href="#L527">527</a>                                     specialId = runner.getSpecialId();
 <a class="jxr_linenumber" name="L528" href="#L528">528</a>                                     String status = Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -542,16 +542,16 @@
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>                                                 + runner.toShortString()
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>                                                 + <span class="jxr_string">"     &lt;REMOTE&gt;"</span> + host + <span class="jxr_string">"&lt;/REMOTE&gt;"</span>
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>                                                 + <span class="jxr_string">"     &lt;FILEFINAL&gt;"</span> +
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>                                                 (r66result.file != <strong class="jxr_keyword">null</strong> ?
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>                                                         r66result.file.toString() + <span class="jxr_string">"&lt;/FILEFINAL&gt;"</span>
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>                                                 (r66result.getFile() != <strong class="jxr_keyword">null</strong> ?
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>                                                         r66result.getFile().toString() + <span class="jxr_string">"&lt;/FILEFINAL&gt;"</span>
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>                                                         : <span class="jxr_string">"no file"</span>));
 <a class="jxr_linenumber" name="L540" href="#L540">540</a>                                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L541" href="#L541">541</a>                                         logger.info(text + <span class="jxr_string">" status: "</span> + status + <span class="jxr_string">"     "</span>
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>                                                 + runner.toShortString()
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>                                                 + <span class="jxr_string">"     &lt;REMOTE&gt;"</span> + host + <span class="jxr_string">"&lt;/REMOTE&gt;"</span>
 <a class="jxr_linenumber" name="L544" href="#L544">544</a>                                                 + <span class="jxr_string">"     &lt;FILEFINAL&gt;"</span> +
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>                                                 (r66result.file != <strong class="jxr_keyword">null</strong> ?
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>                                                         r66result.file.toString() + <span class="jxr_string">"&lt;/FILEFINAL&gt;"</span>
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                                                 (r66result.getFile() != <strong class="jxr_keyword">null</strong> ?
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>                                                         r66result.getFile().toString() + <span class="jxr_string">"&lt;/FILEFINAL&gt;"</span>
 <a class="jxr_linenumber" name="L547" href="#L547">547</a>                                                         : <span class="jxr_string">"no file"</span>));
 <a class="jxr_linenumber" name="L548" href="#L548">548</a>                                     }
 <a class="jxr_linenumber" name="L549" href="#L549">549</a>                                     <strong class="jxr_keyword">if</strong> (nolog &amp;&amp; !submit) {
@@ -584,7 +584,7 @@
 <a class="jxr_linenumber" name="L576" href="#L576">576</a>                                 }
 <a class="jxr_linenumber" name="L577" href="#L577">577</a>                             }
 <a class="jxr_linenumber" name="L578" href="#L578">578</a>                         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>                             error++;
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>                             setError(getError() + 1);
 <a class="jxr_linenumber" name="L580" href="#L580">580</a>                             ko++;
 <a class="jxr_linenumber" name="L581" href="#L581">581</a>                             <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L582" href="#L582">582</a>                             <strong class="jxr_keyword">if</strong> (r66result != <strong class="jxr_keyword">null</strong>) {
@@ -592,15 +592,15 @@
 <a class="jxr_linenumber" name="L584" href="#L584">584</a>                                 <strong class="jxr_keyword">if</strong> (future.getCause() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L585" href="#L585">585</a>                                     errMsg = future.getCause().getMessage();
 <a class="jxr_linenumber" name="L586" href="#L586">586</a>                                 }
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>                                 <strong class="jxr_keyword">boolean</strong> isConnectionImpossible = (r66result.code == ErrorCode.ConnectionImpossible)
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>                                 <strong class="jxr_keyword">boolean</strong> isConnectionImpossible = (r66result.getCode() == ErrorCode.ConnectionImpossible)
 <a class="jxr_linenumber" name="L588" href="#L588">588</a>                                         &amp;&amp; !normalInfoAsWarn;
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>                                 runner = r66result.runner;
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>                                 runner = r66result.getRunner();
 <a class="jxr_linenumber" name="L590" href="#L590">590</a>                                 <strong class="jxr_keyword">if</strong> (runner != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L591" href="#L591">591</a>                                     specialId = runner.getSpecialId();
-<a class="jxr_linenumber" name="L592" href="#L592">592</a>                                     <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive &amp;&amp; remoteHosts.size() &gt; 1) {
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>                                     <strong class="jxr_keyword">if</strong> (!DbConstant.admin.isActive() &amp;&amp; remoteHosts.size() &gt; 1) {
 <a class="jxr_linenumber" name="L593" href="#L593">593</a>                                         DbTaskRunner.removeNoDbSpecialId(specialId);
 <a class="jxr_linenumber" name="L594" href="#L594">594</a>                                         specialId = DbConstant.ILLEGALVALUE;
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>                                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>                                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>                                         DbTaskRunner.removeNoDbSpecialId(specialId);
 <a class="jxr_linenumber" name="L597" href="#L597">597</a>                                     }
 <a class="jxr_linenumber" name="L598" href="#L598">598</a>                                     <strong class="jxr_keyword">if</strong> (isConnectionImpossible) {
@@ -907,7 +907,7 @@
 <a class="jxr_linenumber" name="L899" href="#L899">899</a>             }
 <a class="jxr_linenumber" name="L900" href="#L900">900</a>             <em class="jxr_comment">// Now set default values from configuration</em>
 <a class="jxr_linenumber" name="L901" href="#L901">901</a>             <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">Arguments</a> arg = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">Arguments</a>();
-<a class="jxr_linenumber" name="L902" href="#L902">902</a>             arg.block = Configuration.configuration.BLOCKSIZE;
+<a class="jxr_linenumber" name="L902" href="#L902">902</a>             arg.block = Configuration.configuration.getBLOCKSIZE();
 <a class="jxr_linenumber" name="L903" href="#L903">903</a>             <strong class="jxr_keyword">int</strong> i = 1;
 <a class="jxr_linenumber" name="L904" href="#L904">904</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L905" href="#L905">905</a>                 <strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
@@ -1003,9 +1003,9 @@
 <a class="jxr_linenumber" name="L995" href="#L995">995</a>                 arg.fileInfo = NO_INFO_ARGS;
 <a class="jxr_linenumber" name="L996" href="#L996">996</a>             }
 <a class="jxr_linenumber" name="L997" href="#L997">997</a>             <strong class="jxr_keyword">if</strong> (arg.sname == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L998" href="#L998">998</a>                 arg.sname = Configuration.configuration.HOST_ID + <span class="jxr_string">" : "</span> + arg.localDirectory;
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>                 arg.sname = Configuration.configuration.getHOST_ID() + <span class="jxr_string">" : "</span> + arg.localDirectory;
 <a class="jxr_linenumber" name="L999" href="#L999">999</a>             }
-<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             <strong class="jxr_keyword">if</strong> (arg.tosubmit &amp;&amp; !DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             <strong class="jxr_keyword">if</strong> (arg.tosubmit &amp;&amp; !DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>                 logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.2"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>                 <strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="L1003" href="#L1003">1003</a>             }
@@ -1046,7 +1046,7 @@
 <a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>         arguments.clear();
 <a class="jxr_linenumber" name="L1039" href="#L1039">1039</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
 <a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>             }
 <a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
@@ -1078,13 +1078,13 @@
 <a class="jxr_linenumber" name="L1070" href="#L1070">1070</a>             executorService.shutdown();
 <a class="jxr_linenumber" name="L1071" href="#L1071">1071</a>             Configuration.configuration.launchStatistics();
 <a class="jxr_linenumber" name="L1072" href="#L1072">1072</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
-<a class="jxr_linenumber" name="L1073" href="#L1073">1073</a>                 <strong class="jxr_keyword">while</strong> (!executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
-<a class="jxr_linenumber" name="L1074" href="#L1074">1074</a>                     Thread.sleep(Configuration.configuration.TIMEOUTCON);
+<a class="jxr_linenumber" name="L1073" href="#L1073">1073</a>                 <strong class="jxr_keyword">while</strong> (!executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(), TimeUnit.MILLISECONDS)) {
+<a class="jxr_linenumber" name="L1074" href="#L1074">1074</a>                     Thread.sleep(Configuration.configuration.getTIMEOUTCON());
 <a class="jxr_linenumber" name="L1075" href="#L1075">1075</a>                 }
 <a class="jxr_linenumber" name="L1076" href="#L1076">1076</a>                 <strong class="jxr_keyword">for</strong> (SpooledDirectoryTransfer spooledDirectoryTransfer : list) {
 <a class="jxr_linenumber" name="L1077" href="#L1077">1077</a>                     logger.warn(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.58"</span>) + spooledDirectoryTransfer.name
-<a class="jxr_linenumber" name="L1078" href="#L1078">1078</a>                             + <span class="jxr_string">": "</span> + spooledDirectoryTransfer.sent
-<a class="jxr_linenumber" name="L1079" href="#L1079">1079</a>                             + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.error
+<a class="jxr_linenumber" name="L1078" href="#L1078">1078</a>                             + <span class="jxr_string">": "</span> + spooledDirectoryTransfer.getSent()
+<a class="jxr_linenumber" name="L1079" href="#L1079">1079</a>                             + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.getError()
 <a class="jxr_linenumber" name="L1080" href="#L1080">1080</a>                             + Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.60"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L1081" href="#L1081">1081</a>                 }
 <a class="jxr_linenumber" name="L1082" href="#L1082">1082</a>                 list.clear();
@@ -1102,9 +1102,37 @@
 <a class="jxr_linenumber" name="L1094" href="#L1094">1094</a>         }
 <a class="jxr_linenumber" name="L1095" href="#L1095">1095</a>     }
 <a class="jxr_linenumber" name="L1096" href="#L1096">1096</a> 
-<a class="jxr_linenumber" name="L1097" href="#L1097">1097</a> }
+<a class="jxr_linenumber" name="L1097" href="#L1097">1097</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a> <em class="jxr_javadoccomment">     * @return the sent</em>
+<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getSent() {
+<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a>         <strong class="jxr_keyword">return</strong> sent;
+<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a>     }
+<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a> 
+<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a> <em class="jxr_javadoccomment">     * @param sent the sent to set</em>
+<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1107" href="#L1107">1107</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setSent(<strong class="jxr_keyword">long</strong> sent) {
+<a class="jxr_linenumber" name="L1108" href="#L1108">1108</a>         <strong class="jxr_keyword">this</strong>.sent = sent;
+<a class="jxr_linenumber" name="L1109" href="#L1109">1109</a>     }
+<a class="jxr_linenumber" name="L1110" href="#L1110">1110</a> 
+<a class="jxr_linenumber" name="L1111" href="#L1111">1111</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1112" href="#L1112">1112</a> <em class="jxr_javadoccomment">     * @return the error</em>
+<a class="jxr_linenumber" name="L1113" href="#L1113">1113</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1114" href="#L1114">1114</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getError() {
+<a class="jxr_linenumber" name="L1115" href="#L1115">1115</a>         <strong class="jxr_keyword">return</strong> error;
+<a class="jxr_linenumber" name="L1116" href="#L1116">1116</a>     }
+<a class="jxr_linenumber" name="L1117" href="#L1117">1117</a> 
+<a class="jxr_linenumber" name="L1118" href="#L1118">1118</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1119" href="#L1119">1119</a> <em class="jxr_javadoccomment">     * @param error the error to set</em>
+<a class="jxr_linenumber" name="L1120" href="#L1120">1120</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1121" href="#L1121">1121</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setError(<strong class="jxr_keyword">long</strong> error) {
+<a class="jxr_linenumber" name="L1122" href="#L1122">1122</a>         <strong class="jxr_keyword">this</strong>.error = error;
+<a class="jxr_linenumber" name="L1123" href="#L1123">1123</a>     }
+<a class="jxr_linenumber" name="L1124" href="#L1124">1124</a> 
+<a class="jxr_linenumber" name="L1125" href="#L1125">1125</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

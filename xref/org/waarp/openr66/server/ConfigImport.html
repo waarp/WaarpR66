@@ -114,7 +114,7 @@
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">this</strong>.role = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">this</strong>.rolePurge = false;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">this</strong>.networkTransaction = networkTransaction;
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">this</strong>.dbhost = Configuration.configuration.HOST_SSLAUTH;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">this</strong>.dbhost = Configuration.configuration.getHOST_SSLAUTH();
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>     }
 <a class="jxr_linenumber" name="L111" href="#L111">111</a> 
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/server/ConfigImport.html">ConfigImport</a>(<a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, <strong class="jxr_keyword">boolean</strong> hostPurge, <strong class="jxr_keyword">boolean</strong> rulePurge,
@@ -134,7 +134,7 @@
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>         <strong class="jxr_keyword">this</strong>.role = role;
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>         <strong class="jxr_keyword">this</strong>.rolePurge = rolePurge;
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>         <strong class="jxr_keyword">this</strong>.networkTransaction = networkTransaction;
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">this</strong>.dbhost = Configuration.configuration.HOST_SSLAUTH;
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">this</strong>.dbhost = Configuration.configuration.getHOST_SSLAUTH();
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>     }
 <a class="jxr_linenumber" name="L131" href="#L131">131</a> 
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>     <em class="jxr_javadoccomment">/**</em>
@@ -175,7 +175,7 @@
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a>(<span class="jxr_string">"Cannot connect to server "</span> + dbhost.getHostid()),
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>                     <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>             dbhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>             future.setFailure(future.getResult().exception);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             future.setFailure(future.getResult().getException());
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>         }
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>         <strong class="jxr_keyword">boolean</strong> isSSL = dbhost.isSsl();
@@ -189,7 +189,7 @@
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a>(<span class="jxr_string">"Cannot connect to server "</span> + dbhost.getHostid()),
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>                     <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>             dbhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>             future.setFailure(future.getResult().exception);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             future.setFailure(future.getResult().getException());
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         }
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
@@ -372,7 +372,7 @@
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>         }
 <a class="jxr_linenumber" name="L365" href="#L365">365</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
 <a class="jxr_linenumber" name="L366" href="#L366">366</a>             logger.error(<span class="jxr_string">"Wrong initialization"</span>);
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L369" href="#L369">369</a>             }
 <a class="jxr_linenumber" name="L370" href="#L370">370</a>             System.exit(1);
@@ -389,14 +389,14 @@
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>             transaction.setSpecialIds(lhost, lrule, lbusiness, lalias, lrole);
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>             <strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.session, stohost));
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(), stohost));
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>                     logger.error(<span class="jxr_string">"ConfigImport in     FAILURE since Host is not found: "</span> + stohost, e);
 <a class="jxr_linenumber" name="L387" href="#L387">387</a>                     networkTransaction.closeAll();
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>                     System.exit(10);
 <a class="jxr_linenumber" name="L389" href="#L389">389</a>                 }
 <a class="jxr_linenumber" name="L390" href="#L390">390</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>                 stohost = Configuration.configuration.HOST_SSLID;
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>                 stohost = Configuration.configuration.getHOST_SSLID();
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>             }
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>             transaction.run();
 <a class="jxr_linenumber" name="L394" href="#L394">394</a>             future.awaitUninterruptibly();
@@ -408,13 +408,13 @@
 <a class="jxr_linenumber" name="L400" href="#L400">400</a>                 logger.debug(<span class="jxr_string">"UseJson: "</span> + useJson);
 <a class="jxr_linenumber" name="L401" href="#L401">401</a>                 String message = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L402" href="#L402">402</a>                 <strong class="jxr_keyword">if</strong> (useJson) {
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>                     message = (result.other != <strong class="jxr_keyword">null</strong> ? ((JsonCommandPacket) result.other).getRequest() :
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>                     message = (result.getOther() != <strong class="jxr_keyword">null</strong> ? ((JsonCommandPacket) result.getOther()).getRequest() :
 <a class="jxr_linenumber" name="L404" href="#L404">404</a>                             <span class="jxr_string">"no file"</span>);
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>                     message = (result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                     message = (result.getOther() != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.getOther()).getSheader() :
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>                             <span class="jxr_string">"no file"</span>);
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>                 }
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 <strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 <strong class="jxr_keyword">if</strong> (result.getCode() == ErrorCode.Warning) {
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>                     logger.warn(<span class="jxr_string">"WARNED on import:     "</span> +
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>                             message
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>                             + <span class="jxr_string">"     delay: "</span> + delay);
@@ -424,14 +424,14 @@
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>                             + <span class="jxr_string">"     delay: "</span> + delay);
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>                 }
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>                 <strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>                 <strong class="jxr_keyword">if</strong> (result.getCode() == ErrorCode.Warning) {
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>                     logger.warn(<span class="jxr_string">"ConfigImport is     WARNED"</span>, future.getCause());
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>                     networkTransaction.closeAll();
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>                     System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                     System.exit(result.getCode().ordinal());
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>                     logger.error(<span class="jxr_string">"ConfigImport in     FAILURE"</span>, future.getCause());
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>                     networkTransaction.closeAll();
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>                     System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>                     System.exit(result.getCode().ordinal());
 <a class="jxr_linenumber" name="L427" href="#L427">427</a>                 }
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>             }
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>         } <strong class="jxr_keyword">finally</strong> {
@@ -443,6 +443,6 @@
 <a class="jxr_linenumber" name="L435" href="#L435">435</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

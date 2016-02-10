@@ -202,7 +202,7 @@
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>                     <em class="jxr_comment">// key is crypted</em>
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>                     <strong class="jxr_keyword">if</strong> (!skey.isEmpty()) {
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>                         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>                             byteKeys = config.cryptoKey.decryptHexInBytes(skey);
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                             byteKeys = config.getCryptoKey().decryptHexInBytes(skey);
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>                         } <strong class="jxr_keyword">catch</strong> (Exception e) {
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>                             logger.error(<span class="jxr_string">"Cannot read key for hostId "</span> + refHostId + <span class="jxr_string">":"</span> + skey);
 <a class="jxr_linenumber" name="L200" href="#L200">200</a>                             <strong class="jxr_keyword">continue</strong>;
@@ -220,7 +220,7 @@
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>                     <strong class="jxr_keyword">continue</strong>;
 <a class="jxr_linenumber" name="L213" href="#L213">213</a>                 }
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>                     byteKeys = config.cryptoKey.decryptHexFile(key);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                     byteKeys = config.getCryptoKey().decryptHexFile(key);
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>                 } <strong class="jxr_keyword">catch</strong> (Exception e2) {
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>                     logger.error(<span class="jxr_string">"Cannot read key for hostId "</span> + refHostId, e2);
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>                     <strong class="jxr_keyword">continue</strong>;
@@ -263,7 +263,7 @@
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>             <strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong> &amp;&amp; (!value.isEmpty())) {
 <a class="jxr_linenumber" name="L256" href="#L256">256</a>                 isProxified = value.getBoolean();
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>             }
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> auth = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> auth = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>                     refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>             auth.setActive(isActive);
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>             auth.setProxified(isProxified);
@@ -311,7 +311,7 @@
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>             WaarpDatabaseSqlException {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>         Document document = DocumentHelper.createDocument();
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.getSession());
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>         logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + hosts.length + <span class="jxr_string">" in "</span> + filename);
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>         <strong class="jxr_keyword">for</strong> (DbHostAuth auth : hosts) {
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>             logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + auth.getHostid());
@@ -320,7 +320,7 @@
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>             byte[] key = auth.getHostkey();
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>             String encode;
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 encode = config.cryptoKey.cryptToHex(key);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 encode = config.getCryptoKey().cryptToHex(key);
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>                 encode = <span class="jxr_string">""</span>;
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>             }
@@ -343,6 +343,6 @@
 <a class="jxr_linenumber" name="L335" href="#L335">335</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

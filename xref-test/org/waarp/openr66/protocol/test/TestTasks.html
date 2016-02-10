@@ -91,7 +91,7 @@
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          R66Session session = <strong class="jxr_keyword">new</strong> R66Session();
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>          DbRule rule = <strong class="jxr_keyword">new</strong> DbRule(<strong class="jxr_keyword">null</strong>, <span class="jxr_string">"idRule"</span>, (String) <strong class="jxr_keyword">null</strong>, TRANSFERMODE.SENDMODE.ordinal(), out, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, in,
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>                  <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>          RequestPacket requestPacket = <strong class="jxr_keyword">new</strong> RequestPacket(rule.idRule, rule.mode, filename,
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          RequestPacket requestPacket = <strong class="jxr_keyword">new</strong> RequestPacket(rule.getIdRule(), rule.getMode(), filename,
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>                  Configuration.BUFFERSIZEDEFAULT, (<strong class="jxr_keyword">int</strong>) size / Configuration.BUFFERSIZEDEFAULT + 1,
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>                  1, argTransfer, size, PartnerConfiguration.BAR_SEPARATOR_FIELD);
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>          DbTaskRunner runner = <strong class="jxr_keyword">null</strong>;
@@ -251,6 +251,6 @@
 <a class="jxr_linenumber" name="L243" href="#L243">243</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

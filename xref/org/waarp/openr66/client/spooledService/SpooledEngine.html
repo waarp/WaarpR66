@@ -58,7 +58,7 @@
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpLogger logger = WaarpLoggerFactory
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>              .getLogger(SpooledEngine.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpFuture closeFuture = <strong class="jxr_keyword">new</strong> WaarpFuture(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpFuture closeFuture = <strong class="jxr_keyword">new</strong> WaarpFuture(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>      @Override
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
@@ -69,7 +69,7 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>              shutdown();
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>              <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>          }
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>          Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          Configuration.configuration.getShutdownConfiguration().serviceFuture = closeFuture;
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>              Properties prop = <strong class="jxr_keyword">new</strong> Properties();
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              FileInputStream in = <strong class="jxr_keyword">new</strong> FileInputStream(config);
@@ -114,18 +114,18 @@
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">for</strong> (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>             spooled.stop();
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         }
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         Configuration.configuration.TIMEOUTCON /= 10;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         Configuration.configuration.setTIMEOUTCON(Configuration.configuration.getTIMEOUTCON() / 10);
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">while</strong> (!SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.TIMEOUTCON,
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">while</strong> (!SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(),
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>                     TimeUnit.MILLISECONDS)) {
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>                 Thread.sleep(Configuration.configuration.TIMEOUTCON);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>                 Thread.sleep(Configuration.configuration.getTIMEOUTCON());
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>             }
 <a class="jxr_linenumber" name="L115" href="#L115">115</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>         }
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>         <strong class="jxr_keyword">for</strong> (SpooledDirectoryTransfer spooledDirectoryTransfer : SpooledDirectoryTransfer.list) {
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>             logger.warn(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.58"</span>) + spooledDirectoryTransfer.name + <span class="jxr_string">": "</span>
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>                     + spooledDirectoryTransfer.sent
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>                     + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.error
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                     + spooledDirectoryTransfer.getSent()
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>                     + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.getError()
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>                     + Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.60"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>         }
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>         SpooledDirectoryTransfer.list.clear();
@@ -151,6 +151,6 @@
 <a class="jxr_linenumber" name="L143" href="#L143">143</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -97,7 +97,7 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>      <strong class="jxr_keyword">protected</strong> String remoteHost = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>  
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">int</strong> blocksize = Configuration.configuration.BLOCKSIZE;;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">int</strong> blocksize = Configuration.configuration.getBLOCKSIZE();;
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>  
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">protected</strong> DbSession dbsession;
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>  
@@ -135,7 +135,7 @@
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>                 blocksize = Integer.parseInt(args[i]);
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>                 <strong class="jxr_keyword">if</strong> (blocksize &lt; 100) {
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>                     logger.warn(<span class="jxr_string">"Block size is too small: "</span> + blocksize);
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>                     blocksize = Configuration.configuration.BLOCKSIZE;
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>                     blocksize = Configuration.configuration.getBLOCKSIZE();
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>                 }
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>                 nolog = <strong class="jxr_keyword">true</strong>;
@@ -192,7 +192,7 @@
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot get Rule: "</span> +
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>                     rulename + <span class="jxr_string">"\n    "</span> + message);
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         }
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <strong class="jxr_keyword">int</strong> mode = rule.mode;
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <strong class="jxr_keyword">int</strong> mode = rule.getMode();
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">if</strong> (isMD5) {
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>             mode = RequestPacket.getModeMD5(mode);
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>         }
@@ -237,6 +237,6 @@
 <a class="jxr_linenumber" name="L229" href="#L229">229</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -79,7 +79,7 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>              logger.debug(<span class="jxr_string">"Obj: {}"</span>, body);
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          }
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          handler.setWillClose(false);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>          <em class="jxr_comment">// now action according to body</em>
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/packet/json/JsonPacket.html">JsonPacket</a> json = (JsonPacket) body;
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>          <strong class="jxr_keyword">if</strong> (json == <strong class="jxr_keyword">null</strong>) {
@@ -164,6 +164,6 @@
 <a class="jxr_linenumber" name="L156" href="#L156">156</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

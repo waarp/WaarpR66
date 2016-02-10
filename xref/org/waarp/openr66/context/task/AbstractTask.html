@@ -335,7 +335,7 @@
 <a class="jxr_linenumber" name="L327" href="#L327">327</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolNoSslException e) {
 <a class="jxr_linenumber" name="L328" href="#L328">328</a>                 <em class="jxr_comment">// replace by standard name</em>
 <a class="jxr_linenumber" name="L329" href="#L329">329</a>                 WaarpStringUtils.replaceAll(builder, LOCALHOST,
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>                         Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>                         Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L331" href="#L331">331</a>             }
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>         }
 <a class="jxr_linenumber" name="L333" href="#L333">333</a>         <strong class="jxr_keyword">if</strong> (session.getRemoteAddress() != <strong class="jxr_keyword">null</strong>) {
@@ -412,30 +412,30 @@
 <a class="jxr_linenumber" name="L404" href="#L404">404</a>             }
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 dir.changeDirectory(Configuration.configuration.inPath);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 dir.changeDirectory(Configuration.configuration.getInPath());
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>                 WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>             }
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>             dir = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66Dir.html">R66Dir</a>(session);
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>                 dir.changeDirectory(Configuration.configuration.outPath);
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>                 dir.changeDirectory(Configuration.configuration.getOutPath());
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>                 WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
 <a class="jxr_linenumber" name="L415" href="#L415">415</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>             }
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>             dir = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66Dir.html">R66Dir</a>(session);
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>                 dir.changeDirectory(Configuration.configuration.workingPath);
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>                 dir.changeDirectory(Configuration.configuration.getWorkingPath());
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>                 WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
 <a class="jxr_linenumber" name="L422" href="#L422">422</a>             }
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>             dir = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66Dir.html">R66Dir</a>(session);
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>                 dir.changeDirectory(Configuration.configuration.archivePath);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>                 dir.changeDirectory(Configuration.configuration.getArchivePath());
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>                 WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
 <a class="jxr_linenumber" name="L427" href="#L427">427</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>             }
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>         }
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>         WaarpStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>         WaarpStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.getBaseDirectory());
 <a class="jxr_linenumber" name="L431" href="#L431">431</a>         <strong class="jxr_keyword">if</strong> (session.getLocalChannelReference() == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>             WaarpStringUtils.replaceAll(builder, ERRORMSG, <span class="jxr_string">"NoError"</span>);
 <a class="jxr_linenumber" name="L433" href="#L433">433</a>             WaarpStringUtils.replaceAll(builder, ERRORCODE, <span class="jxr_string">"-"</span>);
@@ -473,6 +473,6 @@
 <a class="jxr_linenumber" name="L465" href="#L465">465</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

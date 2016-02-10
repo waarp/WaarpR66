@@ -94,7 +94,7 @@
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>              logger.debug(<span class="jxr_string">"Obj: {}"</span>, body);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>          }
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>          handler.setWillClose(false);
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>          <a href="../../../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = serverHandler.getSession();
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          <em class="jxr_comment">// now action according to body</em>
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/packet/json/JsonPacket.html">JsonPacket</a> json = (JsonPacket) body;
@@ -137,7 +137,7 @@
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>                 <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/packet/json/RestartTransferJsonPacket.html">RestartTransferJsonPacket</a> node = (RestartTransferJsonPacket) json;
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>                 <a href="../../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(),
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>                         node.getSpecialid(), node.getRestarttime());
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>                 <strong class="jxr_keyword">if</strong> (serverHandler.isCodeValid(r66result.code)) {
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>                 <strong class="jxr_keyword">if</strong> (serverHandler.isCodeValid(r66result.getCode())) {
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>                     result.setDetail(<span class="jxr_string">"Restart Transfer done"</span>);
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>                     setOk(handler, result, node, HttpResponseStatus.OK);
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>                 } <strong class="jxr_keyword">else</strong> {
@@ -160,14 +160,14 @@
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>                     String reqr = node.getRequester();
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>                     <strong class="jxr_keyword">long</strong> id = node.getSpecialid();
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>                     resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>                     result.setDetail(resulttest.code.mesg);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>                     result.setDetail(resulttest.getCode().mesg);
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>                     setOk(handler, result, node, HttpResponseStatus.OK);
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>                 }
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (json instanceof TransferRequestJsonPacket &amp;&amp; method == METHOD.POST) {
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>                 result.setCommand(ACTIONS_TYPE.CreateTransfer.name());
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>                 <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/packet/json/TransferRequestJsonPacket.html">TransferRequestJsonPacket</a> node = (TransferRequestJsonPacket) json;
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>                 <a href="../../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = serverHandler.transferRequest(node);
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>                 <strong class="jxr_keyword">if</strong> (serverHandler.isCodeValid(r66result.code)) {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                 <strong class="jxr_keyword">if</strong> (serverHandler.isCodeValid(r66result.getCode())) {
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>                     result.setDetail(<span class="jxr_string">"New Transfer registered"</span>);
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>                     setOk(handler, result, node, HttpResponseStatus.OK);
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>                 } <strong class="jxr_keyword">else</strong> {
@@ -199,7 +199,7 @@
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>             node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.<strong class="jxr_keyword">class</strong>.getSimpleName());
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>             DbValue[] values = DbTaskRunner.getAllType();
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">for</strong> (DbValue dbValue : values) {
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 node1b.put(dbValue.column, dbValue.getType());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 node1b.put(dbValue.getColumn(), dbValue.getType());
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>             }
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>             node1.add(node1b);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>             ObjectNode node2;
@@ -267,6 +267,6 @@
 <a class="jxr_linenumber" name="L259" href="#L259">259</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

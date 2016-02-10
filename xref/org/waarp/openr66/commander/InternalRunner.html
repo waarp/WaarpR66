@@ -71,7 +71,7 @@
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">     * @throws WaarpDatabaseSqlException</em>
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/commander/InternalRunner.html">InternalRunner</a>() <strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/Commander.html">Commander</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>          } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>              commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/CommanderNoDb.html">CommanderNoDb</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>);
@@ -79,11 +79,11 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(<strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"InternalRunner"</span>));
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          isRunning = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          BlockingQueue&lt;Runnable&gt; workQueue = <strong class="jxr_keyword">new</strong> ArrayBlockingQueue&lt;Runnable&gt;(10);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          threadPoolExecutor = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          threadPoolExecutor = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(10, Configuration.configuration.getRUNNER_THREAD(),
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>                  1000, TimeUnit.MILLISECONDS, workQueue);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>          scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  Configuration.configuration.delayCommander,
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  Configuration.configuration.getDelayCommander(),
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  Configuration.configuration.getDelayCommander(), TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      }
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>  
@@ -97,8 +97,8 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_javadoccomment">     * @param taskRunner</em>
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> submitTaskRunner(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner) {
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          <strong class="jxr_keyword">if</strong> (isRunning || !Configuration.configuration.isShutdown) {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">if</strong> (threadPoolExecutor.getActiveCount() + 5 &gt; Configuration.configuration.RUNNER_THREAD) {
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          <strong class="jxr_keyword">if</strong> (isRunning || !Configuration.configuration.isShutdown()) {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">if</strong> (threadPoolExecutor.getActiveCount() &gt; Configuration.configuration.getRUNNER_THREAD()) {
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>                  <em class="jxr_comment">// too many current active threads</em>
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>                  taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>                  taskRunner.forceSaveStatus();
@@ -151,18 +151,18 @@
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>         <strong class="jxr_keyword">if</strong> (commander != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>             commander.finalize();
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>         }
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>             commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/Commander.html">Commander</a>(<strong class="jxr_keyword">this</strong>);
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>             commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/CommanderNoDb.html">CommanderNoDb</a>(<strong class="jxr_keyword">this</strong>);
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>         }
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>                 Configuration.configuration.delayCommander,
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>                 Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>                 Configuration.configuration.getDelayCommander(),
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>                 Configuration.configuration.getDelayCommander(), TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
 <a class="jxr_linenumber" name="L155" href="#L155">155</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

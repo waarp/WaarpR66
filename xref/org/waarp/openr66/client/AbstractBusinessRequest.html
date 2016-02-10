@@ -94,7 +94,7 @@
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> initRequest() <strong class="jxr_keyword">throws</strong> OpenR66ProtocolNoConnectionException {
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host = R66Auth.getServerAuth(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>                  remoteHost);
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          <strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>              future.setResult(<strong class="jxr_keyword">null</strong>);
@@ -154,7 +154,7 @@
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>         }
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>             logger.error(<span class="jxr_string">"Wrong initialization"</span>);
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>             }
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>             ChannelUtils.stopLogger();
@@ -246,6 +246,6 @@
 <a class="jxr_linenumber" name="L238" href="#L238">238</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

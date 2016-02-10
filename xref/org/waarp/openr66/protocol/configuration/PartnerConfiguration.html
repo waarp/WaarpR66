@@ -65,7 +65,7 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     * Uses as separator in field</em>
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String SEPARATOR_FIELD = BAR_SEPARATOR_FIELD;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String SEPARATOR_FIELD = BAR_SEPARATOR_FIELD;
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">     * JSON Fields</em>
@@ -114,9 +114,9 @@
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>             JsonHandler.setValue(root, FIELDS.FILESIZE, (Boolean) FIELDS.FILESIZE.defaultValue);
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>             JsonHandler.setValue(root, FIELDS.FINALHASH, (Boolean) FIELDS.FINALHASH.defaultValue);
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         }
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.digest.name);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.getDigest().name);
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>         JsonHandler.setValue(root, FIELDS.PROXIFIED, (Boolean) FIELDS.PROXIFIED.defaultValue);
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         String sep = SEPARATOR_FIELD;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         String sep = getSEPARATOR_FIELD();
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">if</strong> (!isVersion2GEQVersion1(R66Versions.V2_4_13.getVersion(), version)) {
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>             sep = BLANK_SEPARATOR_FIELD;
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>         }
@@ -140,7 +140,7 @@
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>             }
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>         }
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isProxified()) {
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>             Configuration.configuration.blacklistBadAuthent = false;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>             Configuration.configuration.setBlacklistBadAuthent(false);
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>         }
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>         logger.debug(<span class="jxr_string">"Info HostId: "</span> + root.toString());
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>     }
@@ -155,10 +155,10 @@
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>         JsonHandler.setValue(root, FIELDS.HOSTID, id);
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>         JsonHandler.setValue(root, FIELDS.VERSION, Version.ID);
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>         JsonHandler.setValue(root, FIELDS.FILESIZE, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>         JsonHandler.setValue(root, FIELDS.FINALHASH, Configuration.configuration.globalDigest);
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>         JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.digest.name);
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         JsonHandler.setValue(root, FIELDS.PROXIFIED, Configuration.configuration.isHostProxyfied);
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>         JsonHandler.setValue(root, FIELDS.SEPARATOR, SEPARATOR_FIELD);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         JsonHandler.setValue(root, FIELDS.FINALHASH, Configuration.configuration.isGlobalDigest());
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.getDigest().name);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         JsonHandler.setValue(root, FIELDS.PROXIFIED, Configuration.configuration.isHostProxyfied());
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         JsonHandler.setValue(root, FIELDS.SEPARATOR, getSEPARATOR_FIELD());
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>         useJson = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>         logger.debug(<span class="jxr_string">"Info HostId: "</span> + root.toString());
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>     }
@@ -252,7 +252,7 @@
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>             <strong class="jxr_keyword">return</strong> DigestAlgo.valueOf(algo);
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>         } <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
 <a class="jxr_linenumber" name="L246" href="#L246">246</a>         }
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>         <strong class="jxr_keyword">return</strong> Configuration.configuration.digest;
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         <strong class="jxr_keyword">return</strong> Configuration.configuration.getDigest();
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>     }
 <a class="jxr_linenumber" name="L249" href="#L249">249</a> 
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>     <em class="jxr_javadoccomment">/**</em>
@@ -261,8 +261,8 @@
 <a class="jxr_linenumber" name="L253" href="#L253">253</a> <em class="jxr_javadoccomment">     * @return the separator to be used</em>
 <a class="jxr_linenumber" name="L254" href="#L254">254</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String getSeparator(String remoteHost) {
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>         logger.debug(<span class="jxr_string">"Versions: search: "</span> + remoteHost + <span class="jxr_string">" in {}"</span>, Configuration.configuration.versions);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>         <a href="../../../../../org/waarp/openr66/protocol/configuration/PartnerConfiguration.html">PartnerConfiguration</a> partner = Configuration.configuration.versions.get(remoteHost);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         logger.debug(<span class="jxr_string">"Versions: search: "</span> + remoteHost + <span class="jxr_string">" in {}"</span>, Configuration.configuration.getVersions());
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>         <a href="../../../../../org/waarp/openr66/protocol/configuration/PartnerConfiguration.html">PartnerConfiguration</a> partner = Configuration.configuration.getVersions().get(remoteHost);
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>         <strong class="jxr_keyword">if</strong> (partner != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>             <strong class="jxr_keyword">return</strong> partner.getSeperator();
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>         }
@@ -364,15 +364,29 @@
 <a class="jxr_linenumber" name="L356" href="#L356">356</a>         logger.debug(<span class="jxr_string">"UseJson host: '"</span>
 <a class="jxr_linenumber" name="L357" href="#L357">357</a>                 + host
 <a class="jxr_linenumber" name="L358" href="#L358">358</a>                 + <span class="jxr_string">"':"</span>
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>                 + (Configuration.configuration.versions.containsKey(host) ?
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>                         Configuration.configuration.versions.get(host).useJson() : <span class="jxr_string">"no:"</span>
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>                                 + Configuration.configuration.versions.keySet()));
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <strong class="jxr_keyword">return</strong> (Configuration.configuration.versions.containsKey(host) &amp;&amp; Configuration.configuration.versions
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>                 + (Configuration.configuration.getVersions().containsKey(host) ?
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                         Configuration.configuration.getVersions().get(host).useJson() : <span class="jxr_string">"no:"</span>
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                                 + Configuration.configuration.getVersions().keySet()));
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <strong class="jxr_keyword">return</strong> (Configuration.configuration.getVersions().containsKey(host) &amp;&amp; Configuration.configuration.getVersions()
 <a class="jxr_linenumber" name="L363" href="#L363">363</a>                 .get(host).useJson());
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>     }
-<a class="jxr_linenumber" name="L365" href="#L365">365</a> }
+<a class="jxr_linenumber" name="L365" href="#L365">365</a> 
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L367" href="#L367">367</a> <em class="jxr_javadoccomment">     * @return the sEPARATOR_FIELD</em>
+<a class="jxr_linenumber" name="L368" href="#L368">368</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getSEPARATOR_FIELD() {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>         <strong class="jxr_keyword">return</strong> SEPARATOR_FIELD;
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     }
+<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a> <em class="jxr_javadoccomment">     * @param sEPARATOR_FIELD the sEPARATOR_FIELD to set</em>
+<a class="jxr_linenumber" name="L375" href="#L375">375</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setSEPARATOR_FIELD(String sEPARATOR_FIELD) {
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         SEPARATOR_FIELD = sEPARATOR_FIELD;
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

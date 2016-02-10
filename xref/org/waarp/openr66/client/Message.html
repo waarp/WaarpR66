@@ -144,7 +144,7 @@
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>         <em class="jxr_comment">// Connection</em>
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>         <strong class="jxr_keyword">if</strong> (hostAuth == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>             host = R66Auth.getServerAuth(DbConstant.admin.session,
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>             host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>                     requested);
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>             host = hostAuth;
@@ -199,7 +199,7 @@
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>         }
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>             }
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>             ChannelUtils.stopLogger();
@@ -220,7 +220,7 @@
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">if</strong> (result.isSuccess()) {
 <a class="jxr_linenumber" name="L213" href="#L213">213</a>                 value = 0;
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>                 <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = result.getResult();
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a> info = (ValidPacket) r66result.other;
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a> info = (ValidPacket) r66result.getOther();
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>                 logger.warn(Messages.getString(<span class="jxr_string">"Message.11"</span>) + Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>) + info.getSheader()); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>                 <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>                     System.out
@@ -250,6 +250,6 @@
 <a class="jxr_linenumber" name="L242" href="#L242">242</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

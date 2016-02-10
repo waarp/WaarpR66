@@ -111,7 +111,7 @@
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>                     .error(<span class="jxr_string">"Needs a correct configuration file as first argument"</span>);
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         }
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>         DbHostAuth host = Configuration.configuration.HOST_AUTH;
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         DbHostAuth host = Configuration.configuration.getHOST_AUTH();
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">final</strong> SocketAddress socketServerAddress;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>             socketServerAddress = host.getSocketAddress();
@@ -159,6 +159,6 @@
 <a class="jxr_linenumber" name="L151" href="#L151">151</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

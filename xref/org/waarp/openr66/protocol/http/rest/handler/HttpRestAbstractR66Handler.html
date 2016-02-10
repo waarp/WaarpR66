@@ -136,7 +136,7 @@
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>     @Override
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>     <strong class="jxr_keyword">public</strong> HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments,
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>             RestArgument result, Object body, Exception exception) {
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>         ((<a href="../../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Handler.html">HttpRestR66Handler</a>) handler).serverHandler.getSession().newState(ERROR);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         ((<a href="../../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Handler.html">HttpRestR66Handler</a>) handler).getServerHandler().getSession().newState(ERROR);
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">super</strong>.handleException(handler, arguments, result, body, exception);
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>     }
 <a class="jxr_linenumber" name="L134" href="#L134">134</a> 
@@ -187,6 +187,6 @@
 <a class="jxr_linenumber" name="L179" href="#L179">179</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

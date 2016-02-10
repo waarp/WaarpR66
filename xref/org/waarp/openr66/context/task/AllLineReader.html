@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * This will be the result at the end</em>
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> StringBuilder lastLine = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">private</strong> StringBuilder lastLine = <strong class="jxr_keyword">new</strong> StringBuilder();
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../org/waarp/openr66/context/task/AllLineReader.html">AllLineReader</a>(PipedInputStream inputStream) {
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>          reader = <strong class="jxr_keyword">new</strong> BufferedReader(<strong class="jxr_keyword">new</strong> InputStreamReader(inputStream));
@@ -54,7 +54,7 @@
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>              <strong class="jxr_keyword">while</strong> ((line = reader.readLine()) != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>                  line = line.trim();
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>                  <strong class="jxr_keyword">if</strong> (!line.isEmpty()) {
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>                      lastLine.append(line).append('\n');
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>                      getLastLine().append(line).append('\n');
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>                  }
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>              }
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>          } <strong class="jxr_keyword">catch</strong> (IOException e) {
@@ -68,9 +68,16 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>          }
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>      }
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     * @return the lastLine</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">public</strong> StringBuilder getLastLine() {
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">return</strong> lastLine;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -228,7 +228,7 @@
 <a class="jxr_linenumber" name="L220" href="#L220">220</a>         }
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>         WaarpFtp4jClient ftpClient =
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>                 <strong class="jxr_keyword">new</strong> WaarpFtp4jClient(requested, port, user, pwd, acct, isPassive, ssl,
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>                         5000, (<strong class="jxr_keyword">int</strong>) Configuration.configuration.TIMEOUTCON);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                         5000, (<strong class="jxr_keyword">int</strong>) Configuration.configuration.getTIMEOUTCON());
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>         <strong class="jxr_keyword">boolean</strong> status = false;
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; Configuration.RETRYNB; i++) {
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">if</strong> (ftpClient.connect()) {
@@ -342,6 +342,6 @@
 <a class="jxr_linenumber" name="L334" href="#L334">334</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

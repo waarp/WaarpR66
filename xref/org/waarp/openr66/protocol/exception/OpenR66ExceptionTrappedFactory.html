@@ -171,8 +171,8 @@
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolShutdownException.html">OpenR66ProtocolShutdownException</a> e2 = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolShutdownException.html">OpenR66ProtocolShutdownException</a>(
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>                     <span class="jxr_string">"Restart since OOME raized"</span>, e1);
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>             logger.debug(<span class="jxr_string">"Force Shutdown and Restart : {}"</span>, e2.getMessage());
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.r66Mib != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 Configuration.configuration.r66Mib.notifyWarning(
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getR66Mib() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 Configuration.configuration.getR66Mib().notifyWarning(
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>                         <span class="jxr_string">"OOME so shutdown and restart"</span>, e1.getMessage());
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>             }
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>             R66ShutdownHook.setRestart(<strong class="jxr_keyword">true</strong>);
@@ -181,8 +181,8 @@
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>             logger.error(<span class="jxr_string">"Unexpected exception from Outband"</span> +
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>                     <span class="jxr_string">" Ref Channel: "</span> + channel.toString(), e1);
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>         }
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.r66Mib != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>             Configuration.configuration.r66Mib.notifyWarning(
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.getR66Mib() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             Configuration.configuration.getR66Mib().notifyWarning(
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>                     <span class="jxr_string">"Unexpected exception"</span>, e1.getMessage());
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>         }
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Unexpected exception: "</span> + e1.getMessage(), e1);
@@ -190,6 +190,6 @@
 <a class="jxr_linenumber" name="L182" href="#L182">182</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

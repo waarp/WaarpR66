@@ -65,11 +65,11 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/waarp/openr66/client/MultipleSubmitTransfer.html">MultipleSubmitTransfer</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../org/waarp/openr66/client/SubmitTransfer.html">SubmitTransfer</a> {
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> errorMultiple = 0;
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> doneMultiple = 0;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> errorMultiple = 0;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> doneMultiple = 0;
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> submit = false;
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">protected</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a> networkTransaction = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">public</strong> List&lt;OutputFormat&gt; results = <strong class="jxr_keyword">new</strong> ArrayList&lt;OutputFormat&gt;();
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> List&lt;OutputFormat&gt; results = <strong class="jxr_keyword">new</strong> ArrayList&lt;OutputFormat&gt;();
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/MultipleSubmitTransfer.html">MultipleSubmitTransfer</a>(<a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, String remoteHost,
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              String filename, String rulename, String fileinfo, <strong class="jxr_keyword">boolean</strong> isMD5, <strong class="jxr_keyword">int</strong> blocksize,
@@ -88,7 +88,7 @@
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>          <em class="jxr_comment">// first check if filenames contains wildcards</em>
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> dbrule = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, rulename);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>          } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>              logger.error(Messages.getString(<span class="jxr_string">"SubmitTransfer.2"</span>) + rule); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>              ChannelUtils.stopLogger();
@@ -124,7 +124,7 @@
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>                         transaction.normalInfoAsWarn = normalInfoAsWarn;
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>                         transaction.run();
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>                         future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>                         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = future.getResult().runner;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = future.getResult().getRunner();
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>                         <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a> outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(MultipleSubmitTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>                         <strong class="jxr_keyword">if</strong> (future.isSuccess()) {
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>                             outputFormat.setValue(FIELDS.status.name(), 0);
@@ -134,13 +134,13 @@
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>                                             Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>) + Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>                             outputFormat.setValue(FIELDS.remote.name(), host);
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>                             outputFormat.setValueString(runner.getJson());
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>                             results.add(outputFormat);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>                             getResults().add(outputFormat);
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>                             <strong class="jxr_keyword">if</strong> (transaction.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>                                 logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>                             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>                                 logger.info(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>                             }
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>                             doneMultiple++;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                             setDoneMultiple(getDoneMultiple() + 1);
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>                         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>                             outputFormat.setValue(FIELDS.status.name(), 2);
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>                             <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
@@ -161,15 +161,15 @@
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>                             <strong class="jxr_keyword">if</strong> (future.getCause() != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>                                 outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>                             }
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>                             results.add(outputFormat);
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>                             errorMultiple++;
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>                             getResults().add(outputFormat);
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                             setErrorMultiple(getErrorMultiple() + 1);
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>                             resultError = future.getResult();
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>                         }
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>                     }
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>                 }
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>             }
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>         }
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">if</strong> (errorMultiple &gt; 0) {
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">if</strong> (getErrorMultiple() &gt; 0) {
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>             <strong class="jxr_keyword">if</strong> (resultError != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>                 <strong class="jxr_keyword">this</strong>.future.setResult(resultError);
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>             }
@@ -202,7 +202,7 @@
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>             <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>                 System.out.println(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>             }
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive) {
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>             }
 <a class="jxr_linenumber" name="L200" href="#L200">200</a>             ChannelUtils.stopLogger();
@@ -229,7 +229,7 @@
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>                                 FIELDS.statusTxt.name(),
 <a class="jxr_linenumber" name="L222" href="#L222">222</a>                                 <span class="jxr_string">"Multiple "</span> + Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>) + Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>                 outputFormat.setValue(<span class="jxr_string">"ok"</span>, transaction.doneMultiple);
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>                 outputFormat.setValue(<span class="jxr_string">"ok"</span>, transaction.getDoneMultiple());
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>                 <strong class="jxr_keyword">if</strong> (transaction.normalInfoAsWarn) {
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>                     logger.warn(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L227" href="#L227">227</a>                 } <strong class="jxr_keyword">else</strong> {
@@ -237,7 +237,7 @@
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>                 }
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>                 <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L231" href="#L231">231</a>                     outputFormat.sysout();
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>                     <strong class="jxr_keyword">for</strong> (OutputFormat result : transaction.results) {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                     <strong class="jxr_keyword">for</strong> (OutputFormat result : transaction.getResults()) {
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>                         System.out.println();
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>                         result.sysout();
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>                     }
@@ -256,12 +256,12 @@
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>                                 FIELDS.statusTxt.name(),
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>                                 <span class="jxr_string">"Multiple "</span> + Messages.getString(<span class="jxr_string">"SubmitTransfer.14"</span>) + Messages.getString(<span class="jxr_string">"RequestInformation.Failure"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>                 outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 outputFormat.setValue(<span class="jxr_string">"ok"</span>, transaction.doneMultiple);
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 outputFormat.setValue(<span class="jxr_string">"ko"</span>, transaction.errorMultiple);
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 outputFormat.setValue(<span class="jxr_string">"ok"</span>, transaction.getDoneMultiple());
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 outputFormat.setValue(<span class="jxr_string">"ko"</span>, transaction.getErrorMultiple());
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>                 logger.error(outputFormat.loggerOut());
 <a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <strong class="jxr_keyword">if</strong> (!OutputFormat.isQuiet()) {
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>                     outputFormat.sysout();
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>                     <strong class="jxr_keyword">for</strong> (OutputFormat result : transaction.results) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                     <strong class="jxr_keyword">for</strong> (OutputFormat result : transaction.getResults()) {
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>                         System.out.println();
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>                         result.sysout();
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>                     }
@@ -272,7 +272,7 @@
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>                 }
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>                 ChannelUtils.stopLogger();
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 System.exit(transaction.errorMultiple);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 System.exit(transaction.getErrorMultiple());
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>             }
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>         } <strong class="jxr_keyword">finally</strong> {
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>             <strong class="jxr_keyword">if</strong> (networkTransaction != <strong class="jxr_keyword">null</strong>) {
@@ -281,9 +281,43 @@
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>         }
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>     }
 <a class="jxr_linenumber" name="L275" href="#L275">275</a> 
-<a class="jxr_linenumber" name="L276" href="#L276">276</a> }
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> <em class="jxr_javadoccomment">     * @return the errorMultiple</em>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getErrorMultiple() {
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">return</strong> errorMultiple;
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>     }
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L284" href="#L284">284</a> <em class="jxr_javadoccomment">     * @param errorMultiple the errorMultiple to set</em>
+<a class="jxr_linenumber" name="L285" href="#L285">285</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setErrorMultiple(<strong class="jxr_keyword">int</strong> errorMultiple) {
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">this</strong>.errorMultiple = errorMultiple;
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>     }
+<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L291" href="#L291">291</a> <em class="jxr_javadoccomment">     * @return the doneMultiple</em>
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getDoneMultiple() {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         <strong class="jxr_keyword">return</strong> doneMultiple;
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> 
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L298" href="#L298">298</a> <em class="jxr_javadoccomment">     * @param doneMultiple the doneMultiple to set</em>
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setDoneMultiple(<strong class="jxr_keyword">int</strong> doneMultiple) {
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <strong class="jxr_keyword">this</strong>.doneMultiple = doneMultiple;
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L305" href="#L305">305</a> <em class="jxr_javadoccomment">     * @return the results</em>
+<a class="jxr_linenumber" name="L306" href="#L306">306</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>     <strong class="jxr_keyword">public</strong> List&lt;OutputFormat&gt; getResults() {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <strong class="jxr_keyword">return</strong> results;
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     }
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

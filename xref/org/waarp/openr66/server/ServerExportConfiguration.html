@@ -80,13 +80,13 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>                  <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>              }
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              String directory = args[1];
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              String hostname = Configuration.configuration.HOST_ID;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              String hostname = Configuration.configuration.getHOST_ID();
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>              logger.info(<span class="jxr_string">"Start of Export"</span>);
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              File dir = <strong class="jxr_keyword">new</strong> File(directory);
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>              <strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>                  dir.mkdirs();
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>              }
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              String[] filenames = ServerActions.staticConfigExport(DbConstant.admin.session, dir.getAbsolutePath(),
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              String[] filenames = ServerActions.staticConfigExport(DbConstant.admin.getSession(), dir.getAbsolutePath(),
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>                      <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>              <strong class="jxr_keyword">for</strong> (String string : filenames) {
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>                  <strong class="jxr_keyword">if</strong> (string != <strong class="jxr_keyword">null</strong>) {
@@ -125,6 +125,6 @@
 <a class="jxr_linenumber" name="L117" href="#L117">117</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

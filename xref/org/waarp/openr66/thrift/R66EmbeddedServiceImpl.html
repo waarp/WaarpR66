@@ -94,12 +94,12 @@
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          }
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>          <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule;
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>              rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, request.getRule());
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), request.getRule());
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>          } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>              logger.warn(<span class="jxr_string">"Cannot get Rule: "</span> + request.getRule(), e);
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          }
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <strong class="jxr_keyword">int</strong> mode = rule.mode;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <strong class="jxr_keyword">int</strong> mode = rule.getMode();
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">if</strong> (request.isMd5()) {
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>              mode = RequestPacket.getModeMD5(mode);
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>          }
@@ -110,7 +110,7 @@
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>         }
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">if</strong> (tid != DbConstant.ILLEGALVALUE) {
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, tid,
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), tid,
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>                         request.getDestuid());
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>                 <em class="jxr_comment">// requested</em>
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>                 taskRunner.setSenderByRequestToValidate(<strong class="jxr_keyword">true</strong>);
@@ -127,7 +127,7 @@
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>             <strong class="jxr_keyword">boolean</strong> isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>                 taskRunner =
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, rule, isRetrieve, requestPacket,
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), rule, isRetrieve, requestPacket,
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>                                 request.getDestuid(), ttimestart);
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>                 logger.warn(<span class="jxr_string">"Cannot get task"</span>, e);
@@ -227,7 +227,7 @@
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> stopOrCancelRunner(<strong class="jxr_keyword">long</strong> id, String reqd, String reqr, org.waarp.openr66.context.ErrorCode code) {
 <a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>             <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner =
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>                             <strong class="jxr_keyword">null</strong>, id, reqr, reqd);
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>             <strong class="jxr_keyword">return</strong> taskRunner.stopOrCancelRunner(code) ? 1 : 0;
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -279,9 +279,9 @@
 <a class="jxr_linenumber" name="L271" href="#L271">271</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> restart(R66Request request, <a href="../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> lcr) {
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>         <em class="jxr_comment">// Try to validate a restarting transfer</em>
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>         <em class="jxr_comment">// validLimit on requested side</em>
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">if</strong> (Configuration.configuration.getConstraintLimitHandler().checkConstraints()) {
 <a class="jxr_linenumber" name="L275" href="#L275">275</a>             logger.warn(<span class="jxr_string">"Limit exceeded {} while asking to relaunch a task "</span>
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     + request.toString(), Configuration.configuration.constraintLimitHandler.lastAlert);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     + request.toString(), Configuration.configuration.getConstraintLimitHandler().lastAlert);
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(request.getMode(), ErrorCode.ServerOverloaded,
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>                     <span class="jxr_string">"Limit exceeded while asking to relaunch a task"</span>);
 <a class="jxr_linenumber" name="L279" href="#L279">279</a>         }
@@ -289,10 +289,10 @@
 <a class="jxr_linenumber" name="L281" href="#L281">281</a>         <em class="jxr_comment">// header = ?; middle = requested+blank+requester+blank+specialId</em>
 <a class="jxr_linenumber" name="L282" href="#L282">282</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L283" href="#L283">283</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>             taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>                     <strong class="jxr_keyword">null</strong>, request.getTid(), request.getFromuid(), request.getDestuid());
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>             org.waarp.openr66.context.R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(request.getMode(), ErrorCode.valueOf(resulttest.code.name()),
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(request.getMode(), ErrorCode.valueOf(resulttest.getCode().name()),
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>                     resulttest.getMessage());
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>             logger.warn(<span class="jxr_string">"Exception while trying to restart transfer"</span>, e1);
@@ -334,7 +334,7 @@
 <a class="jxr_linenumber" name="L326" href="#L326">326</a>                     setResultFromLCR(lcr, result);
 <a class="jxr_linenumber" name="L327" href="#L327">327</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L328" href="#L328">328</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>                         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.session, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>                         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L330" href="#L330">330</a>                                 <strong class="jxr_keyword">null</strong>, request.getTid(), request.getFromuid(),
 <a class="jxr_linenumber" name="L331" href="#L331">331</a>                                 request.getDestuid());
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>                         <strong class="jxr_keyword">if</strong> (runner != <strong class="jxr_keyword">null</strong>) {
@@ -392,17 +392,17 @@
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>             <strong class="jxr_keyword">return</strong> list;
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>         }
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>         <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>         session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule;
 <a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, request.getRule());
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), request.getRule());
 <a class="jxr_linenumber" name="L391" href="#L391">391</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>             logger.warn(<span class="jxr_string">"Rule is unknown: "</span> + request.getRule());
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>             list.add(<span class="jxr_string">"Rule is unknown: "</span> + request.getRule());
 <a class="jxr_linenumber" name="L394" href="#L394">394</a>             <strong class="jxr_keyword">return</strong> list;
 <a class="jxr_linenumber" name="L395" href="#L395">395</a>         }
 <a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>             <strong class="jxr_keyword">if</strong> (RequestPacket.isRecvMode(rule.mode)) {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             <strong class="jxr_keyword">if</strong> (RequestPacket.isRecvMode(rule.getMode())) {
 <a class="jxr_linenumber" name="L398" href="#L398">398</a>                 session.getDir().changeDirectory(rule.getWorkPath());
 <a class="jxr_linenumber" name="L399" href="#L399">399</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L400" href="#L400">400</a>                 session.getDir().changeDirectory(rule.getSendPath());
@@ -447,6 +447,6 @@
 <a class="jxr_linenumber" name="L439" href="#L439">439</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

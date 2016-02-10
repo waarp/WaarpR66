@@ -81,7 +81,7 @@
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpRestR66Handler.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>  
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> HashMap&lt;String, DbSession&gt; dbSessionFromUser = <strong class="jxr_keyword">new</strong> HashMap&lt;String, DbSession&gt;();
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> HashMap&lt;String, DbSession&gt; dbSessionFromUser = <strong class="jxr_keyword">new</strong> HashMap&lt;String, DbSession&gt;();
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>  
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> enum <a href="../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Handler.html">RESTHANDLERS</a> {
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          <a href="../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbHostAuthR66RestMethodHandler.BASEURI, org.waarp.openr66.database.data.DbHostAuth.<strong class="jxr_keyword">class</strong>),
@@ -261,7 +261,7 @@
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L254" href="#L254">254</a> <em class="jxr_javadoccomment">     * Server Actions handler</em>
 <a class="jxr_linenumber" name="L255" href="#L255">255</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a>();
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a>();
 <a class="jxr_linenumber" name="L257" href="#L257">257</a> 
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>     @Override
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> checkConnection(ChannelHandlerContext ctx) <strong class="jxr_keyword">throws</strong> HttpInvalidAuthenticationException {
@@ -276,11 +276,11 @@
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>             }
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>             <a href="../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> host;
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 host = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.session, user);
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 host = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(), user);
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>                 key = <strong class="jxr_keyword">new</strong> String(host.getHostkey(), WaarpStringUtils.UTF8);
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>                 <em class="jxr_comment">// might be global Admin</em>
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <strong class="jxr_keyword">if</strong> (user.equals(Configuration.configuration.ADMINNAME)) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <strong class="jxr_keyword">if</strong> (user.equals(Configuration.configuration.getADMINNAME())) {
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>                     key = <strong class="jxr_keyword">new</strong> String(Configuration.configuration.getSERVERADMINKEY(), WaarpStringUtils.UTF8);
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>                 }
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>             }
@@ -295,25 +295,25 @@
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>             }
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>             <em class="jxr_comment">// User set only for right access, not for signature check</em>
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>             user = Configuration.configuration.ADMINNAME;
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>             user = Configuration.configuration.getADMINNAME();
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>             <strong class="jxr_keyword">if</strong> (restConfiguration.REST_SIGNATURE) {
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>                 arguments.checkBaseAuthent(restConfiguration.hmacSha256, <strong class="jxr_keyword">null</strong>, restConfiguration.REST_TIME_LIMIT);
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>                 arguments.checkTime(restConfiguration.REST_TIME_LIMIT);
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>             }
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>         }
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>         serverHandler.newSession();
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <a href="../../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = serverHandler.getSession();
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         getServerHandler().newSession();
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <a href="../../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = getServerHandler().getSession();
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>         <strong class="jxr_keyword">if</strong> (!restConfiguration.REST_AUTHENTICATED) {
 <a class="jxr_linenumber" name="L300" href="#L300">300</a>             <em class="jxr_comment">// Default is Admin</em>
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>             session.getAuth().specialNoSessionAuth(<strong class="jxr_keyword">true</strong>, Configuration.configuration.HOST_SSLID);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             session.getAuth().specialNoSessionAuth(<strong class="jxr_keyword">true</strong>, Configuration.configuration.getHOST_SSLID());
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>             <em class="jxr_comment">// we have one DbSession per connection, only after authentication</em>
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>             DbSession temp = dbSessionFromUser.get(user);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>             DbSession temp = getDbSessionFromUser().get(user);
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>             <strong class="jxr_keyword">if</strong> (temp == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>                 <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>                     temp = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>                     dbSessionFromUser.put(user, temp);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>                     getDbSessionFromUser().put(user, temp);
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>                 }
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>             }
@@ -340,7 +340,7 @@
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>     @Override
 <a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelInactive(ChannelHandlerContext ctx) <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">super</strong>.channelInactive(ctx);
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>         serverHandler.channelClosed(ctx);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         getServerHandler().channelClosed(ctx);
 <a class="jxr_linenumber" name="L336" href="#L336">336</a>     }
 <a class="jxr_linenumber" name="L337" href="#L337">337</a> 
 <a class="jxr_linenumber" name="L338" href="#L338">338</a>     <em class="jxr_javadoccomment">/**</em>
@@ -365,10 +365,10 @@
 <a class="jxr_linenumber" name="L357" href="#L357">357</a>         <em class="jxr_comment">// Configure the server.</em>
 <a class="jxr_linenumber" name="L358" href="#L358">358</a>         ServerBootstrap httpBootstrap = <strong class="jxr_keyword">new</strong> ServerBootstrap();
 <a class="jxr_linenumber" name="L359" href="#L359">359</a>         WaarpNettyUtil.setServerBootstrap(httpBootstrap, Configuration.configuration.getHttpBossGroup(),
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>                 Configuration.configuration.getHttpWorkerGroup(), (<strong class="jxr_keyword">int</strong>) Configuration.configuration.TIMEOUTCON);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                 Configuration.configuration.getHttpWorkerGroup(), (<strong class="jxr_keyword">int</strong>) Configuration.configuration.getTIMEOUTCON());
 <a class="jxr_linenumber" name="L361" href="#L361">361</a>         <em class="jxr_comment">// Set up the event pipeline factory.</em>
 <a class="jxr_linenumber" name="L362" href="#L362">362</a>         <strong class="jxr_keyword">if</strong> (restConfiguration.REST_SSL) {
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>             httpBootstrap.childHandler(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Initializer.html">HttpRestR66Initializer</a>(false, Configuration.waarpSslContextFactory,
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             httpBootstrap.childHandler(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Initializer.html">HttpRestR66Initializer</a>(false, Configuration.getWaarpSslContextFactory(),
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>                     restConfiguration));
 <a class="jxr_linenumber" name="L365" href="#L365">365</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L366" href="#L366">366</a>             httpBootstrap.childHandler(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/http/rest/HttpRestR66Initializer.html">HttpRestR66Initializer</a>(false, <strong class="jxr_keyword">null</strong>, restConfiguration));
@@ -390,9 +390,23 @@
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>             group.add(future.channel());
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>         }
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>     }
-<a class="jxr_linenumber" name="L385" href="#L385">385</a> }
+<a class="jxr_linenumber" name="L385" href="#L385">385</a> 
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L387" href="#L387">387</a> <em class="jxr_javadoccomment">     * @return the dbSessionFromUser</em>
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> HashMap&lt;String, DbSession&gt; getDbSessionFromUser() {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         <strong class="jxr_keyword">return</strong> dbSessionFromUser;
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>     }
+<a class="jxr_linenumber" name="L392" href="#L392">392</a> 
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L394" href="#L394">394</a> <em class="jxr_javadoccomment">     * @return the serverHandler</em>
+<a class="jxr_linenumber" name="L395" href="#L395">395</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> getServerHandler() {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         <strong class="jxr_keyword">return</strong> serverHandler;
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>     }
+<a class="jxr_linenumber" name="L399" href="#L399">399</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

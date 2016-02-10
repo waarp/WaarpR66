@@ -86,12 +86,12 @@
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>              logger.debug(<span class="jxr_string">"Obj: {}"</span>, body);
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          }
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>          handler.setWillClose(false);
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">if</strong> (arguments.getMethod() == METHOD.GET) {
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>              <em class="jxr_comment">// status Json</em>
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>              result.setCommand(ACTIONS_TYPE.GetStatus.name());
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>              Configuration.configuration.monitoring.run(0, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              ObjectNode node = Configuration.configuration.monitoring.exportAsJson(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              Configuration.configuration.getMonitoring().run(0, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              ObjectNode node = Configuration.configuration.getMonitoring().exportAsJson(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>              result.setDetail(<span class="jxr_string">"Current Waarp R66 status"</span>);
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>              result.addResult(node);
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>              setOk(handler, result, <strong class="jxr_keyword">null</strong>, HttpResponseStatus.OK);
@@ -159,7 +159,7 @@
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>         }
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.methods.contains(METHOD.GET)) {
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>             ArrayNode node1 = JsonHandler.createArrayNode();
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>             node1.add(Configuration.configuration.monitoring.exportAsJson(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             node1.add(Configuration.configuration.getMonitoring().exportAsJson(<strong class="jxr_keyword">true</strong>));
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>             ObjectNode node2 = RestArgument.fillDetailedAllow(METHOD.GET, <strong class="jxr_keyword">this</strong>.path, ACTIONS_TYPE.GetStatus.name(),
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>                     <strong class="jxr_keyword">null</strong>, node1);
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>             node.add(node2);
@@ -174,6 +174,6 @@
 <a class="jxr_linenumber" name="L166" href="#L166">166</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -85,7 +85,7 @@
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              logger.debug(<span class="jxr_string">"Obj: {}"</span>, body);
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>          }
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          handler.setWillClose(false);
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/ServerActions.html">ServerActions</a> serverHandler = ((HttpRestR66Handler) handler).getServerHandler();
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          <a href="../../../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = serverHandler.getSession();
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          <em class="jxr_comment">// now action according to body</em>
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          <a href="../../../../../../../org/waarp/openr66/protocol/localhandler/packet/json/JsonPacket.html">JsonPacket</a> json = (JsonPacket) body;
@@ -107,7 +107,7 @@
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>                          r66result = <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(session, false, ErrorCode.ExternalOp, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>                     }
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>                     logger.info(<span class="jxr_string">"Task in Error:"</span> + node.getClassName() + <span class="jxr_string">" "</span> + r66result);
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     <strong class="jxr_keyword">if</strong> (!r66result.isAnswered) {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     <strong class="jxr_keyword">if</strong> (!r66result.isAnswered()) {
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>                         node.setValidated(false);
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>                         session.newState(ERROR);
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>                     }
@@ -115,9 +115,9 @@
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>                     setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>                     <a href="../../../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> r66result = future.getResult();
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>                     <strong class="jxr_keyword">if</strong> (r66result != <strong class="jxr_keyword">null</strong> &amp;&amp; r66result.other != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>                         result.setDetail(r66result.other.toString());
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>                         node.setArguments(r66result.other.toString());
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                     <strong class="jxr_keyword">if</strong> (r66result != <strong class="jxr_keyword">null</strong> &amp;&amp; r66result.getOther() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                         result.setDetail(r66result.getOther().toString());
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                         node.setArguments(r66result.getOther().toString());
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>                     }
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>                     setOk(handler, result, json, HttpResponseStatus.OK);
 <a class="jxr_linenumber" name="L115" href="#L115">115</a>                 }
@@ -162,6 +162,6 @@
 <a class="jxr_linenumber" name="L154" href="#L154">154</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

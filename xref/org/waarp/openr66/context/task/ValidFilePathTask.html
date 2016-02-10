@@ -64,39 +64,35 @@
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          <strong class="jxr_keyword">super</strong>(TaskType.VALIDFILEPATH, delay, argRule, argTransfer, session);
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>      }
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_comment">     * (non-Javadoc)</em>
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_comment">     * @see org.waarp.openr66.context.task.AbstractTask#run()</em>
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_comment">     */</em>
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      @Override
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>          String finalname = argRule;
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          finalname = R66Dir.normalizePath(
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>                  getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)));
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>          logger.info(<span class="jxr_string">"Test Valid Path with "</span> + finalname + <span class="jxr_string">" from {}"</span>, session);
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          File from = session.getFile().getTrueFile();
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          String curpath = R66Dir.normalizePath(from.getAbsolutePath());
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          String[] paths = finalname.split(<span class="jxr_string">" "</span>);
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">for</strong> (String base : paths) {
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>              <strong class="jxr_keyword">if</strong> (curpath.startsWith(base)) {
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  <strong class="jxr_keyword">if</strong> (delay &gt; 0) {
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>                      logger.info(<span class="jxr_string">"Validate File "</span> + curpath + <span class="jxr_string">" from "</span> + base + <span class="jxr_string">" and     "</span> +
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>                              session.toString());
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  }
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>              }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      @Override
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          String finalname = argRule;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          finalname = R66Dir.normalizePath(
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>                  getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)));
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          logger.info(<span class="jxr_string">"Test Valid Path with "</span> + finalname + <span class="jxr_string">" from {}"</span>, session);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          File from = session.getFile().getTrueFile();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          String curpath = R66Dir.normalizePath(from.getAbsolutePath());
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          String[] paths = finalname.split(<span class="jxr_string">" "</span>);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">for</strong> (String base : paths) {
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              <strong class="jxr_keyword">if</strong> (curpath.startsWith(base)) {
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>                  <strong class="jxr_keyword">if</strong> (delay &gt; 0) {
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>                      logger.info(<span class="jxr_string">"Validate File "</span> + curpath + <span class="jxr_string">" from "</span> + base + <span class="jxr_string">" and     "</span> +
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                              session.toString());
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>                  }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          <strong class="jxr_keyword">if</strong> (delay &gt; 0) {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>              logger.error(<span class="jxr_string">"Unvalidate File: "</span> + curpath + <span class="jxr_string">"     "</span> +
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>                      session.toString());
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          }
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">if</strong> (delay &gt; 0) {
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              logger.error(<span class="jxr_string">"Unvalidate File: "</span> + curpath + <span class="jxr_string">"     "</span> +
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>                      session.toString());
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>          }
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>          futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerException.html">OpenR66RunnerException</a>(<span class="jxr_string">"File not Validated"</span>));
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>      }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>  }
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerException.html">OpenR66RunnerException</a>(<span class="jxr_string">"File not Validated"</span>));
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>
