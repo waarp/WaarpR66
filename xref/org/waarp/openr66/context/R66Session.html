@@ -505,519 +505,521 @@
 <a class="jxr_linenumber" name="L497" href="#L497">497</a>                         <em class="jxr_comment">// Windows path</em>
 <a class="jxr_linenumber" name="L498" href="#L498">498</a>                         newfilename = newfilename.substring(2);
 <a class="jxr_linenumber" name="L499" href="#L499">499</a>                     }
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>                     <strong class="jxr_keyword">this</strong>.runner.setFilename(R66File.getBasename(newfilename));
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>                     newfilename = R66File.getBasename(newfilename);
 <a class="jxr_linenumber" name="L501" href="#L501">501</a>                     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L502" href="#L502">502</a>                         file = dir.setUniqueFile(<strong class="jxr_keyword">this</strong>.runner.getSpecialId(),
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>                                 <strong class="jxr_keyword">this</strong>.runner.getFilename());
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L505" href="#L505">505</a>                         <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>                         <strong class="jxr_keyword">throw</strong> e;
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>                     }
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>                         <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>                             <em class="jxr_comment">// no test on file since it does not really exist</em>
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>                             logger.debug(<span class="jxr_string">"File is in through mode: {}"</span>, file);
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>                         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!file.canWrite()) {
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>                             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>                                     <span class="jxr_string">"File cannot be write"</span>);
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>                         }
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>                         <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>                         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>                     }
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"No file created"</span>);
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>                 }
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>             }
-<a class="jxr_linenumber" name="L526" href="#L526">526</a>         }
-<a class="jxr_linenumber" name="L527" href="#L527">527</a>         <em class="jxr_comment">// Store TRUEFILENAME</em>
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isFileMoved()) {
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>                 <strong class="jxr_keyword">this</strong>.runner.setFileMoved(file.getFile(), <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>                 <strong class="jxr_keyword">this</strong>.runner.setFilename(file.getFile());
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>             }
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L535" href="#L535">535</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L536" href="#L536">536</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>         }
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>         <em class="jxr_comment">// check fileSize</em>
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; file != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>             logger.debug(<span class="jxr_string">"could change size: "</span> + <strong class="jxr_keyword">this</strong>.runner.getOriginalSize() + <span class="jxr_string">" =&gt; "</span> + file.length());
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.getOriginalSize() &lt; 0) {
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>                 <strong class="jxr_keyword">long</strong> originalSize = file.length();
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>                 <strong class="jxr_keyword">if</strong> (originalSize &gt; 0) {
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>                     <strong class="jxr_keyword">this</strong>.runner.setOriginalSize(originalSize);
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>                 }
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>             }
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>         }
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>     }
-<a class="jxr_linenumber" name="L549" href="#L549">549</a> 
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L551" href="#L551">551</a> <em class="jxr_javadoccomment">     * To be used when a request comes with a bad code so it cannot be set normally</em>
-<a class="jxr_linenumber" name="L552" href="#L552">552</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L553" href="#L553">553</a> <em class="jxr_javadoccomment">     * @param runner</em>
-<a class="jxr_linenumber" name="L554" href="#L554">554</a> <em class="jxr_javadoccomment">     * @param code</em>
-<a class="jxr_linenumber" name="L555" href="#L555">555</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBadRunner(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code) {
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>         <strong class="jxr_keyword">this</strong>.runner = runner;
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>         <strong class="jxr_keyword">if</strong> (code == ErrorCode.QueryAlreadyFinished) {
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isSender()) {
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
-<a class="jxr_linenumber" name="L563" href="#L563">563</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>                 }
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
-<a class="jxr_linenumber" name="L569" href="#L569">569</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>                 }
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>             }
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L573" href="#L573">573</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>             }
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>             <strong class="jxr_keyword">this</strong>.runner.setPostTask();
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>                 setFileAfterPreRunner(false);
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>             }
-<a class="jxr_linenumber" name="L581" href="#L581">581</a>         }
-<a class="jxr_linenumber" name="L582" href="#L582">582</a>     }
-<a class="jxr_linenumber" name="L583" href="#L583">583</a> 
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L585" href="#L585">585</a> <em class="jxr_javadoccomment">     * Set the runner, and setup the directory first.</em>
-<a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_javadoccomment">     * This call should be followed by a startup() call.</em>
-<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     * @param runner</em>
-<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     *            the runner to set</em>
-<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="L592" href="#L592">592</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L593" href="#L593">593</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRunner(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner)
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>             <strong class="jxr_keyword">throws</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a> {
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>         <strong class="jxr_keyword">this</strong>.runner = runner;
-<a class="jxr_linenumber" name="L596" href="#L596">596</a>         logger.debug(<span class="jxr_string">"Runner to set: {} {}"</span>, runner.shallIgnoreSave(), runner);
-<a class="jxr_linenumber" name="L597" href="#L597">597</a>         <strong class="jxr_keyword">this</strong>.runner.checkThroughMode();
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L599" href="#L599">599</a>             <strong class="jxr_keyword">this</strong>.businessObject.checkAtStartup(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L600" href="#L600">600</a>         }
-<a class="jxr_linenumber" name="L601" href="#L601">601</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isSender()) {
-<a class="jxr_linenumber" name="L602" href="#L602">602</a>             <strong class="jxr_keyword">if</strong> (runner.isSendThrough()) {
-<a class="jxr_linenumber" name="L603" href="#L603">603</a>                 <em class="jxr_comment">// May not change dir as needed</em>
-<a class="jxr_linenumber" name="L604" href="#L604">604</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L606" href="#L606">606</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
-<a class="jxr_linenumber" name="L607" href="#L607">607</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>                     <em class="jxr_comment">// ignore</em>
-<a class="jxr_linenumber" name="L609" href="#L609">609</a>                 }
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L612" href="#L612">612</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L613" href="#L613">613</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L615" href="#L615">615</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L616" href="#L616">616</a>                 }
-<a class="jxr_linenumber" name="L617" href="#L617">617</a>             }
-<a class="jxr_linenumber" name="L618" href="#L618">618</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>             <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
-<a class="jxr_linenumber" name="L620" href="#L620">620</a>                 <em class="jxr_comment">// May not change dir as needed</em>
-<a class="jxr_linenumber" name="L621" href="#L621">621</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L622" href="#L622">622</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L623" href="#L623">623</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
-<a class="jxr_linenumber" name="L624" href="#L624">624</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L625" href="#L625">625</a>                 }
-<a class="jxr_linenumber" name="L626" href="#L626">626</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L627" href="#L627">627</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L632" href="#L632">632</a>                 }
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>             }
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>         }
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>         logger.debug(<span class="jxr_string">"Dir is: "</span> + dir.getFullPath());
-<a class="jxr_linenumber" name="L636" href="#L636">636</a>     }
-<a class="jxr_linenumber" name="L637" href="#L637">637</a> 
-<a class="jxr_linenumber" name="L638" href="#L638">638</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L639" href="#L639">639</a> <em class="jxr_javadoccomment">     * START from the PreTask if necessary, and prepare the file</em>
-<a class="jxr_linenumber" name="L640" href="#L640">640</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L641" href="#L641">641</a> <em class="jxr_javadoccomment">     * @param checkNotExternal</em>
-<a class="jxr_linenumber" name="L642" href="#L642">642</a> <em class="jxr_javadoccomment">     *            if True, the file as Sender should not be external to current directory</em>
-<a class="jxr_linenumber" name="L643" href="#L643">643</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="L644" href="#L644">644</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L645" href="#L645">645</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startup(<strong class="jxr_keyword">boolean</strong> checkNotExternal) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
-<a class="jxr_linenumber" name="L646" href="#L646">646</a>         <strong class="jxr_keyword">if</strong> (runner.getRank() &gt; 0) {
-<a class="jxr_linenumber" name="L647" href="#L647">647</a>             logger.debug(<span class="jxr_string">"restart at "</span> + runner.getRank() + <span class="jxr_string">" {}"</span>, runner);
-<a class="jxr_linenumber" name="L648" href="#L648">648</a>             runner.setTransferTask(runner.getRank());
-<a class="jxr_linenumber" name="L649" href="#L649">649</a>             restart.restartMarker(runner.getBlocksize() * runner.getRank());
-<a class="jxr_linenumber" name="L650" href="#L650">650</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L651" href="#L651">651</a>             restart.restartMarker(0);
-<a class="jxr_linenumber" name="L652" href="#L652">652</a>         }
-<a class="jxr_linenumber" name="L653" href="#L653">653</a>         logger.debug(<span class="jxr_string">"GlobalLastStep: "</span> + runner.getGloballaststep() + <span class="jxr_string">" vs "</span> + TASKSTEP.NOTASK.ordinal() + <span class="jxr_string">":"</span>
-<a class="jxr_linenumber" name="L654" href="#L654">654</a>                 + TASKSTEP.PRETASK.ordinal());
-<a class="jxr_linenumber" name="L655" href="#L655">655</a>         <strong class="jxr_keyword">if</strong> (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
-<a class="jxr_linenumber" name="L656" href="#L656">656</a>                 runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
-<a class="jxr_linenumber" name="L657" href="#L657">657</a>             setFileBeforePreRunner();
-<a class="jxr_linenumber" name="L658" href="#L658">658</a>             <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; !runner.isSendThrough() &amp;&amp; file != <strong class="jxr_keyword">null</strong> &amp;&amp; checkNotExternal) {
-<a class="jxr_linenumber" name="L659" href="#L659">659</a>                 String path = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L660" href="#L660">660</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L661" href="#L661">661</a>                     path = file.getFile();
-<a class="jxr_linenumber" name="L662" href="#L662">662</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
-<a class="jxr_linenumber" name="L663" href="#L663">663</a>                 }
-<a class="jxr_linenumber" name="L664" href="#L664">664</a>                 <strong class="jxr_keyword">if</strong> (file.isExternal() || (path != <strong class="jxr_keyword">null</strong> &amp;&amp; !dir.isPathInCurrentDir(path))) {
-<a class="jxr_linenumber" name="L665" href="#L665">665</a>                     <em class="jxr_comment">// should not be</em>
-<a class="jxr_linenumber" name="L666" href="#L666">666</a>                     logger.error(<span class="jxr_string">"File cannot be found in the current output directory: {} not in {}"</span>, file, dir);
-<a class="jxr_linenumber" name="L667" href="#L667">667</a>                     <strong class="jxr_keyword">this</strong>.runner.setErrorExecutionStatus(ErrorCode.FileNotAllowed);
-<a class="jxr_linenumber" name="L668" href="#L668">668</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"File cannot be found in the current output directory"</span>);
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>                 }
-<a class="jxr_linenumber" name="L670" href="#L670">670</a>             }
-<a class="jxr_linenumber" name="L671" href="#L671">671</a>             <strong class="jxr_keyword">this</strong>.runner.setPreTask();
-<a class="jxr_linenumber" name="L672" href="#L672">672</a>             runner.saveStatus();
-<a class="jxr_linenumber" name="L673" href="#L673">673</a>             <strong class="jxr_keyword">this</strong>.runner.run();
-<a class="jxr_linenumber" name="L674" href="#L674">674</a>             <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; !runner.isSendThrough()) {
-<a class="jxr_linenumber" name="L675" href="#L675">675</a>                 <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L676" href="#L676">676</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L677" href="#L677">677</a>                         <strong class="jxr_keyword">long</strong> originalSize = file.length();
-<a class="jxr_linenumber" name="L678" href="#L678">678</a>                         <strong class="jxr_keyword">if</strong> (originalSize &gt; 0) {
-<a class="jxr_linenumber" name="L679" href="#L679">679</a>                             <strong class="jxr_keyword">this</strong>.runner.setOriginalSize(originalSize);
-<a class="jxr_linenumber" name="L680" href="#L680">680</a>                         }
-<a class="jxr_linenumber" name="L681" href="#L681">681</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L682" href="#L682">682</a>                         <em class="jxr_comment">// ignore</em>
-<a class="jxr_linenumber" name="L683" href="#L683">683</a>                     }
-<a class="jxr_linenumber" name="L684" href="#L684">684</a>                 }
-<a class="jxr_linenumber" name="L685" href="#L685">685</a>             }
-<a class="jxr_linenumber" name="L686" href="#L686">686</a>             runner.saveStatus();
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>             runner.setTransferTask(runner.getRank());
-<a class="jxr_linenumber" name="L688" href="#L688">688</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L689" href="#L689">689</a>             runner.reset();
-<a class="jxr_linenumber" name="L690" href="#L690">690</a>             runner.changeUpdatedInfo(UpdatedInfo.RUNNING);
-<a class="jxr_linenumber" name="L691" href="#L691">691</a>             runner.saveStatus();
-<a class="jxr_linenumber" name="L692" href="#L692">692</a>         }
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>         <em class="jxr_comment">// Now create the associated file</em>
-<a class="jxr_linenumber" name="L694" href="#L694">694</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L695" href="#L695">695</a>             setFileAfterPreRunner(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L696" href="#L696">696</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e2) {
-<a class="jxr_linenumber" name="L697" href="#L697">697</a>             <em class="jxr_comment">// generated due to a possible wildcard not ready</em>
-<a class="jxr_linenumber" name="L698" href="#L698">698</a>             file = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L699" href="#L699">699</a>         }
-<a class="jxr_linenumber" name="L700" href="#L700">700</a>         logger.debug(<span class="jxr_string">"GlobalLastStep: "</span> + runner.getGloballaststep());
-<a class="jxr_linenumber" name="L701" href="#L701">701</a>         <strong class="jxr_keyword">if</strong> (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
-<a class="jxr_linenumber" name="L702" href="#L702">702</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L703" href="#L703">703</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAfterPreCommand(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L704" href="#L704">704</a>             }
-<a class="jxr_linenumber" name="L705" href="#L705">705</a>             <strong class="jxr_keyword">if</strong> (!<strong class="jxr_keyword">this</strong>.runner.isSender()) {
-<a class="jxr_linenumber" name="L706" href="#L706">706</a>                 <em class="jxr_comment">// Check file length according to rank</em>
-<a class="jxr_linenumber" name="L707" href="#L707">707</a>                 <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
-<a class="jxr_linenumber" name="L708" href="#L708">708</a>                     <em class="jxr_comment">// no size can be checked</em>
-<a class="jxr_linenumber" name="L709" href="#L709">709</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L710" href="#L710">710</a>                     <strong class="jxr_keyword">long</strong> length = 0;
-<a class="jxr_linenumber" name="L711" href="#L711">711</a>                     <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L712" href="#L712">712</a>                         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L713" href="#L713">713</a>                             length = file.length();
-<a class="jxr_linenumber" name="L714" href="#L714">714</a>                         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L715" href="#L715">715</a>                         }
-<a class="jxr_linenumber" name="L716" href="#L716">716</a>                     }
-<a class="jxr_linenumber" name="L717" href="#L717">717</a>                     <strong class="jxr_keyword">long</strong> needed = <strong class="jxr_keyword">this</strong>.runner.getOriginalSize() - length;
-<a class="jxr_linenumber" name="L718" href="#L718">718</a>                     <strong class="jxr_keyword">long</strong> available = 0;
-<a class="jxr_linenumber" name="L719" href="#L719">719</a>                     String targetDir = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L720" href="#L720">720</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L721" href="#L721">721</a>                         available = <strong class="jxr_keyword">this</strong>.dir.getFreeSpace();
-<a class="jxr_linenumber" name="L722" href="#L722">722</a>                         targetDir = <strong class="jxr_keyword">this</strong>.dir.getPwd();
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
-<a class="jxr_linenumber" name="L724" href="#L724">724</a>                     }
-<a class="jxr_linenumber" name="L725" href="#L725">725</a>                     <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L726" href="#L726">726</a>                         File truefile = file.getTrueFile().getParentFile();
-<a class="jxr_linenumber" name="L727" href="#L727">727</a>                         available = truefile.getFreeSpace();
-<a class="jxr_linenumber" name="L728" href="#L728">728</a>                         targetDir = truefile.getPath();
-<a class="jxr_linenumber" name="L729" href="#L729">729</a>                     }
-<a class="jxr_linenumber" name="L730" href="#L730">730</a>                     logger.debug(<span class="jxr_string">"Check available space: "</span> + available + <span class="jxr_string">" &gt;? "</span> + needed + <span class="jxr_string">"(+"</span> + length + <span class="jxr_string">")"</span>);
-<a class="jxr_linenumber" name="L731" href="#L731">731</a>                     <em class="jxr_comment">// Available &gt; 0 since some system returns 0 (wrong size)</em>
-<a class="jxr_linenumber" name="L732" href="#L732">732</a>                     <strong class="jxr_keyword">if</strong> (available &gt; 0 &amp;&amp; needed &gt; available) {
-<a class="jxr_linenumber" name="L733" href="#L733">733</a>                         <em class="jxr_comment">// not enough space</em>
-<a class="jxr_linenumber" name="L734" href="#L734">734</a>                         <strong class="jxr_keyword">this</strong>.runner.setErrorExecutionStatus(ErrorCode.Internal);
-<a class="jxr_linenumber" name="L735" href="#L735">735</a>                         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
-<a class="jxr_linenumber" name="L736" href="#L736">736</a>                                 <span class="jxr_string">"File cannot be written due to unsufficient space available: "</span> +
-<a class="jxr_linenumber" name="L737" href="#L737">737</a>                                         targetDir + <span class="jxr_string">" need "</span> + needed + <span class="jxr_string">" more while available is "</span> + available);
-<a class="jxr_linenumber" name="L738" href="#L738">738</a>                     }
-<a class="jxr_linenumber" name="L739" href="#L739">739</a>                     <strong class="jxr_keyword">if</strong> (file == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L740" href="#L740">740</a>                         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
-<a class="jxr_linenumber" name="L741" href="#L741">741</a>                         logger.info(<span class="jxr_string">"Final PARTIAL init: {}"</span>, <strong class="jxr_keyword">this</strong>.runner);
-<a class="jxr_linenumber" name="L742" href="#L742">742</a>                         <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L743" href="#L743">743</a>                     }
-<a class="jxr_linenumber" name="L744" href="#L744">744</a>                     <em class="jxr_comment">// First check available space</em>
-<a class="jxr_linenumber" name="L745" href="#L745">745</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L746" href="#L746">746</a>                         <strong class="jxr_keyword">long</strong> oldPosition = restart.getPosition();
-<a class="jxr_linenumber" name="L747" href="#L747">747</a>                         restart.setSet(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L748" href="#L748">748</a>                         <strong class="jxr_keyword">if</strong> (oldPosition &gt; length) {
-<a class="jxr_linenumber" name="L749" href="#L749">749</a>                             <strong class="jxr_keyword">int</strong> newRank = ((<strong class="jxr_keyword">int</strong>) (length / <strong class="jxr_keyword">this</strong>.runner.getBlocksize()))
-<a class="jxr_linenumber" name="L750" href="#L750">750</a>                                     - Configuration.getRANKRESTART();
-<a class="jxr_linenumber" name="L751" href="#L751">751</a>                             <strong class="jxr_keyword">if</strong> (newRank &lt;= 0) {
-<a class="jxr_linenumber" name="L752" href="#L752">752</a>                                 newRank = 1;
-<a class="jxr_linenumber" name="L753" href="#L753">753</a>                             }
-<a class="jxr_linenumber" name="L754" href="#L754">754</a>                             logger.info(<span class="jxr_string">"OldPos: "</span> + oldPosition + <span class="jxr_string">":"</span> + runner.getRank() +
-<a class="jxr_linenumber" name="L755" href="#L755">755</a>                                     <span class="jxr_string">" curLength: "</span> + length + <span class="jxr_string">":"</span> + newRank);
-<a class="jxr_linenumber" name="L756" href="#L756">756</a>                             logger.warn(<span class="jxr_string">"Decreased Rank Restart for {} at "</span> + newRank, runner);
-<a class="jxr_linenumber" name="L757" href="#L757">757</a>                             runner.setTransferTask(newRank);
-<a class="jxr_linenumber" name="L758" href="#L758">758</a>                             restart.restartMarker(<strong class="jxr_keyword">this</strong>.runner.getBlocksize()
-<a class="jxr_linenumber" name="L759" href="#L759">759</a>                                     * <strong class="jxr_keyword">this</strong>.runner.getRank());
-<a class="jxr_linenumber" name="L760" href="#L760">760</a>                         }
-<a class="jxr_linenumber" name="L761" href="#L761">761</a>                         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L762" href="#L762">762</a>                             file.restartMarker(restart);
-<a class="jxr_linenumber" name="L763" href="#L763">763</a>                         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L764" href="#L764">764</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L765" href="#L765">765</a>                             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L766" href="#L766">766</a>                         }
-<a class="jxr_linenumber" name="L767" href="#L767">767</a>                     } <strong class="jxr_keyword">catch</strong> (NoRestartException e) {
-<a class="jxr_linenumber" name="L768" href="#L768">768</a>                         <em class="jxr_comment">// length is not to be changed</em>
-<a class="jxr_linenumber" name="L769" href="#L769">769</a>                     }
-<a class="jxr_linenumber" name="L770" href="#L770">770</a>                 }
-<a class="jxr_linenumber" name="L771" href="#L771">771</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L772" href="#L772">772</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L773" href="#L773">773</a>                     <strong class="jxr_keyword">this</strong>.localChannelReference.getFutureRequest().setFilesize(file.length());
-<a class="jxr_linenumber" name="L774" href="#L774">774</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
-<a class="jxr_linenumber" name="L775" href="#L775">775</a>                 }
-<a class="jxr_linenumber" name="L776" href="#L776">776</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L777" href="#L777">777</a>                     file.restartMarker(restart);
-<a class="jxr_linenumber" name="L778" href="#L778">778</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L779" href="#L779">779</a>                     <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L780" href="#L780">780</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L781" href="#L781">781</a>                 }
-<a class="jxr_linenumber" name="L782" href="#L782">782</a>             }
-<a class="jxr_linenumber" name="L783" href="#L783">783</a>         }
-<a class="jxr_linenumber" name="L784" href="#L784">784</a>         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
-<a class="jxr_linenumber" name="L785" href="#L785">785</a>         logger.debug(<span class="jxr_string">"Final init: {} {}"</span>, <strong class="jxr_keyword">this</strong>.runner, <strong class="jxr_keyword">this</strong>.file != <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L786" href="#L786">786</a>     }
-<a class="jxr_linenumber" name="L787" href="#L787">787</a> 
-<a class="jxr_linenumber" name="L788" href="#L788">788</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L789" href="#L789">789</a> <em class="jxr_javadoccomment">     * Rename the current receive file from the very beginning since the sender has a post action</em>
-<a class="jxr_linenumber" name="L790" href="#L790">790</a> <em class="jxr_javadoccomment">     * that changes its name</em>
-<a class="jxr_linenumber" name="L791" href="#L791">791</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L792" href="#L792">792</a> <em class="jxr_javadoccomment">     * @param newFilename</em>
-<a class="jxr_linenumber" name="L793" href="#L793">793</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="L794" href="#L794">794</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L795" href="#L795">795</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> renameReceiverFile(String newFilename) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
-<a class="jxr_linenumber" name="L796" href="#L796">796</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L797" href="#L797">797</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L798" href="#L798">798</a>         }
-<a class="jxr_linenumber" name="L799" href="#L799">799</a>         <em class="jxr_comment">// First delete the temporary file if needed</em>
-<a class="jxr_linenumber" name="L800" href="#L800">800</a>         <strong class="jxr_keyword">if</strong> (runner.getRank() &gt; 0) {
-<a class="jxr_linenumber" name="L801" href="#L801">801</a>             logger.error(<span class="jxr_string">"Renaming file is not correct since transfer does not start from first block"</span>);
-<a class="jxr_linenumber" name="L802" href="#L802">802</a>             <em class="jxr_comment">// Not correct</em>
-<a class="jxr_linenumber" name="L803" href="#L803">803</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
-<a class="jxr_linenumber" name="L804" href="#L804">804</a>                     <span class="jxr_string">"Renaming file not correct since transfer already started"</span>);
-<a class="jxr_linenumber" name="L805" href="#L805">805</a>         }
-<a class="jxr_linenumber" name="L806" href="#L806">806</a>         <strong class="jxr_keyword">if</strong> (!runner.isRecvThrough()) {
-<a class="jxr_linenumber" name="L807" href="#L807">807</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L808" href="#L808">808</a>         }
-<a class="jxr_linenumber" name="L809" href="#L809">809</a>         <em class="jxr_comment">// Now rename it</em>
-<a class="jxr_linenumber" name="L810" href="#L810">810</a>         <strong class="jxr_keyword">this</strong>.runner.setOriginalFilename(newFilename);
-<a class="jxr_linenumber" name="L811" href="#L811">811</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L812" href="#L812">812</a>             <strong class="jxr_keyword">this</strong>.setFileAfterPreRunner(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L813" href="#L813">813</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L814" href="#L814">814</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
-<a class="jxr_linenumber" name="L815" href="#L815">815</a>         }
-<a class="jxr_linenumber" name="L816" href="#L816">816</a>         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
-<a class="jxr_linenumber" name="L817" href="#L817">817</a>     }
-<a class="jxr_linenumber" name="L818" href="#L818">818</a> 
-<a class="jxr_linenumber" name="L819" href="#L819">819</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L820" href="#L820">820</a> <em class="jxr_javadoccomment">     * Finalize the transfer step by running the error or post operation according to the status.</em>
-<a class="jxr_linenumber" name="L821" href="#L821">821</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L822" href="#L822">822</a> <em class="jxr_javadoccomment">     * @param status</em>
-<a class="jxr_linenumber" name="L823" href="#L823">823</a> <em class="jxr_javadoccomment">     * @param finalValue</em>
-<a class="jxr_linenumber" name="L824" href="#L824">824</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="L825" href="#L825">825</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="L826" href="#L826">826</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L827" href="#L827">827</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setFinalizeTransfer(<strong class="jxr_keyword">boolean</strong> status, <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> finalValue)
-<a class="jxr_linenumber" name="L828" href="#L828">828</a>             <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException, <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="L829" href="#L829">829</a>         logger.debug(status + <span class="jxr_string">":"</span> + finalValue + <span class="jxr_string">":"</span> + runner);
-<a class="jxr_linenumber" name="L830" href="#L830">830</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L831" href="#L831">831</a>             <strong class="jxr_keyword">if</strong> (localChannelReference != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L832" href="#L832">832</a>                 <strong class="jxr_keyword">if</strong> (status) {
-<a class="jxr_linenumber" name="L833" href="#L833">833</a>                     localChannelReference.validateRequest(finalValue);
-<a class="jxr_linenumber" name="L834" href="#L834">834</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L835" href="#L835">835</a>                     localChannelReference.invalidateRequest(finalValue);
-<a class="jxr_linenumber" name="L836" href="#L836">836</a>                 }
-<a class="jxr_linenumber" name="L837" href="#L837">837</a>             }
-<a class="jxr_linenumber" name="L838" href="#L838">838</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L839" href="#L839">839</a>                 <strong class="jxr_keyword">if</strong> (status) {
-<a class="jxr_linenumber" name="L840" href="#L840">840</a>                     <strong class="jxr_keyword">this</strong>.businessObject.checkAfterTransfer(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L841" href="#L841">841</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L842" href="#L842">842</a>                     <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L843" href="#L843">843</a>                 }
-<a class="jxr_linenumber" name="L844" href="#L844">844</a>             }
-<a class="jxr_linenumber" name="L845" href="#L845">845</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L846" href="#L846">846</a>         }
-<a class="jxr_linenumber" name="L847" href="#L847">847</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L848" href="#L848">848</a>             <strong class="jxr_keyword">if</strong> (status) {
-<a class="jxr_linenumber" name="L849" href="#L849">849</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAfterTransfer(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L850" href="#L850">850</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L851" href="#L851">851</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L852" href="#L852">852</a>             }
-<a class="jxr_linenumber" name="L853" href="#L853">853</a>         }
-<a class="jxr_linenumber" name="L854" href="#L854">854</a>         <strong class="jxr_keyword">if</strong> (runner.isAllDone()) {
-<a class="jxr_linenumber" name="L855" href="#L855">855</a>             logger.debug(
-<a class="jxr_linenumber" name="L856" href="#L856">856</a>                     <span class="jxr_string">"Transfer already done but "</span> + status + <span class="jxr_string">" on "</span> + file + runner.toShortString(),
-<a class="jxr_linenumber" name="L857" href="#L857">857</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(finalValue.toString()));
-<a class="jxr_linenumber" name="L858" href="#L858">858</a>             <em class="jxr_comment">// FIXME ??</em>
-<a class="jxr_linenumber" name="L859" href="#L859">859</a>             <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="L860" href="#L860">860</a> <em class="jxr_comment">             * if (! status) runner.finalizeTransfer(localChannelReference, file, finalValue,</em>
-<a class="jxr_linenumber" name="L861" href="#L861">861</a> <em class="jxr_comment">             * status);</em>
-<a class="jxr_linenumber" name="L862" href="#L862">862</a> <em class="jxr_comment">             */</em>
-<a class="jxr_linenumber" name="L863" href="#L863">863</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L864" href="#L864">864</a>         }
-<a class="jxr_linenumber" name="L865" href="#L865">865</a>         <strong class="jxr_keyword">if</strong> (localChannelReference.getFutureRequest().isDone()) {
-<a class="jxr_linenumber" name="L866" href="#L866">866</a>             logger.debug(
-<a class="jxr_linenumber" name="L867" href="#L867">867</a>                     <span class="jxr_string">"Request already done but "</span> + status + <span class="jxr_string">" on "</span> + file + runner.toShortString(),
-<a class="jxr_linenumber" name="L868" href="#L868">868</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(finalValue.toString()));
-<a class="jxr_linenumber" name="L869" href="#L869">869</a>             <em class="jxr_comment">// Already finished once so do nothing more</em>
-<a class="jxr_linenumber" name="L870" href="#L870">870</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L871" href="#L871">871</a>         }
-<a class="jxr_linenumber" name="L872" href="#L872">872</a>         <strong class="jxr_keyword">if</strong> (!status) {
-<a class="jxr_linenumber" name="L873" href="#L873">873</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
-<a class="jxr_linenumber" name="L874" href="#L874">874</a>             runner.setErrorExecutionStatus(finalValue.getCode());
-<a class="jxr_linenumber" name="L875" href="#L875">875</a>         }
-<a class="jxr_linenumber" name="L876" href="#L876">876</a>         <strong class="jxr_keyword">if</strong> (status) {
-<a class="jxr_linenumber" name="L877" href="#L877">877</a>             runner.finishTransferTask(ErrorCode.TransferOk);
-<a class="jxr_linenumber" name="L878" href="#L878">878</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L879" href="#L879">879</a>             runner.finishTransferTask(finalValue.getCode());
-<a class="jxr_linenumber" name="L880" href="#L880">880</a>         }
-<a class="jxr_linenumber" name="L881" href="#L881">881</a>         runner.saveStatus();
-<a class="jxr_linenumber" name="L882" href="#L882">882</a>         logger.debug(<span class="jxr_string">"Transfer "</span> + status + <span class="jxr_string">" on {} and {}"</span>, file, runner);
-<a class="jxr_linenumber" name="L883" href="#L883">883</a>         <strong class="jxr_keyword">if</strong> (!runner.ready()) {
-<a class="jxr_linenumber" name="L884" href="#L884">884</a>             <em class="jxr_comment">// Pre task in error (or even before)</em>
-<a class="jxr_linenumber" name="L885" href="#L885">885</a>             <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a> runnerErrorException;
-<a class="jxr_linenumber" name="L886" href="#L886">886</a>             <strong class="jxr_keyword">if</strong> (!status &amp;&amp; finalValue.getException() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L887" href="#L887">887</a>                 runnerErrorException = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
-<a class="jxr_linenumber" name="L888" href="#L888">888</a>                         <span class="jxr_string">"Pre task in error (or even before)"</span>,
-<a class="jxr_linenumber" name="L889" href="#L889">889</a>                         finalValue.getException());
-<a class="jxr_linenumber" name="L890" href="#L890">890</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L891" href="#L891">891</a>                 runnerErrorException = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
-<a class="jxr_linenumber" name="L892" href="#L892">892</a>                         <span class="jxr_string">"Pre task in error (or even before)"</span>);
-<a class="jxr_linenumber" name="L893" href="#L893">893</a>             }
-<a class="jxr_linenumber" name="L894" href="#L894">894</a>             finalValue.setException(runnerErrorException);
-<a class="jxr_linenumber" name="L895" href="#L895">895</a>             logger.debug(<span class="jxr_string">"Pre task in error (or even before) : "</span> +
-<a class="jxr_linenumber" name="L896" href="#L896">896</a>                     runnerErrorException.getMessage());
-<a class="jxr_linenumber" name="L897" href="#L897">897</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.isExecuteErrorBeforeTransferAllowed()) {
-<a class="jxr_linenumber" name="L898" href="#L898">898</a>                 runner.finalizeTransfer(localChannelReference, file, finalValue, status);
-<a class="jxr_linenumber" name="L899" href="#L899">899</a>             }
-<a class="jxr_linenumber" name="L900" href="#L900">900</a>             localChannelReference.invalidateRequest(finalValue);
-<a class="jxr_linenumber" name="L901" href="#L901">901</a>             <strong class="jxr_keyword">throw</strong> runnerErrorException;
-<a class="jxr_linenumber" name="L902" href="#L902">902</a>         }
-<a class="jxr_linenumber" name="L903" href="#L903">903</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L904" href="#L904">904</a>             <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L905" href="#L905">905</a>                 file.closeFile();
-<a class="jxr_linenumber" name="L906" href="#L906">906</a>             }
-<a class="jxr_linenumber" name="L907" href="#L907">907</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
-<a class="jxr_linenumber" name="L908" href="#L908">908</a>             <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = finalValue;
-<a class="jxr_linenumber" name="L909" href="#L909">909</a>             <strong class="jxr_keyword">if</strong> (status) {
-<a class="jxr_linenumber" name="L910" href="#L910">910</a>                 result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e1),
-<a class="jxr_linenumber" name="L911" href="#L911">911</a>                         <strong class="jxr_keyword">this</strong>, false, ErrorCode.Internal, runner);
-<a class="jxr_linenumber" name="L912" href="#L912">912</a>             }
-<a class="jxr_linenumber" name="L913" href="#L913">913</a>             localChannelReference.invalidateRequest(result);
-<a class="jxr_linenumber" name="L914" href="#L914">914</a>             <strong class="jxr_keyword">throw</strong> (OpenR66RunnerErrorException) result.getException();
-<a class="jxr_linenumber" name="L915" href="#L915">915</a>         }
-<a class="jxr_linenumber" name="L916" href="#L916">916</a>         runner.finalizeTransfer(localChannelReference, file, finalValue, status);
-<a class="jxr_linenumber" name="L917" href="#L917">917</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L918" href="#L918">918</a>             <strong class="jxr_keyword">this</strong>.businessObject.checkAfterPost(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L919" href="#L919">919</a>         }
-<a class="jxr_linenumber" name="L920" href="#L920">920</a>     }
-<a class="jxr_linenumber" name="L921" href="#L921">921</a> 
-<a class="jxr_linenumber" name="L922" href="#L922">922</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L923" href="#L923">923</a> <em class="jxr_javadoccomment">     * Try to finalize the request if possible</em>
-<a class="jxr_linenumber" name="L924" href="#L924">924</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L925" href="#L925">925</a> <em class="jxr_javadoccomment">     * @param errorValue</em>
-<a class="jxr_linenumber" name="L926" href="#L926">926</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="L927" href="#L927">927</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="L928" href="#L928">928</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L929" href="#L929">929</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> tryFinalizeRequest(<a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> errorValue)
-<a class="jxr_linenumber" name="L930" href="#L930">930</a>             <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException, <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="L931" href="#L931">931</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.getLocalChannelReference() == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L932" href="#L932">932</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L933" href="#L933">933</a>         }
-<a class="jxr_linenumber" name="L934" href="#L934">934</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.getLocalChannelReference().getFutureRequest().isDone()) {
-<a class="jxr_linenumber" name="L935" href="#L935">935</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L936" href="#L936">936</a>         }
-<a class="jxr_linenumber" name="L937" href="#L937">937</a>         <em class="jxr_comment">// setRunnerFromLocalChannelReference(localChannelReference);</em>
-<a class="jxr_linenumber" name="L938" href="#L938">938</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L939" href="#L939">939</a>             localChannelReference.invalidateRequest(errorValue);
-<a class="jxr_linenumber" name="L940" href="#L940">940</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L941" href="#L941">941</a>         }
-<a class="jxr_linenumber" name="L942" href="#L942">942</a>         <em class="jxr_comment">// do the real end</em>
-<a class="jxr_linenumber" name="L943" href="#L943">943</a>         <strong class="jxr_keyword">if</strong> (runner.getStatus() == ErrorCode.CompleteOk) {
-<a class="jxr_linenumber" name="L944" href="#L944">944</a>             <em class="jxr_comment">// status = true;</em>
-<a class="jxr_linenumber" name="L945" href="#L945">945</a>             runner.setAllDone();
-<a class="jxr_linenumber" name="L946" href="#L946">946</a>             runner.forceSaveStatus();
-<a class="jxr_linenumber" name="L947" href="#L947">947</a>             localChannelReference.validateRequest(
-<a class="jxr_linenumber" name="L948" href="#L948">948</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, runner));
-<a class="jxr_linenumber" name="L949" href="#L949">949</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (runner.getStatus() == ErrorCode.TransferOk &amp;&amp;
-<a class="jxr_linenumber" name="L950" href="#L950">950</a>                 ((!runner.isSender()) || errorValue.getCode() == ErrorCode.QueryAlreadyFinished)) {
-<a class="jxr_linenumber" name="L951" href="#L951">951</a>             <em class="jxr_comment">// Try to finalize it</em>
-<a class="jxr_linenumber" name="L952" href="#L952">952</a>             <em class="jxr_comment">// status = true;</em>
-<a class="jxr_linenumber" name="L953" href="#L953">953</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L954" href="#L954">954</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(<strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="L955" href="#L955">955</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, runner));
-<a class="jxr_linenumber" name="L956" href="#L956">956</a>                 localChannelReference.validateRequest(
-<a class="jxr_linenumber" name="L957" href="#L957">957</a>                         localChannelReference.getFutureEndTransfer().getResult());
-<a class="jxr_linenumber" name="L958" href="#L958">958</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
-<a class="jxr_linenumber" name="L959" href="#L959">959</a>                 logger.error(<span class="jxr_string">"Cannot validate runner:     {}"</span>, runner.toShortString());
-<a class="jxr_linenumber" name="L960" href="#L960">960</a>                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
-<a class="jxr_linenumber" name="L961" href="#L961">961</a>                 runner.setErrorExecutionStatus(errorValue.getCode());
-<a class="jxr_linenumber" name="L962" href="#L962">962</a>                 runner.forceSaveStatus();
-<a class="jxr_linenumber" name="L963" href="#L963">963</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
-<a class="jxr_linenumber" name="L964" href="#L964">964</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
-<a class="jxr_linenumber" name="L965" href="#L965">965</a>                 logger.error(<span class="jxr_string">"Cannot validate runner:     {}"</span>, runner.toShortString());
-<a class="jxr_linenumber" name="L966" href="#L966">966</a>                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
-<a class="jxr_linenumber" name="L967" href="#L967">967</a>                 runner.setErrorExecutionStatus(errorValue.getCode());
-<a class="jxr_linenumber" name="L968" href="#L968">968</a>                 runner.forceSaveStatus();
-<a class="jxr_linenumber" name="L969" href="#L969">969</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
-<a class="jxr_linenumber" name="L970" href="#L970">970</a>             }
-<a class="jxr_linenumber" name="L971" href="#L971">971</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L972" href="#L972">972</a>             <em class="jxr_comment">// invalidate Request</em>
-<a class="jxr_linenumber" name="L973" href="#L973">973</a>             <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
-<a class="jxr_linenumber" name="L974" href="#L974">974</a>         }
-<a class="jxr_linenumber" name="L975" href="#L975">975</a>     }
-<a class="jxr_linenumber" name="L976" href="#L976">976</a> 
-<a class="jxr_linenumber" name="L977" href="#L977">977</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L978" href="#L978">978</a> <em class="jxr_javadoccomment">     * @return the file</em>
-<a class="jxr_linenumber" name="L979" href="#L979">979</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L980" href="#L980">980</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> getFile() {
-<a class="jxr_linenumber" name="L981" href="#L981">981</a>         <strong class="jxr_keyword">return</strong> file;
-<a class="jxr_linenumber" name="L982" href="#L982">982</a>     }
-<a class="jxr_linenumber" name="L983" href="#L983">983</a> 
-<a class="jxr_linenumber" name="L984" href="#L984">984</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L985" href="#L985">985</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L986" href="#L986">986</a> <em class="jxr_javadoccomment">     * @return True if the number of Error is still acceptable</em>
-<a class="jxr_linenumber" name="L987" href="#L987">987</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L988" href="#L988">988</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> addError() {
-<a class="jxr_linenumber" name="L989" href="#L989">989</a>         numOfError++;
-<a class="jxr_linenumber" name="L990" href="#L990">990</a>         <strong class="jxr_keyword">return</strong> (numOfError &lt; Configuration.RETRYNB);
-<a class="jxr_linenumber" name="L991" href="#L991">991</a>     }
-<a class="jxr_linenumber" name="L992" href="#L992">992</a> 
-<a class="jxr_linenumber" name="L993" href="#L993">993</a>     @Override
-<a class="jxr_linenumber" name="L994" href="#L994">994</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L995" href="#L995">995</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Session: FS["</span> + state.getCurrent() + <span class="jxr_string">"] "</span> + status + <span class="jxr_string">"  "</span> +
-<a class="jxr_linenumber" name="L996" href="#L996">996</a>                 (auth != <strong class="jxr_keyword">null</strong> ? auth.toString() : <span class="jxr_string">"no Auth"</span>) + <span class="jxr_string">"     "</span> +
-<a class="jxr_linenumber" name="L997" href="#L997">997</a>                 (dir != <strong class="jxr_keyword">null</strong> ? dir.toString() : <span class="jxr_string">"no Dir"</span>) + <span class="jxr_string">"     "</span> +
-<a class="jxr_linenumber" name="L998" href="#L998">998</a>                 (file != <strong class="jxr_keyword">null</strong> ? file.toString() : <span class="jxr_string">"no File"</span>) + <span class="jxr_string">"     "</span> +
-<a class="jxr_linenumber" name="L999" href="#L999">999</a>                 (runner != <strong class="jxr_keyword">null</strong> ? runner.toShortString() : <span class="jxr_string">"no Runner"</span>);
-<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>     }
-<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a> 
-<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>     <strong class="jxr_keyword">public</strong> String getUniqueExtension() {
-<a class="jxr_linenumber" name="L1003" href="#L1003">1003</a>         <strong class="jxr_keyword">return</strong> Configuration.EXT_R66;
-<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>     }
-<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a> 
-<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a> <em class="jxr_javadoccomment">     * @return the dirsFromSession</em>
-<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a>     <strong class="jxr_keyword">public</strong> HashMap&lt;String, R66Dir&gt; getDirsFromSession() {
-<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a>         <strong class="jxr_keyword">return</strong> dirsFromSession;
-<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>     }
-<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a> }
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>                                 newfilename);
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>                         <strong class="jxr_keyword">this</strong>.runner.setFilename(file.getBasename());
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>                         <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>                         <strong class="jxr_keyword">throw</strong> e;
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                     }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>                         <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>                             <em class="jxr_comment">// no test on file since it does not really exist</em>
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>                             logger.debug(<span class="jxr_string">"File is in through mode: {}"</span>, file);
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>                         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!file.canWrite()) {
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>                                     <span class="jxr_string">"File cannot be write"</span>);
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>                         }
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>                         <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>                         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>                     }
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"No file created"</span>);
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                 }
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>             }
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>         }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>         <em class="jxr_comment">// Store TRUEFILENAME</em>
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isFileMoved()) {
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>                 <strong class="jxr_keyword">this</strong>.runner.setFileMoved(file.getFile(), <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>                 <strong class="jxr_keyword">this</strong>.runner.setFilename(file.getFile());
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>             }
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         }
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <em class="jxr_comment">// check fileSize</em>
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; file != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>             logger.debug(<span class="jxr_string">"could change size: "</span> + <strong class="jxr_keyword">this</strong>.runner.getOriginalSize() + <span class="jxr_string">" =&gt; "</span> + file.length());
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.getOriginalSize() &lt; 0) {
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>                 <strong class="jxr_keyword">long</strong> originalSize = file.length();
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 <strong class="jxr_keyword">if</strong> (originalSize &gt; 0) {
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                     <strong class="jxr_keyword">this</strong>.runner.setOriginalSize(originalSize);
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>                 }
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>             }
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         }
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>     }
+<a class="jxr_linenumber" name="L550" href="#L550">550</a> 
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L552" href="#L552">552</a> <em class="jxr_javadoccomment">     * To be used when a request comes with a bad code so it cannot be set normally</em>
+<a class="jxr_linenumber" name="L553" href="#L553">553</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L554" href="#L554">554</a> <em class="jxr_javadoccomment">     * @param runner</em>
+<a class="jxr_linenumber" name="L555" href="#L555">555</a> <em class="jxr_javadoccomment">     * @param code</em>
+<a class="jxr_linenumber" name="L556" href="#L556">556</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBadRunner(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code) {
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>         <strong class="jxr_keyword">this</strong>.runner = runner;
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>         <strong class="jxr_keyword">if</strong> (code == ErrorCode.QueryAlreadyFinished) {
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isSender()) {
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>                 }
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>                 }
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>             }
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>             }
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>             <strong class="jxr_keyword">this</strong>.runner.setPostTask();
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>                 setFileAfterPreRunner(false);
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>             } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>             }
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         }
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>     }
+<a class="jxr_linenumber" name="L584" href="#L584">584</a> 
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_javadoccomment">     * Set the runner, and setup the directory first.</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_javadoccomment">     * This call should be followed by a startup() call.</em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     * @param runner</em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     *            the runner to set</em>
+<a class="jxr_linenumber" name="L592" href="#L592">592</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="L593" href="#L593">593</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRunner(<a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner)
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>             <strong class="jxr_keyword">throws</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a> {
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>         <strong class="jxr_keyword">this</strong>.runner = runner;
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         logger.debug(<span class="jxr_string">"Runner to set: {} {}"</span>, runner.shallIgnoreSave(), runner);
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         <strong class="jxr_keyword">this</strong>.runner.checkThroughMode();
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>             <strong class="jxr_keyword">this</strong>.businessObject.checkAtStartup(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>         }
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.runner.isSender()) {
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>             <strong class="jxr_keyword">if</strong> (runner.isSendThrough()) {
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>                 <em class="jxr_comment">// May not change dir as needed</em>
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>                     <em class="jxr_comment">// ignore</em>
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>                 }
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getSendPath());
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>                 }
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>             }
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>             <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>                 <em class="jxr_comment">// May not change dir as needed</em>
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>                 }
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>                     dir.changeDirectory(<strong class="jxr_keyword">this</strong>.runner.getRule().getWorkPath());
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>                 }
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>             }
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>         }
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>         logger.debug(<span class="jxr_string">"Dir is: "</span> + dir.getFullPath());
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>     }
+<a class="jxr_linenumber" name="L638" href="#L638">638</a> 
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L640" href="#L640">640</a> <em class="jxr_javadoccomment">     * START from the PreTask if necessary, and prepare the file</em>
+<a class="jxr_linenumber" name="L641" href="#L641">641</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L642" href="#L642">642</a> <em class="jxr_javadoccomment">     * @param checkNotExternal</em>
+<a class="jxr_linenumber" name="L643" href="#L643">643</a> <em class="jxr_javadoccomment">     *            if True, the file as Sender should not be external to current directory</em>
+<a class="jxr_linenumber" name="L644" href="#L644">644</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startup(<strong class="jxr_keyword">boolean</strong> checkNotExternal) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>         <strong class="jxr_keyword">if</strong> (runner.getRank() &gt; 0) {
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>             logger.debug(<span class="jxr_string">"restart at "</span> + runner.getRank() + <span class="jxr_string">" {}"</span>, runner);
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>             logger.debug(<span class="jxr_string">"restart at "</span> + runner.getRank() + <span class="jxr_string">" {}"</span>, dir);
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>             runner.setTransferTask(runner.getRank());
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>             restart.restartMarker(runner.getBlocksize() * runner.getRank());
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>             restart.restartMarker(0);
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>         }
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>         logger.debug(<span class="jxr_string">"GlobalLastStep: "</span> + runner.getGloballaststep() + <span class="jxr_string">" vs "</span> + TASKSTEP.NOTASK.ordinal() + <span class="jxr_string">":"</span>
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>                 + TASKSTEP.PRETASK.ordinal());
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         <strong class="jxr_keyword">if</strong> (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>                 runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>             setFileBeforePreRunner();
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>             <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; !runner.isSendThrough() &amp;&amp; file != <strong class="jxr_keyword">null</strong> &amp;&amp; checkNotExternal) {
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>                 String path = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>                     path = file.getFile();
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>                 }
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>                 <strong class="jxr_keyword">if</strong> (file.isExternal() || (path != <strong class="jxr_keyword">null</strong> &amp;&amp; !dir.isPathInCurrentDir(path))) {
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>                     <em class="jxr_comment">// should not be</em>
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>                     logger.error(<span class="jxr_string">"File cannot be found in the current output directory: {} not in {}"</span>, file, dir);
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>                     <strong class="jxr_keyword">this</strong>.runner.setErrorExecutionStatus(ErrorCode.FileNotAllowed);
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"File cannot be found in the current output directory"</span>);
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>                 }
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>             }
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>             <strong class="jxr_keyword">this</strong>.runner.setPreTask();
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>             runner.saveStatus();
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>             <strong class="jxr_keyword">this</strong>.runner.run();
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>             <strong class="jxr_keyword">if</strong> (runner.isSender() &amp;&amp; !runner.isSendThrough()) {
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>                 <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>                         <strong class="jxr_keyword">long</strong> originalSize = file.length();
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>                         <strong class="jxr_keyword">if</strong> (originalSize &gt; 0) {
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>                             <strong class="jxr_keyword">this</strong>.runner.setOriginalSize(originalSize);
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>                         }
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>                         <em class="jxr_comment">// ignore</em>
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>                     }
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>                 }
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>             }
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>             runner.saveStatus();
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>             runner.setTransferTask(runner.getRank());
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>             runner.reset();
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>             runner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>             runner.saveStatus();
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>         }
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <em class="jxr_comment">// Now create the associated file</em>
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>             setFileAfterPreRunner(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e2) {
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>             <em class="jxr_comment">// generated due to a possible wildcard not ready</em>
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>             file = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>         }
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>         logger.debug(<span class="jxr_string">"GlobalLastStep: "</span> + runner.getGloballaststep());
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>         <strong class="jxr_keyword">if</strong> (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAfterPreCommand(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>             }
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>             <strong class="jxr_keyword">if</strong> (!<strong class="jxr_keyword">this</strong>.runner.isSender()) {
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>                 <em class="jxr_comment">// Check file length according to rank</em>
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>                 <strong class="jxr_keyword">if</strong> (runner.isRecvThrough()) {
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>                     <em class="jxr_comment">// no size can be checked</em>
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>                     <strong class="jxr_keyword">long</strong> length = 0;
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>                     <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>                         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>                             length = file.length();
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>                         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>                         }
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>                     }
+<a class="jxr_linenumber" name="L719" href="#L719">719</a>                     <strong class="jxr_keyword">long</strong> needed = <strong class="jxr_keyword">this</strong>.runner.getOriginalSize() - length;
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>                     <strong class="jxr_keyword">long</strong> available = 0;
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>                     String targetDir = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>                         available = <strong class="jxr_keyword">this</strong>.dir.getFreeSpace();
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>                         targetDir = <strong class="jxr_keyword">this</strong>.dir.getPwd();
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>                     } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>                     }
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>                     <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>                         File truefile = file.getTrueFile().getParentFile();
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>                         available = truefile.getFreeSpace();
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>                         targetDir = truefile.getPath();
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>                     }
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>                     logger.debug(<span class="jxr_string">"Check available space: "</span> + available + <span class="jxr_string">" &gt;? "</span> + needed + <span class="jxr_string">"(+"</span> + length + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>                     <em class="jxr_comment">// Available &gt; 0 since some system returns 0 (wrong size)</em>
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>                     <strong class="jxr_keyword">if</strong> (available &gt; 0 &amp;&amp; needed &gt; available) {
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>                         <em class="jxr_comment">// not enough space</em>
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>                         <strong class="jxr_keyword">this</strong>.runner.setErrorExecutionStatus(ErrorCode.Internal);
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>                         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>                                 <span class="jxr_string">"File cannot be written due to unsufficient space available: "</span> +
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>                                         targetDir + <span class="jxr_string">" need "</span> + needed + <span class="jxr_string">" more while available is "</span> + available);
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>                     }
+<a class="jxr_linenumber" name="L741" href="#L741">741</a>                     <strong class="jxr_keyword">if</strong> (file == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>                         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>                         logger.info(<span class="jxr_string">"Final PARTIAL init: {}"</span>, <strong class="jxr_keyword">this</strong>.runner);
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>                         <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>                     }
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>                     <em class="jxr_comment">// First check available space</em>
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>                         <strong class="jxr_keyword">long</strong> oldPosition = restart.getPosition();
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>                         restart.setSet(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>                         <strong class="jxr_keyword">if</strong> (oldPosition &gt; length) {
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>                             <strong class="jxr_keyword">int</strong> newRank = ((<strong class="jxr_keyword">int</strong>) (length / <strong class="jxr_keyword">this</strong>.runner.getBlocksize()))
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>                                     - Configuration.getRANKRESTART();
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>                             <strong class="jxr_keyword">if</strong> (newRank &lt;= 0) {
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>                                 newRank = 1;
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>                             }
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>                             logger.info(<span class="jxr_string">"OldPos: "</span> + oldPosition + <span class="jxr_string">":"</span> + runner.getRank() +
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>                                     <span class="jxr_string">" curLength: "</span> + length + <span class="jxr_string">":"</span> + newRank);
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>                             logger.warn(<span class="jxr_string">"Decreased Rank Restart for {} at "</span> + newRank, runner);
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>                             runner.setTransferTask(newRank);
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>                             restart.restartMarker(<strong class="jxr_keyword">this</strong>.runner.getBlocksize()
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>                                     * <strong class="jxr_keyword">this</strong>.runner.getRank());
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>                         }
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>                         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>                             file.restartMarker(restart);
+<a class="jxr_linenumber" name="L765" href="#L765">765</a>                         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>                             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>                             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>                         }
+<a class="jxr_linenumber" name="L769" href="#L769">769</a>                     } <strong class="jxr_keyword">catch</strong> (NoRestartException e) {
+<a class="jxr_linenumber" name="L770" href="#L770">770</a>                         <em class="jxr_comment">// length is not to be changed</em>
+<a class="jxr_linenumber" name="L771" href="#L771">771</a>                     }
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>                 }
+<a class="jxr_linenumber" name="L773" href="#L773">773</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>                     <strong class="jxr_keyword">this</strong>.localChannelReference.getFutureRequest().setFilesize(file.length());
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>                 }
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L779" href="#L779">779</a>                     file.restartMarker(restart);
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L781" href="#L781">781</a>                     <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>                 }
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>             }
+<a class="jxr_linenumber" name="L785" href="#L785">785</a>         }
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
+<a class="jxr_linenumber" name="L787" href="#L787">787</a>         logger.debug(<span class="jxr_string">"Final init: {} {}"</span>, <strong class="jxr_keyword">this</strong>.runner, <strong class="jxr_keyword">this</strong>.file != <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>     }
+<a class="jxr_linenumber" name="L789" href="#L789">789</a> 
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L791" href="#L791">791</a> <em class="jxr_javadoccomment">     * Rename the current receive file from the very beginning since the sender has a post action</em>
+<a class="jxr_linenumber" name="L792" href="#L792">792</a> <em class="jxr_javadoccomment">     * that changes its name</em>
+<a class="jxr_linenumber" name="L793" href="#L793">793</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L794" href="#L794">794</a> <em class="jxr_javadoccomment">     * @param newFilename</em>
+<a class="jxr_linenumber" name="L795" href="#L795">795</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="L796" href="#L796">796</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L797" href="#L797">797</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> renameReceiverFile(String newFilename) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
+<a class="jxr_linenumber" name="L798" href="#L798">798</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L799" href="#L799">799</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L800" href="#L800">800</a>         }
+<a class="jxr_linenumber" name="L801" href="#L801">801</a>         <em class="jxr_comment">// First delete the temporary file if needed</em>
+<a class="jxr_linenumber" name="L802" href="#L802">802</a>         <strong class="jxr_keyword">if</strong> (runner.getRank() &gt; 0) {
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>             logger.error(<span class="jxr_string">"Renaming file is not correct since transfer does not start from first block"</span>);
+<a class="jxr_linenumber" name="L804" href="#L804">804</a>             <em class="jxr_comment">// Not correct</em>
+<a class="jxr_linenumber" name="L805" href="#L805">805</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
+<a class="jxr_linenumber" name="L806" href="#L806">806</a>                     <span class="jxr_string">"Renaming file not correct since transfer already started"</span>);
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>         }
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>         <strong class="jxr_keyword">if</strong> (!runner.isRecvThrough()) {
+<a class="jxr_linenumber" name="L809" href="#L809">809</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>         }
+<a class="jxr_linenumber" name="L811" href="#L811">811</a>         <em class="jxr_comment">// Now rename it</em>
+<a class="jxr_linenumber" name="L812" href="#L812">812</a>         <strong class="jxr_keyword">this</strong>.runner.setOriginalFilename(newFilename);
+<a class="jxr_linenumber" name="L813" href="#L813">813</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L814" href="#L814">814</a>             <strong class="jxr_keyword">this</strong>.setFileAfterPreRunner(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L815" href="#L815">815</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L816" href="#L816">816</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="L817" href="#L817">817</a>         }
+<a class="jxr_linenumber" name="L818" href="#L818">818</a>         <strong class="jxr_keyword">this</strong>.runner.saveStatus();
+<a class="jxr_linenumber" name="L819" href="#L819">819</a>     }
+<a class="jxr_linenumber" name="L820" href="#L820">820</a> 
+<a class="jxr_linenumber" name="L821" href="#L821">821</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L822" href="#L822">822</a> <em class="jxr_javadoccomment">     * Finalize the transfer step by running the error or post operation according to the status.</em>
+<a class="jxr_linenumber" name="L823" href="#L823">823</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L824" href="#L824">824</a> <em class="jxr_javadoccomment">     * @param status</em>
+<a class="jxr_linenumber" name="L825" href="#L825">825</a> <em class="jxr_javadoccomment">     * @param finalValue</em>
+<a class="jxr_linenumber" name="L826" href="#L826">826</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="L827" href="#L827">827</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="L828" href="#L828">828</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L829" href="#L829">829</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setFinalizeTransfer(<strong class="jxr_keyword">boolean</strong> status, <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> finalValue)
+<a class="jxr_linenumber" name="L830" href="#L830">830</a>             <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException, <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="L831" href="#L831">831</a>         logger.debug(status + <span class="jxr_string">":"</span> + finalValue + <span class="jxr_string">":"</span> + runner);
+<a class="jxr_linenumber" name="L832" href="#L832">832</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L833" href="#L833">833</a>             <strong class="jxr_keyword">if</strong> (localChannelReference != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L834" href="#L834">834</a>                 <strong class="jxr_keyword">if</strong> (status) {
+<a class="jxr_linenumber" name="L835" href="#L835">835</a>                     localChannelReference.validateRequest(finalValue);
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L837" href="#L837">837</a>                     localChannelReference.invalidateRequest(finalValue);
+<a class="jxr_linenumber" name="L838" href="#L838">838</a>                 }
+<a class="jxr_linenumber" name="L839" href="#L839">839</a>             }
+<a class="jxr_linenumber" name="L840" href="#L840">840</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L841" href="#L841">841</a>                 <strong class="jxr_keyword">if</strong> (status) {
+<a class="jxr_linenumber" name="L842" href="#L842">842</a>                     <strong class="jxr_keyword">this</strong>.businessObject.checkAfterTransfer(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L843" href="#L843">843</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L844" href="#L844">844</a>                     <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L845" href="#L845">845</a>                 }
+<a class="jxr_linenumber" name="L846" href="#L846">846</a>             }
+<a class="jxr_linenumber" name="L847" href="#L847">847</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L848" href="#L848">848</a>         }
+<a class="jxr_linenumber" name="L849" href="#L849">849</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L850" href="#L850">850</a>             <strong class="jxr_keyword">if</strong> (status) {
+<a class="jxr_linenumber" name="L851" href="#L851">851</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAfterTransfer(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L852" href="#L852">852</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>                 <strong class="jxr_keyword">this</strong>.businessObject.checkAtError(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L854" href="#L854">854</a>             }
+<a class="jxr_linenumber" name="L855" href="#L855">855</a>         }
+<a class="jxr_linenumber" name="L856" href="#L856">856</a>         <strong class="jxr_keyword">if</strong> (runner.isAllDone()) {
+<a class="jxr_linenumber" name="L857" href="#L857">857</a>             logger.debug(
+<a class="jxr_linenumber" name="L858" href="#L858">858</a>                     <span class="jxr_string">"Transfer already done but "</span> + status + <span class="jxr_string">" on "</span> + file + runner.toShortString(),
+<a class="jxr_linenumber" name="L859" href="#L859">859</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(finalValue.toString()));
+<a class="jxr_linenumber" name="L860" href="#L860">860</a>             <em class="jxr_comment">// FIXME ??</em>
+<a class="jxr_linenumber" name="L861" href="#L861">861</a>             <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L862" href="#L862">862</a> <em class="jxr_comment">             * if (! status) runner.finalizeTransfer(localChannelReference, file, finalValue,</em>
+<a class="jxr_linenumber" name="L863" href="#L863">863</a> <em class="jxr_comment">             * status);</em>
+<a class="jxr_linenumber" name="L864" href="#L864">864</a> <em class="jxr_comment">             */</em>
+<a class="jxr_linenumber" name="L865" href="#L865">865</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L866" href="#L866">866</a>         }
+<a class="jxr_linenumber" name="L867" href="#L867">867</a>         <strong class="jxr_keyword">if</strong> (localChannelReference.getFutureRequest().isDone()) {
+<a class="jxr_linenumber" name="L868" href="#L868">868</a>             logger.debug(
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>                     <span class="jxr_string">"Request already done but "</span> + status + <span class="jxr_string">" on "</span> + file + runner.toShortString(),
+<a class="jxr_linenumber" name="L870" href="#L870">870</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(finalValue.toString()));
+<a class="jxr_linenumber" name="L871" href="#L871">871</a>             <em class="jxr_comment">// Already finished once so do nothing more</em>
+<a class="jxr_linenumber" name="L872" href="#L872">872</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L873" href="#L873">873</a>         }
+<a class="jxr_linenumber" name="L874" href="#L874">874</a>         <strong class="jxr_keyword">if</strong> (!status) {
+<a class="jxr_linenumber" name="L875" href="#L875">875</a>             <strong class="jxr_keyword">this</strong>.runner.deleteTempFile();
+<a class="jxr_linenumber" name="L876" href="#L876">876</a>             runner.setErrorExecutionStatus(finalValue.getCode());
+<a class="jxr_linenumber" name="L877" href="#L877">877</a>         }
+<a class="jxr_linenumber" name="L878" href="#L878">878</a>         <strong class="jxr_keyword">if</strong> (status) {
+<a class="jxr_linenumber" name="L879" href="#L879">879</a>             runner.finishTransferTask(ErrorCode.TransferOk);
+<a class="jxr_linenumber" name="L880" href="#L880">880</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L881" href="#L881">881</a>             runner.finishTransferTask(finalValue.getCode());
+<a class="jxr_linenumber" name="L882" href="#L882">882</a>         }
+<a class="jxr_linenumber" name="L883" href="#L883">883</a>         runner.saveStatus();
+<a class="jxr_linenumber" name="L884" href="#L884">884</a>         logger.debug(<span class="jxr_string">"Transfer "</span> + status + <span class="jxr_string">" on {} and {}"</span>, file, runner);
+<a class="jxr_linenumber" name="L885" href="#L885">885</a>         <strong class="jxr_keyword">if</strong> (!runner.ready()) {
+<a class="jxr_linenumber" name="L886" href="#L886">886</a>             <em class="jxr_comment">// Pre task in error (or even before)</em>
+<a class="jxr_linenumber" name="L887" href="#L887">887</a>             <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a> runnerErrorException;
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>             <strong class="jxr_keyword">if</strong> (!status &amp;&amp; finalValue.getException() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L889" href="#L889">889</a>                 runnerErrorException = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
+<a class="jxr_linenumber" name="L890" href="#L890">890</a>                         <span class="jxr_string">"Pre task in error (or even before)"</span>,
+<a class="jxr_linenumber" name="L891" href="#L891">891</a>                         finalValue.getException());
+<a class="jxr_linenumber" name="L892" href="#L892">892</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L893" href="#L893">893</a>                 runnerErrorException = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(
+<a class="jxr_linenumber" name="L894" href="#L894">894</a>                         <span class="jxr_string">"Pre task in error (or even before)"</span>);
+<a class="jxr_linenumber" name="L895" href="#L895">895</a>             }
+<a class="jxr_linenumber" name="L896" href="#L896">896</a>             finalValue.setException(runnerErrorException);
+<a class="jxr_linenumber" name="L897" href="#L897">897</a>             logger.debug(<span class="jxr_string">"Pre task in error (or even before) : "</span> +
+<a class="jxr_linenumber" name="L898" href="#L898">898</a>                     runnerErrorException.getMessage());
+<a class="jxr_linenumber" name="L899" href="#L899">899</a>             <strong class="jxr_keyword">if</strong> (Configuration.configuration.isExecuteErrorBeforeTransferAllowed()) {
+<a class="jxr_linenumber" name="L900" href="#L900">900</a>                 runner.finalizeTransfer(localChannelReference, file, finalValue, status);
+<a class="jxr_linenumber" name="L901" href="#L901">901</a>             }
+<a class="jxr_linenumber" name="L902" href="#L902">902</a>             localChannelReference.invalidateRequest(finalValue);
+<a class="jxr_linenumber" name="L903" href="#L903">903</a>             <strong class="jxr_keyword">throw</strong> runnerErrorException;
+<a class="jxr_linenumber" name="L904" href="#L904">904</a>         }
+<a class="jxr_linenumber" name="L905" href="#L905">905</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L906" href="#L906">906</a>             <strong class="jxr_keyword">if</strong> (file != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L907" href="#L907">907</a>                 file.closeFile();
+<a class="jxr_linenumber" name="L908" href="#L908">908</a>             }
+<a class="jxr_linenumber" name="L909" href="#L909">909</a>         } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e1) {
+<a class="jxr_linenumber" name="L910" href="#L910">910</a>             <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> result = finalValue;
+<a class="jxr_linenumber" name="L911" href="#L911">911</a>             <strong class="jxr_keyword">if</strong> (status) {
+<a class="jxr_linenumber" name="L912" href="#L912">912</a>                 result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e1),
+<a class="jxr_linenumber" name="L913" href="#L913">913</a>                         <strong class="jxr_keyword">this</strong>, false, ErrorCode.Internal, runner);
+<a class="jxr_linenumber" name="L914" href="#L914">914</a>             }
+<a class="jxr_linenumber" name="L915" href="#L915">915</a>             localChannelReference.invalidateRequest(result);
+<a class="jxr_linenumber" name="L916" href="#L916">916</a>             <strong class="jxr_keyword">throw</strong> (OpenR66RunnerErrorException) result.getException();
+<a class="jxr_linenumber" name="L917" href="#L917">917</a>         }
+<a class="jxr_linenumber" name="L918" href="#L918">918</a>         runner.finalizeTransfer(localChannelReference, file, finalValue, status);
+<a class="jxr_linenumber" name="L919" href="#L919">919</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.businessObject != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L920" href="#L920">920</a>             <strong class="jxr_keyword">this</strong>.businessObject.checkAfterPost(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L921" href="#L921">921</a>         }
+<a class="jxr_linenumber" name="L922" href="#L922">922</a>     }
+<a class="jxr_linenumber" name="L923" href="#L923">923</a> 
+<a class="jxr_linenumber" name="L924" href="#L924">924</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L925" href="#L925">925</a> <em class="jxr_javadoccomment">     * Try to finalize the request if possible</em>
+<a class="jxr_linenumber" name="L926" href="#L926">926</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L927" href="#L927">927</a> <em class="jxr_javadoccomment">     * @param errorValue</em>
+<a class="jxr_linenumber" name="L928" href="#L928">928</a> <em class="jxr_javadoccomment">     * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="L929" href="#L929">929</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="L930" href="#L930">930</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L931" href="#L931">931</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> tryFinalizeRequest(<a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> errorValue)
+<a class="jxr_linenumber" name="L932" href="#L932">932</a>             <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException, <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.getLocalChannelReference() == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L934" href="#L934">934</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L935" href="#L935">935</a>         }
+<a class="jxr_linenumber" name="L936" href="#L936">936</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.getLocalChannelReference().getFutureRequest().isDone()) {
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L938" href="#L938">938</a>         }
+<a class="jxr_linenumber" name="L939" href="#L939">939</a>         <em class="jxr_comment">// setRunnerFromLocalChannelReference(localChannelReference);</em>
+<a class="jxr_linenumber" name="L940" href="#L940">940</a>         <strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L941" href="#L941">941</a>             localChannelReference.invalidateRequest(errorValue);
+<a class="jxr_linenumber" name="L942" href="#L942">942</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L943" href="#L943">943</a>         }
+<a class="jxr_linenumber" name="L944" href="#L944">944</a>         <em class="jxr_comment">// do the real end</em>
+<a class="jxr_linenumber" name="L945" href="#L945">945</a>         <strong class="jxr_keyword">if</strong> (runner.getStatus() == ErrorCode.CompleteOk) {
+<a class="jxr_linenumber" name="L946" href="#L946">946</a>             <em class="jxr_comment">// status = true;</em>
+<a class="jxr_linenumber" name="L947" href="#L947">947</a>             runner.setAllDone();
+<a class="jxr_linenumber" name="L948" href="#L948">948</a>             runner.forceSaveStatus();
+<a class="jxr_linenumber" name="L949" href="#L949">949</a>             localChannelReference.validateRequest(
+<a class="jxr_linenumber" name="L950" href="#L950">950</a>                     <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, runner));
+<a class="jxr_linenumber" name="L951" href="#L951">951</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (runner.getStatus() == ErrorCode.TransferOk &amp;&amp;
+<a class="jxr_linenumber" name="L952" href="#L952">952</a>                 ((!runner.isSender()) || errorValue.getCode() == ErrorCode.QueryAlreadyFinished)) {
+<a class="jxr_linenumber" name="L953" href="#L953">953</a>             <em class="jxr_comment">// Try to finalize it</em>
+<a class="jxr_linenumber" name="L954" href="#L954">954</a>             <em class="jxr_comment">// status = true;</em>
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(<strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="L957" href="#L957">957</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, runner));
+<a class="jxr_linenumber" name="L958" href="#L958">958</a>                 localChannelReference.validateRequest(
+<a class="jxr_linenumber" name="L959" href="#L959">959</a>                         localChannelReference.getFutureEndTransfer().getResult());
+<a class="jxr_linenumber" name="L960" href="#L960">960</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
+<a class="jxr_linenumber" name="L961" href="#L961">961</a>                 logger.error(<span class="jxr_string">"Cannot validate runner:     {}"</span>, runner.toShortString());
+<a class="jxr_linenumber" name="L962" href="#L962">962</a>                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+<a class="jxr_linenumber" name="L963" href="#L963">963</a>                 runner.setErrorExecutionStatus(errorValue.getCode());
+<a class="jxr_linenumber" name="L964" href="#L964">964</a>                 runner.forceSaveStatus();
+<a class="jxr_linenumber" name="L965" href="#L965">965</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>             } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
+<a class="jxr_linenumber" name="L967" href="#L967">967</a>                 logger.error(<span class="jxr_string">"Cannot validate runner:     {}"</span>, runner.toShortString());
+<a class="jxr_linenumber" name="L968" href="#L968">968</a>                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+<a class="jxr_linenumber" name="L969" href="#L969">969</a>                 runner.setErrorExecutionStatus(errorValue.getCode());
+<a class="jxr_linenumber" name="L970" href="#L970">970</a>                 runner.forceSaveStatus();
+<a class="jxr_linenumber" name="L971" href="#L971">971</a>                 <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
+<a class="jxr_linenumber" name="L972" href="#L972">972</a>             }
+<a class="jxr_linenumber" name="L973" href="#L973">973</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L974" href="#L974">974</a>             <em class="jxr_comment">// invalidate Request</em>
+<a class="jxr_linenumber" name="L975" href="#L975">975</a>             <strong class="jxr_keyword">this</strong>.setFinalizeTransfer(false, errorValue);
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>         }
+<a class="jxr_linenumber" name="L977" href="#L977">977</a>     }
+<a class="jxr_linenumber" name="L978" href="#L978">978</a> 
+<a class="jxr_linenumber" name="L979" href="#L979">979</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L980" href="#L980">980</a> <em class="jxr_javadoccomment">     * @return the file</em>
+<a class="jxr_linenumber" name="L981" href="#L981">981</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L982" href="#L982">982</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> getFile() {
+<a class="jxr_linenumber" name="L983" href="#L983">983</a>         <strong class="jxr_keyword">return</strong> file;
+<a class="jxr_linenumber" name="L984" href="#L984">984</a>     }
+<a class="jxr_linenumber" name="L985" href="#L985">985</a> 
+<a class="jxr_linenumber" name="L986" href="#L986">986</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L987" href="#L987">987</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L988" href="#L988">988</a> <em class="jxr_javadoccomment">     * @return True if the number of Error is still acceptable</em>
+<a class="jxr_linenumber" name="L989" href="#L989">989</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L990" href="#L990">990</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> addError() {
+<a class="jxr_linenumber" name="L991" href="#L991">991</a>         numOfError++;
+<a class="jxr_linenumber" name="L992" href="#L992">992</a>         <strong class="jxr_keyword">return</strong> (numOfError &lt; Configuration.RETRYNB);
+<a class="jxr_linenumber" name="L993" href="#L993">993</a>     }
+<a class="jxr_linenumber" name="L994" href="#L994">994</a> 
+<a class="jxr_linenumber" name="L995" href="#L995">995</a>     @Override
+<a class="jxr_linenumber" name="L996" href="#L996">996</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L997" href="#L997">997</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Session: FS["</span> + state.getCurrent() + <span class="jxr_string">"] "</span> + status + <span class="jxr_string">"  "</span> +
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>                 (auth != <strong class="jxr_keyword">null</strong> ? auth.toString() : <span class="jxr_string">"no Auth"</span>) + <span class="jxr_string">"     "</span> +
+<a class="jxr_linenumber" name="L999" href="#L999">999</a>                 (dir != <strong class="jxr_keyword">null</strong> ? dir.toString() : <span class="jxr_string">"no Dir"</span>) + <span class="jxr_string">"     "</span> +
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>                 (file != <strong class="jxr_keyword">null</strong> ? file.toString() : <span class="jxr_string">"no File"</span>) + <span class="jxr_string">"     "</span> +
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>                 (runner != <strong class="jxr_keyword">null</strong> ? runner.toShortString() : <span class="jxr_string">"no Runner"</span>);
+<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>     }
+<a class="jxr_linenumber" name="L1003" href="#L1003">1003</a> 
+<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>     <strong class="jxr_keyword">public</strong> String getUniqueExtension() {
+<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a>         <strong class="jxr_keyword">return</strong> Configuration.EXT_R66;
+<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>     }
+<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a> 
+<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a> <em class="jxr_javadoccomment">     * @return the dirsFromSession</em>
+<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>     <strong class="jxr_keyword">public</strong> HashMap&lt;String, R66Dir&gt; getDirsFromSession() {
+<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a>         <strong class="jxr_keyword">return</strong> dirsFromSession;
+<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a>     }
+<a class="jxr_linenumber" name="L1014" href="#L1014">1014</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>

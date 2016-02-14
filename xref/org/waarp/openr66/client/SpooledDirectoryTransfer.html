@@ -915,222 +915,226 @@
 <a class="jxr_linenumber" name="L907" href="#L907">907</a>                         i++;
 <a class="jxr_linenumber" name="L908" href="#L908">908</a>                         String[] rhosts = args[i].split(<span class="jxr_string">","</span>);
 <a class="jxr_linenumber" name="L909" href="#L909">909</a>                         <strong class="jxr_keyword">for</strong> (String string : rhosts) {
-<a class="jxr_linenumber" name="L910" href="#L910">910</a>                             <strong class="jxr_keyword">if</strong> (string.trim().isEmpty()) {
-<a class="jxr_linenumber" name="L911" href="#L911">911</a>                                 <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L912" href="#L912">912</a>                             }
-<a class="jxr_linenumber" name="L913" href="#L913">913</a>                             arg.rhosts.add(string.trim());
-<a class="jxr_linenumber" name="L914" href="#L914">914</a>                         }
-<a class="jxr_linenumber" name="L915" href="#L915">915</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-name"</span>)) {
-<a class="jxr_linenumber" name="L916" href="#L916">916</a>                         i++;
-<a class="jxr_linenumber" name="L917" href="#L917">917</a>                         arg.sname = args[i];
-<a class="jxr_linenumber" name="L918" href="#L918">918</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-directory"</span>)) {
-<a class="jxr_linenumber" name="L919" href="#L919">919</a>                         i++;
-<a class="jxr_linenumber" name="L920" href="#L920">920</a>                         String[] dir = args[i].split(<span class="jxr_string">","</span>);
-<a class="jxr_linenumber" name="L921" href="#L921">921</a>                         <strong class="jxr_keyword">for</strong> (String string : dir) {
-<a class="jxr_linenumber" name="L922" href="#L922">922</a>                             <strong class="jxr_keyword">if</strong> (string.trim().isEmpty()) {
-<a class="jxr_linenumber" name="L923" href="#L923">923</a>                                 <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L924" href="#L924">924</a>                             }
-<a class="jxr_linenumber" name="L925" href="#L925">925</a>                             arg.localDirectory.add(string.trim());
-<a class="jxr_linenumber" name="L926" href="#L926">926</a>                         }
-<a class="jxr_linenumber" name="L927" href="#L927">927</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
-<a class="jxr_linenumber" name="L928" href="#L928">928</a>                         i++;
-<a class="jxr_linenumber" name="L929" href="#L929">929</a>                         arg.rule = args[i];
-<a class="jxr_linenumber" name="L930" href="#L930">930</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-statusfile"</span>)) {
-<a class="jxr_linenumber" name="L931" href="#L931">931</a>                         i++;
-<a class="jxr_linenumber" name="L932" href="#L932">932</a>                         arg.statusfile = args[i];
-<a class="jxr_linenumber" name="L933" href="#L933">933</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-stopfile"</span>)) {
-<a class="jxr_linenumber" name="L934" href="#L934">934</a>                         i++;
-<a class="jxr_linenumber" name="L935" href="#L935">935</a>                         arg.stopfile = args[i];
-<a class="jxr_linenumber" name="L936" href="#L936">936</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
-<a class="jxr_linenumber" name="L937" href="#L937">937</a>                         i++;
-<a class="jxr_linenumber" name="L938" href="#L938">938</a>                         arg.fileInfo = args[i];
-<a class="jxr_linenumber" name="L939" href="#L939">939</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
-<a class="jxr_linenumber" name="L940" href="#L940">940</a>                         arg.ismd5 = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L941" href="#L941">941</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
-<a class="jxr_linenumber" name="L942" href="#L942">942</a>                         i++;
-<a class="jxr_linenumber" name="L943" href="#L943">943</a>                         arg.block = Integer.parseInt(args[i]);
-<a class="jxr_linenumber" name="L944" href="#L944">944</a>                         <strong class="jxr_keyword">if</strong> (arg.block &lt; 100) {
-<a class="jxr_linenumber" name="L945" href="#L945">945</a>                             logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + arg.block); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L946" href="#L946">946</a>                             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L947" href="#L947">947</a>                         }
-<a class="jxr_linenumber" name="L948" href="#L948">948</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
-<a class="jxr_linenumber" name="L949" href="#L949">949</a>                         arg.noLog = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L950" href="#L950">950</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-submit"</span>)) {
-<a class="jxr_linenumber" name="L951" href="#L951">951</a>                         arg.tosubmit = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L952" href="#L952">952</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-direct"</span>)) {
-<a class="jxr_linenumber" name="L953" href="#L953">953</a>                         arg.tosubmit = false;
-<a class="jxr_linenumber" name="L954" href="#L954">954</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-recursive"</span>)) {
-<a class="jxr_linenumber" name="L955" href="#L955">955</a>                         arg.recursive = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L956" href="#L956">956</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-logWarn"</span>)) {
-<a class="jxr_linenumber" name="L957" href="#L957">957</a>                         arg.logWarn = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L958" href="#L958">958</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-notlogWarn"</span>)) {
-<a class="jxr_linenumber" name="L959" href="#L959">959</a>                         arg.logWarn = false;
-<a class="jxr_linenumber" name="L960" href="#L960">960</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-regex"</span>)) {
-<a class="jxr_linenumber" name="L961" href="#L961">961</a>                         i++;
-<a class="jxr_linenumber" name="L962" href="#L962">962</a>                         arg.regex = args[i];
-<a class="jxr_linenumber" name="L963" href="#L963">963</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-waarp"</span>)) {
-<a class="jxr_linenumber" name="L964" href="#L964">964</a>                         i++;
-<a class="jxr_linenumber" name="L965" href="#L965">965</a>                         String[] host = args[i].split(<span class="jxr_string">","</span>);
-<a class="jxr_linenumber" name="L966" href="#L966">966</a>                         <strong class="jxr_keyword">for</strong> (String string : host) {
-<a class="jxr_linenumber" name="L967" href="#L967">967</a>                             <strong class="jxr_keyword">if</strong> (string.trim().isEmpty()) {
-<a class="jxr_linenumber" name="L968" href="#L968">968</a>                                 <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L969" href="#L969">969</a>                             }
-<a class="jxr_linenumber" name="L970" href="#L970">970</a>                             arg.waarphosts.add(string.trim());
-<a class="jxr_linenumber" name="L971" href="#L971">971</a>                         }
-<a class="jxr_linenumber" name="L972" href="#L972">972</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-elapse"</span>)) {
-<a class="jxr_linenumber" name="L973" href="#L973">973</a>                         i++;
-<a class="jxr_linenumber" name="L974" href="#L974">974</a>                         arg.elapsed = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="L975" href="#L975">975</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-elapseWaarp"</span>)) {
-<a class="jxr_linenumber" name="L976" href="#L976">976</a>                         i++;
-<a class="jxr_linenumber" name="L977" href="#L977">977</a>                         arg.elapsedWaarp = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="L978" href="#L978">978</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-minimalSize"</span>)) {
-<a class="jxr_linenumber" name="L979" href="#L979">979</a>                         i++;
-<a class="jxr_linenumber" name="L980" href="#L980">980</a>                         arg.minimalSize = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="L981" href="#L981">981</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-limitParallel"</span>)) {
-<a class="jxr_linenumber" name="L982" href="#L982">982</a>                         i++;
-<a class="jxr_linenumber" name="L983" href="#L983">983</a>                         arg.limitParallel = Integer.parseInt(args[i]);
-<a class="jxr_linenumber" name="L984" href="#L984">984</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-parallel"</span>)) {
-<a class="jxr_linenumber" name="L985" href="#L985">985</a>                         arg.isparallel = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L986" href="#L986">986</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-sequential"</span>)) {
-<a class="jxr_linenumber" name="L987" href="#L987">987</a>                         arg.isparallel = false;
-<a class="jxr_linenumber" name="L988" href="#L988">988</a>                     }
-<a class="jxr_linenumber" name="L989" href="#L989">989</a>                 }
-<a class="jxr_linenumber" name="L990" href="#L990">990</a>             } <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
-<a class="jxr_linenumber" name="L991" href="#L991">991</a>                 logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.20"</span>) + i); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L992" href="#L992">992</a>                 <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L993" href="#L993">993</a>             }
-<a class="jxr_linenumber" name="L994" href="#L994">994</a>             <strong class="jxr_keyword">if</strong> (arg.fileInfo == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L995" href="#L995">995</a>                 arg.fileInfo = NO_INFO_ARGS;
-<a class="jxr_linenumber" name="L996" href="#L996">996</a>             }
-<a class="jxr_linenumber" name="L997" href="#L997">997</a>             <strong class="jxr_keyword">if</strong> (arg.sname == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L998" href="#L998">998</a>                 arg.sname = Configuration.configuration.getHOST_ID() + <span class="jxr_string">" : "</span> + arg.localDirectory;
-<a class="jxr_linenumber" name="L999" href="#L999">999</a>             }
-<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             <strong class="jxr_keyword">if</strong> (arg.tosubmit &amp;&amp; !DbConstant.admin.isActive()) {
-<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>                 logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.2"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L910" href="#L910">910</a>                             string = string.trim();
+<a class="jxr_linenumber" name="L911" href="#L911">911</a>                             <strong class="jxr_keyword">if</strong> (string.isEmpty()) {
+<a class="jxr_linenumber" name="L912" href="#L912">912</a>                                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L913" href="#L913">913</a>                             }
+<a class="jxr_linenumber" name="L914" href="#L914">914</a>                             <strong class="jxr_keyword">if</strong> (Configuration.configuration.getAliases().containsKey(string)) {
+<a class="jxr_linenumber" name="L915" href="#L915">915</a>                                 string = Configuration.configuration.getAliases().get(string);
+<a class="jxr_linenumber" name="L916" href="#L916">916</a>                             }
+<a class="jxr_linenumber" name="L917" href="#L917">917</a>                             arg.rhosts.add(string);
+<a class="jxr_linenumber" name="L918" href="#L918">918</a>                         }
+<a class="jxr_linenumber" name="L919" href="#L919">919</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-name"</span>)) {
+<a class="jxr_linenumber" name="L920" href="#L920">920</a>                         i++;
+<a class="jxr_linenumber" name="L921" href="#L921">921</a>                         arg.sname = args[i];
+<a class="jxr_linenumber" name="L922" href="#L922">922</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-directory"</span>)) {
+<a class="jxr_linenumber" name="L923" href="#L923">923</a>                         i++;
+<a class="jxr_linenumber" name="L924" href="#L924">924</a>                         String[] dir = args[i].split(<span class="jxr_string">","</span>);
+<a class="jxr_linenumber" name="L925" href="#L925">925</a>                         <strong class="jxr_keyword">for</strong> (String string : dir) {
+<a class="jxr_linenumber" name="L926" href="#L926">926</a>                             <strong class="jxr_keyword">if</strong> (string.trim().isEmpty()) {
+<a class="jxr_linenumber" name="L927" href="#L927">927</a>                                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L928" href="#L928">928</a>                             }
+<a class="jxr_linenumber" name="L929" href="#L929">929</a>                             arg.localDirectory.add(string.trim());
+<a class="jxr_linenumber" name="L930" href="#L930">930</a>                         }
+<a class="jxr_linenumber" name="L931" href="#L931">931</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
+<a class="jxr_linenumber" name="L932" href="#L932">932</a>                         i++;
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>                         arg.rule = args[i];
+<a class="jxr_linenumber" name="L934" href="#L934">934</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-statusfile"</span>)) {
+<a class="jxr_linenumber" name="L935" href="#L935">935</a>                         i++;
+<a class="jxr_linenumber" name="L936" href="#L936">936</a>                         arg.statusfile = args[i];
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-stopfile"</span>)) {
+<a class="jxr_linenumber" name="L938" href="#L938">938</a>                         i++;
+<a class="jxr_linenumber" name="L939" href="#L939">939</a>                         arg.stopfile = args[i];
+<a class="jxr_linenumber" name="L940" href="#L940">940</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
+<a class="jxr_linenumber" name="L941" href="#L941">941</a>                         i++;
+<a class="jxr_linenumber" name="L942" href="#L942">942</a>                         arg.fileInfo = args[i];
+<a class="jxr_linenumber" name="L943" href="#L943">943</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
+<a class="jxr_linenumber" name="L944" href="#L944">944</a>                         arg.ismd5 = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L945" href="#L945">945</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
+<a class="jxr_linenumber" name="L946" href="#L946">946</a>                         i++;
+<a class="jxr_linenumber" name="L947" href="#L947">947</a>                         arg.block = Integer.parseInt(args[i]);
+<a class="jxr_linenumber" name="L948" href="#L948">948</a>                         <strong class="jxr_keyword">if</strong> (arg.block &lt; 100) {
+<a class="jxr_linenumber" name="L949" href="#L949">949</a>                             logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + arg.block); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L950" href="#L950">950</a>                             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L951" href="#L951">951</a>                         }
+<a class="jxr_linenumber" name="L952" href="#L952">952</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
+<a class="jxr_linenumber" name="L953" href="#L953">953</a>                         arg.noLog = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L954" href="#L954">954</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-submit"</span>)) {
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>                         arg.tosubmit = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-direct"</span>)) {
+<a class="jxr_linenumber" name="L957" href="#L957">957</a>                         arg.tosubmit = false;
+<a class="jxr_linenumber" name="L958" href="#L958">958</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-recursive"</span>)) {
+<a class="jxr_linenumber" name="L959" href="#L959">959</a>                         arg.recursive = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L960" href="#L960">960</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-logWarn"</span>)) {
+<a class="jxr_linenumber" name="L961" href="#L961">961</a>                         arg.logWarn = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L962" href="#L962">962</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-notlogWarn"</span>)) {
+<a class="jxr_linenumber" name="L963" href="#L963">963</a>                         arg.logWarn = false;
+<a class="jxr_linenumber" name="L964" href="#L964">964</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-regex"</span>)) {
+<a class="jxr_linenumber" name="L965" href="#L965">965</a>                         i++;
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>                         arg.regex = args[i];
+<a class="jxr_linenumber" name="L967" href="#L967">967</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-waarp"</span>)) {
+<a class="jxr_linenumber" name="L968" href="#L968">968</a>                         i++;
+<a class="jxr_linenumber" name="L969" href="#L969">969</a>                         String[] host = args[i].split(<span class="jxr_string">","</span>);
+<a class="jxr_linenumber" name="L970" href="#L970">970</a>                         <strong class="jxr_keyword">for</strong> (String string : host) {
+<a class="jxr_linenumber" name="L971" href="#L971">971</a>                             <strong class="jxr_keyword">if</strong> (string.trim().isEmpty()) {
+<a class="jxr_linenumber" name="L972" href="#L972">972</a>                                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L973" href="#L973">973</a>                             }
+<a class="jxr_linenumber" name="L974" href="#L974">974</a>                             arg.waarphosts.add(string.trim());
+<a class="jxr_linenumber" name="L975" href="#L975">975</a>                         }
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-elapse"</span>)) {
+<a class="jxr_linenumber" name="L977" href="#L977">977</a>                         i++;
+<a class="jxr_linenumber" name="L978" href="#L978">978</a>                         arg.elapsed = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="L979" href="#L979">979</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-elapseWaarp"</span>)) {
+<a class="jxr_linenumber" name="L980" href="#L980">980</a>                         i++;
+<a class="jxr_linenumber" name="L981" href="#L981">981</a>                         arg.elapsedWaarp = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="L982" href="#L982">982</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-minimalSize"</span>)) {
+<a class="jxr_linenumber" name="L983" href="#L983">983</a>                         i++;
+<a class="jxr_linenumber" name="L984" href="#L984">984</a>                         arg.minimalSize = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="L985" href="#L985">985</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-limitParallel"</span>)) {
+<a class="jxr_linenumber" name="L986" href="#L986">986</a>                         i++;
+<a class="jxr_linenumber" name="L987" href="#L987">987</a>                         arg.limitParallel = Integer.parseInt(args[i]);
+<a class="jxr_linenumber" name="L988" href="#L988">988</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-parallel"</span>)) {
+<a class="jxr_linenumber" name="L989" href="#L989">989</a>                         arg.isparallel = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L990" href="#L990">990</a>                     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-sequential"</span>)) {
+<a class="jxr_linenumber" name="L991" href="#L991">991</a>                         arg.isparallel = false;
+<a class="jxr_linenumber" name="L992" href="#L992">992</a>                     }
+<a class="jxr_linenumber" name="L993" href="#L993">993</a>                 }
+<a class="jxr_linenumber" name="L994" href="#L994">994</a>             } <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
+<a class="jxr_linenumber" name="L995" href="#L995">995</a>                 logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.20"</span>) + i); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L996" href="#L996">996</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L997" href="#L997">997</a>             }
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>             <strong class="jxr_keyword">if</strong> (arg.fileInfo == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L999" href="#L999">999</a>                 arg.fileInfo = NO_INFO_ARGS;
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             }
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>             <strong class="jxr_keyword">if</strong> (arg.sname == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>                 arg.sname = Configuration.configuration.getHOST_ID() + <span class="jxr_string">" : "</span> + arg.localDirectory;
 <a class="jxr_linenumber" name="L1003" href="#L1003">1003</a>             }
-<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>             <strong class="jxr_keyword">if</strong> (!arg.rhosts.isEmpty() &amp;&amp; arg.rule != <strong class="jxr_keyword">null</strong> &amp;&amp;
-<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a>                     !arg.localDirectory.isEmpty() &amp;&amp;
-<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>                     arg.statusfile != <strong class="jxr_keyword">null</strong> &amp;&amp; arg.stopfile != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a>                 arguments.add(arg);
-<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a>             }
-<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.56"</span>) + <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>                     _INFO_ARGS);
-<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a>         }
-<a class="jxr_linenumber" name="L1014" href="#L1014">1014</a>         <strong class="jxr_keyword">return</strong> !arguments.isEmpty();
-<a class="jxr_linenumber" name="L1015" href="#L1015">1015</a>     }
-<a class="jxr_linenumber" name="L1016" href="#L1016">1016</a> 
-<a class="jxr_linenumber" name="L1017" href="#L1017">1017</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="L1018" href="#L1018">1018</a>         WaarpLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="L1019" href="#L1019">1019</a>         <strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1020" href="#L1020">1020</a>             logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L1021" href="#L1021">1021</a>         }
-<a class="jxr_linenumber" name="L1022" href="#L1022">1022</a>         initialize(args, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L1023" href="#L1023">1023</a>     }
-<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a> 
-<a class="jxr_linenumber" name="L1025" href="#L1025">1025</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> List&lt;SpooledDirectoryTransfer&gt; list = <strong class="jxr_keyword">new</strong> ArrayList&lt;SpooledDirectoryTransfer&gt;();
-<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a> networkTransactionStatic = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L1027" href="#L1027">1027</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ExecutorService executorService = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>             <strong class="jxr_keyword">if</strong> (arg.tosubmit &amp;&amp; !DbConstant.admin.isActive()) {
+<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a>                 logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.2"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a>             }
+<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a>             <strong class="jxr_keyword">if</strong> (!arg.rhosts.isEmpty() &amp;&amp; arg.rule != <strong class="jxr_keyword">null</strong> &amp;&amp;
+<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a>                     !arg.localDirectory.isEmpty() &amp;&amp;
+<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a>                     arg.statusfile != <strong class="jxr_keyword">null</strong> &amp;&amp; arg.stopfile != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>                 arguments.add(arg);
+<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a>             }
+<a class="jxr_linenumber" name="L1014" href="#L1014">1014</a>             logger.error(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.56"</span>) + <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1015" href="#L1015">1015</a>                     _INFO_ARGS);
+<a class="jxr_linenumber" name="L1016" href="#L1016">1016</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L1017" href="#L1017">1017</a>         }
+<a class="jxr_linenumber" name="L1018" href="#L1018">1018</a>         <strong class="jxr_keyword">return</strong> !arguments.isEmpty();
+<a class="jxr_linenumber" name="L1019" href="#L1019">1019</a>     }
+<a class="jxr_linenumber" name="L1020" href="#L1020">1020</a> 
+<a class="jxr_linenumber" name="L1021" href="#L1021">1021</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="L1022" href="#L1022">1022</a>         WaarpLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="L1023" href="#L1023">1023</a>         <strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a>             logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L1025" href="#L1025">1025</a>         }
+<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>         initialize(args, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L1027" href="#L1027">1027</a>     }
 <a class="jxr_linenumber" name="L1028" href="#L1028">1028</a> 
-<a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1030" href="#L1030">1030</a> <em class="jxr_javadoccomment">     * @param args</em>
-<a class="jxr_linenumber" name="L1031" href="#L1031">1031</a> <em class="jxr_javadoccomment">     * @param normalStart</em>
-<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a> <em class="jxr_javadoccomment">     *            if True, will exit JVM when all daemons are stopped; else False let the caller do (used by SpooledEngine)</em>
-<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1034" href="#L1034">1034</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> initialize(String[] args, <strong class="jxr_keyword">boolean</strong> normalStart) {
-<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a>         <strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a>             logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L1037" href="#L1037">1037</a>         }
-<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>         arguments.clear();
-<a class="jxr_linenumber" name="L1039" href="#L1039">1039</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
-<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
-<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>                 DbConstant.admin.close();
-<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>             }
-<a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
-<a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>                 ChannelUtils.stopLogger();
-<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>                 System.exit(2);
+<a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> List&lt;SpooledDirectoryTransfer&gt; list = <strong class="jxr_keyword">new</strong> ArrayList&lt;SpooledDirectoryTransfer&gt;();
+<a class="jxr_linenumber" name="L1030" href="#L1030">1030</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a> networkTransactionStatic = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L1031" href="#L1031">1031</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ExecutorService executorService = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a> 
+<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1034" href="#L1034">1034</a> <em class="jxr_javadoccomment">     * @param args</em>
+<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a> <em class="jxr_javadoccomment">     * @param normalStart</em>
+<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a> <em class="jxr_javadoccomment">     *            if True, will exit JVM when all daemons are stopped; else False let the caller do (used by SpooledEngine)</em>
+<a class="jxr_linenumber" name="L1037" href="#L1037">1037</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> initialize(String[] args, <strong class="jxr_keyword">boolean</strong> normalStart) {
+<a class="jxr_linenumber" name="L1039" href="#L1039">1039</a>         <strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>             logger = WaarpLoggerFactory.getLogger(SpooledDirectoryTransfer.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>         }
+<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>         arguments.clear();
+<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>         <strong class="jxr_keyword">if</strong> (!getParams(args)) {
+<a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>             <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {
+<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>                 DbConstant.admin.close();
 <a class="jxr_linenumber" name="L1047" href="#L1047">1047</a>             }
-<a class="jxr_linenumber" name="L1048" href="#L1048">1048</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L1049" href="#L1049">1049</a>         }
-<a class="jxr_linenumber" name="L1050" href="#L1050">1050</a> 
-<a class="jxr_linenumber" name="L1051" href="#L1051">1051</a>         Configuration.configuration.pipelineInit();
-<a class="jxr_linenumber" name="L1052" href="#L1052">1052</a>         networkTransactionStatic = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
-<a class="jxr_linenumber" name="L1053" href="#L1053">1053</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L1054" href="#L1054">1054</a>             executorService = Executors.newCachedThreadPool(<strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"SpooledDirectoryDaemon"</span>));
-<a class="jxr_linenumber" name="L1055" href="#L1055">1055</a>             <strong class="jxr_keyword">for</strong> (Arguments arg : arguments) {
-<a class="jxr_linenumber" name="L1056" href="#L1056">1056</a>                 <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L1057" href="#L1057">1057</a>                 <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">SpooledDirectoryTransfer</a> spooled =
-<a class="jxr_linenumber" name="L1058" href="#L1058">1058</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">SpooledDirectoryTransfer</a>(future, arg.sname, arg.localDirectory, arg.statusfile,
-<a class="jxr_linenumber" name="L1059" href="#L1059">1059</a>                                 arg.stopfile,
-<a class="jxr_linenumber" name="L1060" href="#L1060">1060</a>                                 arg.rule, arg.fileInfo, arg.ismd5, arg.rhosts, arg.block, arg.regex, arg.elapsed,
-<a class="jxr_linenumber" name="L1061" href="#L1061">1061</a>                                 arg.tosubmit, arg.noLog, arg.recursive,
-<a class="jxr_linenumber" name="L1062" href="#L1062">1062</a>                                 arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, arg.minimalSize,
-<a class="jxr_linenumber" name="L1063" href="#L1063">1063</a>                                 arg.logWarn,
-<a class="jxr_linenumber" name="L1064" href="#L1064">1064</a>                                 networkTransactionStatic);
-<a class="jxr_linenumber" name="L1065" href="#L1065">1065</a>                 executorService.submit(spooled);
-<a class="jxr_linenumber" name="L1066" href="#L1066">1066</a>                 list.add(spooled);
-<a class="jxr_linenumber" name="L1067" href="#L1067">1067</a>             }
-<a class="jxr_linenumber" name="L1068" href="#L1068">1068</a>             arguments.clear();
-<a class="jxr_linenumber" name="L1069" href="#L1069">1069</a>             Thread.sleep(1000);
-<a class="jxr_linenumber" name="L1070" href="#L1070">1070</a>             executorService.shutdown();
-<a class="jxr_linenumber" name="L1071" href="#L1071">1071</a>             Configuration.configuration.launchStatistics();
-<a class="jxr_linenumber" name="L1072" href="#L1072">1072</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
-<a class="jxr_linenumber" name="L1073" href="#L1073">1073</a>                 <strong class="jxr_keyword">while</strong> (!executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(), TimeUnit.MILLISECONDS)) {
-<a class="jxr_linenumber" name="L1074" href="#L1074">1074</a>                     Thread.sleep(Configuration.configuration.getTIMEOUTCON());
-<a class="jxr_linenumber" name="L1075" href="#L1075">1075</a>                 }
-<a class="jxr_linenumber" name="L1076" href="#L1076">1076</a>                 <strong class="jxr_keyword">for</strong> (SpooledDirectoryTransfer spooledDirectoryTransfer : list) {
-<a class="jxr_linenumber" name="L1077" href="#L1077">1077</a>                     logger.warn(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.58"</span>) + spooledDirectoryTransfer.name
-<a class="jxr_linenumber" name="L1078" href="#L1078">1078</a>                             + <span class="jxr_string">": "</span> + spooledDirectoryTransfer.getSent()
-<a class="jxr_linenumber" name="L1079" href="#L1079">1079</a>                             + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.getError()
-<a class="jxr_linenumber" name="L1080" href="#L1080">1080</a>                             + Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.60"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L1081" href="#L1081">1081</a>                 }
-<a class="jxr_linenumber" name="L1082" href="#L1082">1082</a>                 list.clear();
-<a class="jxr_linenumber" name="L1083" href="#L1083">1083</a>             }
-<a class="jxr_linenumber" name="L1084" href="#L1084">1084</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L1085" href="#L1085">1085</a>         } <strong class="jxr_keyword">catch</strong> (Throwable e) {
-<a class="jxr_linenumber" name="L1086" href="#L1086">1086</a>             logger.error(<span class="jxr_string">"Exception"</span>, e);
-<a class="jxr_linenumber" name="L1087" href="#L1087">1087</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L1088" href="#L1088">1088</a>         } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L1089" href="#L1089">1089</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
-<a class="jxr_linenumber" name="L1090" href="#L1090">1090</a>                 R66ShutdownHook.shutdownWillStart();
-<a class="jxr_linenumber" name="L1091" href="#L1091">1091</a>                 networkTransactionStatic.closeAll();
-<a class="jxr_linenumber" name="L1092" href="#L1092">1092</a>                 System.exit(0);
-<a class="jxr_linenumber" name="L1093" href="#L1093">1093</a>             }
-<a class="jxr_linenumber" name="L1094" href="#L1094">1094</a>         }
-<a class="jxr_linenumber" name="L1095" href="#L1095">1095</a>     }
-<a class="jxr_linenumber" name="L1096" href="#L1096">1096</a> 
-<a class="jxr_linenumber" name="L1097" href="#L1097">1097</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a> <em class="jxr_javadoccomment">     * @return the sent</em>
-<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getSent() {
-<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a>         <strong class="jxr_keyword">return</strong> sent;
-<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a>     }
-<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a> 
-<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a> <em class="jxr_javadoccomment">     * @param sent the sent to set</em>
-<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1107" href="#L1107">1107</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setSent(<strong class="jxr_keyword">long</strong> sent) {
-<a class="jxr_linenumber" name="L1108" href="#L1108">1108</a>         <strong class="jxr_keyword">this</strong>.sent = sent;
-<a class="jxr_linenumber" name="L1109" href="#L1109">1109</a>     }
-<a class="jxr_linenumber" name="L1110" href="#L1110">1110</a> 
-<a class="jxr_linenumber" name="L1111" href="#L1111">1111</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1112" href="#L1112">1112</a> <em class="jxr_javadoccomment">     * @return the error</em>
-<a class="jxr_linenumber" name="L1113" href="#L1113">1113</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1114" href="#L1114">1114</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getError() {
-<a class="jxr_linenumber" name="L1115" href="#L1115">1115</a>         <strong class="jxr_keyword">return</strong> error;
-<a class="jxr_linenumber" name="L1116" href="#L1116">1116</a>     }
-<a class="jxr_linenumber" name="L1117" href="#L1117">1117</a> 
-<a class="jxr_linenumber" name="L1118" href="#L1118">1118</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L1119" href="#L1119">1119</a> <em class="jxr_javadoccomment">     * @param error the error to set</em>
-<a class="jxr_linenumber" name="L1120" href="#L1120">1120</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L1121" href="#L1121">1121</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setError(<strong class="jxr_keyword">long</strong> error) {
-<a class="jxr_linenumber" name="L1122" href="#L1122">1122</a>         <strong class="jxr_keyword">this</strong>.error = error;
-<a class="jxr_linenumber" name="L1123" href="#L1123">1123</a>     }
-<a class="jxr_linenumber" name="L1124" href="#L1124">1124</a> 
-<a class="jxr_linenumber" name="L1125" href="#L1125">1125</a> }
+<a class="jxr_linenumber" name="L1048" href="#L1048">1048</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
+<a class="jxr_linenumber" name="L1049" href="#L1049">1049</a>                 ChannelUtils.stopLogger();
+<a class="jxr_linenumber" name="L1050" href="#L1050">1050</a>                 System.exit(2);
+<a class="jxr_linenumber" name="L1051" href="#L1051">1051</a>             }
+<a class="jxr_linenumber" name="L1052" href="#L1052">1052</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L1053" href="#L1053">1053</a>         }
+<a class="jxr_linenumber" name="L1054" href="#L1054">1054</a> 
+<a class="jxr_linenumber" name="L1055" href="#L1055">1055</a>         Configuration.configuration.pipelineInit();
+<a class="jxr_linenumber" name="L1056" href="#L1056">1056</a>         networkTransactionStatic = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
+<a class="jxr_linenumber" name="L1057" href="#L1057">1057</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L1058" href="#L1058">1058</a>             executorService = Executors.newCachedThreadPool(<strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"SpooledDirectoryDaemon"</span>));
+<a class="jxr_linenumber" name="L1059" href="#L1059">1059</a>             <strong class="jxr_keyword">for</strong> (Arguments arg : arguments) {
+<a class="jxr_linenumber" name="L1060" href="#L1060">1060</a>                 <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L1061" href="#L1061">1061</a>                 <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">SpooledDirectoryTransfer</a> spooled =
+<a class="jxr_linenumber" name="L1062" href="#L1062">1062</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/SpooledDirectoryTransfer.html">SpooledDirectoryTransfer</a>(future, arg.sname, arg.localDirectory, arg.statusfile,
+<a class="jxr_linenumber" name="L1063" href="#L1063">1063</a>                                 arg.stopfile,
+<a class="jxr_linenumber" name="L1064" href="#L1064">1064</a>                                 arg.rule, arg.fileInfo, arg.ismd5, arg.rhosts, arg.block, arg.regex, arg.elapsed,
+<a class="jxr_linenumber" name="L1065" href="#L1065">1065</a>                                 arg.tosubmit, arg.noLog, arg.recursive,
+<a class="jxr_linenumber" name="L1066" href="#L1066">1066</a>                                 arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, arg.minimalSize,
+<a class="jxr_linenumber" name="L1067" href="#L1067">1067</a>                                 arg.logWarn,
+<a class="jxr_linenumber" name="L1068" href="#L1068">1068</a>                                 networkTransactionStatic);
+<a class="jxr_linenumber" name="L1069" href="#L1069">1069</a>                 executorService.submit(spooled);
+<a class="jxr_linenumber" name="L1070" href="#L1070">1070</a>                 list.add(spooled);
+<a class="jxr_linenumber" name="L1071" href="#L1071">1071</a>             }
+<a class="jxr_linenumber" name="L1072" href="#L1072">1072</a>             arguments.clear();
+<a class="jxr_linenumber" name="L1073" href="#L1073">1073</a>             Thread.sleep(1000);
+<a class="jxr_linenumber" name="L1074" href="#L1074">1074</a>             executorService.shutdown();
+<a class="jxr_linenumber" name="L1075" href="#L1075">1075</a>             Configuration.configuration.launchStatistics();
+<a class="jxr_linenumber" name="L1076" href="#L1076">1076</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
+<a class="jxr_linenumber" name="L1077" href="#L1077">1077</a>                 <strong class="jxr_keyword">while</strong> (!executorService.awaitTermination(Configuration.configuration.getTIMEOUTCON(), TimeUnit.MILLISECONDS)) {
+<a class="jxr_linenumber" name="L1078" href="#L1078">1078</a>                     Thread.sleep(Configuration.configuration.getTIMEOUTCON());
+<a class="jxr_linenumber" name="L1079" href="#L1079">1079</a>                 }
+<a class="jxr_linenumber" name="L1080" href="#L1080">1080</a>                 <strong class="jxr_keyword">for</strong> (SpooledDirectoryTransfer spooledDirectoryTransfer : list) {
+<a class="jxr_linenumber" name="L1081" href="#L1081">1081</a>                     logger.warn(Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.58"</span>) + spooledDirectoryTransfer.name
+<a class="jxr_linenumber" name="L1082" href="#L1082">1082</a>                             + <span class="jxr_string">": "</span> + spooledDirectoryTransfer.getSent()
+<a class="jxr_linenumber" name="L1083" href="#L1083">1083</a>                             + <span class="jxr_string">" success, "</span> + spooledDirectoryTransfer.getError()
+<a class="jxr_linenumber" name="L1084" href="#L1084">1084</a>                             + Messages.getString(<span class="jxr_string">"SpooledDirectoryTransfer.60"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L1085" href="#L1085">1085</a>                 }
+<a class="jxr_linenumber" name="L1086" href="#L1086">1086</a>                 list.clear();
+<a class="jxr_linenumber" name="L1087" href="#L1087">1087</a>             }
+<a class="jxr_linenumber" name="L1088" href="#L1088">1088</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L1089" href="#L1089">1089</a>         } <strong class="jxr_keyword">catch</strong> (Throwable e) {
+<a class="jxr_linenumber" name="L1090" href="#L1090">1090</a>             logger.error(<span class="jxr_string">"Exception"</span>, e);
+<a class="jxr_linenumber" name="L1091" href="#L1091">1091</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L1092" href="#L1092">1092</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L1093" href="#L1093">1093</a>             <strong class="jxr_keyword">if</strong> (normalStart) {
+<a class="jxr_linenumber" name="L1094" href="#L1094">1094</a>                 R66ShutdownHook.shutdownWillStart();
+<a class="jxr_linenumber" name="L1095" href="#L1095">1095</a>                 networkTransactionStatic.closeAll();
+<a class="jxr_linenumber" name="L1096" href="#L1096">1096</a>                 System.exit(0);
+<a class="jxr_linenumber" name="L1097" href="#L1097">1097</a>             }
+<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a>         }
+<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a>     }
+<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a> 
+<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a> <em class="jxr_javadoccomment">     * @return the sent</em>
+<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getSent() {
+<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a>         <strong class="jxr_keyword">return</strong> sent;
+<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a>     }
+<a class="jxr_linenumber" name="L1107" href="#L1107">1107</a> 
+<a class="jxr_linenumber" name="L1108" href="#L1108">1108</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1109" href="#L1109">1109</a> <em class="jxr_javadoccomment">     * @param sent the sent to set</em>
+<a class="jxr_linenumber" name="L1110" href="#L1110">1110</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1111" href="#L1111">1111</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setSent(<strong class="jxr_keyword">long</strong> sent) {
+<a class="jxr_linenumber" name="L1112" href="#L1112">1112</a>         <strong class="jxr_keyword">this</strong>.sent = sent;
+<a class="jxr_linenumber" name="L1113" href="#L1113">1113</a>     }
+<a class="jxr_linenumber" name="L1114" href="#L1114">1114</a> 
+<a class="jxr_linenumber" name="L1115" href="#L1115">1115</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1116" href="#L1116">1116</a> <em class="jxr_javadoccomment">     * @return the error</em>
+<a class="jxr_linenumber" name="L1117" href="#L1117">1117</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1118" href="#L1118">1118</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getError() {
+<a class="jxr_linenumber" name="L1119" href="#L1119">1119</a>         <strong class="jxr_keyword">return</strong> error;
+<a class="jxr_linenumber" name="L1120" href="#L1120">1120</a>     }
+<a class="jxr_linenumber" name="L1121" href="#L1121">1121</a> 
+<a class="jxr_linenumber" name="L1122" href="#L1122">1122</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L1123" href="#L1123">1123</a> <em class="jxr_javadoccomment">     * @param error the error to set</em>
+<a class="jxr_linenumber" name="L1124" href="#L1124">1124</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L1125" href="#L1125">1125</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setError(<strong class="jxr_keyword">long</strong> error) {
+<a class="jxr_linenumber" name="L1126" href="#L1126">1126</a>         <strong class="jxr_keyword">this</strong>.error = error;
+<a class="jxr_linenumber" name="L1127" href="#L1127">1127</a>     }
+<a class="jxr_linenumber" name="L1128" href="#L1128">1128</a> 
+<a class="jxr_linenumber" name="L1129" href="#L1129">1129</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
