@@ -356,7 +356,9 @@ public class TransferActions extends ServerActions {
                 if (!runner.isSender()) {
                     logger.debug("New filename ? :" + packet.getFilename());
                     runner.setOriginalFilename(packet.getFilename());
-                    runner.setFilename(packet.getFilename());
+                    if (runner.getRank() == 0) {
+                        runner.setFilename(packet.getFilename());
+                    }
                 }
                 logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
                 try {

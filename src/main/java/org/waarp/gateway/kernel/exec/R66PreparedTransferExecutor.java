@@ -106,6 +106,9 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 remoteHost = args[i];
+                if (Configuration.configuration.getAliases().containsKey(remoteHost)) {
+                    remoteHost = Configuration.configuration.getAliases().get(remoteHost);
+                }
             } else if (args[i].equalsIgnoreCase("-file")) {
                 i++;
                 filename = args[i];

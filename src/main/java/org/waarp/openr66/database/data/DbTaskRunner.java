@@ -1207,7 +1207,7 @@ public class DbTaskRunner extends AbstractDbData {
                     this.loadXmlWorkNoDb();
                     setFromArray();
                 } catch (OpenR66ProtocolBusinessException e) {
-                    throw new WaarpDatabaseNoDataException("No file found");
+                    throw new WaarpDatabaseNoDataException("No file found", e);
                 }
                 if (rule == null) {
                     rule = new DbRule(this.dbSession, ruleId);
@@ -1393,6 +1393,10 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public boolean specialSubmit() throws WaarpDatabaseException {
+        if (dbSession == null) {
+            insert();
+            return true;
+        }
         if (shallIgnoreSave()) {
             if (specialId == DbConstant.ILLEGALVALUE) {
                 specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
@@ -3886,8 +3890,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if this is a self request and current action is on Requested
      */
     public boolean shallIgnoreSave() {
-        return dbSession == null
-                || (isSelfRequest() && ((isSender && getRule().isSendMode()) || (!isSender && getRule().isRecvMode())));
+        return (isSelfRequest() && ((isSender && getRule().isSendMode()) || (!isSender && getRule().isRecvMode())));
     }
 
     /**
@@ -4213,7 +4216,7 @@ public class DbTaskRunner extends AbstractDbData {
     public String backendXmlFilename() {
         return Configuration.configuration.getBaseDirectory() +
                 Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
-                this.requesterHostId + "_" + this.requestedHostId + "_" + this.ruleId + "_"
+                this.requesterHostId + "_" + this.requestedHostId + "_"
                 + this.specialId
                 + XMLEXTENSION;
     }
