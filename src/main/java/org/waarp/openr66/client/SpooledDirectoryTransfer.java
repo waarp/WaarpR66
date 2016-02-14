@@ -907,10 +907,14 @@ public class SpooledDirectoryTransfer implements Runnable {
                         i++;
                         String[] rhosts = args[i].split(",");
                         for (String string : rhosts) {
-                            if (string.trim().isEmpty()) {
+                            string = string.trim();
+                            if (string.isEmpty()) {
                                 continue;
                             }
-                            arg.rhosts.add(string.trim());
+                            if (Configuration.configuration.getAliases().containsKey(string)) {
+                                string = Configuration.configuration.getAliases().get(string);
+                            }
+                            arg.rhosts.add(string);
                         }
                     } else if (args[i].equalsIgnoreCase("-name")) {
                         i++;

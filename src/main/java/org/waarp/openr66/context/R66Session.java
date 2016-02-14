@@ -497,10 +497,11 @@ public class R66Session implements SessionInterface {
                         // Windows path
                         newfilename = newfilename.substring(2);
                     }
-                    this.runner.setFilename(R66File.getBasename(newfilename));
+                    newfilename = R66File.getBasename(newfilename);
                     try {
                         file = dir.setUniqueFile(this.runner.getSpecialId(),
-                                this.runner.getFilename());
+                                newfilename);
+                        this.runner.setFilename(file.getBasename());
                     } catch (CommandAbstractException e) {
                         this.runner.deleteTempFile();
                         throw e;
@@ -645,6 +646,7 @@ public class R66Session implements SessionInterface {
     public void startup(boolean checkNotExternal) throws OpenR66RunnerErrorException {
         if (runner.getRank() > 0) {
             logger.debug("restart at " + runner.getRank() + " {}", runner);
+            logger.debug("restart at " + runner.getRank() + " {}", dir);
             runner.setTransferTask(runner.getRank());
             restart.restartMarker(runner.getBlocksize() * runner.getRank());
         } else {

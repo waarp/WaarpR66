@@ -87,6 +87,9 @@ public class TransferTask extends AbstractTask {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 requested = args[i];
+                if (Configuration.configuration.getAliases().containsKey(requested)) {
+                    requested = Configuration.configuration.getAliases().get(requested);
+                }
             } else if (args[i].equalsIgnoreCase("-file")) {
                 i++;
                 filepath = args[i];
