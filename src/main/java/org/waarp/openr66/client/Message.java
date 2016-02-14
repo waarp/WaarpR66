@@ -91,6 +91,9 @@ public class Message implements Runnable {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 srequested = args[i];
+                if (Configuration.configuration.getAliases().containsKey(srequested)) {
+                    srequested = Configuration.configuration.getAliases().get(srequested);
+                }
             } else if (args[i].equalsIgnoreCase("-msg")) {
                 i++;
                 smessage = args[i];

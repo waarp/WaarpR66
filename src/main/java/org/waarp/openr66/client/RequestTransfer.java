@@ -123,7 +123,11 @@ public class RequestTransfer implements Runnable {
                 }
             } else if (args[i].equalsIgnoreCase("-to")) {
                 i++;
-                rhost = srequested = args[i];
+                srequested = args[i];
+                if (Configuration.configuration.getAliases().containsKey(srequested)) {
+                    srequested = Configuration.configuration.getAliases().get(srequested);
+                }
+                rhost = srequested;
                 try {
                     srequester = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
                             srequested);
@@ -133,7 +137,11 @@ public class RequestTransfer implements Runnable {
                 }
             } else if (args[i].equalsIgnoreCase("-from")) {
                 i++;
-                rhost = srequester = args[i];
+                srequester = args[i];
+                if (Configuration.configuration.getAliases().containsKey(srequester)) {
+                    srequester = Configuration.configuration.getAliases().get(srequester);
+                }
+                rhost = srequester;
                 try {
                     srequested = Configuration.configuration.getHostId(DbConstant.admin.getSession(),
                             srequester);

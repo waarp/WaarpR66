@@ -216,6 +216,9 @@ public abstract class AbstractBusinessRequest implements Runnable {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 rhost = args[i];
+                if (Configuration.configuration.getAliases().containsKey(rhost)) {
+                    rhost = Configuration.configuration.getAliases().get(rhost);
+                }
             } else if (args[i].equalsIgnoreCase("-class")) {
                 i++;
                 classname = args[i];

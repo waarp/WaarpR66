@@ -99,6 +99,9 @@ public class RequestInformation implements Runnable {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 srequested = args[i];
+                if (Configuration.configuration.getAliases().containsKey(srequested)) {
+                    srequested = Configuration.configuration.getAliases().get(srequested);
+                }
             } else if (args[i].equalsIgnoreCase("-file")) {
                 i++;
                 sfilename = args[i];
