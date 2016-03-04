@@ -124,6 +124,7 @@ public class RecvThroughClient extends AbstractTransfer {
                     logger.error("Cannot Connect", e);
                     future.setResult(new R66Result(e, null, true,
                             ErrorCode.ConnectionImpossible, taskRunner));
+                    finalizeInErrorTransferRequest(runner, taskRunner, ErrorCode.ConnectionImpossible);
                     future.setFailure(e);
                     return;
                 } catch (OpenR66ProtocolPacketException e) {

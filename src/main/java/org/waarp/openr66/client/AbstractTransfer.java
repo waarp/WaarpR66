@@ -24,10 +24,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.waarp.common.command.exception.CommandAbstractException;
+import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -322,5 +324,22 @@ public abstract class AbstractTransfer implements Runnable {
         logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") + //$NON-NLS-1$
                 _INFO_ARGS);
         return false;
+    }
+    /**
+     * Shared code for finalize one Transfer request in error
+     * @param runner
+     * @param taskRunner
+     */
+    protected void finalizeInErrorTransferRequest(ClientRunner runner, DbTaskRunner taskRunner, ErrorCode code) {
+        if (runner.getLocalChannelReference() != null) {
+            runner.getLocalChannelReference().setErrorMessage(code.mesg, code);
+        }
+        taskRunner.setErrorTask(runner.getLocalChannelReference());
+        try {
+            taskRunner.forceSaveStatus();
+            taskRunner.run();
+        } catch (OpenR66RunnerErrorException e1) {
+            runner.changeUpdatedInfo(UpdatedInfo.INERROR, code, true);
+        }
     }
 }

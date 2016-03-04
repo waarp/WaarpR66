@@ -203,6 +203,7 @@ public class TestSendThroughForward extends SendThroughClient {
                     logger.error("Cannot Connect", e);
                     future.setResult(new R66Result(e, null, true,
                             ErrorCode.ConnectionImpossible, taskRunner));
+                    finalizeInErrorTransferRequest(runner, taskRunner, ErrorCode.ConnectionImpossible);
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolPacketException e) {
