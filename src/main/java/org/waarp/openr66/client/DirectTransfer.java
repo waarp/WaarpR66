@@ -87,6 +87,7 @@ public class DirectTransfer extends AbstractTransfer {
                 logger.debug("Cannot Connect", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));
+                finalizeInErrorTransferRequest(runner, taskRunner, ErrorCode.ConnectionImpossible);
                 // since no connection : just forget it
                 if (nolog || taskRunner.shallIgnoreSave()) {
                     try {
