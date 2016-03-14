@@ -468,7 +468,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
             boolean isNotReload = ! "Reload".equalsIgnoreCase(parm);
             if ("Search".equalsIgnoreCase(parm)) {
                 String startid = getTrimValue("startid");
-                String stopid = Long.toString(Long.parseLong(startid)+1);
+                String stopid = startid == null ? null : Long.toString(Long.parseLong(startid)+1);
                 head = setDbTaskRunnerJsonData(head, errorText, startid, stopid, null, null, null, null, false, false, false, false, true);
                 head = resetOptionTransfer(head, startid == null ? "" : startid,
                         stopid, "", "", "", "", false, false, false, false, true);
@@ -684,6 +684,10 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 String reqd = getValue("reqd");
                 String reqr = getValue("reqr");
                 long lspecid;
+                if (specid == null || reqd == null || reqr == null) {
+                    errorText += "<br><b>" + parm + Messages.getString("HttpSslHandler.3"); //$NON-NLS-2$
+                    return head.replace(XXXRESULTXXX, errorText).replace(XXXDATAJSONXXX, "[]");
+                }
                 try {
                     lspecid = Long.parseLong(specid);
                 } catch (NumberFormatException e) {
@@ -898,19 +902,22 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 isclient = params.containsKey("isclient");
                 isactive = params.containsKey("isactive");
                 isproxified = params.containsKey("isproxified");
+                if (port == null) {
+                    port = "-1";
+                }
                 if (port.equals("-1")) {
                     isclient = true;
                 }
                 if (isclient && addr == null) {
                     addr = "0.0.0.0";
                 }
-                if (host == null || addr == null || port == null || key == null) {
+                if (host == null || addr == null || key == null) {
                     errorText = Messages.getString("HttpSslHandler.13"); //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", ssl, isactive);
                     head = setDbHostAuthJsonData(head, errorText, null, null, ssl, true);
                     return head.replace(XXXRESULTXXX, errorText).replace(XXXDATAJSONXXX, "[]");
                 }
-                int iport;
+                int iport = -1;
                 try {
                     iport = Integer.parseInt(port);
                 } catch (NumberFormatException e1) {
@@ -1280,12 +1287,14 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 String mode = getTrimValue("mode");
                 TRANSFERMODE tmode;
                 int gmode = 0;
-                if (mode.equals("all")) {
-                    gmode = -3;
-                } else if (mode.equals("send")) {
-                    gmode = -2;
-                } else if (mode.equals("recv")) {
-                    gmode = -1;
+                if (mode != null) {
+                    if (mode.equals("all")) {
+                        gmode = -3;
+                    } else if (mode.equals("send")) {
+                        gmode = -2;
+                    } else if (mode.equals("recv")) {
+                        gmode = -1;
+                    }
                 }
                 head = resetOptionRules(head, rule == null ? "" : rule,
                         null, gmode);
