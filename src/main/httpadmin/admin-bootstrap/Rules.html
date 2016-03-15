@@ -76,7 +76,7 @@ var prepareTable = function() {
 		else if (type == 'printPdf') { return marknote.Util.erefEncode(data.replace(/</g, ' <').replace(/ <\//g, '</')); } 
 		else if (type == 'print') { return data.replace(/</g, ' &lt;').replace(/>/g, '&gt; '); } 
 		return xmpString+data+"</xmp>";};
-	var myData = 'XXXDATAJSONXXX';
+	var myData = XXXDATAJSONXXX;
 
 	var myColumns = [
 					  { data: "IDRULE", title :"Rule Id"},
@@ -104,7 +104,7 @@ var prepareTable = function() {
 		"pagingType": "full_numbers",
 		"order": [[0, "asc"]],
 		stateSave: true,// shall be true
-		"data" : $.parseJSON(myData),
+		"data" : myData,
 		"columns": myColumns,
 		fixedHeader: true,
 		dom: 'B<"clear">lfrtip',

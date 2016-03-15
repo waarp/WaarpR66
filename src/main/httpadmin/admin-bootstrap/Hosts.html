@@ -66,7 +66,7 @@ function validButton(rank) {
 }
 var prepareTable = function() {
 	var renderGeneric = function (data, type, full, meta) {return changeValueColumn(data, meta.col);};
-	var myData = 'XXXDATAJSONXXX';
+	var myData = XXXDATAJSONXXX;
 	var myColumns = [
 					  { data: "HOSTID", title :"Id"},
 					  { data: "ADDRESS", title :"Address"},
@@ -92,7 +92,7 @@ var prepareTable = function() {
 		"pagingType": "full_numbers",
 		"order": [[1, "asc"]],
 		stateSave: true,// shall be true
-		"data" : $.parseJSON(myData),
+		"data" : myData,
 		"columns": myColumns,
 		fixedHeader: true,
 		dom: 'B<"clear">lfrtip',

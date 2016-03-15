@@ -59,7 +59,7 @@ var prepareTable = function() {
 	var createdCellFilename = function (td, cellData, rowData, row, col) {if ( cellData.length > 20) {$(td).css('word-break', 'break-all');}};
 	var renderGeneric = function (data, type, full, meta) {return changeValueColumn(data, meta.col);};
 
-	var myData = 'XXXDATAJSONXXX';
+	var myData = XXXDATAJSONXXX;
 	var myColumns = [{ data: "SPECIALID", title : i18n.t("menu2.entete1"), render: renderSpecialId},
 					  { data: "IDRULE", title :i18n.t("menu2.entete2")},
 					  { data: "MODETRANS", title :i18n.t("menu2.entete24"), render: renderGeneric},
@@ -123,7 +123,7 @@ var prepareTable = function() {
 		"pagingType": "full_numbers",
 		"order": [[nbcol-1, "desc"]],
 		stateSave: true,// shall be true
-		"data" : $.parseJSON(myData),
+		"data" : myData,
 		"columns": myColumns,
 		fixedHeader: true,
 		dom: 'B<"clear">lfrtip',
