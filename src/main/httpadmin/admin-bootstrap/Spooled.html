@@ -97,7 +97,7 @@ var prepareTable = function() {
 		if (len > 1) {return len-1;}
 		return data[0];
 	};
-	var myData = 'XXXDATAJSONXXX';
+	var myData = XXXDATAJSONXXX;
 	var myColumns = [{ data: "NAME", title : i18n.t("menu2.spooled1")},
 					  { data: "HOST", title :i18n.t("menu2.spooled2")},
 					  { data: "LAST_UPDATE", title :i18n.t("menu2.spooled3"), render: renderTimestamp2},
@@ -131,7 +131,7 @@ var prepareTable = function() {
 		"pagingType": "full_numbers",
 		"order": [[0, "desc"]],
 		stateSave: true,// shall be true
-		"data" : $.parseJSON(myData),
+		"data" : myData,
 		"columns": myColumns,
 		fixedHeader: true,
 		select: true,
