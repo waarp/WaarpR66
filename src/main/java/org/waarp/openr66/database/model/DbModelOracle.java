@@ -262,6 +262,9 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         } finally {
             request.close();
         }
+
+        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+            R66Versions.V2_4_25.getVersion());
     }
 
     @Override
