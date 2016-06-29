@@ -29,6 +29,8 @@ import org.waarp.openr66.protocol.utils.Version;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.util.Map;
+
 /**
  * Partner Configuration
  * 
@@ -358,7 +360,7 @@ public class PartnerConfiguration {
                 + "':"
                 + (Configuration.configuration.getVersions().containsKey(host) ?
                         Configuration.configuration.getVersions().get(host).useJson() : "no:"
-                                + Configuration.configuration.getVersions().keySet()));
+                                + ((Map) Configuration.configuration.getVersions()).keySet()));
         return (Configuration.configuration.getVersions().containsKey(host) && Configuration.configuration.getVersions()
                 .get(host).useJson());
     }
