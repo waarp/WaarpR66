@@ -278,6 +278,9 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
         } finally {
             request.close();
         }
+
+        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+            R66Versions.V2_4_25.getVersion());
     }
 
     @Override
