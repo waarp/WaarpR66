@@ -242,17 +242,13 @@ public class NetworkTransaction {
     }
 
     private static final NetworkChannelReference getBlacklistNCR(SocketAddress sa) {
-        // if (sa == null) {
-        //     return false;
-        // }
-        
         InetAddress address = ((InetSocketAddress) sa).getAddress();
         if (address == null) {
             return null;
         }
 
         return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(
-                ((InetSocketAddress) sa).getAddress().getHostAddress().hashCode()
+                address.getHostAddress().hashCode()
         );
     }
 
