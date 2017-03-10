@@ -101,12 +101,16 @@ public class PartnerConfiguration {
             version = json;
         }
         JsonHandler.setValue(root, FIELDS.VERSION, version);
-        if (isVersion2GEQVersion1(R66Versions.V2_4_12.getVersion(), version)) {
+        if (!isVersion2GEQVersion1(R66Versions.V2_4_12.getVersion(), version)) {
+            logger.debug("\n\nid:" + id + " : " + version + " >=  2.4.12");
             JsonHandler.setValue(root, FIELDS.FILESIZE, true);
             JsonHandler.setValue(root, FIELDS.FINALHASH, true);
         } else {
-            JsonHandler.setValue(root, FIELDS.FILESIZE, (Boolean) FIELDS.FILESIZE.defaultValue);
-            JsonHandler.setValue(root, FIELDS.FINALHASH, (Boolean) FIELDS.FINALHASH.defaultValue);
+            logger.debug("\n\nid:" + id + " : " + version + " <  2.4.12");
+            JsonHandler.setValue(root, FIELDS.FILESIZE, false);
+            JsonHandler.setValue(root, FIELDS.FINALHASH, false);
+            //JsonHandler.setValue(root, FIELDS.FILESIZE, (Boolean) FIELDS.FILESIZE.defaultValue);
+            //JsonHandler.setValue(root, FIELDS.FINALHASH, (Boolean) FIELDS.FINALHASH.defaultValue);
         }
         JsonHandler.setValue(root, FIELDS.DIGESTALGO, Configuration.configuration.getDigest().name);
         JsonHandler.setValue(root, FIELDS.PROXIFIED, (Boolean) FIELDS.PROXIFIED.defaultValue);

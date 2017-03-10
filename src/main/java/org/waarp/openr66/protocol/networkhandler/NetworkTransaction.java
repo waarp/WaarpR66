@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -77,7 +77,7 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * This class handles Network Transaction connections
- * 
+ *
  * @author frederic bregier
  */
 public class NetworkTransaction {
@@ -276,7 +276,7 @@ public class NetworkTransaction {
 
     /**
      * Create a connection to the specified socketAddress with multiple retries
-     * 
+     *
      * @param socketAddress
      * @param isSSL
      * @param futureRequest
@@ -324,7 +324,7 @@ public class NetworkTransaction {
 
     /**
      * Create a connection to the specified socketAddress
-     * 
+     *
      * @param socketAddress
      * @param isSSL
      * @param futureRequest
@@ -399,7 +399,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param socketServerAddress
      * @param isSSL
      * @return the NetworkChannelReference
@@ -493,7 +493,7 @@ public class NetworkTransaction {
 
     /**
      * Create the LocalChannelReference when a remote local channel starts its connection
-     * 
+     *
      * @param networkChannelReference
      * @param packet
      */
@@ -558,7 +558,7 @@ public class NetworkTransaction {
 
     /**
      * Send a validation of connection with Authentication
-     * 
+     *
      * @param localChannelReference
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
@@ -644,7 +644,7 @@ public class NetworkTransaction {
 
     /**
      * Add a new NetworkChannel from connection
-     * 
+     *
      * @param channel
      * @throws OpenR66ProtocolRemoteShutdownException
      */
@@ -673,7 +673,7 @@ public class NetworkTransaction {
 
     /**
      * To be called when a remote server seems to be down for a while, so to not retry immediately
-     * 
+     *
      * @param socketAddress
      */
     public static void proposeShutdownNetworkChannel(SocketAddress socketAddress) {
@@ -716,7 +716,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown one Network Channel
-     * 
+     *
      * @param networkChannelReference
      */
     private static void shuttingDownNetworkChannelInternal(NetworkChannelReference networkChannelReference) {
@@ -745,7 +745,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown one Network Channel
-     * 
+     *
      * @param networkChannelReference
      */
     public static void shuttingDownNetworkChannel(NetworkChannelReference networkChannelReference) {
@@ -754,7 +754,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown a NetworkChannel and add it to BlaclList
-     * 
+     *
      * @param networkChannelReference
      * @return True if this channel is now blacklisted for a while
      */
@@ -779,7 +779,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param channel
      * @return True if this channel is blacklisted
      */
@@ -793,7 +793,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @return True if this address (associated channel) is currently in shutdown (or if this channel is not valid)
      */
@@ -803,7 +803,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown NetworkChannelReference as client
-     * 
+     *
      * @param requester
      * @return True if shutdown occurs
      */
@@ -821,7 +821,7 @@ public class NetworkTransaction {
 
     /**
      * Add a requester channel
-     * 
+     *
      * @param networkChannelReference
      * @param requester
      */
@@ -849,7 +849,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param requester
      * @return The number of NetworkChannels associated with this requester
      */
@@ -863,7 +863,7 @@ public class NetworkTransaction {
 
     /**
      * Force remove of NetworkChannelReference when it is closed
-     * 
+     *
      * @param networkChannelReference
      */
     public static void closedNetworkChannel(NetworkChannelReference networkChannelReference) {
@@ -893,7 +893,7 @@ public class NetworkTransaction {
 
     /**
      * Force remove of NetworkChannelReference when it is closed
-     * 
+     *
      * @param address
      */
     public static void closedNetworkChannel(SocketAddress address) {
@@ -908,9 +908,9 @@ public class NetworkTransaction {
     /**
      * Class to close the Network Channel if after some delays it has really no Local Channel
      * attached
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static class CloseFutureChannel implements TimerTask {
 
@@ -957,7 +957,7 @@ public class NetworkTransaction {
 
     /**
      * Check if closing of the localChannel will bring future closing of NetworkChannel
-     * 
+     *
      * @param networkChannelReference
      * @param localChannelReference
      * @return the number of local channel still connected to this channel
@@ -990,7 +990,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @param host
      * @return a number > 0 if a connection is still active on this socket or for this host
@@ -1005,7 +1005,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @return True if this socket Address is currently valid for connection
      */
@@ -1033,7 +1033,7 @@ public class NetworkTransaction {
 
     /**
      * Returns the NetworkChannelReference if it exists associated with this address
-     * 
+     *
      * @param address
      * @return NetworkChannelReference
      * @throws OpenR66ProtocolRemoteShutdownException
@@ -1077,7 +1077,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param channel
      * @return the associated NetworkChannelReference immediately (if known)
      */
@@ -1090,9 +1090,9 @@ public class NetworkTransaction {
 
     /**
      * Remover of Shutdown Remote Host
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static class R66ShutdownNetworkChannelTimerTask implements TimerTask {
         private static final ConcurrentSet<ChannelId> inShutdownRunning = new ConcurrentSet<ChannelId>();
@@ -1105,7 +1105,7 @@ public class NetworkTransaction {
 
         /**
          * Constructor from type
-         * 
+         *
          * @param href
          * @throws OpenR66RunnerErrorException
          */
@@ -1153,7 +1153,7 @@ public class NetworkTransaction {
 
     /**
      * Start retrieve operation
-     * 
+     *
      * @param session
      * @param channel
      */
@@ -1167,7 +1167,7 @@ public class NetworkTransaction {
 
     /**
      * Stop a retrieve operation
-     * 
+     *
      * @param localChannelReference
      */
     public static void stopRetrieve(LocalChannelReference localChannelReference) {
@@ -1180,7 +1180,7 @@ public class NetworkTransaction {
 
     /**
      * Normal end of a Retrieve Operation
-     * 
+     *
      * @param localChannelReference
      */
     public static void normalEndRetrieve(LocalChannelReference localChannelReference) {

@@ -25,12 +25,17 @@ import io.netty.handler.codec.ByteToMessageCodec;
 
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
+
 /**
  * Local Packet Decoder
  * 
  * @author Frederic Bregier
  */
 public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
+
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LocalPacketCodec.class);
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
@@ -47,10 +52,21 @@ public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
         }
     }
 
+    private static String readBuffer(ByteBuf buf) {
+        String res = "";
+        while (buf.isReadable()) {
+            res = res + buf.readByte() + ",";
+        }
+        return res;
+    }
+
     public static AbstractLocalPacket decodeNetworkPacket(ByteBuf buf)
             throws OpenR66ProtocolPacketException {
         // Mark the current buffer position
         buf.markReaderIndex();
+        logger.error("me: Local receive: " + buf.readInt() + ";" + buf.readInt() + ";" 
+            + buf.readInt() + ";" + buf.readByte() + "/[" + readBuffer(buf) + "]");
+        buf.resetReaderIndex();
         // Read the length field
         final int length = buf.readInt();
         if (buf.readableBytes() < length) {
@@ -82,5 +98,4 @@ public class LocalPacketCodec extends ByteToMessageCodec<AbstractLocalPacket> {
         out.writeBytes(buf);
         buf.release();
     }
-
 }

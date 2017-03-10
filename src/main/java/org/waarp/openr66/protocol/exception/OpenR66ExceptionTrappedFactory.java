@@ -26,9 +26,11 @@ import java.nio.channels.NotYetConnectedException;
 import java.util.concurrent.RejectedExecutionException;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
+import io.netty.handler.codec.DecoderException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -169,6 +171,12 @@ public class OpenR66ExceptionTrappedFactory {
             }
             R66ShutdownHook.setRestart(true);
             return e2;
+        } else if (e1 instanceof DecoderException) {
+            // ignore SSL handshake failure
+            if (!(e1.getCause() instanceof SSLHandshakeException)) {
+                logger.debug("Unknown exception from Decoder: " + e1.getMessage(), e1);
+            }
+            return new OpenR66ProtocolSystemException("SSl handshake failed: " + e1.getMessage(), e1);    
         } else {
             logger.error("Unexpected exception from Outband" +
                     " Ref Channel: " + channel.toString(), e1);

@@ -95,6 +95,8 @@ class LocalClientHandler extends SimpleChannelInboundHandler<AbstractLocalPacket
         }
         // only Startup Packet should arrived here !
         final AbstractLocalPacket packet = msg;
+        //Read Client Packet
+        //logger.error("me: ClientHandler read (" + packet.code + ")");
         if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
             logger.error("Local Client Channel Recv wrong packet: " +
                     ctx.channel().id() + " : " + packet.toString());

@@ -176,6 +176,8 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        //How is userEventTriggered triggered ?? (after 10s of inactivity)
+        logger.error("me: /!\\ userEventTriggered /!\\");
         if (Configuration.configuration.isShutdown())
             return;
         if (evt instanceof IdleStateEvent) {
@@ -222,6 +224,8 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
         }
         final NetworkPacket packet = (NetworkPacket) msg;
         Channel channel = ctx.channel();
+        //Read Network Packet
+        //logger.error("me: NetworkHandler read (" + packet.code + ")");
         if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
             if (networkChannelReference != null) {
                 networkChannelReference.useIfUsed();
@@ -243,10 +247,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                 // No way to know what is wrong: close all connections with
                 // remote host
                 logger.error("Will close NETWORK channel, Cannot continue connection with remote Host: "
-                        +
-                        packet.toString() +
-                        " : " +
-                        channel.remoteAddress() + " : " + nb);
+                        + packet.toString() + " : " + channel.remoteAddress() + " : " + nb);
                 WaarpSslUtility.closingSslChannel(channel);
                 packet.clear();
                 return;

@@ -107,6 +107,8 @@ class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket
     protected void channelRead0(final ChannelHandlerContext ctx, AbstractLocalPacket msg) throws Exception {
         // action as requested and answer if necessary
         final AbstractLocalPacket packet = msg;
+        //Read Server Packet
+        //logger.error("me: ServerHandler read (" + packet.code + ")");
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
             serverHandler.startup(ctx.channel(), (StartupPacket) packet);
         } else {

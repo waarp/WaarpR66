@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -39,9 +39,9 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 /**
  * Commander is responsible to read from database updated data from time to time in order to achieve
  * new runner or new configuration updates.
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class Commander implements CommanderInterface {
     /**
@@ -62,7 +62,7 @@ public class Commander implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -74,7 +74,7 @@ public class Commander implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @param fromStartup
      *            True if call from startup of the server
@@ -229,7 +229,8 @@ public class Commander implements CommanderInterface {
                 }
                 return;
             }
-            logger.debug("Before " + multipleMonitor);
+            //TODO Comment below is temp
+            //logger.debug("Before " + multipleMonitor);
             // First check Configuration
             try {
                 preparedStatementConfig.executeQuery();
@@ -453,7 +454,8 @@ public class Commander implements CommanderInterface {
                 // no more task to submit
                 return;
             }
-            logger.debug("start runner");
+            //TODO Comment below is temp
+            //logger.debug("start runner");
             // Check TaskRunner
             try {
                 DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
@@ -520,7 +522,8 @@ public class Commander implements CommanderInterface {
             } finally {
                 preparedStatementRunner.close();
             }
-            logger.debug("end commander");
+            //TODO Comment below is temp
+            //logger.debug("end commander");
         } finally {
             if (multipleMonitor != null) {
                 try {
