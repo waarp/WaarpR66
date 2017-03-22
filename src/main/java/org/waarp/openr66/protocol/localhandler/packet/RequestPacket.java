@@ -347,17 +347,6 @@ public class RequestPacket extends AbstractLocalPacket {
         }
         byte[] away = new byte[1];
         away[0] = way;
-        //2.4.10
-        /*
-        //Separator is " "
-        logger.error("me: sep: \"" + this.separator + "\"");
-        middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), " "
-                .getBytes(), Integer.toString(blocksize).getBytes(), " "
-                .getBytes(), Integer.toString(rank).getBytes(), " ".getBytes(),
-                Long.toString(specialId).getBytes(), " ".getBytes(),
-                Character.toString(code).getBytes());
-        */
-        //3.0.7
         if (lcr.getPartner() != null && lcr.getPartner().useJson()) {
             logger.debug("Request will use JSON " + lcr.getPartner().toString());
             ObjectNode node = JsonHandler.createObjectNode();

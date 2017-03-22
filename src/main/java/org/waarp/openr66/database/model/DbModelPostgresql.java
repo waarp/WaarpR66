@@ -49,8 +49,8 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
      * 
      * @throws WaarpDatabaseNoConnectionException
      */
-    public DbModelPostgresql(String dbserver, String dbuser, String dbpasswd) throws WaarpDatabaseNoConnectionException {
-        super(dbserver, dbuser, dbpasswd);
+    public DbModelPostgresql() throws WaarpDatabaseNoConnectionException {
+        super();
     }
 
     /**

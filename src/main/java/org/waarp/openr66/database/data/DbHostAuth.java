@@ -333,7 +333,6 @@ public class DbHostAuth extends AbstractDbData {
         if (Configuration.configuration.getAliases().containsKey(hostid)) {
             this.hostid = Configuration.configuration.getAliases().get(hostid);
         }
-        logger.debug("looking for host: " + this.hostid);
         // load from DB
         select();
     }

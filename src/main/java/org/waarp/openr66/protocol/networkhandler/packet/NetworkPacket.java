@@ -22,9 +22,6 @@ import io.netty.buffer.Unpooled;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
-
 
 /**
  * Network Packet A Packet is composed of one global length field, two Id (4 bytes x 2) and a
@@ -42,7 +39,6 @@ public class NetworkPacket {
 
     private final byte code;
 
-    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(NetworkPacket.class);
     /**
      * @param localId
      * @param remoteId
@@ -106,10 +102,6 @@ public class NetworkPacket {
      */
     public ByteBuf getNetworkPacket() {
         final ByteBuf buf = Unpooled.buffer(13);
-        logger.error("me: Network write:\n " + (int)(buffer.readableBytes() + 9) + ";" + remoteId + ";" + localId 
-            + ";" + code + "/[" + buffer.readableBytes() + "]");
-
-
         buf.writeInt(buffer.readableBytes() + 9);
         buf.writeInt(remoteId);
         buf.writeInt(localId);

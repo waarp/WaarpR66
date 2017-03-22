@@ -53,10 +53,7 @@ public class DbModelFactory extends org.waarp.common.database.model.DbModelFacto
                 dbModel = new DbModelOracle(dbserver, dbuser, dbpasswd);
                 break;
             case PostGreSQL:
-                // TMP
-                System.out.println("!!! Initialize PgSQLPool");
-                //dbModel = new DbModelPostgresql();
-                dbModel = new DbModelPostgresql(dbserver, dbuser, dbpasswd);
+                dbModel = new DbModelPostgresql();
                 break;
             case MySQL:
                 dbModel = new DbModelMysql(dbserver, dbuser, dbpasswd);

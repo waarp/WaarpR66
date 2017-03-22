@@ -23,8 +23,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.KeepAlivePacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
@@ -34,8 +32,6 @@ import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
 
 /**
  * Packet Decoder
@@ -43,7 +39,6 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
-    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(NetworkPacketCodec.class);
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
@@ -56,11 +51,6 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
         }
         // Mark the current buffer position
         buf.markReaderIndex();
-
-        logger.error("me: Network read: " + buf.readInt() + ";" + buf.readInt() + ";" + buf.readInt() 
-            + ";" + buf.readByte() + "/[" + buf.readableBytes() + "]");
-        buf.resetReaderIndex();
-
         // Read the length field
         final int length = buf.readInt();
         if (length < 9) {

@@ -23,9 +23,6 @@ import io.netty.buffer.Unpooled;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
-import org.waarp.common.logging.WaarpLogger;
-import org.waarp.common.logging.WaarpLoggerFactory;
-
 /**
  * This class represents Abstract Packet with its header, middle and end parts. A Packet is composed
  * of one Header part, one Middle part (data), and one End part. Header: length field (4 bytes) =
@@ -41,8 +38,6 @@ public abstract class AbstractLocalPacket {
     protected ByteBuf middle;
 
     protected ByteBuf end;
-
-    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(AbstractLocalPacket.class);
 
     public AbstractLocalPacket(ByteBuf header, ByteBuf middle,
             ByteBuf end) {
@@ -87,14 +82,6 @@ public abstract class AbstractLocalPacket {
     @Override
     public abstract String toString();
 
-    private String readBuffer(ByteBuf buf) {
-        String res = "";
-        while (buf.isReadable()) {
-            res = res + buf.readByte() + ",";
-        }
-        return res;
-    }
-
     /**
      * @param lcr
      *            the LocalChannelReference in use
@@ -122,8 +109,6 @@ public abstract class AbstractLocalPacket {
         final ByteBuf newEnd = end != null ? end
                 : Unpooled.EMPTY_BUFFER;
         final int endLength = newEnd.readableBytes();
-        logger.error("me: Local write: " + headerLength + ";" + middleLength + ";" + endLength 
-            + ";" + getType() + "/[" + readBuffer(buf) + "]");
         buf.writeInt(headerLength);
         buf.writeInt(middleLength);
         buf.writeInt(endLength);
