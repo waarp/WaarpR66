@@ -22,6 +22,8 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -33,6 +35,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
  * @author "Frederic Bregier"
  *
  */
+@JsonAutoDetect(fieldVisibility = Visibility.NONE, getterVisibility = Visibility.ANY, setterVisibility = Visibility.ANY) 
 public class TransferRequestJsonPacket extends JsonPacket {
 
     protected static final byte REQVALIDATE = 0;
@@ -57,7 +60,7 @@ public class TransferRequestJsonPacket extends JsonPacket {
 
     protected long originalSize;
 
-    protected String fileInformation;
+    protected String fileInformation = "";
 
     protected String separator = PartnerConfiguration.BAR_JSON_FIELD;
 
@@ -273,6 +276,9 @@ public class TransferRequestJsonPacket extends JsonPacket {
      *            the fileInformation to set
      */
     public void setFileInformation(String fileInformation) {
+        if (fileInformation == null) {
+            fileInformation = "";
+        }
         this.fileInformation = fileInformation;
     }
 

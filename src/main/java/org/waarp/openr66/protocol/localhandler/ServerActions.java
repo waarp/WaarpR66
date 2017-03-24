@@ -2409,7 +2409,7 @@ public class ServerActions extends ConnectionActions {
         }
         DbTaskRunner taskRunner = null;
         long tid = DbConstant.ILLEGALVALUE;
-        if (request.getSpecialId() != DbConstant.ILLEGALVALUE) {
+        if (request.getSpecialId() != 0 || request.getSpecialId() == DbConstant.ILLEGALVALUE) {
             tid = request.getSpecialId();
         }
         if (tid != DbConstant.ILLEGALVALUE) {
