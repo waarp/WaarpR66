@@ -21,6 +21,7 @@
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -295,6 +296,7 @@ public class TransferRequestJsonPacket extends JsonPacket {
      * 
      * @param runner
      */
+    @JsonIgnore
     public void setFromDbTaskRunner(DbTaskRunner runner) {
         this.blocksize = runner.getBlocksize();
         this.rank = runner.getRank();
