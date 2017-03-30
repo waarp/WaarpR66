@@ -138,7 +138,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
         String answer = result.toString();
         ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
         HttpResponse response = handler.getResponse(buffer);
-        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
         if (status == HttpResponseStatus.UNAUTHORIZED) {
             ChannelFuture future = ctx.writeAndFlush(response);
             return future;

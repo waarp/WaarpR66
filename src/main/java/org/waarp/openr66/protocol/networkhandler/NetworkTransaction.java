@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.networkhandler;
 import static org.waarp.openr66.context.R66FiniteDualStates.AUTHENTR;
 
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -241,8 +242,14 @@ public class NetworkTransaction {
     }
 
     private static final NetworkChannelReference getBlacklistNCR(SocketAddress sa) {
-        return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(((InetSocketAddress) sa).getAddress()
-                .getHostAddress().hashCode());
+        InetAddress address = ((InetSocketAddress) sa).getAddress();
+        if (address == null) {
+            return null;
+        }
+
+        return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(
+                address.getHostAddress().hashCode()
+        );
     }
 
     private static final WaarpLock getChannelLock(SocketAddress socketAddress) {
@@ -788,6 +795,10 @@ public class NetworkTransaction {
             return false;
         }
         SocketAddress address = channel.remoteAddress();
+        if (address == null) {
+            return false;
+        }
+
         NetworkChannelReference networkChannelReference = getBlacklistNCR(address);
         return (networkChannelReference != null);
     }
