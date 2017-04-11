@@ -224,7 +224,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         try {
             auth = new DbHostAuth(dbSession, server);
         } catch (WaarpDatabaseException e) {
-            logger.warn("Cannot find the authentication {}", server, e);
+            logger.warn("Cannot find the authentication {}", server);
             return null;
         }
         return auth;
