@@ -54,9 +54,8 @@ public class MoveTask extends AbstractTask {
         logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
                 session);
         String directory = argRule;
-        directory = getReplacedValue(directory, argTransfer.split(" ")).replace('\\', '/');
-        String finalname = directory.split(" ")[0] + R66Dir.SEPARATOR +
-                session.getFile().getBasename();
+        directory = getReplacedValue(directory, argTransfer.split(" ")).trim().replace('\\', '/');
+        String finalname = directory + R66Dir.SEPARATOR + session.getFile().getBasename();
         File from = session.getFile().getTrueFile();
         File to = new File(finalname);
         try {
