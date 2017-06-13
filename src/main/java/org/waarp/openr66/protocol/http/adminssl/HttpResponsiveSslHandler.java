@@ -1954,6 +1954,9 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 writeResponse(ctx);
                 return;
             }
+        } else {
+            sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED);
+            return;
         }
         boolean getMenu = false;
         if (params.containsKey("Logon")) {
