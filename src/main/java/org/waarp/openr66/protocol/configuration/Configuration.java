@@ -655,7 +655,7 @@ public class Configuration {
         handlerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("SubTask"));
         localBossGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalBoss"));
-        localWorkerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalWorker"));
+        localWorkerGroup = new NioEventLoopGroup(3*getCLIENT_THREAD(), new WaarpThreadFactory("LocalWorker"));
         localTransaction = new LocalTransaction();
         WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
         if (isWarnOnStartup()) {
