@@ -17,7 +17,7 @@
  */
 package org.waarp.openr66.commander;
 
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -70,8 +70,8 @@ public class InternalRunner {
         }
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new WaarpThreadFactory("InternalRunner"));
         isRunning = true;
-        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
-        threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.getRUNNER_THREAD(),
+        BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
+        threadPoolExecutor = new ThreadPoolExecutor(Configuration.configuration.getRUNNER_THREAD(), Configuration.configuration.getRUNNER_THREAD(),
                 1000, TimeUnit.MILLISECONDS, workQueue);
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
                 Configuration.configuration.getDelayCommander(),
