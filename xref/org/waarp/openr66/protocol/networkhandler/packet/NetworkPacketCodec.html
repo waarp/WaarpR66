@@ -91,27 +91,28 @@
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>                      nc.useIfUsed();
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>                  }
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>                  ctx.writeAndFlush(response.getNetworkPacket());
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              }
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              <em class="jxr_comment">// Replaced by a NoOp packet</em>
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>              networkPacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(localId, remoteId, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/packet/NoOpPacket.html">NoOpPacket</a>(), <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>              <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/NetworkServerHandler.html">NetworkServerHandler</a> nsh = (NetworkServerHandler) ctx.pipeline().last();
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>              nsh.setKeepAlivedSent();
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>          }
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          out.add(networkPacket);
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      }
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>  
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      @Override
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> encode(ChannelHandlerContext ctx, <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> msg, ByteBuf out) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>          <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> packet = (NetworkPacket) msg;
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>          <strong class="jxr_keyword">final</strong> ByteBuf finalBuf = packet.getNetworkPacket();
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          out.writeBytes(finalBuf);
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>         finalBuf.release();
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <em class="jxr_comment">//msg.getBuffer().release();</em>
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>     }
-<a class="jxr_linenumber" name="L103" href="#L103">103</a> 
-<a class="jxr_linenumber" name="L104" href="#L104">104</a> }
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>                  buffer.release();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>              }
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              <em class="jxr_comment">// Replaced by a NoOp packet</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              networkPacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(localId, remoteId, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/packet/NoOpPacket.html">NoOpPacket</a>(), <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/NetworkServerHandler.html">NetworkServerHandler</a> nsh = (NetworkServerHandler) ctx.pipeline().last();
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              nsh.setKeepAlivedSent();
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          }
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          out.add(networkPacket);
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      @Override
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> encode(ChannelHandlerContext ctx, <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> msg, ByteBuf out) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a> packet = (NetworkPacket) msg;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <strong class="jxr_keyword">final</strong> ByteBuf finalBuf = packet.getNetworkPacket();
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         out.writeBytes(finalBuf);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         finalBuf.release();
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         <em class="jxr_comment">//msg.getBuffer().release();</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     }
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2017 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2018 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

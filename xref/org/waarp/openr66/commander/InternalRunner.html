@@ -25,7 +25,7 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">package</strong> org.waarp.openr66.commander;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ArrayBlockingQueue;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.LinkedBlockingQueue;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.BlockingQueue;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Executors;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ScheduledExecutorService;
@@ -78,8 +78,8 @@
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>          }
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(<strong class="jxr_keyword">new</strong> WaarpThreadFactory(<span class="jxr_string">"InternalRunner"</span>));
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          isRunning = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          BlockingQueue&lt;Runnable&gt; workQueue = <strong class="jxr_keyword">new</strong> ArrayBlockingQueue&lt;Runnable&gt;(10);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          threadPoolExecutor = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(10, Configuration.configuration.getRUNNER_THREAD(),
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          BlockingQueue&lt;Runnable&gt; workQueue = <strong class="jxr_keyword">new</strong> LinkedBlockingQueue&lt;Runnable&gt;();
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          threadPoolExecutor = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(Configuration.configuration.getRUNNER_THREAD(), Configuration.configuration.getRUNNER_THREAD(),
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>                  1000, TimeUnit.MILLISECONDS, workQueue);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>          scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>                  Configuration.configuration.getDelayCommander(),
@@ -163,6 +163,6 @@
 <a class="jxr_linenumber" name="L155" href="#L155">155</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2017 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2018 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -16,6 +16,7 @@ org.waarp.openr66.context.task.test
 org.waarp.openr66.database
 org.waarp.openr66.database.data
 org.waarp.openr66.database.model
+org.waarp.openr66.exception
 org.waarp.openr66.protocol.configuration
 org.waarp.openr66.protocol.exception
 org.waarp.openr66.protocol.http

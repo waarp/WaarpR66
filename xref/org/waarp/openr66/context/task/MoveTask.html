@@ -62,27 +62,26 @@
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>          logger.info(<span class="jxr_string">"Move with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>,
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>                  session);
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          String directory = argRule;
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          directory = getReplacedValue(directory, argTransfer.split(<span class="jxr_string">" "</span>)).replace('&#92;&#92;', '/');
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          String finalname = directory.split(<span class="jxr_string">" "</span>)[0] + R66Dir.SEPARATOR +
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>                  session.getFile().getBasename();
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          File from = session.getFile().getTrueFile();
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          File to = <strong class="jxr_keyword">new</strong> File(finalname);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>              FileUtils.copy(from, to, <strong class="jxr_keyword">true</strong>, false);
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>          } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>              logger.error(<span class="jxr_string">"Move with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" to "</span> + finalname + <span class="jxr_string">" and "</span> +
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>                      session, e);
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>              futureCompletion.setFailure(e);
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>              <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          }
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          session.getRunner().setFileMoved(finalname, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>      }
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          directory = getReplacedValue(directory, argTransfer.split(<span class="jxr_string">" "</span>)).trim().replace('&#92;&#92;', '/');
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          String finalname = directory + R66Dir.SEPARATOR + session.getFile().getBasename();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          File from = session.getFile().getTrueFile();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          File to = <strong class="jxr_keyword">new</strong> File(finalname);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              FileUtils.copy(from, to, <strong class="jxr_keyword">true</strong>, false);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          } <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              logger.error(<span class="jxr_string">"Move with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" to "</span> + finalname + <span class="jxr_string">" and "</span> +
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                      session, e);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>              futureCompletion.setFailure(e);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          session.getRunner().setFileMoved(finalname, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      }
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2017 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2018 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

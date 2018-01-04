@@ -60,7 +60,7 @@
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>      @Override
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>          String finalname = argRule;
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)).replace('&#92;&#92;', '/');
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)).trim().replace('&#92;&#92;', '/');
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          logger.info(<span class="jxr_string">"Copy and Rename to "</span> + finalname + <span class="jxr_string">" with "</span> + argRule +
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>                  <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>, session);
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>          File from = session.getFile().getTrueFile();
@@ -79,6 +79,6 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2017 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2018 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>
