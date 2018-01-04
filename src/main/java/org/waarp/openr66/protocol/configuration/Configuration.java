@@ -75,6 +75,7 @@ import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.exception.ServerException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpInitializer;
@@ -655,7 +656,7 @@ public class Configuration {
         handlerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("Handler"));
         subTaskGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("SubTask"));
         localBossGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalBoss"));
-        localWorkerGroup = new NioEventLoopGroup(getCLIENT_THREAD(), new WaarpThreadFactory("LocalWorker"));
+        localWorkerGroup = new NioEventLoopGroup(3*getCLIENT_THREAD(), new WaarpThreadFactory("LocalWorker"));
         localTransaction = new LocalTransaction();
         WaarpLoggerFactory.setDefaultFactory(WaarpLoggerFactory.getDefaultFactory());
         if (isWarnOnStartup()) {
@@ -685,7 +686,7 @@ public class Configuration {
      * @throws WaarpDatabaseNoConnectionException
      */
     public void serverStartup() throws WaarpDatabaseNoConnectionException,
-            WaarpDatabaseSqlException {
+            WaarpDatabaseSqlException, ServerException {
         setServer(true);
         if (isBlacklistBadAuthent()) {
             setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts(DbConstant.admin.getSession()));
@@ -721,7 +722,8 @@ public class Configuration {
         }
     }
 
-    public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+    public void r66Startup() throws WaarpDatabaseNoConnectionException, 
+             WaarpDatabaseSqlException, ServerException {
         logger.info(Messages.getString("Configuration.Start") + getSERVER_PORT() + ":" + isUseNOSSL() + ":" + getHOST_ID() + //$NON-NLS-1$
                 " " + getSERVER_SSLPORT() + ":" + isUseSSL() + ":" + getHOST_SSLID());
         // add into configuration
@@ -738,7 +740,7 @@ public class Configuration {
                 bindNoSSL = future.channel();
                 serverChannelGroup.add(bindNoSSL);
             } else {
-                logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
+                throw new ServerException(Messages.getString("Configuration.R66NotBound"), future.cause());
             }
         } else {
             networkServerInitializer = null;
@@ -756,7 +758,7 @@ public class Configuration {
                 bindSSL = future.channel();
                 serverChannelGroup.add(bindSSL);
             } else {
-                logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
+                throw new ServerException(Messages.getString("Configuration.R66SSLNotBound"), future.cause());
             }
         } else {
             networkSslServerInitializer = null;

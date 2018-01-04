@@ -102,7 +102,7 @@ var prepareTable = function() {
 			return TASKSTEP[data];
 		case 11:
 		case 13:
-			return ErrorCode[data];
+			return ErrorCode[data.trim()];
 		case 14:
 			return UpdatedInfo[data];
 		case 20:

@@ -648,7 +648,7 @@ public class SpooledDirectoryTransfer implements Runnable {
         protected List<String> rhosts = new ArrayList<String>();
         protected List<String> localDirectory = new ArrayList<String>();
         protected String rule = null;
-        protected String fileInfo = null;
+        protected String fileInfo = NO_INFO_ARGS;
         protected boolean ismd5 = false;
         protected int block = 0x10000; // 64K as default
         protected String statusfile = null;
