@@ -1769,9 +1769,10 @@ public class FileBasedConfiguration {
      * Load database parameter
      * 
      * @param config
+     * @param checkInit
      * @return True if OK
      */
-    private static boolean loadDatabase(Configuration config) {
+    private static boolean loadDatabase(Configuration config, boolean checkInit) {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_DB));
         try {
             XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
@@ -1850,19 +1851,25 @@ public class FileBasedConfiguration {
                 }
                 // Check if the database is ready (initdb already done before)
                 DbRequest request = null;
-                try {
-                    request = new DbRequest(DbConstant.admin.getSession());
+                if (checkInit) {
                     try {
-                        request.select("SELECT * FROM " + DbConfiguration.table);
-                    } catch (WaarpDatabaseSqlException e) {
-                        logger.warn(Messages.getString("Database.DbNotInitiated"), e); //$NON-NLS-1$
-                        return true;
-                    } finally {
-                        request.close();
-                    }
-                } catch (WaarpDatabaseNoConnectionException e1) {
+                        request = new DbRequest(DbConstant.admin.getSession());
+                        try {
+                            request.select("SELECT * FROM " + DbConfiguration.table);
+                        } catch (WaarpDatabaseSqlException e) {
+                            logger.warn(Messages.getString("Database.DbNotInitiated"), e); //$NON-NLS-1$
+                            return true;
+                        } finally {
+                            request.close();
+                        }
+                    } catch (WaarpDatabaseNoConnectionException e1) {
                     // ignore
+                    /* TODO: Why Ignore? 
+                     * throwing bad configuration seems better
+                     */
+                    }
                 }
+
                 value = hashConfig.get(XML_DBCHECK);
                 if (value != null && (!value.isEmpty())) {
                     checkDatabase = value.getBoolean();
@@ -2127,7 +2134,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2179,7 +2186,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2250,7 +2257,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2334,7 +2341,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2429,7 +2436,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2514,7 +2521,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config)) {
+        if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
