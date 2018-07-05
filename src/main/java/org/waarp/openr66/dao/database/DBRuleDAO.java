@@ -15,6 +15,9 @@ import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
 
+/**
+ * Implementation of RuleDAO for a standard SQL database
+ */
 public class DBRuleDAO implements RuleDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBRuleDAO.class);

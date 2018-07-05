@@ -14,6 +14,9 @@ import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
 
+/**
+ * Implementation of BusinessDAO for a standard SQL database
+ */
 public class DBBusinessDAO implements BusinessDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBBusinessDAO.class);

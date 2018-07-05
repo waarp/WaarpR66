@@ -14,6 +14,9 @@ import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Host;
 
+/**
+ * Implementation of BusinessDAO for a standard SQL database
+ */
 public class DBHostDAO implements HostDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBHostDAO.class);
@@ -257,19 +260,6 @@ public class DBHostDAO implements HostDAO {
                 set.getBoolean(IS_PROXIFIED_FIELD),
                 set.getBoolean(ADMINROLE_FIELD),
                 set.getBoolean(IS_ACTIVE_FIELD));
-        /*
-           Host host = new Host(
-           host.setHostid(set.getNString(HOSTID_FIELD));
-           host.setAddress(set.getNString(ADDRESS_FIELD));
-           host.setPort(set.getInt(PORT_FIELD));
-           host.setIsSSL(set.getBoolean(IS_SSL_FIELD));
-           host.setIsClient(set.getBoolean(IS_CLIENT_FIELD));
-           host.setIsActive(set.getBoolean(IS_ACTIVE_FIELD));
-           host.setIsProxified(set.getBoolean(IS_PROXIFIED_FIELD));
-           host.setHostkey(set.getNstring(HOSTKEY_FIELD));
-           host.setAdminrole(set.getBoolean(ADMINROLE_FIELD));
-           return host;
-           */
     }
 }
 

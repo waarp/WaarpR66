@@ -14,6 +14,9 @@ import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
 
+/**
+ * Implementation of TransferDAO for a standard SQL database
+ */
 public class DBTransferDAO implements TransferDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBTransferDAO.class);

@@ -14,6 +14,9 @@ import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Limit;
 
+/**
+ * Implementation of LimitDAO for a standard SQL database
+ */
 public class DBLimitDAO implements LimitDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LimitDAO.class);

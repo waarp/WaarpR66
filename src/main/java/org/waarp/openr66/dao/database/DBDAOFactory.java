@@ -9,6 +9,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.exception.DAOException;
 
+/**
+ * DAOFactory for standard SQL databases
+ */
 public class DBDAOFactory extends DAOFactory {
 
     private static WaarpLogger logger = WaarpLoggerFactory.getLogger(DBDAOFactory.class);
@@ -67,6 +70,11 @@ public class DBDAOFactory extends DAOFactory {
         return new DBTransferDAO(getConnection());
     }
 
+    /**
+     * Close the DBDAOFactory and close the ConnectionFactory if one was
+     * provided.
+     * Warning: You need to close the Connection yourself!
+     */
     public void close() {
         logger.debug("Closing DAOFactory.");
         if (sharedConnection != null) {

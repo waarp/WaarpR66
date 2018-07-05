@@ -14,6 +14,9 @@ import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.MultipleMonitor;
 
+/**
+ * Implementation of MultipleMonitorDAO for a standard SQL database
+ */
 public class DBMultipleMonitorDAO implements MultipleMonitorDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBMultipleMonitorDAO.class);
