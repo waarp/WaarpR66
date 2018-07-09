@@ -34,6 +34,12 @@ local.properties
 # PDT-specific
 .buildpath
 
+
+#################
+# Intellij
+#################
+.idea
+
 #################
 ## Java
 #################
