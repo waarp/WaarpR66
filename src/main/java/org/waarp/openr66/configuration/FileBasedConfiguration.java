@@ -40,6 +40,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.database.model.DbType;
+import org.waarp.common.database.ConnectionFactory;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.CryptoException;
@@ -1822,6 +1823,14 @@ public class FileBasedConfiguration {
                     DbConstant.admin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
+                    try {
+                        DbConstant.connectionFactory = new ConnectionFactory(
+                            ConnectionFactory.propertiesFor(dbserver),  dbserver,
+                            dbuser, dbpasswd);
+                    } catch (SQLException e) {
+                        logger.error("Cannot create ConnectionFactory", e);
+                    }
+
                     if (config.getMultipleMonitors() > 1) {
                         DbConstant.noCommitAdmin =
                                 DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,

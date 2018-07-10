@@ -79,10 +79,10 @@ public abstract class DAOFactory {
      * a file based DAO if the Connection is null.
      */
     public static DAOFactory getDAOFactory(Connection connection) {
-        if(con == null) {
+        if(connection == null) {
             //return new NoDBDAOFactory();
         }
-        return new DBDAOFactory(con);
+        return new DBDAOFactory(connection);
     }
 
     /**
