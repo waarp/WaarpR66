@@ -17,6 +17,14 @@ public class RuleTask {
         this.delay = delay;
     }
 
+    public String getXML() {
+        String res = "<task>";
+        res = res + "<type>" + type + "</type>";
+        res = res + "<path>" + path + "</path>";
+        res = res + "<delay>" + delay + "</delay>";
+        return res + "</task>";
+    }
+
     public String getType() {
         return this.type;
     }

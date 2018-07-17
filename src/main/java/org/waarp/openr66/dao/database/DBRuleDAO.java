@@ -1,5 +1,7 @@
 package org.waarp.openr66.dao.database;
 
+import java.io.StringReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.Connection;
@@ -7,6 +9,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -34,7 +47,7 @@ public class DBRuleDAO implements RuleDAO {
     protected static String R_PRE_TASKS_FIELD = "rpretask";
     protected static String R_POST_TASKS_FIELD = "rposttask";
     protected static String R_ERROR_TASKS_FIELD = "rerrortask";
-    protected static String S_PRE_TASKS_FIELD = "sprestask";
+    protected static String S_PRE_TASKS_FIELD = "spretask";
     protected static String S_POST_TASKS_FIELD = "sposttask";
     protected static String S_ERROR_TASKS_FIELD = "serrortask";
 
@@ -290,14 +303,63 @@ public class DBRuleDAO implements RuleDAO {
                 );
     }
 
-    private List<String> retrieveHostids(String xml) {
-        //TODO implement retrieveHostids
-        return new ArrayList<String>();
+    private List<String> retrieveHostids(String xml) throws SQLException {
+        DocumentBuilder builder = null;
+        try {
+            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new SQLException("Cannot parse rule.hostids", e);
+        }
+        InputSource src = new InputSource(new StringReader(xml));
+
+        Document doc = null;
+        try {
+            doc = builder.parse(src);
+        } catch (SAXException e) {
+            throw new SQLException("A parsing error occurs", e);
+        } catch (IOException e) {
+            throw new SQLException("A I/O error occurs", e);
+        }
+        NodeList list = doc.getElementsByTagName("hostid");
+        int length = list.getLength();
+        ArrayList<String> res = new ArrayList<String>(length);
+        for (int i = 0; i < length; i++) {
+            res.add(list.item(i).getTextContent());
+        }
+        return res;
     }
 
-    private List<RuleTask> retrieveTasks(String xml) {
-        //TODO implement retrieveTasks
-        return new ArrayList<RuleTask>();
+    private List<RuleTask> retrieveTasks(String xml) throws SQLException {
+        DocumentBuilder builder = null;
+        try {
+            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new SQLException("Cannot parse tasks", e);
+        }
+        InputSource src = new InputSource(new StringReader(xml));
+
+        Document doc = null;
+        try {
+            doc = builder.parse(src);
+        } catch (SAXException e) {
+            throw new SQLException("A parsing error occurs", e);
+        } catch (IOException e) {
+            throw new SQLException("A I/O error occurs", e);
+        }
+        NodeList list = doc.getElementsByTagName("task");
+        int length = list.getLength();
+        ArrayList<RuleTask> res = new ArrayList<RuleTask>(length);
+        for (int i = 0; i < length; i++) {
+            NodeList details = list.item(i).getChildNodes();
+            Element e = (Element) details;
+
+            String type = e.getElementsByTagName("type").item(0).getTextContent();
+            String path = e.getElementsByTagName("path").item(0).getTextContent();
+            int delay = Integer.parseInt(e.getElementsByTagName("delay")
+                      .item(0).getTextContent());
+            res.add(new RuleTask(type, path, delay));
+        }
+        return res;   
     }
 }
 

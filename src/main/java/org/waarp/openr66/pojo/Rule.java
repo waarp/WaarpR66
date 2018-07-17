@@ -75,39 +75,52 @@ public class Rule {
         return hostids.contains(hostid);
     }
 
+    @Deprecated
     public String getXMLHostids() {
-        //TODO implement getXMLHostids
-        return "";
+        String res = "<hostids>";
+        for (String hostid : this.hostids) {
+            res = res + "<hostid>" + hostid + "</hostid>";
+        }
+        return res + "</hostids>";
     }
 
+    @Deprecated
     public String getXMLRPreTasks() {
-        //TODO implement getXMLRPreTasks
-        return "";
+        return getXMLTasks(this.rPreTasks);
     }
 
+    @Deprecated
     public String getXMLRPostTasks() {
-        //TODO implement getXMLRPostTasks
-        return "";
+        return getXMLTasks(this.rPostTasks);
     }
 
+    @Deprecated
     public String getXMLRErrorTasks() {
-        //TODO implement getXMLRErrorTasks
-        return "";
+        return getXMLTasks(this.rErrorTasks);
     }
 
+    @Deprecated
     public String getXMLSPreTasks() {
-        //TODO implement getXMLSPreTasks
-        return "";
+        return getXMLTasks(this.sPreTasks);
     }
 
+    @Deprecated
     public String getXMLSPostTasks() {
-        //TODO implement getXMLSPostTasks
-        return "";
+        return getXMLTasks(this.sPostTasks);
     }
 
+    @Deprecated
     public String getXMLSErrorTasks() {
-        //TODO implement getXMLSErrorTasks
-        return "";
+        return getXMLTasks(this.sErrorTasks);
+    }
+
+    @Deprecated
+    private String getXMLTasks(List<RuleTask> tasks) {
+        String res = "<tasks>";
+        for (RuleTask task : tasks) {
+            res = res + task.getXML();
+        }
+        return res + "</tasks>";
     }
 
     public String getName() {
