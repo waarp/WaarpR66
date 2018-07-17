@@ -20,6 +20,8 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
+import org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils;
+
 import java.util.Calendar;
 
 /** Transfer POJO for Rest HTTP support for R66. */
@@ -151,4 +153,15 @@ public class Transfer {
 
     /** Host id of the host to which the transfer was requested. */
     public String requested;
+
+
+
+
+    public String getStartTrans() {
+        return HandlerUtils.fromCalendar(this.startTrans);
+    }
+
+    public String getStopTrans() {
+        return HandlerUtils.fromCalendar(this.stopTrans);
+    }
 }

@@ -29,6 +29,7 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.test.TestRule;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,7 +57,7 @@ public final class Rules {
 
         throw new OpenR66RestIdNotFoundException(
                 "{" +
-                        "\"userMessage\":\"Not Found\"," +
+                        "\"userMessage\":\"Id not found\"," +
                         "\"internalMessage\":\"The rule of id '" + id + "' does not exist.\"" +
                         "}"
         );
@@ -81,8 +82,41 @@ public final class Rules {
      * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
      */
     public static void replace(String id, Rule newRule) throws OpenR66RestIdNotFoundException {
+        for (Field field : Rule.class.getFields()) {
+            try {
+                Object value = field.get(newRule);
+                if (value == null || value.toString().equals("")) {
+                    throw OpenR66RestBadRequestException.emptyField(field.getName());
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            }
+        }
         //TODO: replace by a real database request
         Rule oldRule = loadRule(id);
+        TestRule.rulesDb.remove(oldRule);
+        TestRule.rulesDb.add(newRule);
+    }
+
+    /**
+     * Replaces this rule entry with the one passed as argument.
+     *
+     * @param newRule The new entry that replaces this one.
+     * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
+     */
+    public static void update(String id, Rule newRule) throws OpenR66RestIdNotFoundException {
+        Rule oldRule = loadRule(id);
+        for (Field field : Rule.class.getFields()) {
+            try {
+                Object value = field.get(newRule);
+                if (value == null || value.toString().equals("")) {
+                    field.set(newRule, field.get(oldRule));
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            }
+        }
+        //TODO: replace by a real database request
         TestRule.rulesDb.remove(oldRule);
         TestRule.rulesDb.add(newRule);
     }
@@ -98,28 +132,17 @@ public final class Rules {
         try {
             //check if the rule already exists
             loadRule(rule.ruleID);
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The requested id already exists in the database.\"" +
-                            "}"
-            );
+            throw OpenR66RestBadRequestException.alreadyExisting("rule", rule.ruleID);
         } catch (OpenR66RestIdNotFoundException e) {
-            if (rule.ruleID.equals("")) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The rule id cannot be empty.\"" +
-                                "}"
-                );
-            }
-            if (rule.modeTrans.equals("")) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The mode of transfer cannot be empty.\"" +
-                                "}"
-                );
+            for (Field field : Rule.class.getFields()) {
+                try {
+                    Object value = field.get(rule);
+                    if (value == null || value.toString().equals("")) {
+                        throw OpenR66RestBadRequestException.emptyField(field.getName());
+                    }
+                } catch (IllegalAccessException ignore) {
+                    assert false;
+                }
             }
             TestRule.rulesDb.add(rule);
         }
@@ -160,29 +183,24 @@ public final class Rules {
                 } else {
                     throw new OpenR66RestBadRequestException(
                             "{" +
-                                    "\"userMessage\":\"Bad Request\"," +
-                                    "\"internalMessage\":\"Unknown parameter '" + name + "'.\"" +
+                                    "\"userMessage\":\"Unknown parameter\"," +
+                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown.\"" +
                                     "}"
                     );
                 }
             } catch (OpenR66RestEmptyParamException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' is empty.\"" +
-                                "}"
-                );
+                throw OpenR66RestBadRequestException.emptyParameter(name);
             } catch (NumberFormatException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
+                                "\"userMessage\":\"Expected number\"," +
                                 "\"internalMessage\":\"The parameter '" + name + "' was expecting a number.\"" +
                                 "}"
                 );
             } catch (IllegalArgumentException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
+                                "\"userMessage\":\"Illegal value\"," +
                                 "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
                                 "}"
                 );
@@ -248,14 +266,7 @@ public final class Rules {
         try {
             return mapper.writeValueAsString(rule);
         } catch (JsonProcessingException e) {
-            throw new OpenR66RestInternalServerException(
-                    "{" +
-                            "\"userMessage\":\"JSON Processing Error\"," +
-                            "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
-                            "\"code\":100" +
-                            "}"
-            );
-            //TODO: replace 100 placeholder with the real Json processing error code
+            throw OpenR66RestInternalServerException.jsonProcessing();
         }
     }
 }

@@ -40,6 +40,7 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 
@@ -56,16 +57,14 @@ public class TransfersHandler extends AbstractHttpHandler {
 
         public String ruleID;
 
-        public String fileInfo;
-
-        public Integer blockSize;
-
         public String requested;
+
+        public String fileInfo = "";
+
+        public Integer blockSize = 4096;
 
         public String start;
     }
-
-    private static final int DEFAULT_LIMIT = 20;
 
     /** The list of allowed HTTP methods names on the /v2/transfers URI. Should only be used by the OPTIONS methods. */
     private static final String allow = "GET, POST, OPTIONS";
@@ -122,7 +121,12 @@ public class TransfersHandler extends AbstractHttpHandler {
 
         try {
             TransferInitializer init = HandlerUtils.deserializeRequest(request, TransferInitializer.class);
-            Calendar start = HandlerUtils.toCalendar(init.start);
+            Calendar start;
+            if (init.start == null) {
+                start = new GregorianCalendar();
+            } else {
+                start = HandlerUtils.toCalendar(init.start);
+            }
 
             Transfer newTrans = Transfers.createTransfer(init.fileName, init.ruleID, init.blockSize, init.fileInfo,
                     start, init.requested);

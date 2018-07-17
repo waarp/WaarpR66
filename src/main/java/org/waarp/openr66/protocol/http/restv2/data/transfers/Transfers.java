@@ -59,42 +59,54 @@ public final class Transfers {
     public static Transfer createTransfer(String originalFileName, String ruleID, Integer blockSize, String fileInfo,
                                           Calendar startTrans, String requested) throws OpenR66RestBadRequestException {
 
-        if (blockSize < 1) {
+        if (blockSize <= 0) {
             throw new OpenR66RestBadRequestException(
                     "{" +
-                            "\"userMessage\":\"Bad Request\"," +
+                            "\"userMessage\":\"Empty field\"," +
                             "\"internalMessage\":\"The block size cannot be negative or zero.\"" +
                             "}"
             );
-        }
-        if (startTrans.compareTo(new GregorianCalendar()) < 0) {
+        } else if (startTrans.compareTo(new GregorianCalendar()) < 0) {
             throw new OpenR66RestBadRequestException(
                     "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The starting date cannot be anterior to the current date.\"" +
+                            "\"userMessage\":\"Empty field\"," +
+                            "\"internalMessage\":\"The starting date cannot be in the past.\"" +
                             "}"
             );
-        }
-        if (ruleID.equals("")) {
+        } else if (ruleID == null || ruleID.equals("")) {
             throw new OpenR66RestBadRequestException(
                     "{" +
-                            "\"userMessage\":\"Bad Request\"," +
+                            "\"userMessage\":\"Empty field\"," +
                             "\"internalMessage\":\"The rule id cannot be empty.\"" +
                             "}"
             );
+        } else if (requested == null || requested.equals("")) {
+            throw new OpenR66RestBadRequestException(
+                    "{" +
+                            "\"userMessage\":\"Empty field\"," +
+                            "\"internalMessage\":\"The requested host id cannot be empty.\"" +
+                            "}"
+            );
+        } else if (originalFileName == null || originalFileName.equals("")) {
+            throw new OpenR66RestBadRequestException(
+                    "{" +
+                            "\"userMessage\":\"Empty field\"," +
+                            "\"internalMessage\":\"The file name cannot be empty.\"" +
+                            "}"
+            );
+        } else {
+            Transfer trans = new Transfer();
+            trans.originalFileName = originalFileName;
+            trans.ruleID = ruleID;
+            trans.blockSize = blockSize;
+            trans.fileInfo = fileInfo;
+            trans.startTrans = startTrans;
+            trans.requested = requested;
+
+            TestTransfer.transfersDb.add(trans);
+            //TODO: add the transfer to the database
+            return trans;
         }
-
-        Transfer trans = new Transfer();
-        trans.originalFileName = originalFileName;
-        trans.ruleID = ruleID;
-        trans.blockSize = blockSize;
-        trans.fileInfo = fileInfo;
-        trans.startTrans = startTrans;
-        trans.requested = requested;
-
-        TestTransfer.transfersDb.add(trans);
-        //TODO: add the transfer to the database
-        return trans;
     }
 
     /**
@@ -109,25 +121,18 @@ public final class Transfers {
         Long id;
         try {
             id = Long.valueOf(strId);
-        } catch (NumberFormatException e) {
-            throw new OpenR66RestIdNotFoundException(
-                    "{" +
-                            "\"userMessage\":\"Not Found\"," +
-                            "\"internalMessage\":\"" + strId + " is not a valid transfer id.\"" +
-                            "}"
-            );
-        }
-
-        //TODO: replace by a real database request
-        for (Transfer trans : TestTransfer.transfersDb) {
-            if (trans.transferID.equals(id)) {
-                return trans;
+            //TODO: replace by a real database request
+            for (Transfer trans : TestTransfer.transfersDb) {
+                if (trans.transferID.equals(id)) {
+                    return trans;
+                }
             }
+        } catch (NumberFormatException ignored) {
         }
         throw new OpenR66RestIdNotFoundException(
                 "{" +
                         "\"userMessage\":\"Not Found\"," +
-                        "\"internalMessage\":\"The transfer of id " + id + " does not exist.\"" +
+                        "\"internalMessage\":\"The transfer of id '" + strId + "' does not exist.\"" +
                         "}"
         );
     }
@@ -178,29 +183,25 @@ public final class Transfers {
                 } else {
                     throw new OpenR66RestBadRequestException(
                             "{" +
-                                    "\"userMessage\":\"Bad Request\"," +
-                                    "\"internalMessage\":\"Unknown parameter '" + name + "'.\"" +
+                                    "\"userMessage\":\"Invalid parameter\"," +
+                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown or has multiple " +
+                                    "values.\"" +
                                     "}"
                     );
                 }
             } catch (OpenR66RestEmptyParamException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' is empty.\"" +
-                                "}"
-                );
+                throw OpenR66RestBadRequestException.emptyParameter(name);
             } catch (NumberFormatException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' was expecting a number.\"" +
+                                "\"userMessage\":\"Expected number\"," +
+                                "\"internalMessage\":\"The parameter '" + name + "' is expecting a number.\"" +
                                 "}"
                 );
             } catch (IllegalArgumentException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
+                                "\"userMessage\":\"Illegal value\"," +
                                 "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
                                 "}"
                 );
@@ -343,14 +344,7 @@ public final class Transfers {
         try {
             return mapper.writeValueAsString(trans);
         } catch (JsonProcessingException e) {
-            throw new OpenR66RestInternalServerException(
-                    "{" +
-                            "\"userMessage\":\"JSON Processing Error\"," +
-                            "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
-                            "\"code\":100" +
-                            "}"
-            );
-            //TODO: replace 100 placeholder with the real Json processing error code
+            throw OpenR66RestInternalServerException.jsonProcessing();
         }
     }
 }

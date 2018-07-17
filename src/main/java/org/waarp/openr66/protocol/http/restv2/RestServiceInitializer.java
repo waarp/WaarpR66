@@ -36,13 +36,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-//!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
 public class RestServiceInitializer {
 
     private static final int TEST_PORT = 8080;
 
-    public static void main(String[] args) throws OpenR66RestInitializationException, InterruptedException {
-
+    public static NettyHttpService initRestService() throws OpenR66RestInitializationException {
         Collection<HttpHandler> handlers = new ArrayList<HttpHandler>();
         handlers.add(new TransfersHandler());
         handlers.add(new TransferIdHandler());
@@ -63,6 +61,13 @@ public class RestServiceInitializer {
         } catch (Exception e) {
             throw new OpenR66RestInitializationException();
         }
+
+        return restService;
+    }
+
+    //!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
+    public static void main(String[] args) throws OpenR66RestInitializationException, InterruptedException {
+        NettyHttpService restService = initRestService();
 
         RestServiceInitializer r = new RestServiceInitializer();
         synchronized (r) {

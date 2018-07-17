@@ -18,6 +18,8 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.waarp.openr66.protocol.http.restv2.data.hosts;
 
 
@@ -30,9 +32,7 @@ public class Host {
     /** The host's unique identifier. */
     public String hostID;
 
-    /**
-     * The host's public address. Can be an IP address, or a web address which will then be resolved by DNS.
-     */
+    /** The host's public address. Can be an IP address, or a web address which will then be resolved by DNS. */
     public String address;
 
     /** The server's listening port. Must be between 1 and 65535. */
@@ -55,4 +55,14 @@ public class Host {
 
     /** If true, the address field is actually the address of the proxy used by this host. */
     public Boolean isProxyfied;
+
+    public static class OptionalHost extends Host {
+        public OptionalHost() {
+            this.isSSL = false;
+            this.adminRole = false;
+            this.isClient = false;
+            this.isActive = false;
+            this.isProxyfied = false;
+        }
+    }
 }

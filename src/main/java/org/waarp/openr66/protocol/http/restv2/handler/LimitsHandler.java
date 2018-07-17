@@ -32,12 +32,7 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 
 /**
  * This is the handler for all request made on the 'limits' database, accessible through the "/v2/limits" URI.
@@ -90,7 +85,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     @POST
     public void initializeLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit newLimit = HandlerUtils.deserializeRequest(request, Limit.class);
+            Limit newLimit = HandlerUtils.deserializeRequest(request, Limit.OptionalLimit.class);
             Limits.initLimits(newLimit);
 
             String responseBody = Limits.toJsonString(newLimit);
@@ -116,6 +111,33 @@ public class LimitsHandler extends AbstractHttpHandler {
         try {
             Limit updatedLimits = HandlerUtils.deserializeRequest(request, Limit.class);
             Limits.replace(HOST_ID, updatedLimits);
+
+            String responseBody = Limits.toJsonString(updatedLimits);
+            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+        } catch (OpenR66RestBadRequestException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (OpenR66RestInternalServerException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestIdNotFoundException e) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+        }
+    }
+
+    /**
+     * The method called when a PATCH request is made on /v2/limits. If the request is valid and the host does
+     * already have bandwidth limits, then the config will be replaced by the one in the request, and the updated
+     * limits will be sent in the response. All fields left empty in the request will stay unchanged with their old
+     * values. If the host does not have bandwidth limits to replace, or if the request is invalid, then a
+     * '400 - Bad request' error will be sent instead.
+     *
+     * @param request   The Http request made on the resource.
+     * @param responder The Http responder, Http response are given to it in order to be sent back.
+     */
+    @PATCH
+    public void updateLimits(HttpRequest request, HttpResponder responder) {
+        try {
+            Limit updatedLimits = HandlerUtils.deserializeRequest(request, Limit.class);
+            Limits.update(HOST_ID, updatedLimits);
 
             String responseBody = Limits.toJsonString(updatedLimits);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);

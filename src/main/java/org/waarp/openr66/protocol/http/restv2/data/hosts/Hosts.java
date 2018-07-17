@@ -28,6 +28,7 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.test.TestHost;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,29 +85,25 @@ public final class Hosts {
                 } else {
                     throw new OpenR66RestBadRequestException(
                             "{" +
-                                    "\"userMessage\":\"Bad Request\"," +
-                                    "\"internalMessage\":\"Unknown parameter '" + name + "'.\"" +
+                                    "\"userMessage\":\"Invalid parameter\"," +
+                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown or has too many " +
+                                    "values .\"" +
                                     "}"
                     );
                 }
             } catch (OpenR66RestEmptyParamException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' is empty.\"" +
-                                "}"
-                );
+                throw OpenR66RestBadRequestException.emptyParameter(name);
             } catch (NumberFormatException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' was expecting a number.\"" +
+                                "\"userMessage\":\"Expected number\"," +
+                                "\"internalMessage\":\"The parameter '" + name + "' is expecting a number.\"" +
                                 "}"
                 );
             } catch (IllegalArgumentException e) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
-                                "\"userMessage\":\"Bad Request\"," +
+                                "\"userMessage\":\"Illegal value\"," +
                                 "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
                                 "}"
                 );
@@ -189,28 +186,18 @@ public final class Hosts {
         try {
             //check if the host already exists
             loadHost(host.hostID);
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The requested id already exists in the database.\"" +
-                            "}"
-            );
+            throw OpenR66RestBadRequestException.alreadyExisting("host", host.hostID);
         } catch (OpenR66RestIdNotFoundException e) {
-            if (host.hostID.equals("")) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The host id cannot be empty.\"" +
-                                "}"
-                );
-            }
-            if (host.port < 1 || host.port > 65535) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"The entered port is not a valid port number.\"" +
-                                "}"
-                );
+
+            for(Field field : Host.class.getFields()) {
+                try {
+                    Object value = field.get(host);
+                    if(value == null || value.toString().equals("")) {
+                        throw OpenR66RestBadRequestException.emptyField(field.getName());
+                    }
+                } catch (IllegalAccessException e1) {
+                    assert false;
+                }
             }
             TestHost.hostsDb.add(host);
         }
@@ -257,9 +244,46 @@ public final class Hosts {
      * @param newHost The new entry that replaces this one.
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not exist in the database.
      */
-    public static void replace(String id, Host newHost) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
+    public static void replace(String id, Host newHost) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         Host oldHost = loadHost(id);
+        for (Field field : Host.class.getFields()) {
+            try {
+                Object value = field.get(newHost);
+                if (value == null || value.toString().equals("")) {
+                    throw OpenR66RestBadRequestException.emptyField(field.getName());
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            }
+        }
+        //TODO: replace by a real database request
+        TestHost.hostsDb.remove(oldHost);
+        TestHost.hostsDb.add(newHost);
+    }
+
+    /**
+     * Updates a host entry with the one passed as argument.
+     *
+     * @param newHost The new entry that replaces this one.
+     * @throws OpenR66RestIdNotFoundException Thrown if the host does not exist in the database.
+     */
+    public static void update(String id, Host newHost) throws OpenR66RestIdNotFoundException {
+        Host oldHost = loadHost(id);
+        for (Field field : Host.class.getFields()) {
+            try {
+                Object value = field.get(newHost);
+                if (value == null || value.toString().equals("")) {
+                    field.set(newHost, field.get(oldHost));
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            } catch (IllegalArgumentException e) {
+                assert false;
+            }
+        }
+        //TODO: replace by a real database request
+
         TestHost.hostsDb.remove(oldHost);
         TestHost.hostsDb.add(newHost);
     }
@@ -274,14 +298,7 @@ public final class Hosts {
         try {
             return mapper.writeValueAsString(host);
         } catch (JsonProcessingException e) {
-            throw new OpenR66RestInternalServerException(
-                    "{" +
-                            "\"userMessage\":\"JSON Processing Error\"," +
-                            "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
-                            "\"code\":100" +
-                            "}"
-            );
-            //TODO: replace 100 placeholder with the real Json processing error code
+            throw OpenR66RestInternalServerException.jsonProcessing();
         }
     }
 }

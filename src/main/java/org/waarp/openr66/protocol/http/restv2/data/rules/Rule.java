@@ -20,6 +20,7 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.rules;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -90,7 +91,7 @@ public class Rule {
         public String arguments;
 
         /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
-        public int delay;
+        public Integer delay = 0;
     }
 
     /** The rule's unique identifier. */
@@ -159,4 +160,21 @@ public class Rule {
      * @see Task
      */
     public List<Task> sErrorTasks;
+
+
+    public static class OptionalRule extends Rule {
+        public OptionalRule() {
+            this.hostsIDs = new ArrayList<String>();
+            this.recvPath = "";
+            this.sendPath = "";
+            this.archivePath = "";
+            this.workPath = "";
+            this.rPreTasks = new ArrayList<Task>();
+            this.rPostTasks = new ArrayList<Task>();
+            this.rErrorTasks = new ArrayList<Task>();
+            this.sPreTasks = new ArrayList<Task>();
+            this.sPostTasks = new ArrayList<Task>();
+            this.sErrorTasks = new ArrayList<Task>();
+        }
+    }
 }

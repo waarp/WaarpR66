@@ -104,6 +104,33 @@ public class HostIdHandler extends AbstractHttpHandler {
     }
 
     /**
+     * The method called when a PUT request is made on /v2/hosts/{id}. If the request is valid and the id exists
+     * in the database, the queried host entry will be replaced by the one in the request body and sent back in the Http
+     * response. If the id does not exist, the response will be a '404 - Not found' error message. If the id exists but
+     * the request is invalid, a '400 - Bad request' error will be sent instead.
+     *
+     * @param request   The Http request made on the resource.
+     * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param id        The requested host's id, this id is identical to the {id} in the URI of the request.
+     */
+    @PUT
+    public void updateHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
+        try {
+            Host updatedHost = HandlerUtils.deserializeRequest(request, Host.class);
+            Hosts.update(id, updatedHost);
+
+            String responseBody = Hosts.toJsonString(updatedHost);
+            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+        } catch (OpenR66RestBadRequestException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (OpenR66RestInternalServerException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestIdNotFoundException e) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+        }
+    }
+
+    /**
      * The method called when a DELETE request is made on /v2/hosts/{id}. If the request is valid and the id exists
      * in the database, the queried host entry will be removed from the host database. If the id does not exist,
      * the response will be a '404 - Not found' error message. If the id exists but the request is invalid, a

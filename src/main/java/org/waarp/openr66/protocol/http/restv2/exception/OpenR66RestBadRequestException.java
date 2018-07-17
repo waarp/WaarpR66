@@ -35,4 +35,64 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     public OpenR66RestBadRequestException(String message) {
         this.message = message;
     }
+
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the field passes as argument is missing from the request.
+     * @param field The name of the missing field.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException emptyField(String field) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Empty field\"," +
+                        "\"internalMessage\":\"The field '" + field + "' is missing or empty.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the parameter passed as argument is empty.
+     * @param parameter The name of the empty parameter.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException emptyParameter(String parameter) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Empty parameter\"," +
+                        "\"internalMessage\":\"The parameter '" + parameter + "' is empty.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the id passed as argument already exist in the database of
+     * the entered type.
+     * @param type The type of entry.
+     * @param id The id of the existing entry.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException alreadyExisting(String type, String id) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Already existing\"," +
+                        "\"internalMessage\":\"The " + type + " of id '" + id + "' already exists in the database.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the host already has one of the requested type of entry
+     * in the database.
+     * @param type The type of entry.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException alreadyExisting(String type) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Empty field\"," +
+                        "\"internalMessage\":\"This host already has a " + type + " in the database.\"" +
+                        "}"
+        );
+    }
 }

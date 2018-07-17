@@ -27,6 +27,8 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.test.TestLimit;
 
+import java.lang.reflect.Field;
+
 /** This class consists exclusively of static methods that operate on or return limits. */
 public final class Limits {
 
@@ -45,7 +47,7 @@ public final class Limits {
         }
         throw new OpenR66RestIdNotFoundException(
                 "{" +
-                        "\"userMessage\":\"Not Found\"," +
+                        "\"userMessage\":\"Limits not found\"," +
                         "\"internalMessage\":\"This host does not have any bandwidth limits.\"" +
                         "}"
         );
@@ -61,12 +63,7 @@ public final class Limits {
     public static void initLimits(Limit limit) throws OpenR66RestBadRequestException {
         try {
             loadLimits(limit.hostID);
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"This host already has bandwidth limit in place.\"" +
-                            "}"
-            );
+            throw OpenR66RestBadRequestException.alreadyExisting("bandwidth limits");
         } catch (OpenR66RestIdNotFoundException e) {
             if (limit.upGlobalLimit >= 0 && limit.downGlobalLimit >= 0 && limit.upSessionLimit >= 0 &&
                     limit.downSessionLimit >= 0 && limit.delayLimit >= 0) {
@@ -103,8 +100,46 @@ public final class Limits {
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not have bandwidth limits to replace.
      */
     public static void replace(String id, Limit updated) throws OpenR66RestIdNotFoundException {
+        for (Field field : Limit.class.getFields()) {
+            try {
+                Object value = field.get(updated);
+                if (value == null || value.toString().equals("")) {
+                    throw OpenR66RestBadRequestException.emptyField(field.getName());
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            }
+        }
+
         //TODO: delete the old limits from the database and insert the new ones
         Limit old = loadLimits(id);
+        TestLimit.limitDb.remove(old);
+        TestLimit.limitDb.add(updated);
+    }
+
+    /**
+     * Updates the bandwidth limits entry with the one passed as parameter if it has one.
+     *
+     * @param id      The id of the host whose limits should be replaced.
+     * @param updated The new bandwidth limits object.
+     * @throws OpenR66RestIdNotFoundException Thrown if the host does not have bandwidth limits to replace.
+     */
+    public static void update(String id, Limit updated) throws OpenR66RestIdNotFoundException {
+        Limit old = loadLimits(id);
+        for (Field field : updated.getClass().getFields()) {
+            try {
+                Object value = field.get(updated);
+                if (value == null || value.toString().equals("")) {
+                    field.set(updated, field.get(old));
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            } catch (IllegalArgumentException e ) {
+                assert false;
+            }
+        }
+
+        //TODO: delete the old limits from the database and insert the new ones
         TestLimit.limitDb.remove(old);
         TestLimit.limitDb.add(updated);
     }
@@ -121,14 +156,7 @@ public final class Limits {
         try {
             return mapper.writeValueAsString(toString);
         } catch (JsonProcessingException e) {
-            throw new OpenR66RestInternalServerException(
-                    "{" +
-                            "\"userMessage\":\"JSON Processing Error\"," +
-                            "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
-                            "\"code\":100" +
-                            "}"
-            );
-            //TODO: replace the '100' placeholder with the real Json processing error code
+            throw OpenR66RestInternalServerException.jsonProcessing();
         }
     }
 }

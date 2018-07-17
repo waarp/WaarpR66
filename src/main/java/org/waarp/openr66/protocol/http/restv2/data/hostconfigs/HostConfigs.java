@@ -27,6 +27,8 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.test.TestHostConfig;
 
+import java.lang.reflect.Field;
+
 /** This class consists exclusively of static methods that operate on or return host configurations. */
 public final class HostConfigs {
 
@@ -72,15 +74,8 @@ public final class HostConfigs {
      */
     public static void initConfig(HostConfig newConfig) throws OpenR66RestBadRequestException {
         //TODO: replace by a real database request
-        for (HostConfig conf : TestHostConfig.configDb) {
-            if (newConfig.hostId.equals(conf.hostId)) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Bad Request\"," +
-                                "\"internalMessage\":\"This host already has configuration.\"" +
-                                "}"
-                );
-            }
+        if (TestHostConfig.configDb.contains(newConfig)) {
+            throw OpenR66RestBadRequestException.alreadyExisting("host configuration");
         }
         TestHostConfig.configDb.add(newConfig);
     }
@@ -88,14 +83,48 @@ public final class HostConfigs {
     /**
      * Replaces the host config entry with the one passed as parameter if it has one.
      *
-     * @param updated The new host configuration instance.
+     * @param newConfig The new host configuration instance.
      * @throws OpenR66RestBadRequestException Thrown if the host does not have a configuration to replace.
      */
-    public static void replace(String id, HostConfig updated) {
+    public static void replace(String id, HostConfig newConfig) {
+        for (Field field : HostConfig.class.getFields()) {
+            try {
+                if (field.get(newConfig) == null) {
+                    throw OpenR66RestBadRequestException.emptyField(field.getName());
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            }
+        }
+
         //TODO: delete the old config from the database and insert the new one
         HostConfig oldConfig = loadConfig(id);
         TestHostConfig.configDb.remove(oldConfig);
-        TestHostConfig.configDb.add(updated);
+        TestHostConfig.configDb.add(newConfig);
+    }
+
+    /**
+     * Replaces the host config entry with the one passed as parameter if it has one.
+     *
+     * @param newConfig The new host configuration instance.
+     * @throws OpenR66RestBadRequestException Thrown if the host does not have a configuration to replace.
+     */
+    public static void update(String id, HostConfig newConfig) {
+        HostConfig oldConfig = loadConfig(id);
+        for (Field field : HostConfig.class.getFields()) {
+            try {
+                if (field.get(newConfig) == null) {
+                    field.set(newConfig, field.get(oldConfig));
+                }
+            } catch (IllegalAccessException e) {
+                assert false;
+            } catch (IllegalArgumentException e) {
+                assert false;
+            }
+        }
+        //TODO: delete the old config from the database and insert the new one
+        TestHostConfig.configDb.remove(oldConfig);
+        TestHostConfig.configDb.add(newConfig);
     }
 
 
@@ -110,14 +139,7 @@ public final class HostConfigs {
         try {
             return mapper.writeValueAsString(config);
         } catch (JsonProcessingException e) {
-            throw new OpenR66RestInternalServerException(
-                    "{" +
-                            "\"userMessage\":\"JSON Processing Error\"," +
-                            "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
-                            "\"code\":100" +
-                            "}"
-            );
-            //TODO: replace 100 placeholder with the real Json processing error code
+            throw OpenR66RestInternalServerException.jsonProcessing();
         }
     }
 }

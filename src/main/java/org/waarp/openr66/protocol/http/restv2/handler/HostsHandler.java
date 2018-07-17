@@ -102,7 +102,7 @@ public class HostsHandler extends AbstractHttpHandler {
     @POST
     public void addHost(HttpRequest request, HttpResponder responder) {
         try {
-            Host host = HandlerUtils.deserializeRequest(request, Host.class);
+            Host host = HandlerUtils.deserializeRequest(request, Host.OptionalHost.class);
 
             Hosts.addHost(host);
 

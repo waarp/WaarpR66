@@ -34,7 +34,6 @@ public class TestHostConfig {
     private static List<HostConfig> initConfigDb() {
         List<HostConfig> configs = new ArrayList<HostConfig>();
         HostConfig config1 = new HostConfig();
-        config1.hostId = "server1";
         config1.aliases = new ArrayList<String>(Collections.singletonList("host1"));
         config1.roles = new ArrayList<Map.Entry<String, List<HostConfig.Role>>>(
                 Collections.singleton(new HashMap.SimpleImmutableEntry<String, List<HostConfig.Role>>("server1",

@@ -20,6 +20,8 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
@@ -36,6 +38,10 @@ import java.util.GregorianCalendar;
 
 /** A series of utility methods shared by all REST handlers. */
 public class HandlerUtils {
+
+    /** This server's id. */
+    //TODO: replace by loading the id from the config file.
+    public static final String HOST_ID = "server1";
 
     /**
      * This method transforms a request body in JSON format into an object of the class passed as argument.
@@ -56,15 +62,45 @@ public class HandlerUtils {
 
                 return mapper.readValue(body, c);
             } else {
-                throw new IOException();
+                throw new IllegalArgumentException();
             }
-        } catch (IOException e) {
+        } catch (JsonParseException e) {
             throw new OpenR66RestBadRequestException(
                     "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The request body is missing one or multiple fields.\"" +
+                            "\"userMessage\":\"Invalid body\"," +
+                            "\"internalMessage\":\"The request body is not a valid JSON file.\"" +
                             "}"
             );
+        } catch (JsonMappingException e) {
+            String field = e.getPath().get(0).getFieldName();
+            String type;
+            try {
+                type = c.getField(field).getName();
+            } catch (NoSuchFieldException e1) {
+                throw new OpenR66RestBadRequestException(
+                        "{" +
+                                "\"userMessage\":\"Unknown field\"," +
+                                "\"internalMessage\":\" The class '" + c.getSimpleName() + "' does not have a field '" +
+                                field + "'\"" +
+                                "}"
+                );
+            }
+            throw new OpenR66RestBadRequestException(
+                    "{" +
+                            "\"userMessage\":\"Invalid field\"," +
+                            "\"internalMessage\":\" The value of field '" + field + "' is not a valid value of type " +
+                            type + "\"" +
+                            "}"
+            );
+        } catch (IllegalArgumentException e) {
+            throw new OpenR66RestBadRequestException(
+                    "{" +
+                            "\"userMessage\":\"Missing body\"," +
+                            "\"internalMessage\":\"The request is missing its body.\"" +
+                            "}"
+            );
+        } catch (IOException e) {
+            throw new AssertionError("A IOException was thrown when this was assumed to be impossible.");
         }
     }
 
@@ -75,9 +111,13 @@ public class HandlerUtils {
      * @return The date of the Calendar object in ISO-8601 format.
      */
     public static String fromCalendar(Calendar calendar) {
-        Date date = calendar.getTime();
-        String formatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(date);
-        return formatted.substring(0, 22) + ":" + formatted.substring(22);
+        if(calendar == null) {
+            return null;
+        } else {
+            Date date = calendar.getTime();
+            String formatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(date);
+            return formatted.substring(0, 22) + ":" + formatted.substring(22);
+        }
     }
 
     /**

@@ -31,7 +31,6 @@ public class TestLimit {
     private static List<Limit> initLimitsDb() {
         List<Limit> limits = new ArrayList<Limit>();
         Limit limit = new Limit();
-        limit.hostID = "server1";
         limit.upGlobalLimit = 1000000;
         limit.downGlobalLimit = 1000000;
         limit.upSessionLimit = 1000000;

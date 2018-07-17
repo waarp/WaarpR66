@@ -20,12 +20,17 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils.HOST_ID;
+
 
 /** Host configuration JSON object for Rest HTTP support for R66. */
-public final class HostConfig {
+public class HostConfig {
 
     /** All the different actions a host is allowed to perform on the server running this configuration. */
     public enum Role {
@@ -54,7 +59,8 @@ public final class HostConfig {
     }
 
     /** The host of the host using this configuration. */
-    public String hostId;
+    @JsonIgnore
+    public final String hostId = HOST_ID;
 
     /** The list of al hosts allowed to make request to execute the server's business. */
     public List<String> business;
@@ -71,4 +77,14 @@ public final class HostConfig {
 
     /** The database configuration version in XML format. */
     public String others;
+
+
+    public static class OptionalHostConfig extends HostConfig {
+        public OptionalHostConfig() {
+            this.business = new ArrayList<String>();
+            this.roles = new ArrayList<Map.Entry<String, List<Role>>>();
+            this.aliases = new ArrayList<String>();
+            this.others = "";
+        }
+    }
 }

@@ -21,11 +21,16 @@
 package org.waarp.openr66.protocol.http.restv2.data.limits;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils.HOST_ID;
+
 /** Bandwidth limits POJO for Rest HTTP support for R66. */
 public class Limit {
 
     /** Ths id of the host applying these limits. */
-    public String hostID;
+    @JsonIgnore
+    public final String hostID = HOST_ID;
 
     /** The host's global upload bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
     public Integer upGlobalLimit;
@@ -43,5 +48,15 @@ public class Limit {
      * The maximum delay (in ms) between 2 checks of the current bandwidth usage. Set to 0 for no checks. Cannot be
      * negative.
      */
-    public Integer delayLimit = 0;
+    public Integer delayLimit;
+
+    public static class OptionalLimit extends Limit {
+        public OptionalLimit() {
+            this.upGlobalLimit = 0;
+            this.downGlobalLimit = 0;
+            this.upSessionLimit = 0;
+            this.downSessionLimit = 0;
+            this.delayLimit = 0;
+        }
+    }
 }
