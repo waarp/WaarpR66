@@ -20,29 +20,53 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.hosts;
 
+import org.waarp.openr66.protocol.http.restv2.data.Filter;
+
+import java.util.Comparator;
+
 /**
  * All the usable filters to request multiple hosts. The response will contain all the entries that satisfy these
  * filters.
  */
-public class HostFilter {
+public class HostFilter extends Filter {
 
     /** All the possible ways to order a list of host objects. */
     enum Order {
         /** By hostID, in ascending order. */
-        ascHostID,
+        ascHostID(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return t1.hostID.compareTo(t2.hostID);
+            }
+        }),
         /** By hostID, in descending order. */
-        descHostID,
+        descHostID(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return -t1.hostID.compareTo(t2.hostID);
+            }
+        }),
         /** By address, in ascending order. */
-        ascAddress,
+        ascAddress(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return t1.address.compareTo(t2.address);
+            }
+        }),
         /** By address, in descending order. */
-        descAddress,
+        descAddress(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return -t1.address.compareTo(t2.address);
+            }
+        });
+
+        public final Comparator<Host> comparator;
+
+        Order(Comparator<Host> comparator) {
+            this.comparator = comparator;
+        }
     }
-
-    /** The maximum number of entry allowed to be send in the response. 20 by default. */
-    Integer limit = 20;
-
-    /** The starting number from which to start counting the `limit` entries to send back. */
-    Integer offset = 0;
 
     /**
      * The parameter and order according to which the response entries should be sorted. By default, entries are

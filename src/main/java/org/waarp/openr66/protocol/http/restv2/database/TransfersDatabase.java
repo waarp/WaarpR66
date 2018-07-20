@@ -18,7 +18,7 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
+package org.waarp.openr66.protocol.http.restv2.database;
 
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
 
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class TestTransfer {
+public final class TransfersDatabase {
     private static final int DEFAULT_BLOCK_SIZE = 4096;
 
     public static List<Transfer> transfersDb = initTransfersDb();

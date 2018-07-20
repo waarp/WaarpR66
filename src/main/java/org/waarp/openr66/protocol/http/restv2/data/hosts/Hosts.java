@@ -22,96 +22,22 @@ package org.waarp.openr66.protocol.http.restv2.data.hosts;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.database.HostsDatabase;
+import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestEmptyParamException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
-import org.waarp.openr66.protocol.http.restv2.test.TestHost;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /** This class consists exclusively of static methods that operate on or return hosts. */
 public final class Hosts {
-    /**
-     * Extract the parameters Map outputted by the query decoder and creates a Filter object with it.
-     *
-     * @param params The Map associating the query parameters names with their respecting values as lists of Strings.
-     * @return The Filter object representing the filter applied to the database query.
-     * @throws OpenR66RestBadRequestException Thrown if one of the parameters has an invalid value or no value at all.
-     */
-    public static HostFilter extractHostFilter(Map<String, List<String>> params) throws OpenR66RestBadRequestException {
-        HostFilter filters = new HostFilter();
-        for (Map.Entry<String, List<String>> param : params.entrySet()) {
-            String name = param.getKey();
-            try {
-                List<String> values = param.getValue();
-                for (String value : values) {
-                    if (value.isEmpty()) {
-                        throw new OpenR66RestEmptyParamException();
-                    }
-                }
-                boolean isSingleton = values.size() == 1;
-
-                if (name.equals("limit") && isSingleton) {
-                    filters.limit = Integer.valueOf(values.get(0));
-                } else if (name.equals("offset") && isSingleton) {
-                    filters.offset = Integer.valueOf(values.get(0));
-                } else if (name.equals("order") && isSingleton) {
-                    filters.order = HostFilter.Order.valueOf(values.get(0));
-                } else if (name.equals("address") && isSingleton) {
-                    filters.address = values.get(0);
-                } else if (name.equals("isSSL") && isSingleton) {
-                    if (values.get(0).equalsIgnoreCase("true")) {
-                        filters.isSSL = true;
-                    } else if (values.get(0).equalsIgnoreCase("false")) {
-                        filters.isSSL = false;
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-                } else if (name.equals("isActive") && isSingleton) {
-                    if ("true".equalsIgnoreCase(values.get(0))) {
-                        filters.isActive = true;
-                    } else if ("false".equalsIgnoreCase(values.get(0))) {
-                        filters.isActive = false;
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-                } else {
-                    throw new OpenR66RestBadRequestException(
-                            "{" +
-                                    "\"userMessage\":\"Invalid parameter\"," +
-                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown or has too many " +
-                                    "values .\"" +
-                                    "}"
-                    );
-                }
-            } catch (OpenR66RestEmptyParamException e) {
-                throw OpenR66RestBadRequestException.emptyParameter(name);
-            } catch (NumberFormatException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Expected number\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' is expecting a number.\"" +
-                                "}"
-                );
-            } catch (IllegalArgumentException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Illegal value\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
-                                "}"
-                );
-            }
-        }
-        return filters;
-    }
-
     /**
      * Returns the list of all hosts in the database that fit the filters passed as arguments.
      *
@@ -124,7 +50,7 @@ public final class Hosts {
             throws OpenR66RestBadRequestException {
 
         List<Host> results = new ArrayList<Host>();
-        for (Host host : TestHost.hostsDb) {
+        for (Host host : HostsDatabase.hostsDb) {
             if ((filters.address == null || host.address.equals(filters.address)) &&
                     (filters.isSSL == null || filters.isSSL.equals(host.isSSL)) &&
                     (filters.isActive == null || filters.isActive.equals(filters.isSSL))) {
@@ -132,40 +58,7 @@ public final class Hosts {
             }
         }
         Integer total = results.size();
-        switch (filters.order) {
-            case ascHostID:
-                Collections.sort(results, new Comparator<Host>() {
-                    @Override
-                    public int compare(Host t1, Host t2) {
-                        return t1.hostID.compareTo(t2.hostID);
-                    }
-                });
-                break;
-            case descHostID:
-                Collections.sort(results, new Comparator<Host>() {
-                    @Override
-                    public int compare(Host t1, Host t2) {
-                        return -t1.hostID.compareTo(t2.hostID);
-                    }
-                });
-                break;
-            case ascAddress:
-                Collections.sort(results, new Comparator<Host>() {
-                    @Override
-                    public int compare(Host t1, Host t2) {
-                        return t1.address.compareTo(t2.address);
-                    }
-                });
-                break;
-            case descAddress:
-                Collections.sort(results, new Comparator<Host>() {
-                    @Override
-                    public int compare(Host t1, Host t2) {
-                        return -t1.address.compareTo(t2.address);
-                    }
-                });
-                break;
-        }
+        Collections.sort(results, filters.order.comparator);
 
         List<Host> answers = new ArrayList<Host>();
         for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {
@@ -187,19 +80,19 @@ public final class Hosts {
             //check if the host already exists
             loadHost(host.hostID);
             throw OpenR66RestBadRequestException.alreadyExisting("host", host.hostID);
-        } catch (OpenR66RestIdNotFoundException e) {
+        } catch (OpenR66RestIdNotFoundException valid) {
 
             for(Field field : Host.class.getFields()) {
                 try {
                     Object value = field.get(host);
-                    if(value == null || value.toString().equals("")) {
+                    if(RestUtils.isIllegal(value)) {
                         throw OpenR66RestBadRequestException.emptyField(field.getName());
                     }
-                } catch (IllegalAccessException e1) {
-                    assert false;
+                } catch (IllegalAccessException e) {
+                    throw new ImpossibleException(e);
                 }
             }
-            TestHost.hostsDb.add(host);
+            HostsDatabase.hostsDb.add(host);
         }
     }
 
@@ -212,7 +105,7 @@ public final class Hosts {
      */
     public static Host loadHost(String id) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
-        for (Host host : TestHost.hostsDb) {
+        for (Host host : HostsDatabase.hostsDb) {
             if (host.hostID.equals(id)) {
                 return host;
             }
@@ -235,7 +128,7 @@ public final class Hosts {
     public static void deleteHost(String id) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
         Host toDelete = loadHost(id);
-        TestHost.hostsDb.remove(toDelete);
+        HostsDatabase.hostsDb.remove(toDelete);
     }
 
     /**
@@ -250,16 +143,16 @@ public final class Hosts {
         for (Field field : Host.class.getFields()) {
             try {
                 Object value = field.get(newHost);
-                if (value == null || value.toString().equals("")) {
+                if (RestUtils.isIllegal(value)) {
                     throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
         //TODO: replace by a real database request
-        TestHost.hostsDb.remove(oldHost);
-        TestHost.hostsDb.add(newHost);
+        HostsDatabase.hostsDb.remove(oldHost);
+        HostsDatabase.hostsDb.add(newHost);
     }
 
     /**
@@ -273,19 +166,19 @@ public final class Hosts {
         for (Field field : Host.class.getFields()) {
             try {
                 Object value = field.get(newHost);
-                if (value == null || value.toString().equals("")) {
+                if (RestUtils.isIllegal(value)) {
                     field.set(newHost, field.get(oldHost));
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             } catch (IllegalArgumentException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
         //TODO: replace by a real database request
 
-        TestHost.hostsDb.remove(oldHost);
-        TestHost.hostsDb.add(newHost);
+        HostsDatabase.hostsDb.remove(oldHost);
+        HostsDatabase.hostsDb.add(newHost);
     }
 
     /**

@@ -22,18 +22,32 @@ package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils.HOST_ID;
+import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
 
 
 /** Host configuration JSON object for Rest HTTP support for R66. */
 public class HostConfig {
 
+    /** A pair associating a host with the type of actions it is allowed to perform on the server. */
+    public static class Role {
+        /** The host's id. */
+        public String host;
+        /** The list of allowed actions on the server. */
+        public RoleType[] roleTypes;
+
+        /**
+         * Constructs a new role from a host and a list of actions.
+         * @param host  The host's id.
+         * @param roleTypes The host's allowed actions.
+         */
+        public Role(String host, RoleType[] roleTypes) {
+            this.host = host;
+            this.roleTypes = roleTypes;
+        }
+    }
+
     /** All the different actions a host is allowed to perform on the server running this configuration. */
-    public enum Role {
+    public enum RoleType {
         /** No actions are allowed. */
         noAccess,
         /** The host is ony allowed to read the database. */
@@ -63,17 +77,17 @@ public class HostConfig {
     public final String hostId = HOST_ID;
 
     /** The list of al hosts allowed to make request to execute the server's business. */
-    public List<String> business;
+    public String[] business;
 
     /**
      * The list of all hosts paired with the list of actions they are each allowed to perform on the server.
      *
-     * @see Role
+     * @see RoleType
      */
-    public List<Map.Entry<String, List<Role>>> roles;
+    public Role[] roles;
 
     /** The list of all the server's aliases. */
-    public List<String> aliases;
+    public String[] aliases;
 
     /** The database configuration version in XML format. */
     public String others;
@@ -81,9 +95,9 @@ public class HostConfig {
 
     public static class OptionalHostConfig extends HostConfig {
         public OptionalHostConfig() {
-            this.business = new ArrayList<String>();
-            this.roles = new ArrayList<Map.Entry<String, List<Role>>>();
-            this.aliases = new ArrayList<String>();
+            this.business = new String[0];
+            this.roles = new Role[0];
+            this.aliases = new String[0];
             this.others = "";
         }
     }

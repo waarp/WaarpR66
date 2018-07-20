@@ -18,21 +18,20 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
+package org.waarp.openr66.protocol.http.restv2.database;
 
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class TestRule {
+public final class RulesDatabase {
     public static List<Rule> rulesDb = initRulesDb();
 
     private static Rule.Task copy() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.copy;
-        copy.arguments = "";
+        copy.arguments = "path";
         copy.delay = 1000;
         return copy;
     }
@@ -40,7 +39,7 @@ public class TestRule {
     private static Rule.Task move() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.move;
-        copy.arguments = "";
+        copy.arguments = "path";
         copy.delay = 1000;
         return copy;
     }
@@ -48,7 +47,7 @@ public class TestRule {
     private static Rule.Task delete() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.delete;
-        copy.arguments = "";
+        copy.arguments = "path";
         copy.delay = 1000;
         return copy;
     }
@@ -57,33 +56,33 @@ public class TestRule {
         List<Rule> rules = new ArrayList<Rule>();
         Rule rule1 = new Rule();
         rule1.ruleID = "rule1";
-        rule1.hostsIDs = new ArrayList<String>(Collections.singleton("server1"));
+        rule1.hostsIDs = new String[]{"server1"};
         rule1.modeTrans = Rule.ModeTrans.send;
         rule1.recvPath = "/in";
         rule1.sendPath = "/out";
         rule1.archivePath = "/arch";
         rule1.workPath = "/work";
-        rule1.rPreTasks = new ArrayList<Rule.Task>(Collections.singleton(copy()));
-        rule1.rPostTasks = new ArrayList<Rule.Task>(Collections.singleton(delete()));
-        rule1.rErrorTasks = new ArrayList<Rule.Task>(Collections.singleton(move()));
-        rule1.sPreTasks = new ArrayList<Rule.Task>(Collections.singleton(delete()));
-        rule1.sPostTasks = new ArrayList<Rule.Task>(Collections.singleton(move()));
-        rule1.sErrorTasks = new ArrayList<Rule.Task>(Collections.singleton(copy()));
+        rule1.rPreTasks = new Rule.Task[]{copy()};
+        rule1.rPostTasks = new Rule.Task[]{delete()};
+        rule1.rErrorTasks = new Rule.Task[]{move()};
+        rule1.sPreTasks = new Rule.Task[]{delete()};
+        rule1.sPostTasks = new Rule.Task[]{move()};
+        rule1.sErrorTasks = new Rule.Task[]{copy()};
 
         Rule rule2 = new Rule();
         rule2.ruleID = "rule2";
-        rule2.hostsIDs = new ArrayList<String>(Collections.singleton("server2"));
+        rule1.hostsIDs = new String[]{"server2"};
         rule2.modeTrans = Rule.ModeTrans.receive;
         rule2.recvPath = "/in";
         rule2.sendPath = "/out";
         rule2.archivePath = "/arch";
         rule2.workPath = "/work";
-        rule2.rPreTasks = new ArrayList<Rule.Task>(Collections.singleton(copy()));
-        rule2.rPostTasks = new ArrayList<Rule.Task>(Collections.singleton(delete()));
-        rule2.rErrorTasks = new ArrayList<Rule.Task>(Collections.singleton(move()));
-        rule2.sPreTasks = new ArrayList<Rule.Task>(Collections.singleton(delete()));
-        rule2.sPostTasks = new ArrayList<Rule.Task>(Collections.singleton(move()));
-        rule2.sErrorTasks = new ArrayList<Rule.Task>(Collections.singleton(copy()));
+        rule2.rPreTasks = new Rule.Task[]{copy()};
+        rule2.rPostTasks = new Rule.Task[]{delete()};
+        rule2.rErrorTasks = new Rule.Task[]{move()};
+        rule2.sPreTasks = new Rule.Task[]{delete()};
+        rule2.sPostTasks = new Rule.Task[]{move()};
+        rule2.sErrorTasks = new Rule.Task[]{copy()};
 
         rules.add(rule1);
         rules.add(rule2);

@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
 import org.waarp.openr66.protocol.http.restv2.data.rules.RuleFilter;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
@@ -63,19 +64,18 @@ public class RulesHandler extends AbstractHttpHandler {
     public void filterRules(HttpRequest request, HttpResponder responder) {
         try {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            RuleFilter filters = Rules.extractRuleFilter(decoder.parameters());
+            RuleFilter filters = RestUtils.extractFilters(decoder.parameters(), new RuleFilter());
+            filters.check();
             Map.Entry<Integer, List<Rule>> answer = Rules.filterRules(filters);
-            List<Rule> results = answer.getValue();
-            Integer totalResults = answer.getKey();
-
-
-            HttpHeaders header = new DefaultHttpHeaders();
-            header.add("Content-Type", "application/json");
-            header.add("totalAnswers", totalResults);
+            List<Rule> resultsList = answer.getValue();
+            Integer nbResults = answer.getKey();
+            String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String responseBody = mapper.writeValueAsString(results);
-            responder.sendString(HttpResponseStatus.OK, responseBody, header);
+            String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+
+            String responseBody = "{" + totalResults + "," + results + "}";
+            responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
@@ -102,7 +102,7 @@ public class RulesHandler extends AbstractHttpHandler {
     @POST
     public void addRule(HttpRequest request, HttpResponder responder) {
         try {
-            Rule rule = HandlerUtils.deserializeRequest(request, Rule.class);
+            Rule rule = RestUtils.deserializeRequest(request, Rule.class);
 
             Rules.addRule(rule);
 

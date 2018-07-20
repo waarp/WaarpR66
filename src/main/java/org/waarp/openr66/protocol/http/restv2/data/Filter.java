@@ -18,4 +18,25 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
+package org.waarp.openr66.protocol.http.restv2.data;
+
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
+
+public abstract class Filter {
+    /** The maximum number of entry allowed to be send in the response. 20 by default. */
+    public Integer limit = 20;
+
+    /** The starting number from which to start counting the `limit` entries to send back. */
+    public Integer offset = 0;
+
+    /**
+     * Checks if the 'limit' and 'offset' fields are valid (not negative). Throws an exception if they are not.
+     */
+    public void check() throws OpenR66RestBadRequestException {
+        if (this.limit < 0) {
+            throw OpenR66RestBadRequestException.negative("limit");
+        } else if (this.offset < 0) {
+            throw OpenR66RestBadRequestException.negative("offset");
+        }
+    }
+}

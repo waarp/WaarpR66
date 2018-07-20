@@ -29,6 +29,7 @@ import org.waarp.openr66.protocol.http.restv2.handler.HostsHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.LimitsHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.RuleIdHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.RulesHandler;
+import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransferIdHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransfersHandler;
 
@@ -38,6 +39,7 @@ import java.util.Collection;
 
 public class RestServiceInitializer {
 
+    //TODO: replace by loading the port from the config file
     private static final int TEST_PORT = 8080;
 
     public static NettyHttpService initRestService() throws OpenR66RestInitializationException {
@@ -50,11 +52,13 @@ public class RestServiceInitializer {
         handlers.add(new LimitsHandler());
         handlers.add(new RulesHandler());
         handlers.add(new RuleIdHandler());
+        handlers.add(new ServerHandler());
 
         NettyHttpService restService = NettyHttpService.builder("WaarpR66-Rest")
                 .setPort(TEST_PORT)
                 .setHttpHandlers(handlers)
                 .build();
+
 
         try {
             restService.start();

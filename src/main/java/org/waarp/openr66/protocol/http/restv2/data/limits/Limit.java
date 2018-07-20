@@ -23,7 +23,7 @@ package org.waarp.openr66.protocol.http.restv2.data.limits;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import static org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils.HOST_ID;
+import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
 
 /** Bandwidth limits POJO for Rest HTTP support for R66. */
 public class Limit {

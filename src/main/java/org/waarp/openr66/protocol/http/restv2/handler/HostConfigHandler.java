@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfigs;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
@@ -83,7 +84,7 @@ public class HostConfigHandler extends AbstractHttpHandler {
     @POST
     public void initializeConfig(HttpRequest request, HttpResponder responder) {
         try {
-            HostConfig newConfig = HandlerUtils.deserializeRequest(request, HostConfig.OptionalHostConfig.class);
+            HostConfig newConfig = RestUtils.deserializeRequest(request, HostConfig.OptionalHostConfig.class);
             HostConfigs.initConfig(newConfig);
 
             String responseBody = HostConfigs.toJsonString(newConfig);
@@ -107,7 +108,7 @@ public class HostConfigHandler extends AbstractHttpHandler {
     @PUT
     public void replaceConfig(HttpRequest request, HttpResponder responder) {
         try {
-            HostConfig updatedConfig = HandlerUtils.deserializeRequest(request, HostConfig.class);
+            HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
             HostConfigs.replace(HOST_ID, updatedConfig);
 
             String responseBody = HostConfigs.toJsonString(updatedConfig);
@@ -132,7 +133,7 @@ public class HostConfigHandler extends AbstractHttpHandler {
     @PATCH
     public void updateConfig(HttpRequest request, HttpResponder responder) {
         try {
-            HostConfig updatedConfig = HandlerUtils.deserializeRequest(request, HostConfig.class);
+            HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
             HostConfigs.update(HOST_ID, updatedConfig);
 
             String responseBody = HostConfigs.toJsonString(updatedConfig);

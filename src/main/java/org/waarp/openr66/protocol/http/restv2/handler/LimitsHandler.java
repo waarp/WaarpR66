@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.limits.Limit;
 import org.waarp.openr66.protocol.http.restv2.data.limits.Limits;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
@@ -85,7 +86,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     @POST
     public void initializeLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit newLimit = HandlerUtils.deserializeRequest(request, Limit.OptionalLimit.class);
+            Limit newLimit = RestUtils.deserializeRequest(request, Limit.OptionalLimit.class);
             Limits.initLimits(newLimit);
 
             String responseBody = Limits.toJsonString(newLimit);
@@ -109,7 +110,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     @PUT
     public void replaceLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit updatedLimits = HandlerUtils.deserializeRequest(request, Limit.class);
+            Limit updatedLimits = RestUtils.deserializeRequest(request, Limit.class);
             Limits.replace(HOST_ID, updatedLimits);
 
             String responseBody = Limits.toJsonString(updatedLimits);
@@ -136,7 +137,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     @PATCH
     public void updateLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit updatedLimits = HandlerUtils.deserializeRequest(request, Limit.class);
+            Limit updatedLimits = RestUtils.deserializeRequest(request, Limit.class);
             Limits.update(HOST_ID, updatedLimits);
 
             String responseBody = Limits.toJsonString(updatedLimits);

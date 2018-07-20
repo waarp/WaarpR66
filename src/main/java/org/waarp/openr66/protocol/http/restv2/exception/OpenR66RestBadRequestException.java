@@ -21,6 +21,7 @@
 package org.waarp.openr66.protocol.http.restv2.exception;
 
 import javax.ws.rs.BadRequestException;
+import java.util.Arrays;
 
 public class OpenR66RestBadRequestException extends BadRequestException {
 
@@ -66,6 +67,20 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     }
 
     /**
+     * Creates an OpenR66RestBadRequestException stating that the parameter passed as argument is empty.
+     * @param parameter The name of the empty parameter.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException tooManyValues(String parameter) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Too many values\"," +
+                        "\"internalMessage\":\"The parameter '" + parameter + "' has too many values.\"" +
+                        "}"
+        );
+    }
+
+    /**
      * Creates an OpenR66RestBadRequestException stating that the id passed as argument already exist in the database of
      * the entered type.
      * @param type The type of entry.
@@ -77,6 +92,56 @@ public class OpenR66RestBadRequestException extends BadRequestException {
                 "{" +
                         "\"userMessage\":\"Already existing\"," +
                         "\"internalMessage\":\"The " + type + " of id '" + id + "' already exists in the database.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the enum parameter of type 'type' and of name 'id' got
+     * an invalid value 'value'.
+     * @param type The type of entry.
+     * @param id The id of the existing entry.
+     * @param value The invalid value.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException invalidEnum(Class type, String id, String value) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Invalid enum value\"," +
+                        "\"internalMessage\":\"'" + value + "' is not a valid enum value for parameter '" +
+                        id + "'. Valid values : " + Arrays.toString(type.getEnumConstants()) + "\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' was expecting a numerical
+     * value but got 'value' instead which is not a number.
+     * @param id The id of the existing entry.
+     * @param value The invalid value.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException notANumber(String id, String value) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Not a number\"," +
+                        "\"internalMessage\":\"The parameter '" + id + "' was expecting a numerical value but got '" +
+                        value + "' instead.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' cannot be negative but got a
+     * negative value.
+     * @param id The id of the existing entry.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException negative(String id) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Illegal value\"," +
+                        "\"internalMessage\":\"The parameter '" + id + "' cannot be negative.\"" +
                         "}"
         );
     }

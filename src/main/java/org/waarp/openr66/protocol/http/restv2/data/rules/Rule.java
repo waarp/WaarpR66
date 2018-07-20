@@ -20,10 +20,6 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.rules;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class Rule {
 
     /** All the different modes of file transfer. */
@@ -91,14 +87,14 @@ public class Rule {
         public String arguments;
 
         /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
-        public Integer delay = 0;
+        public Integer delay;
     }
 
     /** The rule's unique identifier. */
     public String ruleID;
 
     /** The IDs of the hosts allowed to use this rule for their transfers. */
-    public List<String> hostsIDs;
+    public String[] hostsIDs;
 
     /**
      * The file transfer mode used.
@@ -124,57 +120,57 @@ public class Rule {
      *
      * @see Task
      */
-    public List<Task> rPreTasks;
+    public Task[] rPreTasks;
 
     /**
      * The list of tasks to be executed by the receiver after the file transfer.
      *
      * @see Task
      */
-    public List<Task> rPostTasks;
+    public Task[] rPostTasks;
 
     /**
      * The list of tasks to be executed by the receiver in case of error.
      *
      * @see Task
      */
-    public List<Task> rErrorTasks;
+    public Task[] rErrorTasks;
 
     /**
      * The list of tasks to be executed by the sender before the file transfer.
      *
      * @see Task
      */
-    public List<Task> sPreTasks;
+    public Task[] sPreTasks;
 
     /**
      * The list of tasks to be executed by the sender after the file transfer.
      *
      * @see Task
      */
-    public List<Task> sPostTasks;
+    public Task[] sPostTasks;
 
     /**
      * The list of tasks to be executed by the sender in case of error.
      *
      * @see Task
      */
-    public List<Task> sErrorTasks;
+    public Task[] sErrorTasks;
 
 
     public static class OptionalRule extends Rule {
         public OptionalRule() {
-            this.hostsIDs = new ArrayList<String>();
+            this.hostsIDs = new String[]{};
             this.recvPath = "";
             this.sendPath = "";
             this.archivePath = "";
             this.workPath = "";
-            this.rPreTasks = new ArrayList<Task>();
-            this.rPostTasks = new ArrayList<Task>();
-            this.rErrorTasks = new ArrayList<Task>();
-            this.sPreTasks = new ArrayList<Task>();
-            this.sPostTasks = new ArrayList<Task>();
-            this.sErrorTasks = new ArrayList<Task>();
+            this.rPreTasks = new Task[]{};
+            this.rPostTasks = new Task[]{};
+            this.rErrorTasks = new Task[]{};
+            this.sPreTasks = new Task[]{};
+            this.sPostTasks = new Task[]{};
+            this.sErrorTasks = new Task[]{};
         }
     }
 }

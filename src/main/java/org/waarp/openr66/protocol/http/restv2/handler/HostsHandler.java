@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
 import org.waarp.openr66.protocol.http.restv2.data.hosts.HostFilter;
 import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
@@ -63,22 +64,22 @@ public class HostsHandler extends AbstractHttpHandler {
     public void filterHosts(HttpRequest request, HttpResponder responder) {
         try {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            HostFilter filters = Hosts.extractHostFilter(decoder.parameters());
+            HostFilter filters = RestUtils.extractFilters(decoder.parameters(), new HostFilter());
+            filters.check();
             Map.Entry<Integer, List<Host>> answer = Hosts.filterHosts(filters);
-            List<Host> results = answer.getValue();
-            Integer totalResults = answer.getKey();
-
-
-            HttpHeaders header = new DefaultHttpHeaders();
-            header.add("Content-Type", "application/json");
-            header.add("totalAnswers", totalResults);
+            List<Host> resultsList = answer.getValue();
+            Integer nbResults = answer.getKey();
+            String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String responseBody = mapper.writeValueAsString(results);
-            responder.sendString(HttpResponseStatus.OK, responseBody, header);
+            String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+            String responseBody = "{" + totalResults + "," + results + "}";
+            responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (OpenR66RestInternalServerException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     "{" +
@@ -102,7 +103,7 @@ public class HostsHandler extends AbstractHttpHandler {
     @POST
     public void addHost(HttpRequest request, HttpResponder responder) {
         try {
-            Host host = HandlerUtils.deserializeRequest(request, Host.OptionalHost.class);
+            Host host = RestUtils.deserializeRequest(request, Host.OptionalHost.class);
 
             Hosts.addHost(host);
 

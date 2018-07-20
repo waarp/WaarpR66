@@ -20,39 +20,82 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
+import org.waarp.openr66.protocol.http.restv2.data.Filter;
+
 import java.util.Calendar;
-import java.util.List;
+import java.util.Comparator;
 
 /**
  * All the usable filters to request multiple hosts. The response will contain all the entries that satisfy these
  * filters.
  */
-public class TransferFilter {
+public class TransferFilter extends Filter {
+
     /** All the possible ways to order a list of transfer objects. */
-    enum Order {
+    public enum Order {
         /** By tansferID, in ascending order. */
-        ascTransferID,
+        ascTransferID(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.transferID.compareTo(t2.transferID);
+            }
+        }),
         /** By tansferID, in descending order. */
-        descTransferID,
+        descTransferID(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.transferID.compareTo(t2.transferID);
+            }
+        }),
         /** By fileName, in ascending order. */
-        ascFileName,
+        ascFileName(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.originalFileName.compareTo(t2.originalFileName);
+            }
+        }),
         /** By fileName, in descending order. */
-        descFileName,
+        descFileName(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.originalFileName.compareTo(t2.originalFileName);
+            }
+        }),
         /** By date of transfer start, in ascending order. */
-        ascStartTrans,
+        ascStartTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.startTrans.compareTo(t2.startTrans);
+            }
+        }),
         /** By date of transfer start, in descending order. */
-        descStartTrans,
+        descStartTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.startTrans.compareTo(t2.startTrans);
+            }
+        }),
         /** By date of transfer end, in ascending order. */
-        ascStopTrans,
+        ascStopTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.stopTrans.compareTo(t2.stopTrans);
+            }
+        }),
         /** By date of transfer end, in descending order. */
-        descStopTrans
+        descStopTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.stopTrans.compareTo(t2.stopTrans);
+            }
+        });
+
+        public final Comparator<Transfer> comparator;
+
+        Order(Comparator<Transfer> comparator) {
+            this.comparator = comparator;
+        }
     }
-
-    /** The maximum number of entry allowed to be send in the response. 20 by default. */
-    Integer limit = 20;
-
-    /** The starting number from which to start counting the `limit` entries to send back. */
-    Integer offset = 0;
 
     /**
      * The parameter and order according to which the response entries should be sorted. By default, entries are
@@ -60,26 +103,26 @@ public class TransferFilter {
      *
      * @see Order
      */
-    Order order = Order.ascTransferID;
+    public Order order = Order.ascTransferID;
 
     /** The response will only contain the transfers which use this transfer rule. Leave empty for all. */
-    String ruleID;
+    public String ruleID;
 
     /** The response will only contain the transfers which have this host as partner. Leave empty for all. */
-    String partner;
+    public String partner;
 
     /**
      * The response will only contain the transfers which have currently one of the following statutes.
      * Leave empty for all.
      */
-    List<Transfer.Status> status;
+    public Transfer.Status[] status;
 
     /** The response will only contain the transfers which concern this file. Leave empty for all. */
-    String fileName;
+    public String fileName;
 
     /** The response will only contain the transfers which started after this date. Leave empty for all. */
-    Calendar startTrans;
+    public Calendar startTrans;
 
     /** The response will only contain the transfers which started before this date. Leave empty for all. */
-    Calendar stopTrans;
+    public Calendar stopTrans;
 }

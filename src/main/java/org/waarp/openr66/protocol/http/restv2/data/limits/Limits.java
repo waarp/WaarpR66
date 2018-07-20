@@ -22,10 +22,12 @@ package org.waarp.openr66.protocol.http.restv2.data.limits;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.database.LimitsDatabase;
+import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
-import org.waarp.openr66.protocol.http.restv2.test.TestLimit;
 
 import java.lang.reflect.Field;
 
@@ -40,7 +42,7 @@ public final class Limits {
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not have any bandwidth limits.
      */
     public static Limit loadLimits(String hostID) throws OpenR66RestIdNotFoundException {
-        for (Limit limit : TestLimit.limitDb) {
+        for (Limit limit : LimitsDatabase.limitDb) {
             if (limit.hostID.equals(hostID)) {
                 return limit;
             }
@@ -68,7 +70,7 @@ public final class Limits {
             if (limit.upGlobalLimit >= 0 && limit.downGlobalLimit >= 0 && limit.upSessionLimit >= 0 &&
                     limit.downSessionLimit >= 0 && limit.delayLimit >= 0) {
                 //TODO: replace by a real database request
-                TestLimit.limitDb.add(limit);
+                LimitsDatabase.limitDb.add(limit);
             } else {
                 throw new OpenR66RestBadRequestException(
                         "{" +
@@ -89,7 +91,7 @@ public final class Limits {
     public static void deleteLimits(String id) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
         Limit toDelete = loadLimits(id);
-        TestLimit.limitDb.remove(toDelete);
+        LimitsDatabase.limitDb.remove(toDelete);
     }
 
     /**
@@ -103,18 +105,18 @@ public final class Limits {
         for (Field field : Limit.class.getFields()) {
             try {
                 Object value = field.get(updated);
-                if (value == null || value.toString().equals("")) {
+                if (RestUtils.isIllegal(value)) {
                     throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
 
         //TODO: delete the old limits from the database and insert the new ones
         Limit old = loadLimits(id);
-        TestLimit.limitDb.remove(old);
-        TestLimit.limitDb.add(updated);
+        LimitsDatabase.limitDb.remove(old);
+        LimitsDatabase.limitDb.add(updated);
     }
 
     /**
@@ -129,19 +131,19 @@ public final class Limits {
         for (Field field : updated.getClass().getFields()) {
             try {
                 Object value = field.get(updated);
-                if (value == null || value.toString().equals("")) {
+                if (RestUtils.isIllegal(value)) {
                     field.set(updated, field.get(old));
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             } catch (IllegalArgumentException e ) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
 
         //TODO: delete the old limits from the database and insert the new ones
-        TestLimit.limitDb.remove(old);
-        TestLimit.limitDb.add(updated);
+        LimitsDatabase.limitDb.remove(old);
+        LimitsDatabase.limitDb.add(updated);
     }
 
     /**

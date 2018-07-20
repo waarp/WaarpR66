@@ -27,6 +27,7 @@ public class OpenR66RestInternalServerException extends InternalServerErrorExcep
     //ERROR CODES
     //TODO:replace the placeholders by the real error codes
     private final static int JSON_PROCESSING = 100;
+    private final static int UNKNOWN_FILTER_TYPE = 101;
 
     /** The description of the error in JSON format. */
     public final String message;
@@ -36,7 +37,7 @@ public class OpenR66RestInternalServerException extends InternalServerErrorExcep
      *
      * @param message The error description.
      */
-    public OpenR66RestInternalServerException(String message) {
+    private OpenR66RestInternalServerException(String message) {
         this.message = message;
     }
 
@@ -51,6 +52,21 @@ public class OpenR66RestInternalServerException extends InternalServerErrorExcep
                         "\"userMessage\":\"JSON Processing Error\"," +
                         "\"internalMessage\":\"Could not transform the response into JSON format.\"," +
                         "\"code\":" + JSON_PROCESSING +
+                        "}"
+        );
+    }
+
+    /**
+     * Returns a new OpenR66RestInternalServerException stating that there was an error when trying to convert one of
+     * the query parameters to a Filter class field.
+     * @return The new exception.
+     */
+    public static OpenR66RestInternalServerException unknownFilterType(Class type) {
+        return new OpenR66RestInternalServerException(
+                "{" +
+                        "\"userMessage\":\"Unknown filter type\"," +
+                        "\"internalMessage\":\"The type of filter '" + type.getSimpleName() + "' is not supported.\"," +
+                        "\"code\":" + UNKNOWN_FILTER_TYPE +
                         "}"
         );
     }

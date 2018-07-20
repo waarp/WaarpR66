@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.TransferFilter;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfers;
@@ -81,22 +82,23 @@ public class TransfersHandler extends AbstractHttpHandler {
 
         try {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            TransferFilter filters = Transfers.extractTransferFilters(decoder.parameters());
+            TransferFilter filters = RestUtils.extractFilters(decoder.parameters(), new TransferFilter());
+            filters.check();
             Map.Entry<Integer, List<Transfer>> answer = Transfers.filterTransfers(filters);
-            List<Transfer> results = answer.getValue();
-            Integer totalResults = answer.getKey();
-
-
-            HttpHeaders header = new DefaultHttpHeaders();
-            header.add("Content-Type", "application/json");
-            header.add("totalAnswers", totalResults);
+            List<Transfer> resultsList = answer.getValue();
+            Integer nbResults = answer.getKey();
+            String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String responseBody = mapper.writeValueAsString(results);
-            responder.sendString(HttpResponseStatus.OK, responseBody, header);
+            String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+
+            String responseBody = "{" + totalResults + "," + results + "}";
+            responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (OpenR66RestInternalServerException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     "{" +
@@ -120,12 +122,12 @@ public class TransfersHandler extends AbstractHttpHandler {
     public void createTransfer(HttpRequest request, HttpResponder responder) {
 
         try {
-            TransferInitializer init = HandlerUtils.deserializeRequest(request, TransferInitializer.class);
+            TransferInitializer init = RestUtils.deserializeRequest(request, TransferInitializer.class);
             Calendar start;
             if (init.start == null) {
                 start = new GregorianCalendar();
             } else {
-                start = HandlerUtils.toCalendar(init.start);
+                start = RestUtils.toCalendar(init.start);
             }
 
             Transfer newTrans = Transfers.createTransfer(init.fileName, init.ruleID, init.blockSize, init.fileInfo,
@@ -152,7 +154,7 @@ public class TransfersHandler extends AbstractHttpHandler {
     public void options(HttpRequest request, HttpResponder responder) {
 
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", this.allow);
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 }

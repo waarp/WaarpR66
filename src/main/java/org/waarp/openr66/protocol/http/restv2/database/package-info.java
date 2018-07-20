@@ -18,26 +18,4 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
-
-import org.waarp.openr66.protocol.http.restv2.data.limits.Limit;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class TestLimit {
-    public static List<Limit> limitDb = initLimitsDb();
-
-    private static List<Limit> initLimitsDb() {
-        List<Limit> limits = new ArrayList<Limit>();
-        Limit limit = new Limit();
-        limit.upGlobalLimit = 1000000;
-        limit.downGlobalLimit = 1000000;
-        limit.upSessionLimit = 1000000;
-        limit.downSessionLimit = 1000000;
-        limit.delayLimit = 1000;
-
-        limits.add(limit);
-        return limits;
-    }
-}
+package org.waarp.openr66.protocol.http.restv2.database;

@@ -22,17 +22,15 @@ package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.database.TransfersDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestEmptyParamException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
-import org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils;
-import org.waarp.openr66.protocol.http.restv2.test.TestTransfer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -103,7 +101,7 @@ public final class Transfers {
             trans.startTrans = startTrans;
             trans.requested = requested;
 
-            TestTransfer.transfersDb.add(trans);
+            TransfersDatabase.transfersDb.add(trans);
             //TODO: add the transfer to the database
             return trans;
         }
@@ -122,7 +120,7 @@ public final class Transfers {
         try {
             id = Long.valueOf(strId);
             //TODO: replace by a real database request
-            for (Transfer trans : TestTransfer.transfersDb) {
+            for (Transfer trans : TransfersDatabase.transfersDb) {
                 if (trans.transferID.equals(id)) {
                     return trans;
                 }
@@ -138,95 +136,20 @@ public final class Transfers {
     }
 
     /**
-     * Extract the parameters Map outputted by the query decoder and creates a Filter object with it.
-     *
-     * @param params The Map associating the query parameters names with their respecting values as lists of Strings.
-     * @return The Filter object representing the filter applied to the database query.
-     * @throws OpenR66RestBadRequestException Thrown if one of the parameters has an invalid value or no value at all.
-     */
-    public static TransferFilter extractTransferFilters(Map<String, List<String>> params)
-            throws OpenR66RestBadRequestException {
-        TransferFilter filters = new TransferFilter();
-        for (Map.Entry<String, List<String>> param : params.entrySet()) {
-            String name = param.getKey();
-            try {
-                List<String> values = param.getValue();
-                for (String value : values) {
-                    if (value.isEmpty()) {
-                        throw new OpenR66RestEmptyParamException();
-                    }
-                }
-                boolean isSingleton = values.size() == 1;
-
-                if (name.equals("limit") && isSingleton) {
-                    filters.limit = Integer.valueOf(values.get(0));
-                } else if (name.equals("offset") && isSingleton) {
-                    filters.offset = Integer.valueOf(values.get(0));
-                } else if (name.equals("order") && isSingleton) {
-                    filters.order = TransferFilter.Order.valueOf(values.get(0));
-                } else if (name.equals("ruleID") && isSingleton) {
-                    filters.ruleID = values.get(0);
-                } else if (name.equals("partner") && isSingleton) {
-                    filters.partner = values.get(0);
-                } else if (name.equals("status")) {
-                    List<Transfer.Status> statuses = new ArrayList<Transfer.Status>();
-                    for (String str : values) {
-                        statuses.add(Transfer.Status.valueOf(str));
-                    }
-                    filters.status = statuses;
-                } else if (name.equals("fileName") && isSingleton) {
-                    filters.fileName = values.get(0);
-                } else if (name.equals("startTrans") && isSingleton) {
-                    filters.startTrans = HandlerUtils.toCalendar(values.get(0));
-                } else if (name.equals("stopTrans") && isSingleton) {
-                    filters.stopTrans = HandlerUtils.toCalendar(values.get(0));
-                } else {
-                    throw new OpenR66RestBadRequestException(
-                            "{" +
-                                    "\"userMessage\":\"Invalid parameter\"," +
-                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown or has multiple " +
-                                    "values.\"" +
-                                    "}"
-                    );
-                }
-            } catch (OpenR66RestEmptyParamException e) {
-                throw OpenR66RestBadRequestException.emptyParameter(name);
-            } catch (NumberFormatException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Expected number\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' is expecting a number.\"" +
-                                "}"
-                );
-            } catch (IllegalArgumentException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Illegal value\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
-                                "}"
-                );
-            }
-        }
-        return filters;
-    }
-
-    /**
      * Returns the list of all transfers in the database that fit the filters passed as arguments.
      *
      * @param filters The different filters used to generate the desired transfer list.
      * @return A map entry associating the total number of valid entries and the list of entries that will actually be
      * returned in the response.
-     * @throws OpenR66RestBadRequestException
      */
-    public static Map.Entry<Integer, List<Transfer>> filterTransfers(TransferFilter filters)
-            throws OpenR66RestBadRequestException {
+    public static Map.Entry<Integer, List<Transfer>> filterTransfers(TransferFilter filters) {
 
         List<Transfer> results = new ArrayList<Transfer>();
-        for (Transfer transfer : TestTransfer.transfersDb) {
+        for (Transfer transfer : TransfersDatabase.transfersDb) {
             if ((filters.ruleID == null || transfer.ruleID.equals(filters.ruleID)) &&
                     (filters.partner == null || transfer.requested.equals(filters.partner) ||
                             transfer.requester.equals(filters.partner)) &&
-                    (filters.status == null || filters.status.contains(transfer.status)) &&
+                    (filters.status == null || Arrays.asList(filters.status).contains(transfer.status)) &&
                     (filters.fileName == null || transfer.originalFileName.equals(filters.fileName)) &&
                     (filters.startTrans == null || transfer.startTrans.compareTo(filters.startTrans) >= 0) &&
                     (filters.stopTrans == null || (transfer.stopTrans != null &&
@@ -236,72 +159,7 @@ public final class Transfers {
             }
         }
         Integer total = results.size();
-        switch (filters.order) {
-            case ascTransferID:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return t1.transferID.compareTo(t2.transferID);
-                    }
-                });
-                break;
-            case descTransferID:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return -t1.transferID.compareTo(t2.transferID);
-                    }
-                });
-                break;
-            case ascFileName:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return t1.originalFileName.compareTo(t2.originalFileName);
-                    }
-                });
-                break;
-            case descFileName:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return -t1.originalFileName.compareTo(t2.originalFileName);
-                    }
-                });
-                break;
-            case ascStartTrans:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return t1.startTrans.compareTo(t2.startTrans);
-                    }
-                });
-                break;
-            case descStartTrans:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return -t1.startTrans.compareTo(t2.startTrans);
-                    }
-                });
-                break;
-            case ascStopTrans:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return t1.stopTrans.compareTo(t2.stopTrans);
-                    }
-                });
-                break;
-            case descStopTrans:
-                Collections.sort(results, new Comparator<Transfer>() {
-                    @Override
-                    public int compare(Transfer t1, Transfer t2) {
-                        return -t1.stopTrans.compareTo(t2.stopTrans);
-                    }
-                });
-                break;
-        }
+        Collections.sort(results, filters.order.comparator);
 
         List<Transfer> answers = new ArrayList<Transfer>();
         for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {

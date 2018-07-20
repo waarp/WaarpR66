@@ -22,10 +22,12 @@ package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.database.HostconfigDatabase;
+import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
-import org.waarp.openr66.protocol.http.restv2.test.TestHostConfig;
 
 import java.lang.reflect.Field;
 
@@ -41,7 +43,7 @@ public final class HostConfigs {
      */
     public static HostConfig loadConfig(String hostId) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
-        for (HostConfig config : TestHostConfig.configDb) {
+        for (HostConfig config : HostconfigDatabase.configDb) {
             if (config.hostId.equals(hostId)) {
                 return config;
             }
@@ -63,7 +65,7 @@ public final class HostConfigs {
     public static void deleteConfig(String hostId) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
         HostConfig toDelete = loadConfig(hostId);
-        TestHostConfig.configDb.remove(toDelete);
+        HostconfigDatabase.configDb.remove(toDelete);
     }
 
     /**
@@ -74,10 +76,10 @@ public final class HostConfigs {
      */
     public static void initConfig(HostConfig newConfig) throws OpenR66RestBadRequestException {
         //TODO: replace by a real database request
-        if (TestHostConfig.configDb.contains(newConfig)) {
+        if (HostconfigDatabase.configDb.contains(newConfig)) {
             throw OpenR66RestBadRequestException.alreadyExisting("host configuration");
         }
-        TestHostConfig.configDb.add(newConfig);
+        HostconfigDatabase.configDb.add(newConfig);
     }
 
     /**
@@ -89,18 +91,18 @@ public final class HostConfigs {
     public static void replace(String id, HostConfig newConfig) {
         for (Field field : HostConfig.class.getFields()) {
             try {
-                if (field.get(newConfig) == null) {
+                if (RestUtils.isIllegal(field.get(newConfig))) {
                     throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
 
         //TODO: delete the old config from the database and insert the new one
         HostConfig oldConfig = loadConfig(id);
-        TestHostConfig.configDb.remove(oldConfig);
-        TestHostConfig.configDb.add(newConfig);
+        HostconfigDatabase.configDb.remove(oldConfig);
+        HostconfigDatabase.configDb.add(newConfig);
     }
 
     /**
@@ -113,18 +115,18 @@ public final class HostConfigs {
         HostConfig oldConfig = loadConfig(id);
         for (Field field : HostConfig.class.getFields()) {
             try {
-                if (field.get(newConfig) == null) {
+                if (RestUtils.isIllegal(field.get(newConfig))) {
                     field.set(newConfig, field.get(oldConfig));
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             } catch (IllegalArgumentException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
         //TODO: delete the old config from the database and insert the new one
-        TestHostConfig.configDb.remove(oldConfig);
-        TestHostConfig.configDb.add(newConfig);
+        HostconfigDatabase.configDb.remove(oldConfig);
+        HostconfigDatabase.configDb.add(newConfig);
     }
 
 

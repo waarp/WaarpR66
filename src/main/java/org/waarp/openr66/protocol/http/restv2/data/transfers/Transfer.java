@@ -20,7 +20,7 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
-import org.waarp.openr66.protocol.http.restv2.handler.HandlerUtils;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 
 import java.util.Calendar;
 
@@ -158,10 +158,10 @@ public class Transfer {
 
 
     public String getStartTrans() {
-        return HandlerUtils.fromCalendar(this.startTrans);
+        return RestUtils.fromCalendar(this.startTrans);
     }
 
     public String getStopTrans() {
-        return HandlerUtils.fromCalendar(this.stopTrans);
+        return RestUtils.fromCalendar(this.stopTrans);
     }
 }

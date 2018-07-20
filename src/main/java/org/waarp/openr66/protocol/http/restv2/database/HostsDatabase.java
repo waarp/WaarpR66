@@ -18,14 +18,14 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
+package org.waarp.openr66.protocol.http.restv2.database;
 
 import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestHost {
+public final class HostsDatabase {
     public static List<Host> hostsDb = initHostsDb();
 
     private static List<Host> initHostsDb() {
@@ -35,7 +35,7 @@ public class TestHost {
         host1.hostID = "server1";
         host1.address = "192.168.1.1";
         host1.port = 6666;
-        host1.hostKey = "";
+        host1.hostKey = "azerty";
         host1.isSSL = false;
         host1.adminRole = true;
         host1.isClient = false;
@@ -46,7 +46,7 @@ public class TestHost {
         host2.hostID = "server2";
         host2.address = "example.com";
         host2.port = 6667;
-        host2.hostKey = "";
+        host2.hostKey = "azerty";
         host2.isSSL = true;
         host2.adminRole = false;
         host2.isClient = true;

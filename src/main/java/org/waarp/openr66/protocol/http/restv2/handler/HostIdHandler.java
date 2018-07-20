@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
 import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
@@ -89,7 +90,7 @@ public class HostIdHandler extends AbstractHttpHandler {
     @PUT
     public void replaceHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Host updatedHost = HandlerUtils.deserializeRequest(request, Host.class);
+            Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
             Hosts.replace(id, updatedHost);
 
             String responseBody = Hosts.toJsonString(updatedHost);
@@ -116,7 +117,7 @@ public class HostIdHandler extends AbstractHttpHandler {
     @PUT
     public void updateHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Host updatedHost = HandlerUtils.deserializeRequest(request, Host.class);
+            Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
             Hosts.update(id, updatedHost);
 
             String responseBody = Hosts.toJsonString(updatedHost);

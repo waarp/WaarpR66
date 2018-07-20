@@ -87,7 +87,7 @@ public class TransferIdHandler extends AbstractHttpHandler {
     public void options(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
 
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", this.allow);
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 

@@ -18,26 +18,35 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.handler;
+package org.waarp.openr66.protocol.http.restv2;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
+import org.waarp.openr66.protocol.http.restv2.data.Filter;
+import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
 
 
 /** A series of utility methods shared by all REST handlers. */
-public class HandlerUtils {
+public final class RestUtils {
 
     /** This server's id. */
     //TODO: replace by loading the id from the config file.
@@ -52,13 +61,14 @@ public class HandlerUtils {
      * @return The Java object representing the source JSON object.
      * @throws OpenR66RestBadRequestException Thrown if the JSON object cannot be converted to the specified Java class.
      */
-    static <T> T deserializeRequest(HttpRequest request, Class<T> c)
+    public static <T> T deserializeRequest(HttpRequest request, Class<T> c)
             throws OpenR66RestBadRequestException {
 
         try {
             if (request instanceof FullHttpRequest) {
                 String body = ((FullHttpRequest) request).content().toString(Charset.forName("UTF-8"));
                 ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
 
                 return mapper.readValue(body, c);
             } else {
@@ -75,20 +85,20 @@ public class HandlerUtils {
             String field = e.getPath().get(0).getFieldName();
             String type;
             try {
-                type = c.getField(field).getName();
+                type = c.getField(field).getType().getSimpleName();
             } catch (NoSuchFieldException e1) {
                 throw new OpenR66RestBadRequestException(
                         "{" +
                                 "\"userMessage\":\"Unknown field\"," +
-                                "\"internalMessage\":\" The class '" + c.getSimpleName() + "' does not have a field '" +
-                                field + "'\"" +
+                                "\"internalMessage\":\"The entry '" + c.getSimpleName() + "' does not have a '" + field
+                                + "' field.\"" +
                                 "}"
                 );
             }
             throw new OpenR66RestBadRequestException(
                     "{" +
                             "\"userMessage\":\"Invalid field\"," +
-                            "\"internalMessage\":\" The value of field '" + field + "' is not a valid value of type " +
+                            "\"internalMessage\":\"The value of field '" + field + "' is not a valid value of type " +
                             type + "\"" +
                             "}"
             );
@@ -100,7 +110,7 @@ public class HandlerUtils {
                             "}"
             );
         } catch (IOException e) {
-            throw new AssertionError("A IOException was thrown when this was assumed to be impossible.");
+            throw new ImpossibleException(e);
         }
     }
 
@@ -152,5 +162,99 @@ public class HandlerUtils {
             );
         }
 
+    }
+
+
+    /**
+     * Checks if the object passed as argument is an illegal value for an object field.
+     * @param value The object which whose value should be checked.
+     * @return Returns false if the object is null or empty. Returns true otherwise.
+     * @throws OpenR66RestBadRequestException Thrown if the object itself is a valid list but one of the objects
+     *                                        contained in it has an illegal field.
+     */
+    public static boolean isIllegal(Object value) throws OpenR66RestBadRequestException {
+        if (value == null || value.toString().equals("")) {
+            return true;
+        } else if(value.getClass().isArray()) {
+            Object[] arr = (Object[]) value;
+            for (Object el : arr) {
+                if (el == null) {
+                    return true;
+                } else {
+                    for (Field field : el.getClass().getFields()) {
+                        try {
+                            if(isIllegal(field.get(el))) {
+                                throw OpenR66RestBadRequestException.emptyField(field.getName());
+                            }
+                        } catch (IllegalAccessException e) {
+                            throw new ImpossibleException(e);
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static <T> T extractValue(List<String> values, Class<T> type, String name) {
+
+        if(type.isArray()) {
+            Class elemType = type.getComponentType();
+            return (T) extractList(values, elemType, name);
+        } else if (values.size() > 1) {
+            throw OpenR66RestBadRequestException.tooManyValues(name);
+        } else if (type == Integer.class) {
+            return (T) Integer.valueOf(values.get(0));
+        } else if (type == Long.class) {
+            return (T) Long.valueOf(values.get(0));
+        } else if (type == Boolean.class) {
+            return (T) Boolean.valueOf(values.get(0));
+        } else if (type == String.class) {
+            return (T) values.get(0);
+        } else if (type.isEnum()) {
+            Class<? extends Enum> enumType = (Class<? extends Enum>) type;
+            try {
+                T value = (T) Enum.valueOf(enumType, values.get(0));
+                return value;
+            } catch (IllegalArgumentException e) {
+                throw OpenR66RestBadRequestException.invalidEnum(type, name, values.get(0));
+            }
+        } else {
+            throw OpenR66RestInternalServerException.unknownFilterType(type);
+        }
+    }
+
+    public static <T> T[] extractList(List<String> values, Class<T> elemType, String name) {
+        final T[] result = (T[]) Array.newInstance(elemType, values.size());
+        for(int i=0; i<values.size(); i++) {
+            result[i] = extractValue(Collections.singletonList(values.get(i)), elemType, name);
+        }
+        return result;
+    }
+
+
+    public static <T extends Filter> T extractFilters(Map<String, List<String>> params, T filters)
+            throws OpenR66RestBadRequestException {
+        for (Field field : filters.getClass().getFields()) {
+            String name = field.getName();
+            Class type = field.getType();
+
+            List<String> values = params.get(name);
+            if(values != null) {
+                try {
+                    if(!values.isEmpty()) {
+                        Object object = extractValue(values, type, name);
+                        field.set(filters, object);
+                    } else {
+                        throw OpenR66RestBadRequestException.emptyParameter(name);
+                    }
+                } catch (NumberFormatException e) {
+                    throw OpenR66RestBadRequestException.notANumber(name, values.get(0));
+                } catch (IllegalAccessException e) {
+                    throw new ImpossibleException(e);
+                }
+            }
+        }
+        return filters;
     }
 }

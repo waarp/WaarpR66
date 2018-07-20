@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
@@ -84,7 +85,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
     @PUT
     public void replaceRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Rule updatedRule = HandlerUtils.deserializeRequest(request, Rule.class);
+            Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
             Rules.replace(id, updatedRule);
 
             String responseBody = Rules.toJsonString(updatedRule);
@@ -112,7 +113,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
     @PATCH
     public void updateRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Rule updatedRule = HandlerUtils.deserializeRequest(request, Rule.class);
+            Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
             Rules.update(id, updatedRule);
 
             String responseBody = Rules.toJsonString(updatedRule);

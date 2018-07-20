@@ -20,27 +20,39 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.rules;
 
-import java.util.List;
+import org.waarp.openr66.protocol.http.restv2.data.Filter;
+
+import java.util.Comparator;
 
 /**
  * All the usable filters to request multiple transfer rules. The response will contain all the entries that satisfy
  * these filters.
  */
-public class RuleFilter {
+public class RuleFilter extends Filter {
 
     /** All the possible ways to order a list of rule objects. */
-    enum Order {
+    public enum Order {
         /** By ruleID, in ascending order. */
-        ascRuleID,
+        ascRuleID(new Comparator<Rule>() {
+            @Override
+            public int compare(Rule t1, Rule t2) {
+                return t1.ruleID.compareTo(t2.ruleID);
+            }
+        }),
         /** By ruleID, in descending order. */
-        descRuleID,
+        descRuleID(new Comparator<Rule>() {
+            @Override
+            public int compare(Rule t1, Rule t2) {
+                return -t1.ruleID.compareTo(t2.ruleID);
+            }
+        });
+
+        public final Comparator<Rule> comparator;
+
+        Order(Comparator<Rule> comparator) {
+            this.comparator = comparator;
+        }
     }
-
-    /** The maximum number of entry allowed to be send in the response. 20 by default. */
-    Integer limit = 20;
-
-    /** The starting number from which to start counting the `limit` entries to send back. */
-    Integer offset = 0;
 
     /**
      * The parameter and order according to which the response entries should be sorted. By default, entries are
@@ -48,8 +60,8 @@ public class RuleFilter {
      *
      * @see Order
      */
-    Order order = Order.ascRuleID;
+    public Order order = Order.ascRuleID;
 
     /** The response will only contain the rules whose mode of transfer is one of these ones. Leave empty for all. */
-    List<Rule.ModeTrans> modeTrans;
+    public Rule.ModeTrans[] modeTrans;
 }

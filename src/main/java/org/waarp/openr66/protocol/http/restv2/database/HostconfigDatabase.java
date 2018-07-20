@@ -18,29 +18,26 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.test;
+package org.waarp.openr66.protocol.http.restv2.database;
 
 import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfig;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class TestHostConfig {
+public final class HostconfigDatabase {
     public static List<HostConfig> configDb = initConfigDb();
 
     private static List<HostConfig> initConfigDb() {
         List<HostConfig> configs = new ArrayList<HostConfig>();
         HostConfig config1 = new HostConfig();
-        config1.aliases = new ArrayList<String>(Collections.singletonList("host1"));
-        config1.roles = new ArrayList<Map.Entry<String, List<HostConfig.Role>>>(
-                Collections.singleton(new HashMap.SimpleImmutableEntry<String, List<HostConfig.Role>>("server1",
-                        new ArrayList<HostConfig.Role>(Collections.singleton(HostConfig.Role.fullAdmin))
-                ))
-        );
-        config1.business = new ArrayList<String>(Collections.singleton("server2"));
+        config1.aliases = new String[]{"host1"};
+        config1.roles = new HostConfig.Role[]{
+                new HostConfig.Role("server1", new HostConfig.RoleType[]{HostConfig.RoleType.fullAdmin}),
+                new HostConfig.Role("server2", new HostConfig.RoleType[]{HostConfig.RoleType.configAdmin})
+        };
+        config1.business = new String[]{"server2"};
+        config1.others = "<root><version>1.0.0</version></root>";
 
         configs.add(config1);
         return configs;

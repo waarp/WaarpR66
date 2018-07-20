@@ -23,16 +23,17 @@ package org.waarp.openr66.protocol.http.restv2.data.rules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.database.RulesDatabase;
+import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestEmptyParamException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
-import org.waarp.openr66.protocol.http.restv2.test.TestRule;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public final class Rules {
      */
     public static Rule loadRule(String id) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
-        for (Rule rule : TestRule.rulesDb) {
+        for (Rule rule : RulesDatabase.rulesDb) {
             if (rule.ruleID.equals(id)) {
                 return rule;
             }
@@ -72,7 +73,7 @@ public final class Rules {
     public static void deleteRule(String id) throws OpenR66RestIdNotFoundException {
         //TODO: replace by a real database request
         Rule toDelete = loadRule(id);
-        TestRule.rulesDb.remove(toDelete);
+        RulesDatabase.rulesDb.remove(toDelete);
     }
 
     /**
@@ -85,17 +86,17 @@ public final class Rules {
         for (Field field : Rule.class.getFields()) {
             try {
                 Object value = field.get(newRule);
-                if (value == null || value.toString().equals("")) {
+                if (RestUtils.isIllegal(value)) {
                     throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
         //TODO: replace by a real database request
         Rule oldRule = loadRule(id);
-        TestRule.rulesDb.remove(oldRule);
-        TestRule.rulesDb.add(newRule);
+        RulesDatabase.rulesDb.remove(oldRule);
+        RulesDatabase.rulesDb.add(newRule);
     }
 
     /**
@@ -109,16 +110,18 @@ public final class Rules {
         for (Field field : Rule.class.getFields()) {
             try {
                 Object value = field.get(newRule);
-                if (value == null || value.toString().equals("")) {
+                if(value == null || value.toString().equals("")) {
                     field.set(newRule, field.get(oldRule));
+                } else if(RestUtils.isIllegal(value)) {
+                    throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
-                assert false;
+                throw new ImpossibleException(e);
             }
         }
         //TODO: replace by a real database request
-        TestRule.rulesDb.remove(oldRule);
-        TestRule.rulesDb.add(newRule);
+        RulesDatabase.rulesDb.remove(oldRule);
+        RulesDatabase.rulesDb.add(newRule);
     }
 
     /**
@@ -137,76 +140,15 @@ public final class Rules {
             for (Field field : Rule.class.getFields()) {
                 try {
                     Object value = field.get(rule);
-                    if (value == null || value.toString().equals("")) {
+                    if (RestUtils.isIllegal(value)) {
                         throw OpenR66RestBadRequestException.emptyField(field.getName());
                     }
                 } catch (IllegalAccessException ignore) {
-                    assert false;
+                    throw new ImpossibleException(e);
                 }
             }
-            TestRule.rulesDb.add(rule);
+            RulesDatabase.rulesDb.add(rule);
         }
-    }
-
-    /**
-     * Extract the parameters Map outputted by the query decoder and creates a Filter object with it.
-     *
-     * @param params The Map associating the query parameters names with their respecting values as lists of Strings.
-     * @return The Filter object representing the filter applied to the database query.
-     * @throws OpenR66RestBadRequestException Thrown if one of the parameters has an invalid value or no value at all.
-     */
-    public static RuleFilter extractRuleFilter(Map<String, List<String>> params) throws OpenR66RestBadRequestException {
-        RuleFilter filters = new RuleFilter();
-        for (Map.Entry<String, List<String>> param : params.entrySet()) {
-            String name = param.getKey();
-            try {
-                List<String> values = param.getValue();
-                for (String value : values) {
-                    if (value.isEmpty()) {
-                        throw new OpenR66RestEmptyParamException();
-                    }
-                }
-                boolean isSingleton = values.size() == 1;
-
-                if (name.equals("limit") && isSingleton) {
-                    filters.limit = Integer.valueOf(values.get(0));
-                } else if (name.equals("offset") && isSingleton) {
-                    filters.offset = Integer.valueOf(values.get(0));
-                } else if (name.equals("order") && isSingleton) {
-                    filters.order = RuleFilter.Order.valueOf(values.get(0));
-                } else if (name.equals("modeTrans")) {
-                    List<Rule.ModeTrans> modeTrans = new ArrayList<Rule.ModeTrans>();
-                    for (String str : values) {
-                        modeTrans.add(Rule.ModeTrans.valueOf(str));
-                    }
-                    filters.modeTrans = modeTrans;
-                } else {
-                    throw new OpenR66RestBadRequestException(
-                            "{" +
-                                    "\"userMessage\":\"Unknown parameter\"," +
-                                    "\"internalMessage\":\"The parameter '" + name + "' is unknown.\"" +
-                                    "}"
-                    );
-                }
-            } catch (OpenR66RestEmptyParamException e) {
-                throw OpenR66RestBadRequestException.emptyParameter(name);
-            } catch (NumberFormatException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Expected number\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' was expecting a number.\"" +
-                                "}"
-                );
-            } catch (IllegalArgumentException e) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Illegal value\"," +
-                                "\"internalMessage\":\"The parameter '" + name + "' has an illegal value.\"" +
-                                "}"
-                );
-            }
-        }
-        return filters;
     }
 
     /**
@@ -222,30 +164,13 @@ public final class Rules {
 
         //TODO: replace by a real database request
         List<Rule> results = new ArrayList<Rule>();
-        for (Rule rule : TestRule.rulesDb) {
-            if (filters.modeTrans == null || filters.modeTrans.contains(rule.modeTrans)) {
+        for (Rule rule : RulesDatabase.rulesDb) {
+            if (filters.modeTrans == null || Arrays.asList(filters.modeTrans).contains(rule.modeTrans)) {
                 results.add(rule);
             }
         }
         Integer total = results.size();
-        switch (filters.order) {
-            case ascRuleID:
-                Collections.sort(results, new Comparator<Rule>() {
-                    @Override
-                    public int compare(Rule t1, Rule t2) {
-                        return t1.ruleID.compareTo(t2.ruleID);
-                    }
-                });
-                break;
-            case descRuleID:
-                Collections.sort(results, new Comparator<Rule>() {
-                    @Override
-                    public int compare(Rule t1, Rule t2) {
-                        return -t1.ruleID.compareTo(t2.ruleID);
-                    }
-                });
-                break;
-        }
+        Collections.sort(results, filters.order.comparator);
 
         List<Rule> answers = new ArrayList<Rule>();
         for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {
