@@ -41,7 +41,6 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 
@@ -123,10 +122,8 @@ public class TransfersHandler extends AbstractHttpHandler {
 
         try {
             TransferInitializer init = RestUtils.deserializeRequest(request, TransferInitializer.class);
-            Calendar start;
-            if (init.start == null) {
-                start = new GregorianCalendar();
-            } else {
+            Calendar start = null;
+            if (init.start != null) {
                 start = RestUtils.toCalendar(init.start);
             }
 

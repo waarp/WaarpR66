@@ -68,7 +68,7 @@ public class TransferIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
@@ -112,7 +112,7 @@ public class TransferIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
@@ -139,7 +139,7 @@ public class TransferIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
@@ -166,7 +166,7 @@ public class TransferIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }

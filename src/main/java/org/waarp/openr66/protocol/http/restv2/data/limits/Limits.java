@@ -47,12 +47,7 @@ public final class Limits {
                 return limit;
             }
         }
-        throw new OpenR66RestIdNotFoundException(
-                "{" +
-                        "\"userMessage\":\"Limits not found\"," +
-                        "\"internalMessage\":\"This host does not have any bandwidth limits.\"" +
-                        "}"
-        );
+        throw new OpenR66RestIdNotFoundException();
     }
 
     /**

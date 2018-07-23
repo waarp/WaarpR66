@@ -66,9 +66,11 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestBadRequestException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -117,6 +119,8 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestIdNotFoundException e) {
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -142,6 +146,8 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestIdNotFoundException e) {
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -154,7 +160,7 @@ public class HostConfigHandler extends AbstractHttpHandler {
      * @param responder The Http responder, Http response are given to it in order to be sent back.
      */
     @DELETE
-    public void deleteHost(HttpRequest request, HttpResponder responder) {
+    public void deleteConfig(HttpRequest request, HttpResponder responder) {
         try {
             HostConfigs.deleteConfig(HOST_ID);
 
@@ -163,6 +169,8 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (OpenR66RestIdNotFoundException e) {
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 

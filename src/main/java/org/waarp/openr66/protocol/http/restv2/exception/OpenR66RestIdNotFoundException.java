@@ -24,15 +24,4 @@ import javax.ws.rs.NotFoundException;
 
 public class OpenR66RestIdNotFoundException extends NotFoundException {
 
-    /** The description of the error in JSON format. */
-    public final String message;
-
-    /**
-     * Creates a new `OpenR66RestIdNotFoundException` exception.
-     *
-     * @param message The error description.
-     */
-    public OpenR66RestIdNotFoundException(String message) {
-        this.message = message;
-    }
 }

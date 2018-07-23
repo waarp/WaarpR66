@@ -66,7 +66,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
@@ -95,7 +95,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -123,7 +123,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -148,7 +148,7 @@ public class RuleIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 

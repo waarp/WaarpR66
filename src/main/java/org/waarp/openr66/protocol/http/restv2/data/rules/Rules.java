@@ -56,12 +56,7 @@ public final class Rules {
             }
         }
 
-        throw new OpenR66RestIdNotFoundException(
-                "{" +
-                        "\"userMessage\":\"Id not found\"," +
-                        "\"internalMessage\":\"The rule of id '" + id + "' does not exist.\"" +
-                        "}"
-        );
+        throw new OpenR66RestIdNotFoundException();
     }
 
     /**

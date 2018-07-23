@@ -72,46 +72,29 @@ public final class RestUtils {
 
                 return mapper.readValue(body, c);
             } else {
-                throw new IllegalArgumentException();
+                throw OpenR66RestBadRequestException.emptyBody();
             }
         } catch (JsonParseException e) {
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Invalid body\"," +
-                            "\"internalMessage\":\"The request body is not a valid JSON file.\"" +
-                            "}"
-            );
+            throw OpenR66RestBadRequestException.emptyBody();
         } catch (JsonMappingException e) {
-            String field = e.getPath().get(0).getFieldName();
-            String type;
-            try {
-                type = c.getField(field).getType().getSimpleName();
-            } catch (NoSuchFieldException e1) {
-                throw new OpenR66RestBadRequestException(
-                        "{" +
-                                "\"userMessage\":\"Unknown field\"," +
-                                "\"internalMessage\":\"The entry '" + c.getSimpleName() + "' does not have a '" + field
-                                + "' field.\"" +
-                                "}"
-                );
+            if (e.getPath().size() < 1) {
+                throw  OpenR66RestBadRequestException.emptyBody();
+            } else {
+                String field = e.getPath().get(0).getFieldName();
+                Class type;
+                try {
+                    type = c.getField(field).getType();
+                } catch (NoSuchFieldException e1) {
+                    throw OpenR66RestBadRequestException.unknownField(field, c);
+                }
+                throw OpenR66RestBadRequestException.illegalValue(type, field);
             }
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Invalid field\"," +
-                            "\"internalMessage\":\"The value of field '" + field + "' is not a valid value of type " +
-                            type + "\"" +
-                            "}"
-            );
         } catch (IllegalArgumentException e) {
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Missing body\"," +
-                            "\"internalMessage\":\"The request is missing its body.\"" +
-                            "}"
-            );
+            throw OpenR66RestBadRequestException.emptyBody();
         } catch (IOException e) {
             throw new ImpossibleException(e);
         }
+
     }
 
     /**

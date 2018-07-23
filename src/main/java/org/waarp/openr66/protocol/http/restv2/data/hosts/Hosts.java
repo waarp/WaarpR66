@@ -111,12 +111,7 @@ public final class Hosts {
             }
         }
 
-        throw new OpenR66RestIdNotFoundException(
-                "{" +
-                        "\"userMessage\":\"Not Found\"," +
-                        "\"internalMessage\":\"The host of id '" + id + "' does not exist.\"" +
-                        "}"
-        );
+        throw new OpenR66RestIdNotFoundException();
     }
 
     /**

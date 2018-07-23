@@ -64,7 +64,7 @@ public final class Transfers {
                             "\"internalMessage\":\"The block size cannot be negative or zero.\"" +
                             "}"
             );
-        } else if (startTrans.compareTo(new GregorianCalendar()) < 0) {
+        } else if (startTrans != null && startTrans.compareTo(new GregorianCalendar()) < 0) {
             throw new OpenR66RestBadRequestException(
                     "{" +
                             "\"userMessage\":\"Empty field\"," +
@@ -98,7 +98,7 @@ public final class Transfers {
             trans.ruleID = ruleID;
             trans.blockSize = blockSize;
             trans.fileInfo = fileInfo;
-            trans.startTrans = startTrans;
+            trans.startTrans = (startTrans == null) ? new GregorianCalendar() : startTrans;
             trans.requested = requested;
 
             TransfersDatabase.transfersDb.add(trans);
@@ -127,12 +127,7 @@ public final class Transfers {
             }
         } catch (NumberFormatException ignored) {
         }
-        throw new OpenR66RestIdNotFoundException(
-                "{" +
-                        "\"userMessage\":\"Not Found\"," +
-                        "\"internalMessage\":\"The transfer of id '" + strId + "' does not exist.\"" +
-                        "}"
-        );
+        throw new OpenR66RestIdNotFoundException();
     }
 
     /**

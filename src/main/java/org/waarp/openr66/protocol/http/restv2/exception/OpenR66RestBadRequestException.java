@@ -39,6 +39,19 @@ public class OpenR66RestBadRequestException extends BadRequestException {
 
 
     /**
+     * Creates an OpenR66RestBadRequestException stating that the request body is empty.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException emptyBody() {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Empty parameter\"," +
+                        "\"internalMessage\":\"The request body is empty.\"" +
+                        "}"
+        );
+    }
+
+    /**
      * Creates an OpenR66RestBadRequestException stating that the field passes as argument is missing from the request.
      * @param field The name of the missing field.
      * @return The new exception.
@@ -108,8 +121,25 @@ public class OpenR66RestBadRequestException extends BadRequestException {
         return new OpenR66RestBadRequestException(
                 "{" +
                         "\"userMessage\":\"Invalid enum value\"," +
-                        "\"internalMessage\":\"'" + value + "' is not a valid enum value for parameter '" +
+                        "\"internalMessage\":\"'" + value + "' is not a valid enum value for '" +
                         id + "'. Valid values : " + Arrays.toString(type.getEnumConstants()) + "\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the field of type 'type' and of name 'id' got a value
+     * incompatible with its type.
+     * @param type The type of entry.
+     * @param id The id of the existing entry.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException illegalValue(Class type, String id) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Illegal value\"," +
+                        "\"internalMessage\":\"The value of field '" + id + "' could not be converted to " +
+                        type.getSimpleName() + "\"" +
                         "}"
         );
     }
@@ -127,6 +157,23 @@ public class OpenR66RestBadRequestException extends BadRequestException {
                         "\"userMessage\":\"Not a number\"," +
                         "\"internalMessage\":\"The parameter '" + id + "' was expecting a numerical value but got '" +
                         value + "' instead.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the field of name 'id' does not correspond to any field
+     * of the target class '
+     * @param id The id of the existing entry.
+     * @param cl The target object class.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException unknownField(String id, Class cl) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Unknown field\"," +
+                        "\"internalMessage\":\"The entry '" + cl.getSimpleName() + "' does not have a '" +
+                        id + "' field.\"" +
                         "}"
         );
     }

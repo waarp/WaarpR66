@@ -48,12 +48,7 @@ public final class HostConfigs {
                 return config;
             }
         }
-        throw new OpenR66RestIdNotFoundException(
-                "{" +
-                        "\"userMessage\":\"Not Found\"," +
-                        "\"internalMessage\":\"This host does not have a configuration.\"" +
-                        "}"
-        );
+        throw new OpenR66RestIdNotFoundException();
     }
 
     /**

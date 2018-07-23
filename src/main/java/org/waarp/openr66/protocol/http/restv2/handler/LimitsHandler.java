@@ -66,7 +66,7 @@ public class LimitsHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestBadRequestException e) {
@@ -120,7 +120,7 @@ public class LimitsHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -147,7 +147,7 @@ public class LimitsHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -170,7 +170,7 @@ public class LimitsHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 

@@ -20,8 +20,10 @@
 
 package org.waarp.openr66.protocol.http.restv2;
 
+import co.cask.http.ChannelPipelineModifier;
 import co.cask.http.HttpHandler;
 import co.cask.http.NettyHttpService;
+import io.netty.channel.ChannelPipeline;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInitializationException;
 import org.waarp.openr66.protocol.http.restv2.handler.HostConfigHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.HostIdHandler;
@@ -35,6 +37,7 @@ import org.waarp.openr66.protocol.http.restv2.handler.TransfersHandler;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 
 public class RestServiceInitializer {
@@ -57,6 +60,15 @@ public class RestServiceInitializer {
         NettyHttpService restService = NettyHttpService.builder("WaarpR66-Rest")
                 .setPort(TEST_PORT)
                 .setHttpHandlers(handlers)
+                .setHandlerHooks(Collections.singleton(new RestHandlerHook()))
+                .setExceptionHandler(new RestExceptionHandler())
+                /* Adds the routing error handler to the service pipeline. */
+                .setChannelPipelineModifier(new ChannelPipelineModifier() {
+                    @Override
+                    public void modify(ChannelPipeline channelPipeline) {
+                        channelPipeline.addBefore("router", "errorHandler", new RestRoutingErrorHandler());
+                    }
+                })
                 .build();
 
 

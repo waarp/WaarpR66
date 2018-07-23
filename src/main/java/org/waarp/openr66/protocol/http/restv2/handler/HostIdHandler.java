@@ -36,6 +36,7 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServe
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -71,7 +72,7 @@ public class HostIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
@@ -100,7 +101,7 @@ public class HostIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -114,7 +115,7 @@ public class HostIdHandler extends AbstractHttpHandler {
      * @param responder The Http responder, Http response are given to it in order to be sent back.
      * @param id        The requested host's id, this id is identical to the {id} in the URI of the request.
      */
-    @PUT
+    @PATCH
     public void updateHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
             Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
@@ -127,7 +128,7 @@ public class HostIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -152,7 +153,7 @@ public class HostIdHandler extends AbstractHttpHandler {
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, e.message);
+            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
