@@ -52,7 +52,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  * 
  */
-public class ExecOutputTask extends AbstractTask {
+public class ExecOutputTask extends AbstractExecTask {
     /**
      * Internal Logger
      */
@@ -85,8 +85,8 @@ public class ExecOutputTask extends AbstractTask {
          */
         logger.info("ExecOutput with " + argRule + ":" + argTransfer + " and {}",
                 session);
-        String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        String finalname = applyTransferSubstitutions(argRule);
+        //
         // Force the WaitForValidation
         waitForValidation = true;
         if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
@@ -100,22 +100,12 @@ public class ExecOutputTask extends AbstractTask {
                 return;
             } // else continue
         }
-        String[] args = finalname.split(" ");
-        File exec = new File(args[0]);
-        if (exec.isAbsolute()) {
-            if (!exec.canExecute()) {
-                logger.error("Exec command is not executable: " + finalname);
-                R66Result result = new R66Result(session, false,
-                        ErrorCode.CommandNotFound, session.getRunner());
-                futureCompletion.setResult(result);
-                futureCompletion.cancel();
-                return;
-            }
+
+        CommandLine commandLine = buildCommandLine(finalname);
+        if (commandLine == null) {
+            return;
         }
-        CommandLine commandLine = new CommandLine(args[0]);
-        for (int i = 1; i < args.length; i++) {
-            commandLine.addArgument(args[i]);
-        }
+
         DefaultExecutor defaultExecutor = new DefaultExecutor();
         PipedInputStream inputStream = new PipedInputStream();
         PipedOutputStream outputStream = null;
