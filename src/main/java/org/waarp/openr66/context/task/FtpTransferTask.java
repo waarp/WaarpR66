@@ -20,6 +20,8 @@ package org.waarp.openr66.context.task;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.exec.CommandLine;
+
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.logging.WaarpLogger;
@@ -96,8 +98,20 @@ public class FtpTransferTask extends AbstractTask {
         logger.info("FtpTransfer with " + argRule + ":" + argTransfer + " and {}",
                 session);
         String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer.split(" "));
-        String[] args = finalname.split(" ");
+        Object[] argFormat = argTransfer.split(" ");
+        if (argFormat != null && argFormat.length > 0) {
+            try {
+                finalname = String.format(finalname, argFormat);
+            } catch (Exception e) {
+                // ignored error since bad argument in static rule info
+                logger.error("Bad format in Rule: {"+finalname+"} " + e.getMessage());
+            }
+        }
+
+        CommandLine cl = new CommandLine("dummy");
+        cl.addArguments(finalname, false);
+        String[] args = cl.getArguments();
+
         if (args.length < 10) {
             OpenR66RunnerErrorException exception = new OpenR66RunnerErrorException("Not enough argument in Transfer");
             R66Result result = new R66Result(exception, session, false, ErrorCode.CommandNotFound, session.getRunner());
@@ -136,6 +150,9 @@ public class FtpTransferTask extends AbstractTask {
          * -command command from (get,put,append) <br>
          * [-post extraCommand2 with ',' as separator of arguments]" <br>
          */
+        for (int i = 0; i < args.length; i++) {
+            args[i] = getReplacedValue(args[i], null);
+        }
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-file")) {
                 i++;
