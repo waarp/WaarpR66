@@ -22,10 +22,10 @@ package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.waarp.openr66.protocol.http.restv2.database.TransfersDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +38,6 @@ import java.util.Map;
 
 /** This class consists exclusively of static methods that operate on or return transfers. */
 public final class Transfers {
-
-    protected static long count = 0;
-
 
     /**
      * Creates a new transfer instance and add it to the database. The date of the transfer is a `Calendar`
@@ -119,7 +116,6 @@ public final class Transfers {
         Long id;
         try {
             id = Long.valueOf(strId);
-            //TODO: replace by a real database request
             for (Transfer trans : TransfersDatabase.transfersDb) {
                 if (trans.transferID.equals(id)) {
                     return trans;

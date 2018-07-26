@@ -20,30 +20,50 @@
 
 package org.waarp.openr66.protocol.http.restv2.exception;
 
-import javax.ws.rs.InternalServerErrorException;
 
-public class OpenR66RestInternalServerException extends InternalServerErrorException {
+public class OpenR66RestInternalServerException extends Exception {
 
     //ERROR CODES
     //TODO:replace the placeholders by the real error codes
     private final static int JSON_PROCESSING = 100;
+
     private final static int UNKNOWN_FILTER_TYPE = 101;
+
+    private final static int OBJECT_INSTANTIATION = 102;
+
 
     /** The description of the error in JSON format. */
     public final String message;
 
     /**
-     * Creates a new `OpenR66RestInternalServerError` exception.
+     * Creates a new `OpenR66RestInternalServerError` exception with the message passed as argument.
      *
      * @param message The error description.
      */
-    private OpenR66RestInternalServerException(String message) {
+    public OpenR66RestInternalServerException(String message) {
         this.message = message;
     }
 
     /**
      * Returns a new OpenR66RestInternalServerException stating that there was an error when converting the response
      * java object into a JSON String.
+     *
+     * @return The new exception.
+     */
+    public static OpenR66RestInternalServerException objectInstantiation(Class c) {
+        return new OpenR66RestInternalServerException(
+                "{" +
+                        "\"userMessage\":\"Object instantiation Error\"," +
+                        "\"internalMessage\":\"Could not instantiate object " + c.getSimpleName() + ".\"," +
+                        "\"code\":" + OBJECT_INSTANTIATION +
+                        "}"
+        );
+    }
+
+    /**
+     * Returns a new OpenR66RestInternalServerException stating that there was an error when converting the response
+     * java object into a JSON String.
+     *
      * @return The new exception.
      */
     public static OpenR66RestInternalServerException jsonProcessing() {
@@ -59,6 +79,7 @@ public class OpenR66RestInternalServerException extends InternalServerErrorExcep
     /**
      * Returns a new OpenR66RestInternalServerException stating that there was an error when trying to convert one of
      * the query parameters to a Filter class field.
+     *
      * @return The new exception.
      */
     public static OpenR66RestInternalServerException unknownFilterType(Class type) {

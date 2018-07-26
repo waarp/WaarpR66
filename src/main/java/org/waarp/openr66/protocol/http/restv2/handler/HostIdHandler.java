@@ -40,7 +40,6 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import java.util.Arrays;
 
 /**
  * This is the handler for all requests made on a single 'host' entry, accessible with the URI "/host/{id}",
@@ -48,9 +47,6 @@ import java.util.Arrays;
  */
 @Path("/v2/hosts/{id}")
 public class HostIdHandler extends AbstractHttpHandler {
-
-    /** The list of allowed HTTP methods names on the /v2/hosts/{id} URI. Should only be used by the OPTIONS methods. */
-    private static final String[] allow = {"GET", "PUT", "PATCH", "DELETE", "OPTIONS"};
 
     /**
      * The method called when a GET request is made on /v2/hosts/{id}. If the request is valid and the id exists
@@ -69,8 +65,6 @@ public class HostIdHandler extends AbstractHttpHandler {
             String responseBody = Hosts.toJsonString(host);
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
@@ -148,10 +142,6 @@ public class HostIdHandler extends AbstractHttpHandler {
             Hosts.deleteHost(id);
 
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
@@ -164,12 +154,13 @@ public class HostIdHandler extends AbstractHttpHandler {
      *
      * @param request   The Http request made on the resource.
      * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param id        The requested host's id, this id is identical to the {id} in the URI of the request.
      */
     @OPTIONS
-    public void options(HttpRequest request, HttpResponder responder) {
-
+    public void options(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", Arrays.toString(allow));
+        String allow = RestUtils.options(this.getClass());
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 }

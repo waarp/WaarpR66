@@ -40,7 +40,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -49,9 +48,6 @@ import java.util.Map;
  */
 @Path("/v2/rules")
 public class RulesHandler extends AbstractHttpHandler {
-
-    /** The list of allowed HTTP methods names on the /v2/rules URI. Should only be used by the OPTIONS methods. */
-    private static final String[] allow = {"GET", "POST", "OPTIONS"};
 
     /**
      * The method called when a GET request is made on /v2/rules. If the request is valid, the Http response will
@@ -64,7 +60,7 @@ public class RulesHandler extends AbstractHttpHandler {
     public void filterRules(HttpRequest request, HttpResponder responder) {
         try {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            RuleFilter filters = RestUtils.extractFilters(decoder.parameters(), new RuleFilter());
+            RuleFilter filters = RestUtils.extractParameters(decoder.parameters(), new RuleFilter());
             filters.check();
             Map.Entry<Integer, List<Rule>> answer = Rules.filterRules(filters);
             List<Rule> resultsList = answer.getValue();
@@ -72,21 +68,20 @@ public class RulesHandler extends AbstractHttpHandler {
             String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+            String results;
+            try {
+                results = "\"results\":" + mapper.writeValueAsString(resultsList);
+            } catch (JsonProcessingException e) {
+                throw OpenR66RestInternalServerException.jsonProcessing();
+            }
 
             String responseBody = "{" + totalResults + "," + results + "}";
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    "{" +
-                            "\"userMessage\": \"Internal Server Error\"" +
-                            "\"internalMessage\": \"Could not convert the response body to JSON format.\"" +
-                            "\"code\": 100" +
-                            "}");
-            //TODO: replace '100' with the actual error code for JSON processing error
+        } catch (OpenR66RestInternalServerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -125,9 +120,9 @@ public class RulesHandler extends AbstractHttpHandler {
      */
     @OPTIONS
     public void options(HttpRequest request, HttpResponder responder) {
-
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", Arrays.toString(allow));
+        String allow = RestUtils.options(this.getClass());
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 }

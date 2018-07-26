@@ -18,16 +18,19 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.database;
+package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public final class RulesDatabase {
+    @Deprecated
     public static List<Rule> rulesDb = initRulesDb();
 
+    @Deprecated
     private static Rule.Task copy() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.copy;

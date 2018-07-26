@@ -26,17 +26,21 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.waarp.openr66.protocol.http.restv2.data.Filter;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -78,7 +82,7 @@ public final class RestUtils {
             throw OpenR66RestBadRequestException.emptyBody();
         } catch (JsonMappingException e) {
             if (e.getPath().size() < 1) {
-                throw  OpenR66RestBadRequestException.emptyBody();
+                throw OpenR66RestBadRequestException.emptyBody();
             } else {
                 String field = e.getPath().get(0).getFieldName();
                 Class type;
@@ -98,13 +102,13 @@ public final class RestUtils {
     }
 
     /**
-     * Converts a Calendar to a String containing the date in ISO-8601 format.
+     * Converts a Calendar to a String containing the date in ISO-8601 format. If *calendar* is null, returns 'null'.
      *
      * @param calendar The source Calendar object.
      * @return The date of the Calendar object in ISO-8601 format.
      */
     public static String fromCalendar(Calendar calendar) {
-        if(calendar == null) {
+        if (calendar == null) {
             return null;
         } else {
             Date date = calendar.getTime();
@@ -118,9 +122,9 @@ public final class RestUtils {
      *
      * @param iso8601string The string containing the date in ISO-8601.
      * @return The Calendar corresponding to the date in the string parameter.
-     * @throws OpenR66RestBadRequestException Thrown if the string is not a valid ISO-8601 date.
+     * @throws IllegalArgumentException Thrown if the string is not a valid ISO-8601 date.
      */
-    public static Calendar toCalendar(final String iso8601string) throws OpenR66RestBadRequestException {
+    public static Calendar toCalendar(final String iso8601string) throws IllegalArgumentException {
         try {
             Calendar calendar = GregorianCalendar.getInstance();
             String s = iso8601string.replace("Z", "+00:00");
@@ -130,19 +134,9 @@ public final class RestUtils {
             return calendar;
 
         } catch (IndexOutOfBoundsException e) {
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The inputted date is not a valid ISO-8601 date.\"" +
-                            "}"
-            );
+            throw new IllegalArgumentException();
         } catch (ParseException e) {
-            throw new OpenR66RestBadRequestException(
-                    "{" +
-                            "\"userMessage\":\"Bad Request\"," +
-                            "\"internalMessage\":\"The inputted date is not a valid ISO-8601 date.\"" +
-                            "}"
-            );
+            throw new IllegalArgumentException();
         }
 
     }
@@ -150,6 +144,7 @@ public final class RestUtils {
 
     /**
      * Checks if the object passed as argument is an illegal value for an object field.
+     *
      * @param value The object which whose value should be checked.
      * @return Returns false if the object is null or empty. Returns true otherwise.
      * @throws OpenR66RestBadRequestException Thrown if the object itself is a valid list but one of the objects
@@ -158,7 +153,7 @@ public final class RestUtils {
     public static boolean isIllegal(Object value) throws OpenR66RestBadRequestException {
         if (value == null || value.toString().equals("")) {
             return true;
-        } else if(value.getClass().isArray()) {
+        } else if (value.getClass().isArray()) {
             Object[] arr = (Object[]) value;
             for (Object el : arr) {
                 if (el == null) {
@@ -166,7 +161,7 @@ public final class RestUtils {
                 } else {
                     for (Field field : el.getClass().getFields()) {
                         try {
-                            if(isIllegal(field.get(el))) {
+                            if (isIllegal(field.get(el))) {
                                 throw OpenR66RestBadRequestException.emptyField(field.getName());
                             }
                         } catch (IllegalAccessException e) {
@@ -179,11 +174,47 @@ public final class RestUtils {
         return false;
     }
 
-    private static <T> T extractValue(List<String> values, Class<T> type, String name) {
+    /**
+     * Converts a String to a Boolean if the String represents a valid boolean value.
+     *
+     * @param str The string to convert to a Boolean.
+     * @return The Boolean extracted from the String.
+     * @throws IllegalArgumentException Thrown if the String parameter does not represent a valid boolean value.
+     */
+    public static Boolean stringToBoolean(String str) throws IllegalArgumentException {
+        if ("true".equalsIgnoreCase(str)) {
+            return Boolean.TRUE;
+        } else if ("false".equalsIgnoreCase(str)) {
+            return Boolean.FALSE;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
 
-        if(type.isArray()) {
+    /**
+     * Converts the String value(s) of a query parameter to value(s) of the corresponding Java type. Supported classes
+     * are : Integer, Long, Boolean, String, Calendar and Enum. Primitive arrays of these classes are also accepted.
+     *
+     * @param values The list of String representing the values of the parameter.
+     * @param type   The Java Class to which the parameter should be converted.
+     * @param name   The name of the query parameter (for error reporting purposes).
+     * @param <T>    The Java type corresponding to the target Java class.
+     * @return The value(s) extracted from the list of string values of the query parameter.
+     * @throws OpenR66RestBadRequestException     Thrown if the the number of values attributed to the parameter is
+     *                                            incompatible with its type, or if the string value does not
+     *                                            represent a valid value of the specified class.
+     * @throws OpenR66RestInternalServerException Thrown if the specified Java class is not a valid target for
+     *                                            parameter conversion.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T extractValue(List<String> values, Class<T> type, String name)
+            throws OpenR66RestBadRequestException, OpenR66RestInternalServerException {
+
+        if (values.size() == 0) {
+            throw OpenR66RestBadRequestException.emptyParameter(name);
+        } else if (type.isArray()) {
             Class elemType = type.getComponentType();
-            return (T) extractList(values, elemType, name);
+            return (T) extractArray(values, elemType, name);
         } else if (values.size() > 1) {
             throw OpenR66RestBadRequestException.tooManyValues(name);
         } else if (type == Integer.class) {
@@ -191,7 +222,11 @@ public final class RestUtils {
         } else if (type == Long.class) {
             return (T) Long.valueOf(values.get(0));
         } else if (type == Boolean.class) {
-            return (T) Boolean.valueOf(values.get(0));
+            try {
+                return (T) stringToBoolean(values.get(0));
+            } catch (IllegalArgumentException e) {
+                throw OpenR66RestBadRequestException.notABoolean(name, values.get(0));
+            }
         } else if (type == String.class) {
             return (T) values.get(0);
         } else if (type.isEnum()) {
@@ -202,42 +237,95 @@ public final class RestUtils {
             } catch (IllegalArgumentException e) {
                 throw OpenR66RestBadRequestException.invalidEnum(type, name, values.get(0));
             }
+        } else if (type == Calendar.class) {
+            return (T) toCalendar(values.get(0));
         } else {
             throw OpenR66RestInternalServerException.unknownFilterType(type);
         }
     }
 
-    public static <T> T[] extractList(List<String> values, Class<T> elemType, String name) {
-        final T[] result = (T[]) Array.newInstance(elemType, values.size());
-        for(int i=0; i<values.size(); i++) {
+    /**
+     * Converts the String values of a query parameter to an array of the corresponding Java type. Supported classes
+     * for the array elements are : Integer, Long, Boolean, String, Calendar and Enum.
+     *
+     * @param values   The list of String representing the values of the parameter.
+     * @param elemType The type of the underlying elements of the array.
+     * @param name     The name of the query parameter (for error reporting purposes).
+     * @param <T>      The Java type of the array of the target Java class.
+     * @return An array of values of the specified Java class extracted from the list of string values.
+     * @throws OpenR66RestBadRequestException     Thrown if a call to the {@link #extractValue(List, Class, String)}
+     *                                            extractValue} method on one of the elements of the *values* list throws
+     *                                            this exception.
+     * @throws OpenR66RestInternalServerException Thrown if a call to the {@link #extractValue(List, Class, String)}
+     *                                            extractValue}  method on one of the elements of the *values* list
+     *                                            throws this exception.
+     */
+    private static <T> T[] extractArray(List<String> values, Class<T> elemType, String name)
+            throws OpenR66RestInternalServerException, OpenR66RestBadRequestException {
+        T[] result = (T[]) Array.newInstance(elemType, values.size());
+        for (int i = 0; i < values.size(); i++) {
             result[i] = extractValue(Collections.singletonList(values.get(i)), elemType, name);
         }
         return result;
     }
 
-
-    public static <T extends Filter> T extractFilters(Map<String, List<String>> params, T filters)
-            throws OpenR66RestBadRequestException {
-        for (Field field : filters.getClass().getFields()) {
+    /**
+     * Extracts the value(s) of a query's parameters as a POJO with the parameters as fields. The target POJO's fields
+     * must have public accessibility, and must be of one of the following classes : Integer, Long, Boolean, String,
+     * Calendar, Enum or a primitive array of these Classes.
+     *
+     * @param params A map associating a parameter's name to the value(s) it was given in the request.
+     * @param target The instance of the POJO to which the parameters values will be extracted.
+     * @param <T>    The type of the target POJO.
+     * @return An instance of the target POJO with the parameters values extracted in its fields.
+     * @throws OpenR66RestBadRequestException     Thrown if one of the parameters has an invalid number of values, or
+     *                                            an invalid value for the target class.
+     * @throws OpenR66RestInternalServerException Thrown if the type of one the target class field is not an accepted
+     *                                            class, or if one of the fields is not accessible from this method.
+     */
+    public static <T> T extractParameters(Map<String, List<String>> params, T target)
+            throws OpenR66RestBadRequestException, OpenR66RestInternalServerException {
+        for (Field field : target.getClass().getFields()) {
             String name = field.getName();
             Class type = field.getType();
 
             List<String> values = params.get(name);
-            if(values != null) {
+            if (values != null) {
                 try {
-                    if(!values.isEmpty()) {
-                        Object object = extractValue(values, type, name);
-                        field.set(filters, object);
-                    } else {
-                        throw OpenR66RestBadRequestException.emptyParameter(name);
-                    }
+                    Object object = extractValue(values, type, name);
+                    field.set(target, object);
                 } catch (NumberFormatException e) {
                     throw OpenR66RestBadRequestException.notANumber(name, values.get(0));
                 } catch (IllegalAccessException e) {
-                    throw new ImpossibleException(e);
+                    throw OpenR66RestInternalServerException.objectInstantiation(type);
                 }
             }
         }
-        return filters;
+        return target;
+    }
+
+    /**
+     * Extracts the available HTTP methods of a handler and returns them as a String suitable as a response to an
+     * OPTIONS request on said handler.
+     *
+     * @param handler The handler from which to extract the available HTTP methods.
+     * @return A String listing the available HTTP methods on the handler, separated by comas.
+     */
+    public static String options(Class handler) {
+        ArrayList<String> methods = new ArrayList<String>();
+        for (Method method : handler.getMethods()) {
+            if (!method.isAnnotationPresent(Path.class)) {
+                for (Annotation annotation : method.getDeclaredAnnotations()) {
+                    if (annotation.annotationType().isAnnotationPresent(HttpMethod.class)) {
+                        HttpMethod http = annotation.annotationType().getAnnotation(HttpMethod.class);
+                        if (!methods.contains(http.value())) {
+                            methods.add(http.value());
+                        }
+                    }
+                }
+            }
+        }
+
+        return methods.toString().replaceAll("[\\[\\]]", "");
     }
 }

@@ -18,28 +18,29 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.database;
+package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
-import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfig;
+import org.waarp.openr66.protocol.http.restv2.data.limits.Limit;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class HostconfigDatabase {
-    public static List<HostConfig> configDb = initConfigDb();
+@Deprecated
+public final class LimitsDatabase {
+    @Deprecated
+    public static List<Limit> limitDb = initLimitsDb();
 
-    private static List<HostConfig> initConfigDb() {
-        List<HostConfig> configs = new ArrayList<HostConfig>();
-        HostConfig config1 = new HostConfig();
-        config1.aliases = new String[]{"host1"};
-        config1.roles = new HostConfig.Role[]{
-                new HostConfig.Role("server1", new HostConfig.RoleType[]{HostConfig.RoleType.fullAdmin}),
-                new HostConfig.Role("server2", new HostConfig.RoleType[]{HostConfig.RoleType.configAdmin})
-        };
-        config1.business = new String[]{"server2"};
-        config1.others = "<root><version>1.0.0</version></root>";
+    @Deprecated
+    private static List<Limit> initLimitsDb() {
+        List<Limit> limits = new ArrayList<Limit>();
+        Limit limit = new Limit();
+        limit.upGlobalLimit = 1000000;
+        limit.downGlobalLimit = 1000000;
+        limit.upSessionLimit = 1000000;
+        limit.downSessionLimit = 1000000;
+        limit.delayLimit = 1000;
 
-        configs.add(config1);
-        return configs;
+        limits.add(limit);
+        return limits;
     }
 }

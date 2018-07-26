@@ -84,10 +84,8 @@ public class RestServiceInitializer {
     //!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
     public static void main(String[] args) throws OpenR66RestInitializationException, InterruptedException {
         NettyHttpService restService = initRestService();
-
-        RestServiceInitializer r = new RestServiceInitializer();
-        synchronized (r) {
-            r.wait();
+        synchronized (restService) {
+            restService.wait();
         }
     }
 }

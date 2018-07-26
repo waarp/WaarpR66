@@ -21,10 +21,12 @@
 package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.Calendar;
 
 /** Transfer POJO for Rest HTTP support for R66. */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Transfer {
 
     /** All the possible global steps for a transfer. */
@@ -33,6 +35,8 @@ public class Transfer {
         noTask,
         /** Currently doing the transfer pre-tasks */
         preTask,
+        /** Currently transfering the file. */
+        transfer,
         /** Currently doing the transfer post-tasks */
         postTask,
         /** Finished the transfer without error */
@@ -76,7 +80,7 @@ public class Transfer {
     }
 
     /** The transfer's unique id, automatically generated at transfer creation. */
-    public final Long transferID = ++Transfers.count;
+    public final Long transferID = ++TransfersDatabase.count;
 
     /**
      * The transfer's current global step.
@@ -110,10 +114,7 @@ public class Transfer {
     public Status status = Status.unknown;
 
     /** Additional information about the current status (error messages, etc...). */
-    public String stepStatus = "";
-
-    /** Program error code in case of internal error during the transfer. */
-    public Integer errorCode = 0;
+    public String stepStatus = "unknown";
 
     /** The sent file's original name on the sender host before the transfer. */
     public String originalFileName;
@@ -153,8 +154,6 @@ public class Transfer {
 
     /** Host id of the host to which the transfer was requested. */
     public String requested;
-
-
 
 
     public String getStartTrans() {

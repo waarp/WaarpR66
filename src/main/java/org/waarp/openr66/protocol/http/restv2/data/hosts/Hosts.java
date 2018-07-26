@@ -23,11 +23,11 @@ package org.waarp.openr66.protocol.http.restv2.data.hosts;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.database.HostsDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -82,10 +82,10 @@ public final class Hosts {
             throw OpenR66RestBadRequestException.alreadyExisting("host", host.hostID);
         } catch (OpenR66RestIdNotFoundException valid) {
 
-            for(Field field : Host.class.getFields()) {
+            for (Field field : Host.class.getFields()) {
                 try {
                     Object value = field.get(host);
-                    if(RestUtils.isIllegal(value)) {
+                    if (RestUtils.isIllegal(value)) {
                         throw OpenR66RestBadRequestException.emptyField(field.getName());
                     }
                 } catch (IllegalAccessException e) {
@@ -104,7 +104,6 @@ public final class Hosts {
      * @throws OpenR66RestIdNotFoundException Thrown if the id does not exist in the database.
      */
     public static Host loadHost(String id) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         for (Host host : HostsDatabase.hostsDb) {
             if (host.hostID.equals(id)) {
                 return host;
@@ -121,7 +120,6 @@ public final class Hosts {
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not exist in the database.
      */
     public static void deleteHost(String id) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         Host toDelete = loadHost(id);
         HostsDatabase.hostsDb.remove(toDelete);
     }
@@ -145,7 +143,6 @@ public final class Hosts {
                 throw new ImpossibleException(e);
             }
         }
-        //TODO: replace by a real database request
         HostsDatabase.hostsDb.remove(oldHost);
         HostsDatabase.hostsDb.add(newHost);
     }
@@ -156,7 +153,8 @@ public final class Hosts {
      * @param newHost The new entry that replaces this one.
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not exist in the database.
      */
-    public static void update(String id, Host newHost) throws OpenR66RestIdNotFoundException {
+    public static void update(String id, Host newHost) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         Host oldHost = loadHost(id);
         for (Field field : Host.class.getFields()) {
             try {
@@ -170,7 +168,6 @@ public final class Hosts {
                 throw new ImpossibleException(e);
             }
         }
-        //TODO: replace by a real database request
 
         HostsDatabase.hostsDb.remove(oldHost);
         HostsDatabase.hostsDb.add(newHost);

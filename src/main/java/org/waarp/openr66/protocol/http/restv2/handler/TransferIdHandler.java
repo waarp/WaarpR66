@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfers;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
@@ -43,12 +44,6 @@ import javax.ws.rs.PathParam;
  */
 @Path("/v2/transfers/{id}")
 public class TransferIdHandler extends AbstractHttpHandler {
-
-    /**
-     * The list of allowed HTTP methods names on the /v2/transfers/{id} URI. Should only be used by the OPTIONS
-     * methods.
-     */
-    private static final String allow = "GET, OPTIONS";
 
     /**
      * The method called when a GET request is made on /v2/transfers/{id}. If the request is valid and the id exists
@@ -85,8 +80,8 @@ public class TransferIdHandler extends AbstractHttpHandler {
      */
     @OPTIONS
     public void options(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-
         HttpHeaders headers = new DefaultHttpHeaders();
+        String allow = RestUtils.options(this.getClass());
         headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }

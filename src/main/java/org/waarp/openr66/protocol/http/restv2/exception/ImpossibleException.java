@@ -21,7 +21,8 @@
 package org.waarp.openr66.protocol.http.restv2.exception;
 
 public class ImpossibleException extends AssertionError {
-    private ImpossibleException(){}
+    private ImpossibleException() {
+    }
 
     public ImpossibleException(Exception e) {
         super("A " + e.getClass().getSimpleName() + " was thrown when this was assumed to be impossible.");

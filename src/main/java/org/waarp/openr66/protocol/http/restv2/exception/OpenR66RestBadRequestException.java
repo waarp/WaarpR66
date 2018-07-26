@@ -20,10 +20,9 @@
 
 package org.waarp.openr66.protocol.http.restv2.exception;
 
-import javax.ws.rs.BadRequestException;
 import java.util.Arrays;
 
-public class OpenR66RestBadRequestException extends BadRequestException {
+public class OpenR66RestBadRequestException extends Exception {
 
     /** The description of the error in JSON format. */
     public final String message;
@@ -40,6 +39,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
 
     /**
      * Creates an OpenR66RestBadRequestException stating that the request body is empty.
+     *
      * @return The new exception.
      */
     public static OpenR66RestBadRequestException emptyBody() {
@@ -53,6 +53,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
 
     /**
      * Creates an OpenR66RestBadRequestException stating that the field passes as argument is missing from the request.
+     *
      * @param field The name of the missing field.
      * @return The new exception.
      */
@@ -67,6 +68,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
 
     /**
      * Creates an OpenR66RestBadRequestException stating that the parameter passed as argument is empty.
+     *
      * @param parameter The name of the empty parameter.
      * @return The new exception.
      */
@@ -81,6 +83,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
 
     /**
      * Creates an OpenR66RestBadRequestException stating that the parameter passed as argument is empty.
+     *
      * @param parameter The name of the empty parameter.
      * @return The new exception.
      */
@@ -96,8 +99,9 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the id passed as argument already exist in the database of
      * the entered type.
+     *
      * @param type The type of entry.
-     * @param id The id of the existing entry.
+     * @param id   The id of the existing entry.
      * @return The new exception.
      */
     public static OpenR66RestBadRequestException alreadyExisting(String type, String id) {
@@ -112,8 +116,9 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the enum parameter of type 'type' and of name 'id' got
      * an invalid value 'value'.
-     * @param type The type of entry.
-     * @param id The id of the existing entry.
+     *
+     * @param type  The type of entry.
+     * @param id    The id of the existing entry.
      * @param value The invalid value.
      * @return The new exception.
      */
@@ -130,8 +135,9 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the field of type 'type' and of name 'id' got a value
      * incompatible with its type.
+     *
      * @param type The type of entry.
-     * @param id The id of the existing entry.
+     * @param id   The id of the existing entry.
      * @return The new exception.
      */
     public static OpenR66RestBadRequestException illegalValue(Class type, String id) {
@@ -147,7 +153,8 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' was expecting a numerical
      * value but got 'value' instead which is not a number.
-     * @param id The id of the existing entry.
+     *
+     * @param id    The id of the existing entry.
      * @param value The invalid value.
      * @return The new exception.
      */
@@ -155,8 +162,44 @@ public class OpenR66RestBadRequestException extends BadRequestException {
         return new OpenR66RestBadRequestException(
                 "{" +
                         "\"userMessage\":\"Not a number\"," +
-                        "\"internalMessage\":\"The parameter '" + id + "' was expecting a numerical value but got '" +
-                        value + "' instead.\"" +
+                        "\"internalMessage\":\"'" + value + "' is not a valid numerical value for parameter '" + id +
+                        "'\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' was expecting a numerical
+     * value but got 'value' instead which is not a number.
+     *
+     * @param id    The id of the existing entry.
+     * @param value The invalid value.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException notABoolean(String id, String value) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Not a number\"," +
+                        "\"internalMessage\":\"'" + value + "' is not a valid boolean value for parameter '" + id +
+                        "'\"" +
+                        "}"
+        );
+    }
+
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the value entered is not a valid date in ISO-8601 format.
+     *
+     * @param id    The id of the invalid field.
+     * @param value The invalid value.
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException notADate(String id, String value) {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Not a number\"," +
+                        "\"internalMessage\":\"The value '" + value + "' of parameter '" + id + "' is not a valid " +
+                        "ISO-8601 date.\"" +
                         "}"
         );
     }
@@ -164,6 +207,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the field of name 'id' does not correspond to any field
      * of the target class '
+     *
      * @param id The id of the existing entry.
      * @param cl The target object class.
      * @return The new exception.
@@ -181,6 +225,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' cannot be negative but got a
      * negative value.
+     *
      * @param id The id of the existing entry.
      * @return The new exception.
      */
@@ -196,6 +241,7 @@ public class OpenR66RestBadRequestException extends BadRequestException {
     /**
      * Creates an OpenR66RestBadRequestException stating that the host already has one of the requested type of entry
      * in the database.
+     *
      * @param type The type of entry.
      * @return The new exception.
      */

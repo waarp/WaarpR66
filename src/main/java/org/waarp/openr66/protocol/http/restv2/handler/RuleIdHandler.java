@@ -33,8 +33,13 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
-import javax.ws.rs.*;
-import java.util.Arrays;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 /**
  * This is the handler for all requests made on a single 'rule' entry, accessible with the URI "/rule/{id}",
@@ -42,9 +47,6 @@ import java.util.Arrays;
  */
 @Path("/v2/rules/{id}")
 public class RuleIdHandler extends AbstractHttpHandler {
-
-    /** The list of allowed HTTP methods names on the /v2/rules/{id} URI. Should only be used by the OPTIONS methods. */
-    private static final String[] allow = {"GET", "PUT", "PATCH", "DELETE", "OPTIONS"};
 
     /**
      * The method called when a GET request is made on /v2/rules/{id}. If the request is valid and the id exists
@@ -63,8 +65,6 @@ public class RuleIdHandler extends AbstractHttpHandler {
             String responseBody = Rules.toJsonString(rule);
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
@@ -143,10 +143,6 @@ public class RuleIdHandler extends AbstractHttpHandler {
             Rules.deleteRule(id);
 
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
@@ -159,12 +155,13 @@ public class RuleIdHandler extends AbstractHttpHandler {
      *
      * @param request   The Http request made on the resource.
      * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param id        The requested rule's id, this id is identical to the {id} in the URI of the request.
      */
     @OPTIONS
-    public void options(HttpRequest request, HttpResponder responder) {
-
+    public void options(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", Arrays.toString(allow));
+        String allow = RestUtils.options(this.getClass());
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 }

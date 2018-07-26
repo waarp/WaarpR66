@@ -66,9 +66,6 @@ public class TransfersHandler extends AbstractHttpHandler {
         public String start;
     }
 
-    /** The list of allowed HTTP methods names on the /v2/transfers URI. Should only be used by the OPTIONS methods. */
-    private static final String allow = "GET, POST, OPTIONS";
-
     /**
      * The method called when a GET request is made on /v2/transfers. If the request is valid, the Http response will
      * contain an array of transfer entries. If not, the response will contain a '400 - Bad request' error message.
@@ -81,7 +78,7 @@ public class TransfersHandler extends AbstractHttpHandler {
 
         try {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            TransferFilter filters = RestUtils.extractFilters(decoder.parameters(), new TransferFilter());
+            TransferFilter filters = RestUtils.extractParameters(decoder.parameters(), new TransferFilter());
             filters.check();
             Map.Entry<Integer, List<Transfer>> answer = Transfers.filterTransfers(filters);
             List<Transfer> resultsList = answer.getValue();
@@ -89,8 +86,12 @@ public class TransfersHandler extends AbstractHttpHandler {
             String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String results = "\"results\":" + mapper.writeValueAsString(resultsList);
-
+            String results;
+            try {
+                results = "\"results\":" + mapper.writeValueAsString(resultsList);
+            } catch (JsonProcessingException e) {
+                throw OpenR66RestInternalServerException.jsonProcessing();
+            }
             String responseBody = "{" + totalResults + "," + results + "}";
             responder.sendJson(HttpResponseStatus.OK, responseBody);
 
@@ -98,14 +99,6 @@ public class TransfersHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    "{" +
-                            "\"userMessage\": \"Internal Server Error\"" +
-                            "\"internalMessage\": \"Could not convert the response body to JSON format.\"" +
-                            "\"code\": 100" +
-                            "}");
-            //TODO: replace '100' with the actual error code for JSON processing error
         }
     }
 
@@ -124,7 +117,11 @@ public class TransfersHandler extends AbstractHttpHandler {
             TransferInitializer init = RestUtils.deserializeRequest(request, TransferInitializer.class);
             Calendar start = null;
             if (init.start != null) {
-                start = RestUtils.toCalendar(init.start);
+                try {
+                    start = RestUtils.toCalendar(init.start);
+                } catch (IllegalArgumentException e) {
+                    throw OpenR66RestBadRequestException.notADate("start", init.start);
+                }
             }
 
             Transfer newTrans = Transfers.createTransfer(init.fileName, init.ruleID, init.blockSize, init.fileInfo,
@@ -149,8 +146,8 @@ public class TransfersHandler extends AbstractHttpHandler {
      */
     @OPTIONS
     public void options(HttpRequest request, HttpResponder responder) {
-
         HttpHeaders headers = new DefaultHttpHeaders();
+        String allow = RestUtils.options(this.getClass());
         headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }

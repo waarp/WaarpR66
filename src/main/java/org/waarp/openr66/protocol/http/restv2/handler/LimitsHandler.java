@@ -33,20 +33,19 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestExc
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
 
 /**
  * This is the handler for all request made on the 'limits' database, accessible through the "/v2/limits" URI.
  */
 @Path("/v2/limits")
 public class LimitsHandler extends AbstractHttpHandler {
-
-    /** The id of the host on which this handler is running. */
-    //TODO: load the real host id from the config file
-    private final static String HOST_ID = "server1";
-
-    /** The list of allowed HTTP methods names on the /v2/limits URI. Should only be used by the OPTIONS methods. */
-    private final String allow = "GET, POST, PUT, PATCH, OPTIONS";
 
     /**
      * The method called when a GET request is made on /v2/limits. If the request is valid and the host does
@@ -60,7 +59,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     @GET
     public void getLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit limit = Limits.loadLimits(HOST_ID);
+            Limit limit = Limits.loadLimits(RestUtils.HOST_ID);
 
             String responseBody = Limits.toJsonString(limit);
             responder.sendJson(HttpResponseStatus.OK, responseBody);
@@ -69,8 +68,6 @@ public class LimitsHandler extends AbstractHttpHandler {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         } catch (OpenR66RestInternalServerException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -111,7 +108,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     public void replaceLimits(HttpRequest request, HttpResponder responder) {
         try {
             Limit updatedLimits = RestUtils.deserializeRequest(request, Limit.class);
-            Limits.replace(HOST_ID, updatedLimits);
+            Limits.replace(RestUtils.HOST_ID, updatedLimits);
 
             String responseBody = Limits.toJsonString(updatedLimits);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
@@ -138,7 +135,7 @@ public class LimitsHandler extends AbstractHttpHandler {
     public void updateLimits(HttpRequest request, HttpResponder responder) {
         try {
             Limit updatedLimits = RestUtils.deserializeRequest(request, Limit.class);
-            Limits.update(HOST_ID, updatedLimits);
+            Limits.update(RestUtils.HOST_ID, updatedLimits);
 
             String responseBody = Limits.toJsonString(updatedLimits);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
@@ -162,13 +159,9 @@ public class LimitsHandler extends AbstractHttpHandler {
     @DELETE
     public void deleteLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limits.deleteLimits(HOST_ID);
+            Limits.deleteLimits(RestUtils.HOST_ID);
 
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (OpenR66RestIdNotFoundException e) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
@@ -184,9 +177,9 @@ public class LimitsHandler extends AbstractHttpHandler {
      */
     @OPTIONS
     public void options(HttpRequest request, HttpResponder responder) {
-
         HttpHeaders headers = new DefaultHttpHeaders();
-        headers.add("allow", this.allow);
+        String allow = RestUtils.options(this.getClass());
+        headers.add("allow", allow);
         responder.sendStatus(HttpResponseStatus.OK, headers);
     }
 }

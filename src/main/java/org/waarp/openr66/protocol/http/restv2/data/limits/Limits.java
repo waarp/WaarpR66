@@ -23,11 +23,11 @@ package org.waarp.openr66.protocol.http.restv2.data.limits;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.database.LimitsDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.LimitsDatabase;
 
 import java.lang.reflect.Field;
 
@@ -64,7 +64,6 @@ public final class Limits {
         } catch (OpenR66RestIdNotFoundException e) {
             if (limit.upGlobalLimit >= 0 && limit.downGlobalLimit >= 0 && limit.upSessionLimit >= 0 &&
                     limit.downSessionLimit >= 0 && limit.delayLimit >= 0) {
-                //TODO: replace by a real database request
                 LimitsDatabase.limitDb.add(limit);
             } else {
                 throw new OpenR66RestBadRequestException(
@@ -84,7 +83,6 @@ public final class Limits {
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not have any bandwidth limits to delete.
      */
     public static void deleteLimits(String id) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         Limit toDelete = loadLimits(id);
         LimitsDatabase.limitDb.remove(toDelete);
     }
@@ -96,7 +94,8 @@ public final class Limits {
      * @param updated The new bandwidth limits object.
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not have bandwidth limits to replace.
      */
-    public static void replace(String id, Limit updated) throws OpenR66RestIdNotFoundException {
+    public static void replace(String id, Limit updated) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         for (Field field : Limit.class.getFields()) {
             try {
                 Object value = field.get(updated);
@@ -121,7 +120,8 @@ public final class Limits {
      * @param updated The new bandwidth limits object.
      * @throws OpenR66RestIdNotFoundException Thrown if the host does not have bandwidth limits to replace.
      */
-    public static void update(String id, Limit updated) throws OpenR66RestIdNotFoundException {
+    public static void update(String id, Limit updated) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         Limit old = loadLimits(id);
         for (Field field : updated.getClass().getFields()) {
             try {
@@ -131,7 +131,7 @@ public final class Limits {
                 }
             } catch (IllegalAccessException e) {
                 throw new ImpossibleException(e);
-            } catch (IllegalArgumentException e ) {
+            } catch (IllegalArgumentException e) {
                 throw new ImpossibleException(e);
             }
         }

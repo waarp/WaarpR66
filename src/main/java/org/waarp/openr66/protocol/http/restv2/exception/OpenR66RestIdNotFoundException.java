@@ -20,8 +20,6 @@
 
 package org.waarp.openr66.protocol.http.restv2.exception;
 
-import javax.ws.rs.NotFoundException;
-
-public class OpenR66RestIdNotFoundException extends NotFoundException {
+public class OpenR66RestIdNotFoundException extends Exception {
 
 }

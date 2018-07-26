@@ -24,11 +24,11 @@ package org.waarp.openr66.protocol.http.restv2.data.rules;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.database.RulesDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -49,7 +49,6 @@ public final class Rules {
      * @throws OpenR66RestIdNotFoundException Thrown if the id does not exist in the database.
      */
     public static Rule loadRule(String id) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         for (Rule rule : RulesDatabase.rulesDb) {
             if (rule.ruleID.equals(id)) {
                 return rule;
@@ -66,7 +65,6 @@ public final class Rules {
      * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
      */
     public static void deleteRule(String id) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         Rule toDelete = loadRule(id);
         RulesDatabase.rulesDb.remove(toDelete);
     }
@@ -77,7 +75,8 @@ public final class Rules {
      * @param newRule The new entry that replaces this one.
      * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
      */
-    public static void replace(String id, Rule newRule) throws OpenR66RestIdNotFoundException {
+    public static void replace(String id, Rule newRule) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         for (Field field : Rule.class.getFields()) {
             try {
                 Object value = field.get(newRule);
@@ -88,7 +87,6 @@ public final class Rules {
                 throw new ImpossibleException(e);
             }
         }
-        //TODO: replace by a real database request
         Rule oldRule = loadRule(id);
         RulesDatabase.rulesDb.remove(oldRule);
         RulesDatabase.rulesDb.add(newRule);
@@ -100,21 +98,21 @@ public final class Rules {
      * @param newRule The new entry that replaces this one.
      * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
      */
-    public static void update(String id, Rule newRule) throws OpenR66RestIdNotFoundException {
+    public static void update(String id, Rule newRule) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         Rule oldRule = loadRule(id);
         for (Field field : Rule.class.getFields()) {
             try {
                 Object value = field.get(newRule);
-                if(value == null || value.toString().equals("")) {
+                if (value == null || value.toString().equals("")) {
                     field.set(newRule, field.get(oldRule));
-                } else if(RestUtils.isIllegal(value)) {
+                } else if (RestUtils.isIllegal(value)) {
                     throw OpenR66RestBadRequestException.emptyField(field.getName());
                 }
             } catch (IllegalAccessException e) {
                 throw new ImpossibleException(e);
             }
         }
-        //TODO: replace by a real database request
         RulesDatabase.rulesDb.remove(oldRule);
         RulesDatabase.rulesDb.add(newRule);
     }
@@ -157,7 +155,6 @@ public final class Rules {
     public static Map.Entry<Integer, List<Rule>> filterRules(RuleFilter filters)
             throws OpenR66RestBadRequestException {
 
-        //TODO: replace by a real database request
         List<Rule> results = new ArrayList<Rule>();
         for (Rule rule : RulesDatabase.rulesDb) {
             if (filters.modeTrans == null || Arrays.asList(filters.modeTrans).contains(rule.modeTrans)) {

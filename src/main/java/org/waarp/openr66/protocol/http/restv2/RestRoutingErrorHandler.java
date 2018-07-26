@@ -45,12 +45,11 @@ public class RestRoutingErrorHandler extends ChannelOutboundHandlerAdapter {
 
 
     /**
-     *
-     * @param ctx           The pipeline channel context to which the response is written.
-     * @param msg           The http response created by the upper members of the pipeline.
-     * @param promise       The channel promise of the pipeline.
-     * @throws Exception    Thrown if an error occurs during the response processing, or if an unknown exception was
-     *                      thrown by a upper member of the pipeline.
+     * @param ctx     The pipeline channel context to which the response is written.
+     * @param msg     The http response created by the upper members of the pipeline.
+     * @param promise The channel promise of the pipeline.
+     * @throws Exception Thrown if an error occurs during the response processing, or if an unknown exception was
+     *                   thrown by a upper member of the pipeline.
      */
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
@@ -70,7 +69,7 @@ public class RestRoutingErrorHandler extends ChannelOutboundHandlerAdapter {
                 newResponse = fullResponse.replace(Unpooled.copiedBuffer(String.format(notFound, content), UTF_8));
                 super.write(ctx, newResponse, promise);
                 break;
-            case 405 :
+            case 405:
                 fullResponse.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
                 newResponse = fullResponse.replace(Unpooled.copiedBuffer(String.format(badMethod, content), UTF_8));
                 super.write(ctx, newResponse, promise);

@@ -20,6 +20,8 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.rules;
 
+/** Transfer rule POJO for Rest HTTP support for R66. */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Rule {
 
     /** All the different modes of file transfer. */
@@ -90,6 +92,22 @@ public class Rule {
         public Integer delay;
     }
 
+    public static class OptionalRule extends Rule {
+        public OptionalRule() {
+            this.hostsIDs = new String[]{};
+            this.recvPath = "";
+            this.sendPath = "";
+            this.archivePath = "";
+            this.workPath = "";
+            this.rPreTasks = new Task[]{};
+            this.rPostTasks = new Task[]{};
+            this.rErrorTasks = new Task[]{};
+            this.sPreTasks = new Task[]{};
+            this.sPostTasks = new Task[]{};
+            this.sErrorTasks = new Task[]{};
+        }
+    }
+
     /** The rule's unique identifier. */
     public String ruleID;
 
@@ -156,21 +174,4 @@ public class Rule {
      * @see Task
      */
     public Task[] sErrorTasks;
-
-
-    public static class OptionalRule extends Rule {
-        public OptionalRule() {
-            this.hostsIDs = new String[]{};
-            this.recvPath = "";
-            this.sendPath = "";
-            this.archivePath = "";
-            this.workPath = "";
-            this.rPreTasks = new Task[]{};
-            this.rPostTasks = new Task[]{};
-            this.rErrorTasks = new Task[]{};
-            this.sPreTasks = new Task[]{};
-            this.sPostTasks = new Task[]{};
-            this.sErrorTasks = new Task[]{};
-        }
-    }
 }

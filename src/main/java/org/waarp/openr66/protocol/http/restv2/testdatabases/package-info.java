@@ -18,4 +18,5 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.database;
+@Deprecated
+package org.waarp.openr66.protocol.http.restv2.testdatabases;

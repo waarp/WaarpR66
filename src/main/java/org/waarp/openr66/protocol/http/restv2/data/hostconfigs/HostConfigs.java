@@ -23,11 +23,11 @@ package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.database.HostconfigDatabase;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostconfigDatabase;
 
 import java.lang.reflect.Field;
 
@@ -42,7 +42,6 @@ public final class HostConfigs {
      * @throws OpenR66RestIdNotFoundException Thrown if the queried host does not have a configuration.
      */
     public static HostConfig loadConfig(String hostId) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         for (HostConfig config : HostconfigDatabase.configDb) {
             if (config.hostId.equals(hostId)) {
                 return config;
@@ -58,7 +57,6 @@ public final class HostConfigs {
      * @throws OpenR66RestIdNotFoundException Thrown if the queried host does not have a configuration.
      */
     public static void deleteConfig(String hostId) throws OpenR66RestIdNotFoundException {
-        //TODO: replace by a real database request
         HostConfig toDelete = loadConfig(hostId);
         HostconfigDatabase.configDb.remove(toDelete);
     }
@@ -70,7 +68,6 @@ public final class HostConfigs {
      * @throws OpenR66RestBadRequestException Thrown if the host already has a configuration.
      */
     public static void initConfig(HostConfig newConfig) throws OpenR66RestBadRequestException {
-        //TODO: replace by a real database request
         if (HostconfigDatabase.configDb.contains(newConfig)) {
             throw OpenR66RestBadRequestException.alreadyExisting("host configuration");
         }
@@ -80,10 +77,12 @@ public final class HostConfigs {
     /**
      * Replaces the host config entry with the one passed as parameter if it has one.
      *
+     * @param id        The id of the host whose configuration should be replaced.
      * @param newConfig The new host configuration instance.
      * @throws OpenR66RestBadRequestException Thrown if the host does not have a configuration to replace.
      */
-    public static void replace(String id, HostConfig newConfig) {
+    public static void replace(String id, HostConfig newConfig)
+            throws OpenR66RestBadRequestException, OpenR66RestIdNotFoundException {
         for (Field field : HostConfig.class.getFields()) {
             try {
                 if (RestUtils.isIllegal(field.get(newConfig))) {
@@ -103,10 +102,12 @@ public final class HostConfigs {
     /**
      * Replaces the host config entry with the one passed as parameter if it has one.
      *
+     * @param id        The id of the host whose configuration should be updated.
      * @param newConfig The new host configuration instance.
      * @throws OpenR66RestBadRequestException Thrown if the host does not have a configuration to replace.
      */
-    public static void update(String id, HostConfig newConfig) {
+    public static void update(String id, HostConfig newConfig) throws OpenR66RestIdNotFoundException,
+            OpenR66RestBadRequestException {
         HostConfig oldConfig = loadConfig(id);
         for (Field field : HostConfig.class.getFields()) {
             try {
@@ -128,6 +129,7 @@ public final class HostConfigs {
     /**
      * Returns the host configuration object as a String usable in a JSON file.
      *
+     * @param config The configuration to convert to JSON.
      * @return The host as a String.
      * @throws OpenR66RestInternalServerException Thrown if the config object could not be converted to JSON format.
      */

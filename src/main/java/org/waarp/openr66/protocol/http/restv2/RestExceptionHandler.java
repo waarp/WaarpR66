@@ -31,14 +31,15 @@ public class RestExceptionHandler extends ExceptionHandler {
     /**
      * Called when an unknown exception is thrown during the program execution. Creates and sends an http response with
      * a 500 status and the exception message in the body as a JSON object.
+     *
      * @param t         The exception thrown during execution.
      * @param request   The http request that failed.
      * @param responder The responder for the request.
      */
     @Override
     public void handle(Throwable t, HttpRequest request, HttpResponder responder) {
-        String message = String.format("{\"userMessage\":\"Unknown internal error\"," +
-                "\"internalMessage\":\"%s\"", t.getMessage());
+        String message = String.format("{\"userMessage\":\"Unexpected internal error : " + t.getClass().getSimpleName() +
+                "\",\"internalMessage\":\"%s\"}", t.getMessage());
         responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, message);
     }
 }

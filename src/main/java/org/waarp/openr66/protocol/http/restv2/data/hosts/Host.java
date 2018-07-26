@@ -19,7 +19,6 @@
  */
 
 
-
 package org.waarp.openr66.protocol.http.restv2.data.hosts;
 
 
@@ -27,7 +26,18 @@ package org.waarp.openr66.protocol.http.restv2.data.hosts;
  * Host POJO
  * for Rest HTTP support for R66.
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Host {
+
+    public static class OptionalHost extends Host {
+        public OptionalHost() {
+            this.isSSL = false;
+            this.adminRole = false;
+            this.isClient = false;
+            this.isActive = false;
+            this.isProxyfied = false;
+        }
+    }
 
     /** The host's unique identifier. */
     public String hostID;
@@ -55,14 +65,4 @@ public class Host {
 
     /** If true, the address field is actually the address of the proxy used by this host. */
     public Boolean isProxyfied;
-
-    public static class OptionalHost extends Host {
-        public OptionalHost() {
-            this.isSSL = false;
-            this.adminRole = false;
-            this.isClient = false;
-            this.isActive = false;
-            this.isProxyfied = false;
-        }
-    }
 }
