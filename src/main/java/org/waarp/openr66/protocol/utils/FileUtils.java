@@ -23,8 +23,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 
 import io.netty.buffer.ByteBuf;
@@ -35,7 +33,6 @@ import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.utility.DetectionUtils;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
@@ -340,21 +337,7 @@ public class FileUtils {
         logger.debug("File is: " + filenameSrc);
         if (isPreStart) {
             filename = R66Dir.normalizePath(filenameSrc);
-            if (filename.startsWith("file:/")) {
-                if (DetectionUtils.isWindows()) {
-                    filename = filename.substring("file:/".length());
-                } else {
-                    filename = filename.substring("file:".length());
-                }
-                if (filename.contains("%")) {
-                    try {
-                        filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
-                    } catch (UnsupportedEncodingException e) {
-                        logger.warn("Filename convertion to UTF8 cannot be read: " +
-                                filename);
-                    }
-                }
-            }
+            filename = R66Dir.pathFromURI(filename);
             logger.debug("File becomes: " + filename);
         } else {
             filename = filenameSrc;
