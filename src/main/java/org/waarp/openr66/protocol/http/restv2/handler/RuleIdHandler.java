@@ -36,7 +36,6 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServe
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -87,34 +86,6 @@ public class RuleIdHandler extends AbstractHttpHandler {
         try {
             Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
             Rules.replace(id, updatedRule);
-
-            String responseBody = Rules.toJsonString(updatedRule);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        }
-    }
-
-    /**
-     * The method called when a PATCH request is made on /v2/rules/{id}. If the request is valid and the id exists
-     * in the database, the queried rule entry will be replaced by the one in the request body and sent back in the Http
-     * response. All fields left empty in the request will be left unchanged with their old values. If the id does not
-     * exist, the response will be a '404 - Not found' error message. If the id exists but the request is invalid,
-     * a '400 - Bad request' error will be sent instead.
-     *
-     * @param request   The Http request made on the resource.
-     * @param responder The Http responder, Http response are given to it in order to be sent back.
-     * @param id        The requested rule's id, this id is identical to the {id} in the URI of the request.
-     */
-    @PATCH
-    public void updateRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
-            Rules.update(id, updatedRule);
 
             String responseBody = Rules.toJsonString(updatedRule);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);

@@ -36,7 +36,6 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServe
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -87,33 +86,6 @@ public class HostIdHandler extends AbstractHttpHandler {
         try {
             Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
             Hosts.replace(id, updatedHost);
-
-            String responseBody = Hosts.toJsonString(updatedHost);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        }
-    }
-
-    /**
-     * The method called when a PUT request is made on /v2/hosts/{id}. If the request is valid and the id exists
-     * in the database, the queried host entry will be replaced by the one in the request body and sent back in the Http
-     * response. If the id does not exist, the response will be a '404 - Not found' error message. If the id exists but
-     * the request is invalid, a '400 - Bad request' error will be sent instead.
-     *
-     * @param request   The Http request made on the resource.
-     * @param responder The Http responder, Http response are given to it in order to be sent back.
-     * @param id        The requested host's id, this id is identical to the {id} in the URI of the request.
-     */
-    @PATCH
-    public void updateHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
-            Hosts.update(id, updatedHost);
 
             String responseBody = Hosts.toJsonString(updatedHost);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);

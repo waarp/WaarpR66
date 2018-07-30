@@ -114,34 +114,6 @@ public final class Limits {
     }
 
     /**
-     * Updates the bandwidth limits entry with the one passed as parameter if it has one.
-     *
-     * @param id      The id of the host whose limits should be replaced.
-     * @param updated The new bandwidth limits object.
-     * @throws OpenR66RestIdNotFoundException Thrown if the host does not have bandwidth limits to replace.
-     */
-    public static void update(String id, Limit updated) throws OpenR66RestIdNotFoundException,
-            OpenR66RestBadRequestException {
-        Limit old = loadLimits(id);
-        for (Field field : updated.getClass().getFields()) {
-            try {
-                Object value = field.get(updated);
-                if (RestUtils.isIllegal(value)) {
-                    field.set(updated, field.get(old));
-                }
-            } catch (IllegalAccessException e) {
-                throw new ImpossibleException(e);
-            } catch (IllegalArgumentException e) {
-                throw new ImpossibleException(e);
-            }
-        }
-
-        //TODO: delete the old limits from the database and insert the new ones
-        LimitsDatabase.limitDb.remove(old);
-        LimitsDatabase.limitDb.add(updated);
-    }
-
-    /**
      * Returns the limits object as a String usable in a JSON file.
      *
      * @param toString The limit object to convert to JSON.

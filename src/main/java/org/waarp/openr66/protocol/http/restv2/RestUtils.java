@@ -28,13 +28,11 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
@@ -42,11 +40,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
 
 
 /** A series of utility methods shared by all REST handlers. */
@@ -189,119 +184,6 @@ public final class RestUtils {
         } else {
             throw new IllegalArgumentException();
         }
-    }
-
-    /**
-     * Converts the String value(s) of a query parameter to value(s) of the corresponding Java type. Supported classes
-     * are : Integer, Long, Boolean, String, Calendar and Enum. Primitive arrays of these classes are also accepted.
-     *
-     * @param values The list of String representing the values of the parameter.
-     * @param type   The Java Class to which the parameter should be converted.
-     * @param name   The name of the query parameter (for error reporting purposes).
-     * @param <T>    The Java type corresponding to the target Java class.
-     * @return The value(s) extracted from the list of string values of the query parameter.
-     * @throws OpenR66RestBadRequestException     Thrown if the the number of values attributed to the parameter is
-     *                                            incompatible with its type, or if the string value does not
-     *                                            represent a valid value of the specified class.
-     * @throws OpenR66RestInternalServerException Thrown if the specified Java class is not a valid target for
-     *                                            parameter conversion.
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> T extractValue(List<String> values, Class<T> type, String name)
-            throws OpenR66RestBadRequestException, OpenR66RestInternalServerException {
-
-        if (values.size() == 0) {
-            throw OpenR66RestBadRequestException.emptyParameter(name);
-        } else if (type.isArray()) {
-            Class elemType = type.getComponentType();
-            return (T) extractArray(values, elemType, name);
-        } else if (values.size() > 1) {
-            throw OpenR66RestBadRequestException.tooManyValues(name);
-        } else if (type == Integer.class) {
-            return (T) Integer.valueOf(values.get(0));
-        } else if (type == Long.class) {
-            return (T) Long.valueOf(values.get(0));
-        } else if (type == Boolean.class) {
-            try {
-                return (T) stringToBoolean(values.get(0));
-            } catch (IllegalArgumentException e) {
-                throw OpenR66RestBadRequestException.notABoolean(name, values.get(0));
-            }
-        } else if (type == String.class) {
-            return (T) values.get(0);
-        } else if (type.isEnum()) {
-            Class<? extends Enum> enumType = (Class<? extends Enum>) type;
-            try {
-                T value = (T) Enum.valueOf(enumType, values.get(0));
-                return value;
-            } catch (IllegalArgumentException e) {
-                throw OpenR66RestBadRequestException.invalidEnum(type, name, values.get(0));
-            }
-        } else if (type == Calendar.class) {
-            return (T) toCalendar(values.get(0));
-        } else {
-            throw OpenR66RestInternalServerException.unknownFilterType(type);
-        }
-    }
-
-    /**
-     * Converts the String values of a query parameter to an array of the corresponding Java type. Supported classes
-     * for the array elements are : Integer, Long, Boolean, String, Calendar and Enum.
-     *
-     * @param values   The list of String representing the values of the parameter.
-     * @param elemType The type of the underlying elements of the array.
-     * @param name     The name of the query parameter (for error reporting purposes).
-     * @param <T>      The Java type of the array of the target Java class.
-     * @return An array of values of the specified Java class extracted from the list of string values.
-     * @throws OpenR66RestBadRequestException     Thrown if a call to the {@link #extractValue(List, Class, String)}
-     *                                            extractValue} method on one of the elements of the *values* list throws
-     *                                            this exception.
-     * @throws OpenR66RestInternalServerException Thrown if a call to the {@link #extractValue(List, Class, String)}
-     *                                            extractValue}  method on one of the elements of the *values* list
-     *                                            throws this exception.
-     */
-    private static <T> T[] extractArray(List<String> values, Class<T> elemType, String name)
-            throws OpenR66RestInternalServerException, OpenR66RestBadRequestException {
-        T[] result = (T[]) Array.newInstance(elemType, values.size());
-        for (int i = 0; i < values.size(); i++) {
-            result[i] = extractValue(Collections.singletonList(values.get(i)), elemType, name);
-        }
-        return result;
-    }
-
-    /**
-     * Extracts the value(s) of a query's parameters as a POJO with the parameters as fields. The target POJO's fields
-     * must have public accessibility, and must be of one of the following classes : Integer, Long, Boolean, String,
-     * Calendar, Enum or a primitive array of these Classes.
-     *
-     * @param params A map associating a parameter's name to the value(s) it was given in the request.
-     * @param target The instance of the POJO to which the parameters values will be extracted.
-     * @param <T>    The type of the target POJO.
-     * @return An instance of the target POJO with the parameters values extracted in its fields.
-     * @throws OpenR66RestBadRequestException     Thrown if one of the parameters has an invalid number of values, or
-     *                                            an invalid value for the target class.
-     * @throws OpenR66RestInternalServerException Thrown if the type of one the target class field is not an accepted
-     *                                            class, or if one of the fields is not accessible from this method.
-     */
-    public static <T> T extractParameters(Map<String, List<String>> params, T target)
-            throws OpenR66RestBadRequestException, OpenR66RestInternalServerException {
-        for (Field field : target.getClass().getFields()) {
-            String name = field.getName();
-            Class type = field.getType();
-
-            List<String> values = params.get(name);
-            if (values != null) {
-                try {
-                    Object object = extractValue(values, type, name);
-                    field.set(target, object);
-                } catch (NumberFormatException e) {
-                    throw OpenR66RestBadRequestException.notANumber(name, values.get(0));
-                } catch (IllegalAccessException e) {
-                    throw OpenR66RestInternalServerException.objectInstantiation(type);
-                }
-            }
-        }
-        return target;
     }
 
     /**

@@ -20,9 +20,35 @@
 
 package org.waarp.openr66.protocol.http.restv2.data.rules;
 
+import java.util.Comparator;
+
 /** Transfer rule POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Rule {
+
+    /** All the possible ways to order a list of rule objects. */
+    public enum Order {
+        /** By ruleID, in ascending order. */
+        ascRuleID(new Comparator<Rule>() {
+            @Override
+            public int compare(Rule t1, Rule t2) {
+                return t1.ruleID.compareTo(t2.ruleID);
+            }
+        }),
+        /** By ruleID, in descending order. */
+        descRuleID(new Comparator<Rule>() {
+            @Override
+            public int compare(Rule t1, Rule t2) {
+                return -t1.ruleID.compareTo(t2.ruleID);
+            }
+        });
+
+        public final Comparator<Rule> comparator;
+
+        Order(Comparator<Rule> comparator) {
+            this.comparator = comparator;
+        }
+    }
 
     /** All the different modes of file transfer. */
     public enum ModeTrans {

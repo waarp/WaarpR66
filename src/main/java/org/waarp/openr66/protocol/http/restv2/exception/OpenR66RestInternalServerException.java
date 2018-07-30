@@ -53,7 +53,7 @@ public class OpenR66RestInternalServerException extends Exception {
     public static OpenR66RestInternalServerException objectInstantiation(Class c) {
         return new OpenR66RestInternalServerException(
                 "{" +
-                        "\"userMessage\":\"Object instantiation Error\"," +
+                        "\"userMessage\":\"Object Instantiation Error\"," +
                         "\"internalMessage\":\"Could not instantiate object " + c.getSimpleName() + ".\"," +
                         "\"code\":" + OBJECT_INSTANTIATION +
                         "}"
@@ -85,9 +85,25 @@ public class OpenR66RestInternalServerException extends Exception {
     public static OpenR66RestInternalServerException unknownFilterType(Class type) {
         return new OpenR66RestInternalServerException(
                 "{" +
-                        "\"userMessage\":\"Unknown filter type\"," +
+                        "\"userMessage\":\"Unknown Filter Type\"," +
                         "\"internalMessage\":\"The type of filter '" + type.getSimpleName() + "' is not supported.\"," +
                         "\"code\":" + UNKNOWN_FILTER_TYPE +
+                        "}"
+        );
+    }
+
+    /**
+     * Returns a new OpenR66RestInternalServerException stating that there was an error when converting the response
+     * java object into a JSON String.
+     *
+     * @return The new exception.
+     */
+    public static OpenR66RestInternalServerException base64Decoding() {
+        return new OpenR66RestInternalServerException(
+                "{" +
+                        "\"userMessage\":\"Base64 Decoding Error\"," +
+                        "\"internalMessage\":\"An error occurred during the decoding of the base64 authentication key."+
+                        "\",\"code\":" + JSON_PROCESSING +
                         "}"
         );
     }

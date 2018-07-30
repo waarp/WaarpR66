@@ -23,17 +23,29 @@ package org.waarp.openr66.protocol.http.restv2;
 import co.cask.http.HandlerHook;
 import co.cask.http.HttpResponder;
 import co.cask.http.internal.HandlerInfo;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.utility.Base64;
+import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
+import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
 /** Hooks called before and after a request handler is called. */
 public class RestHandlerHook implements HandlerHook {
+
+    private final boolean authenticated;
+    private final boolean signed;
 
     /** Message sent when the client does not accept the json format. */
     private final static String notAcceptable =
@@ -42,6 +54,21 @@ public class RestHandlerHook implements HandlerHook {
     /** Message sent when the request content type is not valid for the specified request. */
     private final static String unsupportedMedia =
             "{\"userMessage\":\"Unsupported media\",\"internalMessage\":\"Request's content type must be %s.\"}";
+
+    /**
+     * Sends a response saying the requester must authenticate itself to make the request.
+     *
+     * @param responder The HttpResponder through which the response is sent.
+     */
+    private static void unauthorized(HttpResponder responder) {
+        HttpHeaders headers = new DefaultHttpHeaders();
+        headers.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+        headers.add(HttpHeaderNames.WWW_AUTHENTICATE, "Basic, HMAC");
+        responder.sendString(HttpResponseStatus.UNAUTHORIZED,
+                "{\"userMessage\":\"Unauthorized\"," +
+                        "\"internalMessage\":\"Must be authenticated to make this request.\"}",
+                headers);
+    }
 
 
     /**
@@ -57,6 +84,43 @@ public class RestHandlerHook implements HandlerHook {
      */
     @Override
     public boolean preCall(HttpRequest httpRequest, HttpResponder httpResponder, HandlerInfo handlerInfo) {
+        if (this.authenticated) {
+            String key = httpRequest.headers().get("X-Auth-Key");
+            if (key == null) {
+                unauthorized(httpResponder);
+                return false;
+            } else {
+                try {
+                    String[] authKey = key.split(" ");
+
+                    if("Basic".equals(authKey[0])) {
+                        String[] credentials = new String(Base64.decode(authKey[1]),
+                                Charset.forName("UTF-8")).split(":");
+                        Host requester = Hosts.loadHost(credentials[0]);
+                        if (!requester.hostKey.equals(credentials[1])) {
+                            unauthorized(httpResponder);
+                            return false;
+                        }
+                    }
+                    else {
+                        unauthorized(httpResponder);
+                        return false;
+                    }
+
+                } catch (IOException e) {
+                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                            OpenR66RestInternalServerException.base64Decoding().message);
+                    return false;
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    unauthorized(httpResponder);
+                    return false;
+                } catch (OpenR66RestIdNotFoundException e) {
+                    unauthorized(httpResponder);
+                    return false;
+                }
+            }
+        }
+
         if (httpRequest.method() != HttpMethod.DELETE && httpRequest.method() != HttpMethod.OPTIONS) {
             String contentType = null;
             if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) != null) {
@@ -103,5 +167,18 @@ public class RestHandlerHook implements HandlerHook {
     @Override
     public void postCall(HttpRequest httpRequest, HttpResponseStatus httpResponseStatus, HandlerInfo handlerInfo) {
 
+    }
+
+
+    /**
+     * Creates a HandlerHook which will check for authentication and signature on incoming request depending on the
+     * parameters.
+     *
+     * @param authenticated     If true, the HandlerHook will check that incoming requests are authenticated.
+     * @param signed            If true, the HandlerHook will check that incoming requests are signed.
+     */
+    RestHandlerHook(boolean authenticated, boolean signed) {
+        this.authenticated = authenticated;
+        this.signed = signed;
     }
 }

@@ -36,7 +36,6 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServe
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -109,33 +108,6 @@ public class HostConfigHandler extends AbstractHttpHandler {
         try {
             HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
             HostConfigs.replace(RestUtils.HOST_ID, updatedConfig);
-
-            String responseBody = HostConfigs.toJsonString(updatedConfig);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        }
-    }
-
-    /**
-     * The method called when a PATCH request is made on /v2/hostconfig. If the request is valid and the host does
-     * already have a configuration, then the config will be replaced by the one in the request, and the updated
-     * configuration will be sent in the response. All fields left empty in the request will be left unchanged. If the
-     * host does not have a configuration to replace, or if the request is invalid, then a '400 - Bad request' error
-     * will be sent instead.
-     *
-     * @param request   The Http request made on the resource.
-     * @param responder The Http responder, Http response are given to it in order to be sent back.
-     */
-    @PATCH
-    public void updateConfig(HttpRequest request, HttpResponder responder) {
-        try {
-            HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
-            HostConfigs.update(RestUtils.HOST_ID, updatedConfig);
 
             String responseBody = HostConfigs.toJsonString(updatedConfig);
             responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);

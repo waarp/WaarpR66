@@ -24,10 +24,77 @@ import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.Calendar;
+import java.util.Comparator;
 
 /** Transfer POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Transfer {
+
+    /** All the possible ways to order a list of transfer objects. */
+    public enum Order {
+        /** By tansferID, in ascending order. */
+        ascTransferID(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.transferID.compareTo(t2.transferID);
+            }
+        }),
+        /** By tansferID, in descending order. */
+        descTransferID(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.transferID.compareTo(t2.transferID);
+            }
+        }),
+        /** By fileName, in ascending order. */
+        ascFileName(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.originalFileName.compareTo(t2.originalFileName);
+            }
+        }),
+        /** By fileName, in descending order. */
+        descFileName(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.originalFileName.compareTo(t2.originalFileName);
+            }
+        }),
+        /** By date of transfer start, in ascending order. */
+        ascStartTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.startTrans.compareTo(t2.startTrans);
+            }
+        }),
+        /** By date of transfer start, in descending order. */
+        descStartTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.startTrans.compareTo(t2.startTrans);
+            }
+        }),
+        /** By date of transfer end, in ascending order. */
+        ascStopTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return t1.stopTrans.compareTo(t2.stopTrans);
+            }
+        }),
+        /** By date of transfer end, in descending order. */
+        descStopTrans(new Comparator<Transfer>() {
+            @Override
+            public int compare(Transfer t1, Transfer t2) {
+                return -t1.stopTrans.compareTo(t2.stopTrans);
+            }
+        });
+
+        public final Comparator<Transfer> comparator;
+
+        Order(Comparator<Transfer> comparator) {
+            this.comparator = comparator;
+        }
+    }
 
     /** All the possible global steps for a transfer. */
     public enum GlobalStep {

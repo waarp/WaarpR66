@@ -39,6 +39,7 @@ local.properties
 # Intellij
 #################
 .idea
+src/main/java/resources/
 
 #################
 ## Java

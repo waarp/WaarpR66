@@ -23,8 +23,10 @@ package org.waarp.openr66.protocol.http.restv2;
 import co.cask.http.ChannelPipelineModifier;
 import co.cask.http.HttpHandler;
 import co.cask.http.NettyHttpService;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInitializationException;
+import io.netty.channel.socket.SocketChannel;
+import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.http.restv2.handler.HostConfigHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.HostIdHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.HostsHandler;
@@ -35,17 +37,15 @@ import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransferIdHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransfersHandler;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 
-public class RestServiceInitializer {
+public class RestServiceInitializer extends ChannelInitializer<SocketChannel> {
 
-    //TODO: replace by loading the port from the config file
-    private static final int TEST_PORT = 8080;
-
-    public static NettyHttpService initRestService() throws OpenR66RestInitializationException {
+    public static NettyHttpService initRestService(RestConfiguration config) {
         Collection<HttpHandler> handlers = new ArrayList<HttpHandler>();
         handlers.add(new TransfersHandler());
         handlers.add(new TransferIdHandler());
@@ -57,35 +57,54 @@ public class RestServiceInitializer {
         handlers.add(new RuleIdHandler());
         handlers.add(new ServerHandler());
 
-        NettyHttpService restService = NettyHttpService.builder("WaarpR66-Rest")
-                .setPort(TEST_PORT)
+        NettyHttpService restService = NettyHttpService.builder("WaarpR66-Rest v2")
+                .setPort(config.REST_PORT)
+                .setHost(config.REST_ADDRESS)
                 .setHttpHandlers(handlers)
-                .setHandlerHooks(Collections.singleton(new RestHandlerHook()))
+                .setHandlerHooks(Collections.singleton(new RestHandlerHook(config.REST_AUTHENTICATED,
+                        config.REST_SIGNATURE)))
                 .setExceptionHandler(new RestExceptionHandler())
                 /* Adds the routing error handler to the service pipeline. */
                 .setChannelPipelineModifier(new ChannelPipelineModifier() {
                     @Override
                     public void modify(ChannelPipeline channelPipeline) {
                         channelPipeline.addBefore("router", "errorHandler", new RestRoutingErrorHandler());
+                        channelPipeline.remove("compressor");
                     }
                 })
+                .setExecThreadKeepAliveSeconds(-1L)
                 .build();
-
 
         try {
             restService.start();
-        } catch (Exception e) {
-            throw new OpenR66RestInitializationException();
+            return restService;
+        } catch (Throwable e) {
+            return null;
         }
+    }
 
-        return restService;
+    private static void lol() {
+
     }
 
     //!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
-    public static void main(String[] args) throws OpenR66RestInitializationException, InterruptedException {
-        NettyHttpService restService = initRestService();
-        synchronized (restService) {
-            restService.wait();
+    public static void main(String[] args) throws InterruptedException, IOException {
+
+        RestConfiguration config = new RestConfiguration();
+        config.REST_PORT = 8088;
+        config.REST_ADDRESS = "0.0.0.0";
+        config.REST_AUTHENTICATED = true;
+        config.REST_SIGNATURE = false;
+        NettyHttpService restService = initRestService(config);
+
+        Object o = new Object();
+        synchronized (o) {
+            o.wait();
         }
+    }
+
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+
     }
 }

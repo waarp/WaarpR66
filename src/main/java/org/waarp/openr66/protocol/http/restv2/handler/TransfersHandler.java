@@ -28,18 +28,18 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.TransferFilter;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfers;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -74,13 +74,20 @@ public class TransfersHandler extends AbstractHttpHandler {
      * @param responder The Http responder, Http response are given to it in order to be sent back.
      */
     @GET
-    public void filterTransfer(HttpRequest request, HttpResponder responder) {
+    public void filterTransfer(HttpRequest request, HttpResponder responder,
+                               @QueryParam("limit") @DefaultValue("20") Integer limit,
+                               @QueryParam("offset") @DefaultValue("0") Integer offset,
+                               @QueryParam("order") @DefaultValue("ascTransferID") Transfer.Order order,
+                               @QueryParam("ruleID") @DefaultValue("") String ruleID,
+                               @QueryParam("partner") @DefaultValue("") String partner,
+                               @QueryParam("status") List<Transfer.Status> status,
+                               @QueryParam("fileName") @DefaultValue("") String fileName,
+                               @QueryParam("startTrans") @DefaultValue("") String startTrans,
+                               @QueryParam("stopTrans") @DefaultValue("") String stopTrans) {
 
         try {
-            QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            TransferFilter filters = RestUtils.extractParameters(decoder.parameters(), new TransferFilter());
-            filters.check();
-            Map.Entry<Integer, List<Transfer>> answer = Transfers.filterTransfers(filters);
+            Map.Entry<Integer, List<Transfer>> answer = Transfers.filterTransfers(limit, offset, order, ruleID, partner,
+                    status, fileName, startTrans, stopTrans);
             List<Transfer> resultsList = answer.getValue();
             Integer nbResults = answer.getKey();
             String totalResults = "\"totalResults\":" + nbResults.toString();

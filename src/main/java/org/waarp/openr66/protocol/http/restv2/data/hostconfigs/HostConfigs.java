@@ -99,32 +99,6 @@ public final class HostConfigs {
         HostconfigDatabase.configDb.add(newConfig);
     }
 
-    /**
-     * Replaces the host config entry with the one passed as parameter if it has one.
-     *
-     * @param id        The id of the host whose configuration should be updated.
-     * @param newConfig The new host configuration instance.
-     * @throws OpenR66RestBadRequestException Thrown if the host does not have a configuration to replace.
-     */
-    public static void update(String id, HostConfig newConfig) throws OpenR66RestIdNotFoundException,
-            OpenR66RestBadRequestException {
-        HostConfig oldConfig = loadConfig(id);
-        for (Field field : HostConfig.class.getFields()) {
-            try {
-                if (RestUtils.isIllegal(field.get(newConfig))) {
-                    field.set(newConfig, field.get(oldConfig));
-                }
-            } catch (IllegalAccessException e) {
-                throw new ImpossibleException(e);
-            } catch (IllegalArgumentException e) {
-                throw new ImpossibleException(e);
-            }
-        }
-        //TODO: delete the old config from the database and insert the new one
-        HostconfigDatabase.configDb.remove(oldConfig);
-        HostconfigDatabase.configDb.add(newConfig);
-    }
-
 
     /**
      * Returns the host configuration object as a String usable in a JSON file.

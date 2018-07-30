@@ -83,6 +83,7 @@ import org.waarp.openr66.protocol.http.adminssl.HttpReponsiveSslInitializer;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslInitializer;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.restv2.RestServiceInitializer;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
@@ -827,7 +828,8 @@ public class Configuration {
     public void startRestSupport() {
         HttpRestR66Handler.initialize(getBaseDirectory() + "/" + getWorkingPath() + "/httptemp");
         for (RestConfiguration config : getRestConfigurations()) {
-            HttpRestR66Handler.initializeService(config);
+            Object o = RestServiceInitializer.initRestService(config);
+            //HttpRestR66Handler.initializeService(config);
             logger.info(Messages.getString("Configuration.HTTPStart") + " (REST Support) " + config.toString());
         }
     }

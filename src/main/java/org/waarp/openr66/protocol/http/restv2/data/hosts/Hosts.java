@@ -41,27 +41,37 @@ public final class Hosts {
     /**
      * Returns the list of all hosts in the database that fit the filters passed as arguments.
      *
-     * @param filters The different filters used to generate the desired host list.
+     * @param limit 
+     * @param offset 
+     * @param order 
+     * @param address
+     * @param isSSL 
+     * @param isActive 
      * @return A map entry associating the total number of valid entries and the list of entries that will actually be
      * returned in the response.
      * @throws OpenR66RestBadRequestException Thrown if one of the filters is invalid.
      */
-    public static Map.Entry<Integer, List<Host>> filterHosts(HostFilter filters)
+    public static Map.Entry<Integer, List<Host>> filterHosts(Integer limit, Integer offset, Host.Order order,
+                                                             String address, Boolean isSSL, Boolean isActive)
             throws OpenR66RestBadRequestException {
 
         List<Host> results = new ArrayList<Host>();
+        limit = (limit == null) ? 20 : limit;
+        offset = (offset == null) ? 0 : offset;
+        order = (order == null) ? Host.Order.ascHostID : order;
+
         for (Host host : HostsDatabase.hostsDb) {
-            if ((filters.address == null || host.address.equals(filters.address)) &&
-                    (filters.isSSL == null || filters.isSSL.equals(host.isSSL)) &&
-                    (filters.isActive == null || filters.isActive.equals(filters.isSSL))) {
+            if ((address == null || host.address.equals(address)) &&
+                    (isSSL == null || isSSL.equals(host.isSSL)) &&
+                    (isActive == null || isActive.equals(isSSL))) {
                 results.add(host);
             }
         }
         Integer total = results.size();
-        Collections.sort(results, filters.order.comparator);
+        Collections.sort(results, order.comparator);
 
         List<Host> answers = new ArrayList<Host>();
-        for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {
+        for (int i = offset; (i < offset + limit && i < results.size()); i++) {
             answers.add(results.get(i));
         }
 
@@ -143,32 +153,6 @@ public final class Hosts {
                 throw new ImpossibleException(e);
             }
         }
-        HostsDatabase.hostsDb.remove(oldHost);
-        HostsDatabase.hostsDb.add(newHost);
-    }
-
-    /**
-     * Updates a host entry with the one passed as argument.
-     *
-     * @param newHost The new entry that replaces this one.
-     * @throws OpenR66RestIdNotFoundException Thrown if the host does not exist in the database.
-     */
-    public static void update(String id, Host newHost) throws OpenR66RestIdNotFoundException,
-            OpenR66RestBadRequestException {
-        Host oldHost = loadHost(id);
-        for (Field field : Host.class.getFields()) {
-            try {
-                Object value = field.get(newHost);
-                if (RestUtils.isIllegal(value)) {
-                    field.set(newHost, field.get(oldHost));
-                }
-            } catch (IllegalAccessException e) {
-                throw new ImpossibleException(e);
-            } catch (IllegalArgumentException e) {
-                throw new ImpossibleException(e);
-            }
-        }
-
         HostsDatabase.hostsDb.remove(oldHost);
         HostsDatabase.hostsDb.add(newHost);
     }

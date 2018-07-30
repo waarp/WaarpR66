@@ -32,7 +32,6 @@ import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -93,31 +92,6 @@ public final class Rules {
     }
 
     /**
-     * Replaces this rule entry with the one passed as argument.
-     *
-     * @param newRule The new entry that replaces this one.
-     * @throws OpenR66RestIdNotFoundException Thrown if the rule does not exist in the database.
-     */
-    public static void update(String id, Rule newRule) throws OpenR66RestIdNotFoundException,
-            OpenR66RestBadRequestException {
-        Rule oldRule = loadRule(id);
-        for (Field field : Rule.class.getFields()) {
-            try {
-                Object value = field.get(newRule);
-                if (value == null || value.toString().equals("")) {
-                    field.set(newRule, field.get(oldRule));
-                } else if (RestUtils.isIllegal(value)) {
-                    throw OpenR66RestBadRequestException.emptyField(field.getName());
-                }
-            } catch (IllegalAccessException e) {
-                throw new ImpossibleException(e);
-            }
-        }
-        RulesDatabase.rulesDb.remove(oldRule);
-        RulesDatabase.rulesDb.add(newRule);
-    }
-
-    /**
      * Adds a rule entry to the database if the entry is a valid one.
      *
      * @param rule The entry to add to the database.
@@ -147,25 +121,30 @@ public final class Rules {
     /**
      * Returns the list of all rules in the database that fit the filters passed as arguments.
      *
-     * @param filters The different filters used to generate the desired rule list.
+     * @param limit
+     * @param offset
+     * @param order
+     * @param modeTrans
      * @return A map entry associating the total number of valid entries and the list of entries that will actually be
      * returned in the response.
      * @throws OpenR66RestBadRequestException Thrown if one of the filters is invalid.
      */
-    public static Map.Entry<Integer, List<Rule>> filterRules(RuleFilter filters)
+    public static Map.Entry<Integer, List<Rule>> filterRules(Integer limit, Integer offset, Rule.Order order,
+                                                             List<Rule.ModeTrans> modeTrans)
             throws OpenR66RestBadRequestException {
 
         List<Rule> results = new ArrayList<Rule>();
+
         for (Rule rule : RulesDatabase.rulesDb) {
-            if (filters.modeTrans == null || Arrays.asList(filters.modeTrans).contains(rule.modeTrans)) {
+            if (modeTrans.isEmpty() || modeTrans.contains(rule.modeTrans)) {
                 results.add(rule);
             }
         }
         Integer total = results.size();
-        Collections.sort(results, filters.order.comparator);
+        Collections.sort(results, order.comparator);
 
         List<Rule> answers = new ArrayList<Rule>();
-        for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {
+        for (int i = offset; (i < offset + limit && i < results.size()); i++) {
             answers.add(results.get(i));
         }
 

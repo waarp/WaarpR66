@@ -27,15 +27,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
 import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -45,54 +45,6 @@ import java.util.Map;
 /** This is the handler for all requests for server commands, accessible through the "/v2/server" URI. */
 @Path("/v2/server")
 public class ServerHandler extends AbstractHttpHandler {
-
-    /** A POJO representing the parameters of a request to export the server configuration. */
-    public static class GetConfParams {
-        /** Export the hosts authentication entries. */
-        public Boolean hosts = false;
-
-        /** Export the transfer rules. */
-        public Boolean rules = false;
-
-        /** Export the host business. */
-        public Boolean business = false;
-
-        /** Export the host's aliases. */
-        public Boolean aliases = false;
-
-        /** Export the hosts permissions. */
-        public Boolean roles = false;
-    }
-
-    /** A POJO representing the parameters of a request to export the server logs. */
-    public static class GetLogsParams {
-        /** Purge the history after export. */
-        public Boolean purge = false;
-
-        /** Fix the invalid transfer entries. */
-        public Boolean clean = false;
-
-        /** Filter transfers based on their status. */
-        public Transfer.Status[] status = null;
-
-        /** Filter transfers based on their rule. */
-        public String rule = null;
-
-        /** Filter transfers posterior to this date. */
-        public Calendar start = null;
-
-        /** Filter transfers anterior to this date. */
-        public Calendar stop = null;
-
-        /** Filter transfers with ids following this one. */
-        public String startID = null;
-
-        /** Filter transfers with ids preceding this one. */
-        public String stopID = null;
-
-        /** Id of the host requesting the log export. */
-        public String request = "";
-    }
 
     public static final Calendar startDate = new GregorianCalendar();
 
@@ -156,11 +108,19 @@ public class ServerHandler extends AbstractHttpHandler {
      */
     @Path("logs")
     @GET
-    public void getLogs(HttpRequest request, HttpResponder responder) {
+    public void getLogs(HttpRequest request, HttpResponder responder,
+                        @QueryParam("purge") @DefaultValue("false") Boolean purge,
+                        @QueryParam("clean") @DefaultValue("false") Boolean clean,
+                        @QueryParam("status") List<Transfer.Status> status,
+                        @QueryParam("rule") String rule,
+                        @QueryParam("start") String start,
+                        @QueryParam("stop") String stop,
+                        @QueryParam("startID") String startID,
+                        @QueryParam("stopID") String stopID) {
+
         Map<String, List<String>> query = (new QueryStringDecoder(request.uri())).parameters();
 
         try {
-            GetLogsParams params = RestUtils.extractParameters(query, new GetLogsParams());
             //TODO: make a request on the transfers database
 
             Map<String, String> response = new HashMap<String, String>();
@@ -172,10 +132,6 @@ public class ServerHandler extends AbstractHttpHandler {
             ObjectMapper mapper = new ObjectMapper();
             jsonString = mapper.writeValueAsString(response);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     OpenR66RestInternalServerException.jsonProcessing().message);
@@ -190,31 +146,34 @@ public class ServerHandler extends AbstractHttpHandler {
      */
     @Path("config")
     @GET
-    public void getConfig(HttpRequest request, HttpResponder responder) {
+    public void getConfig(HttpRequest request, HttpResponder responder,
+                          @QueryParam("hosts") @DefaultValue("false") Boolean hosts,
+                          @QueryParam("rules") @DefaultValue("false") Boolean rules,
+                          @QueryParam("business") @DefaultValue("false") Boolean business,
+                          @QueryParam("aliases") @DefaultValue("false") Boolean aliases,
+                          @QueryParam("roles") @DefaultValue("false") Boolean roles) {
 
         Map<String, List<String>> query = (new QueryStringDecoder(request.uri())).parameters();
         Map<String, String> files = new HashMap<String, String>();
 
         try {
-            GetConfParams params = RestUtils.extractParameters(query, new GetConfParams());
-
-            if (params.hosts) {
+            if (hosts) {
                 //TODO: save hosts to file
                 files.put("hostFile", archPath + "/hosts");
             }
-            if (params.rules) {
+            if (rules) {
                 //TODO: save rules to file
                 files.put("ruleFile", archPath + "/rules");
             }
-            if (params.business) {
+            if (business) {
                 //TODO: save business to file
                 files.put("businessFile", archPath + "/business");
             }
-            if (params.aliases) {
+            if (aliases) {
                 //TODO: save aliases to file
                 files.put("aliasFile", archPath + "/aliases");
             }
-            if (params.roles) {
+            if (roles) {
                 //TODO: save roles to file
                 files.put("roleFile", archPath + "/roles");
             }
@@ -223,11 +182,6 @@ public class ServerHandler extends AbstractHttpHandler {
 
             jsonString = mapper.writeValueAsString(files);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
-
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     OpenR66RestInternalServerException.jsonProcessing().message);

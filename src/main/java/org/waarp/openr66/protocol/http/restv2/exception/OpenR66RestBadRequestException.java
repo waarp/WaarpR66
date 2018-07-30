@@ -169,7 +169,7 @@ public class OpenR66RestBadRequestException extends Exception {
     }
 
     /**
-     * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' was expecting a numerical
+     * Creates an OpenR66RestBadRequestException stating that the parameter of name 'id' was expecting a boolean
      * value but got 'value' instead which is not a number.
      *
      * @param id    The id of the existing entry.
@@ -250,6 +250,21 @@ public class OpenR66RestBadRequestException extends Exception {
                 "{" +
                         "\"userMessage\":\"Empty field\"," +
                         "\"internalMessage\":\"This host already has a " + type + " in the database.\"" +
+                        "}"
+        );
+    }
+
+    /**
+     * Creates an OpenR66RestBadRequestException stating that the authentication credentials sent in the X-Auth-Key
+     * header are not valid.
+     *
+     * @return The new exception.
+     */
+    public static OpenR66RestBadRequestException invalidCredentials() {
+        return new OpenR66RestBadRequestException(
+                "{" +
+                        "\"userMessage\":\"Invalid credentials\"," +
+                        "\"internalMessage\":\"The authentication credentials are invalid.\"" +
                         "}"
         );
     }

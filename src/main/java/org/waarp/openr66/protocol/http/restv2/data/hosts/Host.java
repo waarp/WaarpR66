@@ -22,12 +22,52 @@
 package org.waarp.openr66.protocol.http.restv2.data.hosts;
 
 
+import java.util.Comparator;
+
 /**
  * Host POJO
  * for Rest HTTP support for R66.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Host {
+
+    /** All the possible ways to order a list of host objects. */
+    public enum Order {
+        /** By hostID, in ascending order. */
+        ascHostID(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return t1.hostID.compareTo(t2.hostID);
+            }
+        }),
+        /** By hostID, in descending order. */
+        descHostID(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return -t1.hostID.compareTo(t2.hostID);
+            }
+        }),
+        /** By address, in ascending order. */
+        ascAddress(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return t1.address.compareTo(t2.address);
+            }
+        }),
+        /** By address, in descending order. */
+        descAddress(new Comparator<Host>() {
+            @Override
+            public int compare(Host t1, Host t2) {
+                return -t1.address.compareTo(t2.address);
+            }
+        });
+
+        public final Comparator<Host> comparator;
+
+        Order(Comparator<Host> comparator) {
+            this.comparator = comparator;
+        }
+    }
 
     public static class OptionalHost extends Host {
         public OptionalHost() {

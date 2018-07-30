@@ -28,18 +28,18 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
-import org.waarp.openr66.protocol.http.restv2.data.rules.RuleFilter;
 import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.Map;
 
@@ -57,12 +57,13 @@ public class RulesHandler extends AbstractHttpHandler {
      * @param responder The Http responder, Http response are given to it in order to be sent back.
      */
     @GET
-    public void filterRules(HttpRequest request, HttpResponder responder) {
+    public void filterRules(HttpRequest request, HttpResponder responder,
+                            @QueryParam("limit") @DefaultValue("20") Integer limit,
+                            @QueryParam("offset") @DefaultValue("0") Integer offset,
+                            @QueryParam("order") @DefaultValue("ascRuleID") Rule.Order order,
+                            @QueryParam("modeTrans") List<Rule.ModeTrans> modeTrans) {
         try {
-            QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-            RuleFilter filters = RestUtils.extractParameters(decoder.parameters(), new RuleFilter());
-            filters.check();
-            Map.Entry<Integer, List<Rule>> answer = Rules.filterRules(filters);
+            Map.Entry<Integer, List<Rule>> answer = Rules.filterRules(limit,  offset, order, modeTrans);
             List<Rule> resultsList = answer.getValue();
             Integer nbResults = answer.getKey();
             String totalResults = "\"totalResults\":" + nbResults.toString();

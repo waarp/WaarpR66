@@ -22,13 +22,13 @@ package org.waarp.openr66.protocol.http.restv2.data.transfers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -129,31 +129,51 @@ public final class Transfers {
     /**
      * Returns the list of all transfers in the database that fit the filters passed as arguments.
      *
-     * @param filters The different filters used to generate the desired transfer list.
+     * 
      * @return A map entry associating the total number of valid entries and the list of entries that will actually be
      * returned in the response.
      */
-    public static Map.Entry<Integer, List<Transfer>> filterTransfers(TransferFilter filters) {
+    public static Map.Entry<Integer, List<Transfer>> filterTransfers(Integer limit, Integer offset, 
+                    Transfer.Order order, String ruleID, String partner, List<Transfer.Status> status,  String fileName,
+                    String startTrans, String stopTrans)
+            throws OpenR66RestBadRequestException {
+
+        Calendar start = null;
+        Calendar stop = null;
+        try {
+            if (!startTrans.isEmpty()) {
+                start = RestUtils.toCalendar(startTrans);
+            }
+        } catch (IllegalArgumentException e) {
+            throw OpenR66RestBadRequestException.notADate("startTrans", startTrans);
+        }
+        try {
+            if (!stopTrans.isEmpty()) {
+                stop = RestUtils.toCalendar(stopTrans);
+            }
+        } catch (IllegalArgumentException e) {
+            throw OpenR66RestBadRequestException.notADate("stopTrans", stopTrans);
+        }
 
         List<Transfer> results = new ArrayList<Transfer>();
         for (Transfer transfer : TransfersDatabase.transfersDb) {
-            if ((filters.ruleID == null || transfer.ruleID.equals(filters.ruleID)) &&
-                    (filters.partner == null || transfer.requested.equals(filters.partner) ||
-                            transfer.requester.equals(filters.partner)) &&
-                    (filters.status == null || Arrays.asList(filters.status).contains(transfer.status)) &&
-                    (filters.fileName == null || transfer.originalFileName.equals(filters.fileName)) &&
-                    (filters.startTrans == null || transfer.startTrans.compareTo(filters.startTrans) >= 0) &&
-                    (filters.stopTrans == null || (transfer.stopTrans != null &&
-                            transfer.stopTrans.compareTo(filters.stopTrans) <= 0))
+            if ((ruleID.isEmpty() || transfer.ruleID.equals(ruleID)) &&
+                    (partner.isEmpty() || transfer.requested.equals(partner) ||
+                            transfer.requester.equals(partner)) &&
+                    (status.isEmpty() || status.contains(transfer.status)) &&
+                    (fileName.isEmpty() || transfer.originalFileName.equals(fileName)) &&
+                    (start == null || transfer.startTrans.compareTo(start) >= 0) &&
+                    (stop == null || (transfer.stopTrans != null &&
+                            transfer.stopTrans.compareTo(stop) <= 0))
                     ) {
                 results.add(transfer);
             }
         }
         Integer total = results.size();
-        Collections.sort(results, filters.order.comparator);
+        Collections.sort(results, order.comparator);
 
         List<Transfer> answers = new ArrayList<Transfer>();
-        for (int i = filters.offset; (i < filters.offset + filters.limit && i < results.size()); i++) {
+        for (int i = offset; (i < offset + limit && i < results.size()); i++) {
             answers.add(results.get(i));
         }
 
