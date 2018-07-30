@@ -25,10 +25,10 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
-import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -40,7 +40,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  * 
  */
-public class ExecTask extends AbstractTask {
+public class ExecTask extends AbstractExecTask {
 
     /**
      * Internal Logger
@@ -69,8 +69,8 @@ public class ExecTask extends AbstractTask {
          */
         logger.debug("Exec with " + argRule + ":" + argTransfer + " and {}",
                 session);
-        String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        String finalname = applyTransferSubstitutions(argRule);
+        
         // Check if the execution will be done through LocalExec daemon
         if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
@@ -82,22 +82,11 @@ public class ExecTask extends AbstractTask {
             }// else continue
         }
         // Execution is done internally
-        String[] args = finalname.split(" ");
-        File exec = new File(args[0]);
-        if (exec.isAbsolute()) {
-            if (!exec.canExecute()) {
-                logger.error("Exec command is not executable: " + finalname);
-                R66Result result = new R66Result(session, false,
-                        ErrorCode.CommandNotFound, session.getRunner());
-                futureCompletion.setResult(result);
-                futureCompletion.cancel();
-                return;
-            }
+        CommandLine commandLine = buildCommandLine(finalname);
+        if (commandLine == null) {
+            return;
         }
-        CommandLine commandLine = new CommandLine(args[0]);
-        for (int i = 1; i < args.length; i++) {
-            commandLine.addArgument(args[i]);
-        }
+
         DefaultExecutor defaultExecutor = new DefaultExecutor();
         PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(null, null);
         defaultExecutor.setStreamHandler(pumpStreamHandler);
@@ -201,5 +190,4 @@ public class ExecTask extends AbstractTask {
             }
         }
     }
-
 }
