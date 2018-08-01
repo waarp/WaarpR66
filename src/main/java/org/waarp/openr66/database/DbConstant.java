@@ -17,10 +17,14 @@
  */
 package org.waarp.openr66.database;
 
+import org.waarp.common.database.ConnectionFactory;
+
 /**
  * Constants value for database
  * 
  * @author Frederic Bregier
  * 
  */
-public class DbConstant extends org.waarp.common.database.DbConstant {}
+public class DbConstant extends org.waarp.common.database.DbConstant {
+   public static ConnectionFactory connectionFactory = null; 
+}
