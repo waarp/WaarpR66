@@ -1,0 +1,194 @@
+package org.waarp.openr66.dao.database.test;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import static  org.junit.Assert.*;
+
+import org.testcontainers.containers.PostgreSQLContainer;
+
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.MultipleMonitorDAO;
+import org.waarp.openr66.dao.database.DBMultipleMonitorDAO;
+import org.waarp.openr66.pojo.MultipleMonitor;
+
+public class DBMultipleMonitorDAOIT {
+
+    @Rule
+    public PostgreSQLContainer db = new PostgreSQLContainer();
+
+    private DAOFactory factory;
+    private Connection con;
+
+    public void runScript(String script) {
+        try {
+            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            URL url = Thread.currentThread().getContextClassLoader().getResource(script);
+            runner.runScript(new BufferedReader(new FileReader(url.getPath())));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Before
+    public void setUp() {
+        try {
+            //InitDatabase
+            con = DriverManager.getConnection(
+                    db.getJdbcUrl(),
+                    db.getUsername(),
+                    db.getPassword());
+            runScript("initDB.sql"); 
+            //Create factory 
+            factory = DAOFactory.getDAOFactory(DriverManager.getConnection(
+                        db.getJdbcUrl(),
+                        db.getUsername(),
+                        db.getPassword()));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @After
+    public void wrapUp() {
+        try {
+            runScript("wrapDB.sql");
+            con.close();
+            //factory.close();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testDeleteAll() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            dao.deleteAll();
+
+            ResultSet res = con.createStatement()
+                .executeQuery("SELECT * FROM MULTIPLEMONITOR");
+            assertEquals(false, res.next());
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testDelete() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            dao.delete(new MultipleMonitor("server1", 0, 0, 0));
+
+            ResultSet res = con.createStatement()
+                .executeQuery("SELECT * FROM MULTIPLEMONITOR where hostid = 'server1'");
+            assertEquals(false, res.next());
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testGetAll() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            assertEquals(4, dao.getAll().size());
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testSelect() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitor multiple = dao.select("server1");
+            MultipleMonitor multiple2 = dao.select("ghost");
+
+            assertEquals("server1", multiple.getHostid());
+            assertEquals(11, multiple.getCountConfig());
+            assertEquals(29, multiple.getCountRule());
+            assertEquals(18, multiple.getCountHost());
+            assertEquals(null, multiple2);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testExist() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            assertEquals(true, dao.exist("server1"));
+            assertEquals(false, dao.exist("ghost"));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+
+    @Test
+    public void testInsert() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
+
+            ResultSet res = con.createStatement()
+                .executeQuery("SELECT COUNT(1) FROM MULTIPLEMONITOR");
+            res.next();
+            assertEquals(5, res.getInt("count"));
+
+            ResultSet res2 = con.createStatement()
+                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'chacha'");
+            res2.next();
+            assertEquals("chacha", res2.getString("hostid"));
+            assertEquals(98, res2.getInt("countRule"));
+            assertEquals(19, res2.getInt("countHost"));
+            assertEquals(31, res2.getInt("countConfig"));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } 
+    }
+
+    @Test
+    public void testUpdate() {
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            dao.update(new MultipleMonitor("server2", 31, 19, 98));
+
+            ResultSet res = con.createStatement()
+                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'server2'");
+            res.next();
+            assertEquals("server2", res.getString("hostid"));
+            assertEquals(98, res.getInt("countRule"));
+            assertEquals(19, res.getInt("countHost"));
+            assertEquals(31, res.getInt("countConfig"));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    } 
+
+
+    @Test
+    public void testFind() {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put(DBMultipleMonitorDAO.COUNT_CONFIG_FIELD, 0);
+        try {
+            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            assertEquals(2, dao.find(map).size());
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    } 
+}
+
