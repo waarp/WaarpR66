@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.Before;
@@ -19,6 +19,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.HostDAO;
+import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBHostDAO;
 import org.waarp.openr66.pojo.Host;
 
@@ -200,8 +201,8 @@ public class DBHostDAOIT {
 
     @Test
     public void testFind() {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put(DBHostDAO.ADDRESS_FIELD, "127.0.0.1");
+        ArrayList<Filter> map = new ArrayList<Filter>();
+        map.add(new Filter(DBHostDAO.ADDRESS_FIELD, "=", "127.0.0.1"));
         try {
             HostDAO dao = factory.getHostDAO();
             assertEquals(2, dao.find(map).size());

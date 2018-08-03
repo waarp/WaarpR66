@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.Before;
@@ -19,6 +19,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.LimitDAO;
+import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBLimitDAO;
 import org.waarp.openr66.pojo.Limit;
 
@@ -190,8 +191,8 @@ public class DBLimitDAOIT {
 
     @Test
     public void testFind() {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put(DBLimitDAO.READ_SESSION_LIMIT_FIELD, 3);
+        ArrayList<Filter> map = new ArrayList<Filter>();
+        map.add(new Filter(DBLimitDAO.READ_SESSION_LIMIT_FIELD, ">", 2));
         try {
             LimitDAO dao = factory.getLimitDAO();
             assertEquals(2, dao.find(map).size());

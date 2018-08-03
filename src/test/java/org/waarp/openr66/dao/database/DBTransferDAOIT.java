@@ -8,7 +8,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Date;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.pojo.Transfer;
 
@@ -210,8 +212,9 @@ public class DBTransferDAOIT {
 
     @Test
     public void testFind() {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put(DBTransferDAO.FILENAME_FIELD, "tintin");
+        ArrayList<Filter> map = new ArrayList<Filter>();
+        map.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", "tintin"));
+        map.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,"=", "server1"));
         try {
             TransferDAO dao = factory.getTransferDAO();
             assertEquals(2, dao.find(map).size());
