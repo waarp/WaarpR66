@@ -10,16 +10,15 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.exception.DAOException;
 
 abstract class StatementExecutor {     
-    
-     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(
-             StatementExecutor.class);
 
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(
+            StatementExecutor.class);
 
     public void setParameters(PreparedStatement stm, Object... values) 
             throws SQLException {
-        for (int i = 0; i < values.length; i++) {
-            stm.setObject(i+1, values[i]);
-        }
+            for (int i = 0; i < values.length; i++) {
+                stm.setObject(i+1, values[i]);
+            }
     }
 
     public void executeUpdate(PreparedStatement stm) throws SQLException {

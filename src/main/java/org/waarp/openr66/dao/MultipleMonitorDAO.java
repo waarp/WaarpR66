@@ -1,7 +1,6 @@
 package org.waarp.openr66.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.MultipleMonitor;
@@ -22,10 +21,10 @@ public interface MultipleMonitorDAO {
      * Retrieve all MultipleMonitor objects corresponding to the given filters
      * in a List from the persistance layer
      *
-     * @param filters List of filter as <Key, Value>
+     * @param filters List of filter
      * @throws DAOException If data access error occurs
      */
-    List<MultipleMonitor> find(Map<String, Object> filters) throws DAOException;
+    List<MultipleMonitor> find(List<Filter> filters) throws DAOException;
 
     /**
      * Retrieve the MultipleMonitor object with the specified hostid from the persistance layer

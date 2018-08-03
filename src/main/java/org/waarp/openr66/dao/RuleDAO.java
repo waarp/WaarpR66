@@ -1,7 +1,6 @@
 package org.waarp.openr66.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Rule;
@@ -22,10 +21,10 @@ public interface RuleDAO {
      * Retrieve all Rule objects corresponding to the given filters
      * a List from the persistance layer
      *
-     * @param filters List of filter as <Key, Value>
+     * @param filters List of filter
      * @throws DAOException If data access error occurs
      */
-    List<Rule> find(Map<String, Object> filters) throws DAOException;
+    List<Rule> find(List<Filter> filters) throws DAOException;
 
     /**
      * Retrieve the Rule object with the specified Rulename from the 

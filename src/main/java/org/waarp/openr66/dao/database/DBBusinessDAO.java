@@ -8,11 +8,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
 
@@ -109,12 +109,12 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public List<Business> find(Map<String, Object> filters) throws DAOException {
+    public List<Business> find(List<Filter> filters) throws DAOException {
         ArrayList<Business> businesses = new ArrayList<Business>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
         Object[] params = new Object[filters.size()];
-        Iterator it = filters.entrySet().iterator();
+        Iterator<Filter> it = filters.listIterator();
         if (it.hasNext()) {
             query.append(" WHERE ");
         }
@@ -122,9 +122,9 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
         int i = 0;
         while (it.hasNext()) {
             query.append(prefix); 
-            Map.Entry filter = (Map.Entry)it.next();
-            query.append(filter.getKey() + " = ?"); 
-            params[i] = filter.getValue();
+            Filter filter = it.next();
+            query.append(filter.key + " " + filter.operand + " ?"); 
+            params[i] = filter.value;
             i++;
             prefix = " AND ";
         }

@@ -1,7 +1,6 @@
 package org.waarp.openr66.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
@@ -22,10 +21,10 @@ public interface TransferDAO {
      * Retrieve all Transfer objects to the given filters
      * in a List from the persistance layer
      *
-     * @param filters List of filter as <Key, Value>
+     * @param filters List of filter
      * @throws DAOException If data access error occurs
      */
-    List<Transfer> find(Map<String, Object> filters) throws DAOException;
+    List<Transfer> find(List<Filter> filters) throws DAOException;
 
     /**
      * Retrieve the Transfer object with the specified Special ID from the persistance layer
