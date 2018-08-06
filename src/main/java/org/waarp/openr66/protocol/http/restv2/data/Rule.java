@@ -18,7 +18,7 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.data.rules;
+package org.waarp.openr66.protocol.http.restv2.data;
 
 import java.util.Comparator;
 
@@ -29,14 +29,14 @@ public class Rule {
     /** All the possible ways to order a list of rule objects. */
     public enum Order {
         /** By ruleID, in ascending order. */
-        ascRuleID(new Comparator<Rule>() {
+        ascRuleID("+id", new Comparator<Rule>() {
             @Override
             public int compare(Rule t1, Rule t2) {
                 return t1.ruleID.compareTo(t2.ruleID);
             }
         }),
         /** By ruleID, in descending order. */
-        descRuleID(new Comparator<Rule>() {
+        descRuleID("+id", new Comparator<Rule>() {
             @Override
             public int compare(Rule t1, Rule t2) {
                 return -t1.ruleID.compareTo(t2.ruleID);
@@ -44,22 +44,68 @@ public class Rule {
         });
 
         public final Comparator<Rule> comparator;
+        public final String value;
 
-        Order(Comparator<Rule> comparator) {
+        Order(String value, Comparator<Rule> comparator) {
+            this.value = value;
             this.comparator = comparator;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        public static Order fromString(String str) throws InstantiationException {
+            if(str == null || str.isEmpty()) {
+                return ascRuleID;
+            }
+            else {
+                for(Order order : Order.values()) {
+                    if(order.value.equals(str)) {
+                        return order;
+                    }
+                }
+                throw new InstantiationException();
+            }
         }
     }
 
     /** All the different modes of file transfer. */
     public enum ModeTrans {
         /** The requester will be the one sending the file to the requested. */
-        send,
+        send("send"),
         /** The requester will be the one receiving the file from the requested; */
-        receive,
+        receive("receive"),
         /** Same as 'send' but with MD5 file signature. */
-        send_md5,
+        send_md5("send+md5"),
         /** Same as 'receive but with MD5 file signature. */
-        receive_md5,
+        receive_md5("receive+md5");
+
+        public final String value;
+
+        ModeTrans(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        public static ModeTrans fromString(String str) throws InstantiationException {
+            if(str == null || str.isEmpty()) {
+                return null;
+            }
+            else {
+                for(ModeTrans mode : ModeTrans.values()) {
+                    if(mode.value.equals(str)) {
+                        return mode;
+                    }
+                }
+                throw new InstantiationException(str);
+            }
+        }
     }
 
     /** All the different types of tasks. */
@@ -116,22 +162,6 @@ public class Rule {
 
         /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
         public Integer delay;
-    }
-
-    public static class OptionalRule extends Rule {
-        public OptionalRule() {
-            this.hostsIDs = new String[]{};
-            this.recvPath = "";
-            this.sendPath = "";
-            this.archivePath = "";
-            this.workPath = "";
-            this.rPreTasks = new Task[]{};
-            this.rPostTasks = new Task[]{};
-            this.rErrorTasks = new Task[]{};
-            this.sPreTasks = new Task[]{};
-            this.sPostTasks = new Task[]{};
-            this.sErrorTasks = new Task[]{};
-        }
     }
 
     /** The rule's unique identifier. */
@@ -200,4 +230,20 @@ public class Rule {
      * @see Task
      */
     public Task[] sErrorTasks;
+
+
+    /** Initialize all missing optional fields with their default values. */
+    public void defaultValues() {
+        if(this.hostsIDs == null)       this.hostsIDs = new String[0];
+        if(this.recvPath == null)       this.recvPath = "in/";
+        if(this.sendPath == null)       this.sendPath = "out/";
+        if(this.archivePath == null)    this.archivePath = "arch/";
+        if(this.workPath == null)       this.workPath = "work/";
+        if(this.rPreTasks == null)      this.rPreTasks = new Task[0];
+        if(this.rPostTasks == null)     this.rPostTasks = new Task[0];
+        if(this.rErrorTasks == null)    this.rErrorTasks = new Task[0];
+        if(this.sPreTasks == null)      this.sPreTasks = new Task[0];
+        if(this.sPostTasks == null)     this.sPostTasks = new Task[0];
+        if(this.sErrorTasks == null)    this.sErrorTasks = new Task[0];
+    }
 }

@@ -20,18 +20,17 @@
 
 package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
+import org.waarp.openr66.protocol.http.restv2.data.Rule;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Deprecated
 public final class RulesDatabase {
-    @Deprecated
     public static List<Rule> rulesDb = initRulesDb();
-
-    @Deprecated
-    private static Rule.Task copy() {
+    
+    private static Rule.Task copyTask() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.copy;
         copy.arguments = "path";
@@ -39,7 +38,7 @@ public final class RulesDatabase {
         return copy;
     }
 
-    private static Rule.Task move() {
+    private static Rule.Task moveTask() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.move;
         copy.arguments = "path";
@@ -47,7 +46,7 @@ public final class RulesDatabase {
         return copy;
     }
 
-    private static Rule.Task delete() {
+    private static Rule.Task deleteTask() {
         Rule.Task copy = new Rule.Task();
         copy.type = Rule.TaskType.delete;
         copy.arguments = "path";
@@ -65,12 +64,12 @@ public final class RulesDatabase {
         rule1.sendPath = "/out";
         rule1.archivePath = "/arch";
         rule1.workPath = "/work";
-        rule1.rPreTasks = new Rule.Task[]{copy()};
-        rule1.rPostTasks = new Rule.Task[]{delete()};
-        rule1.rErrorTasks = new Rule.Task[]{move()};
-        rule1.sPreTasks = new Rule.Task[]{delete()};
-        rule1.sPostTasks = new Rule.Task[]{move()};
-        rule1.sErrorTasks = new Rule.Task[]{copy()};
+        rule1.rPreTasks = new Rule.Task[]{copyTask()};
+        rule1.rPostTasks = new Rule.Task[]{deleteTask()};
+        rule1.rErrorTasks = new Rule.Task[]{moveTask()};
+        rule1.sPreTasks = new Rule.Task[]{deleteTask()};
+        rule1.sPostTasks = new Rule.Task[]{moveTask()};
+        rule1.sErrorTasks = new Rule.Task[]{copyTask()};
 
         Rule rule2 = new Rule();
         rule2.ruleID = "rule2";
@@ -80,15 +79,72 @@ public final class RulesDatabase {
         rule2.sendPath = "/out";
         rule2.archivePath = "/arch";
         rule2.workPath = "/work";
-        rule2.rPreTasks = new Rule.Task[]{copy()};
-        rule2.rPostTasks = new Rule.Task[]{delete()};
-        rule2.rErrorTasks = new Rule.Task[]{move()};
-        rule2.sPreTasks = new Rule.Task[]{delete()};
-        rule2.sPostTasks = new Rule.Task[]{move()};
-        rule2.sErrorTasks = new Rule.Task[]{copy()};
+        rule2.rPreTasks = new Rule.Task[]{copyTask()};
+        rule2.rPostTasks = new Rule.Task[]{deleteTask()};
+        rule2.rErrorTasks = new Rule.Task[]{moveTask()};
+        rule2.sPreTasks = new Rule.Task[]{deleteTask()};
+        rule2.sPostTasks = new Rule.Task[]{moveTask()};
+        rule2.sErrorTasks = new Rule.Task[]{copyTask()};
 
         rules.add(rule1);
         rules.add(rule2);
         return rules;
+    }
+
+    public static List<Rule> selectFilter(int limit, int offset, Rule.Order order, List<Rule.ModeTrans> modeTrans) {
+        List<Rule> results = new ArrayList<Rule>();
+        for(Rule rule : rulesDb) {
+            if(modeTrans == null || modeTrans.contains(rule.modeTrans)) {
+                results.add(rule);
+            }
+        }
+
+        Collections.sort(results, order.comparator);
+
+        List<Rule> answers = new ArrayList<Rule>();
+        for (int i = offset; (i < offset + limit && i < results.size()); i++) {
+            answers.add(results.get(i));
+        }
+
+        return answers;
+    }
+
+    public static Rule select(String id) {
+        for(Rule rule : rulesDb) {
+            if(rule.ruleID.equals(id)) {
+                return rule;
+            }
+        }
+        return null;
+    }
+
+    public static boolean insert(Rule rule) {
+        if(select(rule.ruleID) != null) {
+            return false;
+        } else {
+            rulesDb.add(rule);
+            return true;
+        }
+    }
+
+    public static boolean delete(String id) {
+        Rule deleted = select(id);
+        if(deleted == null) {
+            return false;
+        } else {
+            rulesDb.remove(deleted);
+            return true;
+        }
+    }
+
+    public static boolean modify(String id, Rule rule) {
+        Rule old = select(id);
+        if(old == null) {
+            return false;
+        } else {
+            rulesDb.remove(old);
+            rulesDb.add(rule);
+            return true;
+        }
     }
 }

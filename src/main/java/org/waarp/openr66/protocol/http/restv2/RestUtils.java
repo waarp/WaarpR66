@@ -20,14 +20,16 @@
 
 package org.waarp.openr66.protocol.http.restv2;
 
-import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.waarp.openr66.protocol.http.restv2.exception.ImpossibleException;
+import org.waarp.openr66.protocol.http.restv2.data.NonWritable;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -61,37 +63,42 @@ public final class RestUtils {
      * @throws OpenR66RestBadRequestException Thrown if the JSON object cannot be converted to the specified Java class.
      */
     public static <T> T deserializeRequest(HttpRequest request, Class<T> c)
-            throws OpenR66RestBadRequestException {
+            throws OpenR66RestBadRequestException, OpenR66RestInternalErrorException {
 
         try {
             if (request instanceof FullHttpRequest) {
                 String body = ((FullHttpRequest) request).content().toString(Charset.forName("UTF-8"));
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
+                mapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
+                mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, true);
+                mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, true);
 
                 return mapper.readValue(body, c);
             } else {
-                throw OpenR66RestBadRequestException.emptyBody();
+                throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
             }
-        } catch (JsonParseException e) {
-            throw OpenR66RestBadRequestException.emptyBody();
         } catch (JsonMappingException e) {
             if (e.getPath().size() < 1) {
-                throw OpenR66RestBadRequestException.emptyBody();
+                throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
             } else {
-                String field = e.getPath().get(0).getFieldName();
-                Class type;
+                String name = e.getPath().get(0).getFieldName();
+                Field field;
                 try {
-                    type = c.getField(field).getType();
+                    field = c.getField(name);
                 } catch (NoSuchFieldException e1) {
-                    throw OpenR66RestBadRequestException.unknownField(field, c);
+                    throw new OpenR66RestBadRequestException(RestResponses.unknownField(name));
                 }
-                throw OpenR66RestBadRequestException.illegalValue(type, field);
+                if(field.isAnnotationPresent(NonWritable.class)) {
+                    throw new OpenR66RestBadRequestException(RestResponses.unknownField(name));
+                } else {
+                    throw new OpenR66RestBadRequestException(RestResponses.illegalValue(field.getType(), name));
+                }
             }
         } catch (IllegalArgumentException e) {
-            throw OpenR66RestBadRequestException.emptyBody();
+            throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
         } catch (IOException e) {
-            throw new ImpossibleException(e);
+            throw new OpenR66RestInternalErrorException(RestResponses.jsonProcessing());
         }
 
     }
@@ -119,7 +126,7 @@ public final class RestUtils {
      * @return The Calendar corresponding to the date in the string parameter.
      * @throws IllegalArgumentException Thrown if the string is not a valid ISO-8601 date.
      */
-    public static Calendar toCalendar(final String iso8601string) throws IllegalArgumentException {
+    public static Calendar toCalendar(final String iso8601string) throws Exception {
         try {
             Calendar calendar = GregorianCalendar.getInstance();
             String s = iso8601string.replace("Z", "+00:00");
@@ -129,61 +136,11 @@ public final class RestUtils {
             return calendar;
 
         } catch (IndexOutOfBoundsException e) {
-            throw new IllegalArgumentException();
+            throw new Exception();
         } catch (ParseException e) {
-            throw new IllegalArgumentException();
+            throw new Exception();
         }
 
-    }
-
-
-    /**
-     * Checks if the object passed as argument is an illegal value for an object field.
-     *
-     * @param value The object which whose value should be checked.
-     * @return Returns false if the object is null or empty. Returns true otherwise.
-     * @throws OpenR66RestBadRequestException Thrown if the object itself is a valid list but one of the objects
-     *                                        contained in it has an illegal field.
-     */
-    public static boolean isIllegal(Object value) throws OpenR66RestBadRequestException {
-        if (value == null || value.toString().equals("")) {
-            return true;
-        } else if (value.getClass().isArray()) {
-            Object[] arr = (Object[]) value;
-            for (Object el : arr) {
-                if (el == null) {
-                    return true;
-                } else {
-                    for (Field field : el.getClass().getFields()) {
-                        try {
-                            if (isIllegal(field.get(el))) {
-                                throw OpenR66RestBadRequestException.emptyField(field.getName());
-                            }
-                        } catch (IllegalAccessException e) {
-                            throw new ImpossibleException(e);
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Converts a String to a Boolean if the String represents a valid boolean value.
-     *
-     * @param str The string to convert to a Boolean.
-     * @return The Boolean extracted from the String.
-     * @throws IllegalArgumentException Thrown if the String parameter does not represent a valid boolean value.
-     */
-    public static Boolean stringToBoolean(String str) throws IllegalArgumentException {
-        if ("true".equalsIgnoreCase(str)) {
-            return Boolean.TRUE;
-        } else if ("false".equalsIgnoreCase(str)) {
-            return Boolean.FALSE;
-        } else {
-            throw new IllegalArgumentException();
-        }
     }
 
     /**
@@ -209,5 +166,59 @@ public final class RestUtils {
         }
 
         return methods.toString().replaceAll("[\\[\\]]", "");
+    }
+
+    /**
+     * Transforms a Java Object into it's equivalent JSON object in a String.
+     *
+     * @param object The Object to convert to JSON.
+     * @return The rule as a JSON String.
+     * @throws JsonProcessingException Thrown if the rule cannot be transformed in JSON.
+     */
+    public static String toJsonString(Object object) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(object);
+    }
+
+    /**
+     * Checks if the NonWritable fields of the entry have been written or not.
+     * @param entry The entry to check.
+     * @throws OpenR66RestInternalErrorException    Thrown if one of the entry fields is inaccessible.
+     * @throws OpenR66RestInvalidEntryException     Thrown if one of the NonWritable fields has been written into.
+     */
+    public static void checkEntry(Object entry) throws OpenR66RestInternalErrorException,
+            OpenR66RestInvalidEntryException {
+        for(Field field : entry.getClass().getFields()) {
+            Object val;
+            try {
+                val = field.get(entry);
+            } catch(IllegalAccessException e) {
+                throw new OpenR66RestInternalErrorException(RestResponses.illegalAccess(field));
+            }
+            if(field.isAnnotationPresent(NonWritable.class)) {
+                if(val != null) {
+                    throw new OpenR66RestInvalidEntryException(RestResponses.unknownField(field.getName()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Converts a string to the corresponding Boolean object. If the String is not either null, "true" or "false" (case
+     * insensitive) then an exception is thrown.
+     * @param string    The String to convert.
+     * @return          The corresponding Boolean object (true, false or null).
+     * @throws IOException  Thrown if the String does not represent a Boolean.
+     */
+    public static Boolean toBoolean(String string) throws IOException {
+        if(string == null) {
+            return null;
+        } else if("true".equalsIgnoreCase(string)) {
+            return true;
+        } else if("false".equalsIgnoreCase(string)) {
+            return false;
+        } else {
+            throw new IOException();
+        }
     }
 }

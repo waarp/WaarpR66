@@ -20,17 +20,18 @@
 
 package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
+import org.waarp.openr66.protocol.http.restv2.data.Host;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Deprecated
 public final class HostsDatabase {
-    @Deprecated
+    
     public static List<Host> hostsDb = initHostsDb();
-
-    @Deprecated
+    
+    
     private static List<Host> initHostsDb() {
         List<Host> hosts = new ArrayList<Host>();
 
@@ -59,5 +60,65 @@ public final class HostsDatabase {
         hosts.add(host1);
         hosts.add(host2);
         return hosts;
+    }
+    
+    public static List<Host> selectFilter(int limit, int offset, Host.Order order, String address, Boolean isSSL,
+                                           Boolean isActive) {
+        List<Host> results = new ArrayList<Host>();
+        for(Host host : hostsDb) {
+            if((address == null || address.equals(host.address)) &&
+                    (isSSL == null || isSSL == host.isSSL) &&
+                    (isActive == null || isActive == host.isActive)) {
+                results.add(host);
+            }
+        }
+
+        Collections.sort(results, order.comparator);
+
+        List<Host> answers = new ArrayList<Host>();
+        for (int i = offset; (i < offset + limit && i < results.size()); i++) {
+            answers.add(results.get(i));
+        }
+
+        return answers;
+    }
+
+    public static Host select(String id) {
+        for(Host host : hostsDb) {
+            if(host.hostID.equals(id)) {
+                return host;
+            }
+        }
+        return null;
+    }
+
+    public static boolean insert(Host host) {
+        if(select(host.hostID) != null) {
+            return false;
+        } else {
+            hostsDb.add(host);
+            return true;
+        }
+    }
+
+    public static boolean delete(String id) {
+        Host deleted = select(id);
+        if(deleted == null) {
+            return false;
+        } else {
+            hostsDb.remove(deleted);
+            return true;
+        }
+    }
+
+    public static boolean modify(String id, Host host) {
+        Host old = select(id);
+        if(old == null) {
+            return false;
+        } else {
+            hostsDb.remove(old);
+            hostsDb.add(host);
+            return true;
+        }
     }
 }

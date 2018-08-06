@@ -23,9 +23,7 @@ package org.waarp.openr66.protocol.http.restv2;
 import co.cask.http.ChannelPipelineModifier;
 import co.cask.http.HttpHandler;
 import co.cask.http.NettyHttpService;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.http.restv2.handler.HostConfigHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.HostIdHandler;
@@ -37,13 +35,12 @@ import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransferIdHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.TransfersHandler;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 
-public class RestServiceInitializer extends ChannelInitializer<SocketChannel> {
+public class RestServiceInitializer {
 
     public static NettyHttpService initRestService(RestConfiguration config) {
         Collection<HttpHandler> handlers = new ArrayList<HttpHandler>();
@@ -79,16 +76,12 @@ public class RestServiceInitializer extends ChannelInitializer<SocketChannel> {
             restService.start();
             return restService;
         } catch (Throwable e) {
-            return null;
+            throw new RuntimeException();
         }
     }
 
-    private static void lol() {
-
-    }
-
     //!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws InterruptedException {
 
         RestConfiguration config = new RestConfiguration();
         config.REST_PORT = 8088;
@@ -97,14 +90,8 @@ public class RestServiceInitializer extends ChannelInitializer<SocketChannel> {
         config.REST_SIGNATURE = false;
         NettyHttpService restService = initRestService(config);
 
-        Object o = new Object();
-        synchronized (o) {
-            o.wait();
+        synchronized (restService) {
+            restService.wait();
         }
-    }
-
-    @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
-
     }
 }

@@ -31,10 +31,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.utility.Base64;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.data.Host;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -96,8 +94,8 @@ public class RestHandlerHook implements HandlerHook {
                     if("Basic".equals(authKey[0])) {
                         String[] credentials = new String(Base64.decode(authKey[1]),
                                 Charset.forName("UTF-8")).split(":");
-                        Host requester = Hosts.loadHost(credentials[0]);
-                        if (!requester.hostKey.equals(credentials[1])) {
+                        Host requester = HostsDatabase.select(credentials[0]);
+                        if (requester == null || !requester.hostKey.equals(credentials[1])) {
                             unauthorized(httpResponder);
                             return false;
                         }
@@ -108,13 +106,9 @@ public class RestHandlerHook implements HandlerHook {
                     }
 
                 } catch (IOException e) {
-                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                            OpenR66RestInternalServerException.base64Decoding().message);
+                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.base64Decoding());
                     return false;
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    unauthorized(httpResponder);
-                    return false;
-                } catch (OpenR66RestIdNotFoundException e) {
                     unauthorized(httpResponder);
                     return false;
                 }

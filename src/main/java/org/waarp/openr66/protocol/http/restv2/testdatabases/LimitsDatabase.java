@@ -20,17 +20,16 @@
 
 package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
-import org.waarp.openr66.protocol.http.restv2.data.limits.Limit;
+import org.waarp.openr66.protocol.http.restv2.data.Limit;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Deprecated
 public final class LimitsDatabase {
-    @Deprecated
-    public static List<Limit> limitDb = initLimitsDb();
 
-    @Deprecated
+    public static List<Limit> limitsDb = initLimitsDb();
+
     private static List<Limit> initLimitsDb() {
         List<Limit> limits = new ArrayList<Limit>();
         Limit limit = new Limit();
@@ -42,5 +41,44 @@ public final class LimitsDatabase {
 
         limits.add(limit);
         return limits;
+    }
+
+    public static Limit select(String id) {
+        for(Limit limit : limitsDb) {
+            if(limit.hostID.equals(id)) {
+                return limit;
+            }
+        }
+        return null;
+    }
+
+    public static boolean insert(Limit limit) {
+        if(select(limit.hostID) != null) {
+            return false;
+        } else {
+            limitsDb.add(limit);
+            return true;
+        }
+    }
+
+    public static boolean delete(String id) {
+        Limit deleted = select(id);
+        if(deleted == null) {
+            return false;
+        } else {
+            limitsDb.remove(deleted);
+            return true;
+        }
+    }
+
+    public static boolean modify(String id, Limit limit) {
+        Limit old = select(id);
+        if(old == null) {
+            return false;
+        } else {
+            limitsDb.remove(old);
+            limitsDb.add(limit);
+            return true;
+        }
     }
 }

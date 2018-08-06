@@ -27,9 +27,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
+import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.data.Transfer;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -52,9 +53,9 @@ public class ServerHandler extends AbstractHttpHandler {
     public static final long period = (long) 1000 * 60 * 60 * 24;
 
     //TODO: replace by loading path from server config file
-    public static final String archPath = "/arch";
+    private static final String archPath = "/arch";
 
-    public static final String logsPath = "/logs";
+    private static final String logsPath = "/logs";
 
     /**
      * Get the general status of the server.
@@ -67,10 +68,10 @@ public class ServerHandler extends AbstractHttpHandler {
     public void getStatus(HttpRequest request, HttpResponder responder) {
         ServerStatus status = new ServerStatus();
         try {
-            String jsonString = status.toJsonString();
+            String jsonString = RestUtils.toJsonString(status);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -101,10 +102,18 @@ public class ServerHandler extends AbstractHttpHandler {
     }
 
     /**
-     * Export the server logs to a file.
+     * Export the server logs to a file. Only the entries that satisfy the desired filters will be exported.
      *
      * @param request   The Http request made on the resource.
      * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param purge     Whether to delete exported entries or not.
+     * @param clean     Whether to fix the incoherent entries.
+     * @param status    Export only the entries with one of these statutes.
+     * @param rule      Export only the entries using this rule.
+     * @param start     Lower bound for the date of the transfer.
+     * @param stop      Upper bound for the data of the transfer.
+     * @param startID   Lower bound for the transfer ID.
+     * @param stopID    Upper bound for the transfer ID.
      */
     @Path("logs")
     @GET
@@ -133,8 +142,7 @@ public class ServerHandler extends AbstractHttpHandler {
             jsonString = mapper.writeValueAsString(response);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    OpenR66RestInternalServerException.jsonProcessing().message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -143,6 +151,11 @@ public class ServerHandler extends AbstractHttpHandler {
      *
      * @param request   The Http request made on the resource.
      * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param hosts     Whether to export the host database or not.
+     * @param rules     Whether to export the rules database or not.
+     * @param business  Whether to export the host's business or not.
+     * @param aliases   Whether to export the host's aliases or not.
+     * @param roles     Whether to export the host's permission database or not.
      */
     @Path("config")
     @GET
@@ -183,8 +196,7 @@ public class ServerHandler extends AbstractHttpHandler {
             jsonString = mapper.writeValueAsString(files);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    OpenR66RestInternalServerException.jsonProcessing().message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 

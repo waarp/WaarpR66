@@ -22,16 +22,18 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.limits.Limit;
-import org.waarp.openr66.protocol.http.restv2.data.limits.Limits;
+import org.waarp.openr66.protocol.http.restv2.data.Limit;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.LimitsDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,16 +59,17 @@ public class LimitsHandler extends AbstractHttpHandler {
      */
     @GET
     public void getLimits(HttpRequest request, HttpResponder responder) {
-        try {
-            Limit limit = Limits.loadLimits(RestUtils.HOST_ID);
+        Limit limit = LimitsDatabase.select(RestUtils.HOST_ID);
 
-            String responseBody = Limits.toJsonString(limit);
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        if(limit != null) {
+            try {
+                String responseBody = RestUtils.toJsonString(limit);
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
+        } else {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -82,15 +85,24 @@ public class LimitsHandler extends AbstractHttpHandler {
     @POST
     public void initializeLimits(HttpRequest request, HttpResponder responder) {
         try {
-            Limit newLimit = RestUtils.deserializeRequest(request, Limit.OptionalLimit.class);
-            Limits.initLimits(newLimit);
+            Limit limit = RestUtils.deserializeRequest(request, Limit.class);
+            RestUtils.checkEntry(limit);
+            limit.defaultValues();
 
-            String responseBody = Limits.toJsonString(newLimit);
-            responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            if(LimitsDatabase.insert(limit)) {
+                String responseBody = RestUtils.toJsonString(limit);
+                responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyInitialized("limits"));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -107,16 +119,19 @@ public class LimitsHandler extends AbstractHttpHandler {
     public void replaceLimits(HttpRequest request, HttpResponder responder) {
         try {
             Limit updatedLimits = RestUtils.deserializeRequest(request, Limit.class);
-            Limits.replace(RestUtils.HOST_ID, updatedLimits);
 
-            String responseBody = Limits.toJsonString(updatedLimits);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            if(LimitsDatabase.modify(RestUtils.HOST_ID, updatedLimits)) {
+                String responseBody = RestUtils.toJsonString(updatedLimits);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } else {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -130,11 +145,9 @@ public class LimitsHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteLimits(HttpRequest request, HttpResponder responder) {
-        try {
-            Limits.deleteLimits(RestUtils.HOST_ID);
-
+        if(LimitsDatabase.delete(RestUtils.HOST_ID)) {
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestIdNotFoundException e) {
+        } else {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }

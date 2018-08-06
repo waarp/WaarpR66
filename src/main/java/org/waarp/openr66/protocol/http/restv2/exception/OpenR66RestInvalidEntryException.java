@@ -18,4 +18,12 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
+package org.waarp.openr66.protocol.http.restv2.exception;
+
+public class OpenR66RestInvalidEntryException extends Exception {
+    public final String message;
+
+    public OpenR66RestInvalidEntryException(String message) {
+        this.message = message;
+    }
+}

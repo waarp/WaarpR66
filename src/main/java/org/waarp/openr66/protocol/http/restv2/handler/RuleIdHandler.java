@@ -22,16 +22,17 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
+import org.waarp.openr66.protocol.http.restv2.data.Rule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -59,15 +60,16 @@ public class RuleIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Rule rule = Rules.loadRule(id);
-            String responseBody = Rules.toJsonString(rule);
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
+        Rule rule = RulesDatabase.select(id);
+        if(rule != null) {
+            try {
+                String responseBody = RestUtils.toJsonString(rule);
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendString(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
+        } else {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         }
     }
 
@@ -85,16 +87,18 @@ public class RuleIdHandler extends AbstractHttpHandler {
     public void replaceRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
             Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
-            Rules.replace(id, updatedRule);
-
-            String responseBody = Rules.toJsonString(updatedRule);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            if(RulesDatabase.modify(id, updatedRule)) {
+                String responseBody = RestUtils.toJsonString(updatedRule);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -110,11 +114,9 @@ public class RuleIdHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Rules.deleteRule(id);
-
+        if (RulesDatabase.delete(id)) {
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestIdNotFoundException e) {
+        } else {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }

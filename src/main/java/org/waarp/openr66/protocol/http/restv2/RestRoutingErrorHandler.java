@@ -61,17 +61,24 @@ public class RestRoutingErrorHandler extends ChannelOutboundHandlerAdapter {
         FullHttpResponse fullResponse;
         fullResponse = ((FullHttpResponse) msg).copy();
         String content = fullResponse.content().toString(UTF_8);
-        FullHttpResponse newResponse = null;
+
+        FullHttpResponse newResponse;
         switch (fullResponse.status().code()) {
             case 404:
                 fullResponse.headers().remove(HttpHeaderNames.CONTENT_TYPE);
                 fullResponse.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-                newResponse = fullResponse.replace(Unpooled.copiedBuffer(String.format(notFound, content), UTF_8));
+                String jsonNF = String.format(notFound, content);
+                newResponse = fullResponse.replace(Unpooled.copiedBuffer(jsonNF, UTF_8));
+                newResponse.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+                newResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, jsonNF.length());
                 super.write(ctx, newResponse, promise);
                 break;
             case 405:
                 fullResponse.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-                newResponse = fullResponse.replace(Unpooled.copiedBuffer(String.format(badMethod, content), UTF_8));
+                String jsonBM = String.format(badMethod, content);
+                newResponse = fullResponse.replace(Unpooled.copiedBuffer(jsonBM, UTF_8));
+                newResponse.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+                newResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, jsonBM.length());
                 super.write(ctx, newResponse, promise);
                 break;
             default:

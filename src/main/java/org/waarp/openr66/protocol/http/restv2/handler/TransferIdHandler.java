@@ -22,15 +22,15 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfers;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.data.Transfer;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
@@ -57,15 +57,16 @@ public class TransferIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Transfer trans = Transfers.loadTransfer(id);
-            String responseBody = Transfers.toJsonString(trans);
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        Transfer trans = TransfersDatabase.select(id);
+        if(trans == null) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+        } else {
+            try {
+                String responseBody = RestUtils.toJsonString(trans);
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 
@@ -100,16 +101,17 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("restart")
     @PUT
     public void restartTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Transfer trans = Transfers.loadTransfer(id);
-            Transfers.restart(trans);
-            String responseBody = Transfers.toJsonString(trans);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        Transfer trans = TransfersDatabase.select(id);
+        if(trans == null) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+        } else {
+            try {
+                trans.status = Transfer.Status.toSubmit;
+                String responseBody = RestUtils.toJsonString(trans);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 
@@ -127,16 +129,17 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("stop")
     @PUT
     public void stopTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Transfer trans = Transfers.loadTransfer(id);
-            Transfers.stop(trans);
-            String responseBody = Transfers.toJsonString(trans);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        Transfer trans = TransfersDatabase.select(id);
+        if(trans == null) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+        } else {
+            try {
+                trans.status = Transfer.Status.interrupted;
+                String responseBody = RestUtils.toJsonString(trans);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 
@@ -154,16 +157,18 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("cancel")
     @PUT
     public void cancelTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Transfer trans = Transfers.loadTransfer(id);
-            Transfers.cancel(trans);
-            String responseBody = Transfers.toJsonString(trans);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        Transfer trans = TransfersDatabase.select(id);
+        if(trans == null) {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+        } else {
+            try {
+                trans.status = Transfer.Status.inError;
+                trans.stepStatus = "Cancelled";
+                String responseBody = RestUtils.toJsonString(trans);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 }

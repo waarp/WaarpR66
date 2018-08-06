@@ -18,13 +18,14 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.data.transfers;
+package org.waarp.openr66.protocol.http.restv2.data;
 
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 
 /** Transfer POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -33,56 +34,56 @@ public class Transfer {
     /** All the possible ways to order a list of transfer objects. */
     public enum Order {
         /** By tansferID, in ascending order. */
-        ascTransferID(new Comparator<Transfer>() {
+        ascTransferID("+id", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return t1.transferID.compareTo(t2.transferID);
             }
         }),
         /** By tansferID, in descending order. */
-        descTransferID(new Comparator<Transfer>() {
+        descTransferID("-id", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return -t1.transferID.compareTo(t2.transferID);
             }
         }),
         /** By fileName, in ascending order. */
-        ascFileName(new Comparator<Transfer>() {
+        ascFileName("+filename", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return t1.originalFileName.compareTo(t2.originalFileName);
             }
         }),
         /** By fileName, in descending order. */
-        descFileName(new Comparator<Transfer>() {
+        descFileName("-filename", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return -t1.originalFileName.compareTo(t2.originalFileName);
             }
         }),
         /** By date of transfer start, in ascending order. */
-        ascStartTrans(new Comparator<Transfer>() {
+        ascStartTrans("+startDate", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return t1.startTrans.compareTo(t2.startTrans);
             }
         }),
         /** By date of transfer start, in descending order. */
-        descStartTrans(new Comparator<Transfer>() {
+        descStartTrans("-startDate", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return -t1.startTrans.compareTo(t2.startTrans);
             }
         }),
         /** By date of transfer end, in ascending order. */
-        ascStopTrans(new Comparator<Transfer>() {
+        ascStopTrans("+stopDate", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return t1.stopTrans.compareTo(t2.stopTrans);
             }
         }),
         /** By date of transfer end, in descending order. */
-        descStopTrans(new Comparator<Transfer>() {
+        descStopTrans("-stopDate", new Comparator<Transfer>() {
             @Override
             public int compare(Transfer t1, Transfer t2) {
                 return -t1.stopTrans.compareTo(t2.stopTrans);
@@ -90,9 +91,30 @@ public class Transfer {
         });
 
         public final Comparator<Transfer> comparator;
+        public final String value;
 
-        Order(Comparator<Transfer> comparator) {
+        Order(String value, Comparator<Transfer> comparator) {
+            this.value = value;
             this.comparator = comparator;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        public static Order fromString(String str) throws InstantiationException {
+            if(str == null || str.isEmpty()) {
+                return ascTransferID;
+            }
+            else {
+                for(Order order : Order.values()) {
+                    if(order.value.equals(str)) {
+                        return order;
+                    }
+                }
+                throw new InstantiationException();
+            }
         }
     }
 
@@ -147,55 +169,64 @@ public class Transfer {
     }
 
     /** The transfer's unique id, automatically generated at transfer creation. */
-    public final Long transferID = ++TransfersDatabase.count;
+    @NonWritable
+    public String transferID;
 
     /**
      * The transfer's current global step.
      *
      * @see GlobalStep
      */
-    public GlobalStep globalStep = GlobalStep.noTask;
+    @NonWritable
+    public GlobalStep globalStep;
 
     /**
      * The transfer's last finished global step.
      *
      * @see GlobalStep
      */
-    public GlobalStep globalLastStep = GlobalStep.noTask;
+    @NonWritable
+    public GlobalStep globalLastStep;
 
     /**
      * The transfer's current step.
      *
      * @see Step
      */
-    public Step step = Step.running;
+    @NonWritable
+    public Step step;
 
     /** The number of packets transferred thus far. */
-    public Integer rank = 0;
+    @NonWritable
+    public Integer rank;
 
     /**
      * The transfer's current status.
      *
      * @see Status
      */
-    public Status status = Status.unknown;
+    @NonWritable
+    public Status status;
 
     /** Additional information about the current status (error messages, etc...). */
-    public String stepStatus = "unknown";
+    @NonWritable
+    public String stepStatus;
 
     /** The sent file's original name on the sender host before the transfer. */
     public String originalFileName;
 
     /** The sent file's new name on the receiver host after the transfer. */
+    @NonWritable
     public String fileName;
 
     /** The id of the rule used for the transfer. */
     public String ruleID;
 
     /** Size of a block of the sent file (in Bytes) */
-    public Integer blockSize;
+    public Integer blockSize = 4096;
 
     /** Additional metadata about the file (size in Bytes). */
+    @NonWritable
     public String fileInfo;
 
     /** Additional user inputted information about the transfer (comments). */
@@ -213,15 +244,20 @@ public class Transfer {
      *
      * @see Calendar
      */
-    public Calendar stopTrans = null;
+    @NonWritable
+    public Calendar stopTrans;
 
     /** Host id of the host which originally made the transfer request. */
-    //TODO: replace by loading the host id from the config file
-    public String requester = "server1";
+    @NonWritable
+    public String requester;
 
     /** Host id of the host to which the transfer was requested. */
     public String requested;
 
+
+    public void setStartTrans(String date) throws Exception {
+        this.startTrans = RestUtils.toCalendar(date);
+    }
 
     public String getStartTrans() {
         return RestUtils.fromCalendar(this.startTrans);
@@ -229,5 +265,19 @@ public class Transfer {
 
     public String getStopTrans() {
         return RestUtils.fromCalendar(this.stopTrans);
+    }
+
+    /** Initialize all Non-Writable fields with their initial values. */
+    public void initValues() {
+        this.transferID = TransfersDatabase.nextID();
+        this.globalStep = GlobalStep.noTask;
+        this.globalLastStep = GlobalStep.noTask;
+        this.step = Step.running;
+        this.rank = 0;
+        this.status = Status.unknown;
+        this.stepStatus = "unknown";
+        this.stopTrans = null;
+        this.requester = RestUtils.HOST_ID;
+        if(this.startTrans == null) this.startTrans = new GregorianCalendar();
     }
 }

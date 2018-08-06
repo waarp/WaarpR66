@@ -28,11 +28,13 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
+import org.waarp.openr66.protocol.http.restv2.data.Rule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -40,8 +42,8 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the handler for all request made on the 'rules' database, accessible through the "/v2/rules" URI.
@@ -55,34 +57,62 @@ public class RulesHandler extends AbstractHttpHandler {
      *
      * @param request   The Http request made on the resource.
      * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param limitStr     Maximum number of entries allowed in the response.
+     * @param offsetStr    Index of the first accepted entry in the list of all valid answers.
+     * @param orderStr     The criteria used to sort the entries and the direction of the ordering.
+     * @param modeTransStr Filter transfer rules that use this kind of transfer mode.
      */
     @GET
     public void filterRules(HttpRequest request, HttpResponder responder,
-                            @QueryParam("limit") @DefaultValue("20") Integer limit,
-                            @QueryParam("offset") @DefaultValue("0") Integer offset,
-                            @QueryParam("order") @DefaultValue("ascRuleID") Rule.Order order,
-                            @QueryParam("modeTrans") List<Rule.ModeTrans> modeTrans) {
+                            @QueryParam("limit") @DefaultValue("20") String limitStr,
+                            @QueryParam("offset") @DefaultValue("0") String offsetStr,
+                            @QueryParam("order") @DefaultValue("+id") String orderStr,
+                            @QueryParam("modeTrans") List<String> modeTransStr) {
+        int limit, offset;
+        Rule.Order order;
+        List<Rule.ModeTrans> modeTrans = new ArrayList<Rule.ModeTrans>();
         try {
-            Map.Entry<Integer, List<Rule>> answer = Rules.filterRules(limit,  offset, order, modeTrans);
-            List<Rule> resultsList = answer.getValue();
-            Integer nbResults = answer.getKey();
+            limit = Integer.parseInt(limitStr);
+            order = Rule.Order.fromString(orderStr);
+        } catch(NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(limitStr));
+            return;
+        } catch (InstantiationException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderStr));
+            return;
+        }
+        try {
+            offset = Integer.parseInt(offsetStr);
+            for(String str : modeTransStr) {
+                modeTrans.add(Rule.ModeTrans.fromString(str));
+            }
+        } catch(NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(offsetStr));
+            return;
+        } catch (InstantiationException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("modeTrans", e.getMessage()));
+            return;
+        }
+
+        if (limit < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("limit"));
+        } else if (offset < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
+        } else {
+
+            List<Rule> answers = RulesDatabase.selectFilter(limit,  offset, order, modeTrans);
+            Integer nbResults = answers.size();
             String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String results;
             try {
-                results = "\"results\":" + mapper.writeValueAsString(resultsList);
+                String results = "\"results\":" + mapper.writeValueAsString(answers);
+
+                String responseBody = "{" + totalResults + "," + results + "}";
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
             } catch (JsonProcessingException e) {
-                throw OpenR66RestInternalServerException.jsonProcessing();
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
             }
-
-            String responseBody = "{" + totalResults + "," + results + "}";
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            e.printStackTrace();
         }
     }
 
@@ -99,15 +129,23 @@ public class RulesHandler extends AbstractHttpHandler {
     public void addRule(HttpRequest request, HttpResponder responder) {
         try {
             Rule rule = RestUtils.deserializeRequest(request, Rule.class);
+            RestUtils.checkEntry(rule);
+            rule.defaultValues();
 
-            Rules.addRule(rule);
-
-            String responseBody = Rules.toJsonString(rule);
-            responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            if (RulesDatabase.insert(rule)) {
+                String responseBody = RestUtils.toJsonString(rule);
+                responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("rules", rule.ruleID));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 

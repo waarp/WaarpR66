@@ -18,7 +18,7 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.data.hostconfigs;
+package org.waarp.openr66.protocol.http.restv2.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -75,18 +75,9 @@ public class HostConfig {
         }
     }
 
-    public static class OptionalHostConfig extends HostConfig {
-        public OptionalHostConfig() {
-            this.business = new String[0];
-            this.roles = new Role[0];
-            this.aliases = new String[0];
-            this.others = "";
-        }
-    }
-
     /** The host of the host using this configuration. */
     @JsonIgnore
-    public final String hostId = HOST_ID;
+    public final String hostID = HOST_ID;
 
     /** The list of al hosts allowed to make request to execute the server's business. */
     public String[] business;
@@ -103,4 +94,12 @@ public class HostConfig {
 
     /** The database configuration version in XML format. */
     public String others;
+
+    /** Initialize all missing optional fields with their default values. */
+    public void defaultValues() {
+        if(this.business == null)   this.business = new String[0];
+        if(this.roles == null)      this.roles = new Role[0];
+        if(this.aliases == null)    this.aliases = new String[0];
+        if(this.others == null)     this.others = "<root><version></version></root>";
+    }
 }

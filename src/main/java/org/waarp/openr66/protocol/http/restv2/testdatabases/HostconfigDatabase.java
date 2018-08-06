@@ -20,7 +20,7 @@
 
 package org.waarp.openr66.protocol.http.restv2.testdatabases;
 
-import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfig;
+import org.waarp.openr66.protocol.http.restv2.data.HostConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,5 +44,44 @@ public final class HostconfigDatabase {
 
         configs.add(config1);
         return configs;
+    }
+
+    public static HostConfig select(String id) {
+        for(HostConfig config : configDb) {
+            if(config.hostID.equals(id)) {
+                return config;
+            }
+        }
+        return null;
+    }
+
+    public static boolean insert(HostConfig config) {
+        if(select(config.hostID) != null) {
+            return false;
+        } else {
+            configDb.add(config);
+            return true;
+        }
+    }
+
+    public static boolean delete(String id) {
+        HostConfig deleted = select(id);
+        if(deleted == null) {
+            return false;
+        } else {
+            configDb.remove(deleted);
+            return true;
+        }
+    }
+
+    public static boolean modify(String id, HostConfig config) {
+        HostConfig old = select(id);
+        if(old == null) {
+            return false;
+        } else {
+            configDb.remove(old);
+            configDb.add(config);
+            return true;
+        }
     }
 }

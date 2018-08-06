@@ -19,7 +19,7 @@
  */
 
 
-package org.waarp.openr66.protocol.http.restv2.data.hosts;
+package org.waarp.openr66.protocol.http.restv2.data;
 
 
 import java.util.Comparator;
@@ -34,28 +34,28 @@ public class Host {
     /** All the possible ways to order a list of host objects. */
     public enum Order {
         /** By hostID, in ascending order. */
-        ascHostID(new Comparator<Host>() {
+        ascHostID("+id", new Comparator<Host>() {
             @Override
             public int compare(Host t1, Host t2) {
                 return t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By hostID, in descending order. */
-        descHostID(new Comparator<Host>() {
+        descHostID("-id", new Comparator<Host>() {
             @Override
             public int compare(Host t1, Host t2) {
                 return -t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By address, in ascending order. */
-        ascAddress(new Comparator<Host>() {
+        ascAddress("+address", new Comparator<Host>() {
             @Override
             public int compare(Host t1, Host t2) {
                 return t1.address.compareTo(t2.address);
             }
         }),
         /** By address, in descending order. */
-        descAddress(new Comparator<Host>() {
+        descAddress("-address", new Comparator<Host>() {
             @Override
             public int compare(Host t1, Host t2) {
                 return -t1.address.compareTo(t2.address);
@@ -63,20 +63,40 @@ public class Host {
         });
 
         public final Comparator<Host> comparator;
+        public final String value;
 
-        Order(Comparator<Host> comparator) {
+        Order(String value, Comparator<Host> comparator) {
+            this.value = value;
             this.comparator = comparator;
+        }
+
+        @Override
+        public String toString(){
+            return this.value;
+        }
+
+        public static Order fromString(String str) throws InstantiationException {
+            if(str == null || str.isEmpty()) {
+                return ascHostID;
+            }
+            else {
+                for(Order order : Order.values()) {
+                    if(order.value.equals(str)) {
+                        return order;
+                    }
+                }
+                throw new InstantiationException();
+            }
         }
     }
 
-    public static class OptionalHost extends Host {
-        public OptionalHost() {
-            this.isSSL = false;
-            this.adminRole = false;
-            this.isClient = false;
-            this.isActive = false;
-            this.isProxyfied = false;
-        }
+    /** Initializes all missing optional fields with their default values. */
+    public void defaultValues() {
+        if(this.isSSL == null)       this.isSSL = false;
+        if(this.adminRole == null)   this.adminRole = false;
+        if(this.isClient == null)    this.isClient = false;
+        if(this.isActive == null)    this.isActive = false;
+        if(this.isProxyfied == null) this.isProxyfied = false;
     }
 
     /** The host's unique identifier. */
@@ -85,7 +105,7 @@ public class Host {
     /** The host's public address. Can be an IP address, or a web address which will then be resolved by DNS. */
     public String address;
 
-    /** The server's listening port. Must be between 1 and 65535. */
+    /** The server's listening port. Must be between -1 and 65535. */
     public Integer port;
 
     /** The host's DES encrypted password. DO NOT store the password in plaintext. */

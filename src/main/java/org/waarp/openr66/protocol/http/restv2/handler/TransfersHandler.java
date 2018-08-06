@@ -24,15 +24,18 @@ import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfers;
+import org.waarp.openr66.protocol.http.restv2.data.Transfer;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -42,7 +45,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the handler for all request made on the 'transfers' database collection, accessible through the
@@ -51,33 +53,25 @@ import java.util.Map;
 @Path("/v2/transfers")
 public class TransfersHandler extends AbstractHttpHandler {
 
-    public static final class TransferInitializer {
-
-        public String fileName;
-
-        public String ruleID;
-
-        public String requested;
-
-        public String fileInfo = "";
-
-        public Integer blockSize = 4096;
-
-        public String start;
-    }
-
     /**
      * The method called when a GET request is made on /v2/transfers. If the request is valid, the Http response will
      * contain an array of transfer entries. If not, the response will contain a '400 - Bad request' error message.
      *
-     * @param request   The Http request made on the resource.
-     * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param limit         Maximum number of entries allowed in the response.
+     * @param offset        Index of the first accepted entry in the list of all valid answers.
+     * @param orderName     The criteria used to sort the entries and the direction of the ordering.
+     * @param ruleID        Filter transfers that use this rule.
+     * @param partner       Filter transfers that have this partner.
+     * @param status        Filter transfers currently in one of these statutes.
+     * @param fileName      Filter transfers of a particular file.
+     * @param startTrans    Lower bound for the transfers' date.
+     * @param stopTrans     Upper bound for the transfers' date.
      */
     @GET
     public void filterTransfer(HttpRequest request, HttpResponder responder,
-                               @QueryParam("limit") @DefaultValue("20") Integer limit,
-                               @QueryParam("offset") @DefaultValue("0") Integer offset,
-                               @QueryParam("order") @DefaultValue("ascTransferID") Transfer.Order order,
+                               @QueryParam("limit") @DefaultValue("20") int limit,
+                               @QueryParam("offset") @DefaultValue("0") int offset,
+                               @QueryParam("order") @DefaultValue("+id") String orderName,
                                @QueryParam("ruleID") @DefaultValue("") String ruleID,
                                @QueryParam("partner") @DefaultValue("") String partner,
                                @QueryParam("status") List<Transfer.Status> status,
@@ -85,27 +79,50 @@ public class TransfersHandler extends AbstractHttpHandler {
                                @QueryParam("startTrans") @DefaultValue("") String startTrans,
                                @QueryParam("stopTrans") @DefaultValue("") String stopTrans) {
 
-        try {
-            Map.Entry<Integer, List<Transfer>> answer = Transfers.filterTransfers(limit, offset, order, ruleID, partner,
-                    status, fileName, startTrans, stopTrans);
-            List<Transfer> resultsList = answer.getValue();
-            Integer nbResults = answer.getKey();
+        if (limit < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("limits"));
+        } else if (offset < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
+        } else {
+            Calendar start;
+            Calendar stop;
+            try {
+                start = (startTrans.isEmpty() ? null : RestUtils.toCalendar(startTrans));
+            } catch (Exception e) {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
+                return;
+            }
+            try {
+                stop = (stopTrans.isEmpty()) ? null : RestUtils.toCalendar(stopTrans);
+            } catch (Exception e) {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
+                return;
+            }
+            Transfer.Order order;
+            try {
+                order = Transfer.Order.fromString(orderName);
+            } catch (InstantiationException e) {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderName));
+                return;
+            }
+
+            List<Transfer> resultsList = TransfersDatabase.selectFilter(limit, offset, order,
+                    ruleID, partner, status, fileName, start, stop);
+            Integer nbResults = resultsList.size();
             String totalResults = "\"totalResults\":" + nbResults.toString();
 
-            ObjectMapper mapper = new ObjectMapper();
-            String results;
-            try {
-                results = "\"results\":" + mapper.writeValueAsString(resultsList);
-            } catch (JsonProcessingException e) {
-                throw OpenR66RestInternalServerException.jsonProcessing();
-            }
-            String responseBody = "{" + totalResults + "," + results + "}";
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
 
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+            try {
+                String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+
+                String responseBody = "{" + totalResults + "," + results + "}";
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
+
         }
     }
 
@@ -121,25 +138,22 @@ public class TransfersHandler extends AbstractHttpHandler {
     public void createTransfer(HttpRequest request, HttpResponder responder) {
 
         try {
-            TransferInitializer init = RestUtils.deserializeRequest(request, TransferInitializer.class);
-            Calendar start = null;
-            if (init.start != null) {
-                try {
-                    start = RestUtils.toCalendar(init.start);
-                } catch (IllegalArgumentException e) {
-                    throw OpenR66RestBadRequestException.notADate("start", init.start);
-                }
-            }
+            Transfer trans = RestUtils.deserializeRequest(request, Transfer.class);
+            RestUtils.checkEntry(trans);
+            trans.initValues();
 
-            Transfer newTrans = Transfers.createTransfer(init.fileName, init.ruleID, init.blockSize, init.fileInfo,
-                    start, init.requested);
+            TransfersDatabase.insert(trans);
 
-            String responseBody = Transfers.toJsonString(newTrans);
+            String responseBody = RestUtils.toJsonString(trans);
             responder.sendJson(HttpResponseStatus.CREATED, responseBody);
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 

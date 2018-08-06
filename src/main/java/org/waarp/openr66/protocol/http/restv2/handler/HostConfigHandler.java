@@ -22,16 +22,18 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfig;
-import org.waarp.openr66.protocol.http.restv2.data.hostconfigs.HostConfigs;
+import org.waarp.openr66.protocol.http.restv2.data.HostConfig;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostconfigDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,16 +59,17 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @GET
     public void getConfig(HttpRequest request, HttpResponder responder) {
-        try {
-            HostConfig config = HostConfigs.loadConfig(RestUtils.HOST_ID);
+        HostConfig config = HostconfigDatabase.select(RestUtils.HOST_ID);
 
-            String responseBody = HostConfigs.toJsonString(config);
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        if(config != null) {
+            try {
+                String responseBody = RestUtils.toJsonString(config);
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
+        } else {
+            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }
 
@@ -81,16 +84,27 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @POST
     public void initializeConfig(HttpRequest request, HttpResponder responder) {
-        try {
-            HostConfig newConfig = RestUtils.deserializeRequest(request, HostConfig.OptionalHostConfig.class);
-            HostConfigs.initConfig(newConfig);
 
-            String responseBody = HostConfigs.toJsonString(newConfig);
-            responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+        try {
+            HostConfig config = RestUtils.deserializeRequest(request, HostConfig.class);
+            RestUtils.checkEntry(config);
+            config.defaultValues();
+
+            if(HostconfigDatabase.insert(config)) {
+                String responseBody = RestUtils.toJsonString(config);
+                responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST,
+                        RestResponses.alreadyInitialized("host configuration"));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -107,16 +121,20 @@ public class HostConfigHandler extends AbstractHttpHandler {
     public void replaceConfig(HttpRequest request, HttpResponder responder) {
         try {
             HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
-            HostConfigs.replace(RestUtils.HOST_ID, updatedConfig);
 
-            String responseBody = HostConfigs.toJsonString(updatedConfig);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            if(HostconfigDatabase.modify(RestUtils.HOST_ID, updatedConfig)) {
+                String responseBody = RestUtils.toJsonString(updatedConfig);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST,
+                        RestResponses.alreadyInitialized("host configuration"));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -130,11 +148,9 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteConfig(HttpRequest request, HttpResponder responder) {
-        try {
-            HostConfigs.deleteConfig(RestUtils.HOST_ID);
-
+        if(HostconfigDatabase.delete(RestUtils.HOST_ID)) {
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestIdNotFoundException e) {
+        } else {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }

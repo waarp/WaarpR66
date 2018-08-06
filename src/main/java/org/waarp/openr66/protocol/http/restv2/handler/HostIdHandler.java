@@ -22,16 +22,17 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
+import org.waarp.openr66.protocol.http.restv2.data.Host;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -59,15 +60,16 @@ public class HostIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Host host = Hosts.loadHost(id);
-            String responseBody = Hosts.toJsonString(host);
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
-
-        } catch (OpenR66RestIdNotFoundException e) {
+        Host host = HostsDatabase.select(id);
+        if(host == null) {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } else {
+            try {
+                String responseBody = RestUtils.toJsonString(host);
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 
@@ -85,16 +87,20 @@ public class HostIdHandler extends AbstractHttpHandler {
     public void replaceHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
             Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
-            Hosts.replace(id, updatedHost);
 
-            String responseBody = Hosts.toJsonString(updatedHost);
-            responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+
+            if (HostsDatabase.modify(id, updatedHost)) {
+                String responseBody = RestUtils.toJsonString(updatedHost);
+                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("host", id));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
-        } catch (OpenR66RestIdNotFoundException e) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -110,11 +116,9 @@ public class HostIdHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        try {
-            Hosts.deleteHost(id);
-
+        if(HostsDatabase.delete(id)) {
             responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } catch (OpenR66RestIdNotFoundException e) {
+        } else {
             responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
         }
     }

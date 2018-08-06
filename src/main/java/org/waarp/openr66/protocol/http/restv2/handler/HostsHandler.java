@@ -28,11 +28,13 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Host;
-import org.waarp.openr66.protocol.http.restv2.data.hosts.Hosts;
+import org.waarp.openr66.protocol.http.restv2.data.Host;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -40,8 +42,8 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the handler for all request made on the 'hosts' database, accessible through the "/v2/hosts" URI.
@@ -53,37 +55,70 @@ public class HostsHandler extends AbstractHttpHandler {
      * The method called when a GET request is made on /v2/hosts. If the request is valid, the Http response will
      * contain an array of host entries. If not, the response will contain a '400 - Bad request' error message.
      *
-     * @param request   The Http request made on the resource.
-     * @param responder The Http responder, Http response are given to it in order to be sent back.
+     * @param request     The Http request made on the resource.
+     * @param responder   The Http responder, Http response are given to it in order to be sent back.
+     * @param limitStr    Maximum number of entries allowed in the response.
+     * @param offsetStr   Index of the first accepted entry in the list of all valid answers.
+     * @param orderStr    The criteria used to sort the entries and the direction of the ordering.
+     * @param address     Filter hosts with this address.
+     * @param isSSLStr    If true filter hosts that use SSL, if false those that don't. Filter both is null.
+     * @param isActiveStr If true filter hosts that are active, if false those that aren't. Filter both is null.
      */
     @GET
     public void filterHosts(HttpRequest request, HttpResponder responder,
-                            @QueryParam("limit") @DefaultValue("20") Integer limit,
-                            @QueryParam("offset") @DefaultValue("0") Integer offset,
-                            @QueryParam("order") @DefaultValue("ascHostID") Host.Order order,
+                            @QueryParam("limit") @DefaultValue("20") String limitStr,
+                            @QueryParam("offset") @DefaultValue("0") String offsetStr,
+                            @QueryParam("order") @DefaultValue("+id") String orderStr,
                             @QueryParam("address") String address,
-                            @QueryParam("isSSL") Boolean isSSL,
-                            @QueryParam("isActive") Boolean isActive) {
+                            @QueryParam("isSSL") String isSSLStr,
+                            @QueryParam("isActive") String isActiveStr) {
+
+        int limit, offset;
+        Host.Order order;
+        Boolean isSSL, isActive;
         try {
-            Map.Entry<Integer, List<Host>> answer = Hosts.filterHosts(limit, offset, order, address, isSSL, isActive);
-            List<Host> resultsList = answer.getValue();
-            Integer nbResults = answer.getKey();
+            limit = Integer.parseInt(limitStr);
+            order = Host.Order.fromString(orderStr);
+            isSSL = RestUtils.toBoolean(isSSLStr);
+        } catch(NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(limitStr));
+            return;
+        } catch (InstantiationException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderStr));
+            return;
+        } catch (IOException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notABoolean(isSSLStr));
+            return;
+        }
+        try {
+            offset = Integer.parseInt(offsetStr);
+            isActive = RestUtils.toBoolean(isActiveStr);
+        } catch(NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(offsetStr));
+            return;
+        } catch (IOException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notABoolean(isActiveStr));
+            return;
+        }
+
+        if (limit < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("limit"));
+        } else if (offset < 0) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
+        } else {
+            List<Host> answers = HostsDatabase.selectFilter(limit, offset, order, address, isSSL, isActive);
+            Integer nbResults = answers.size();
             String totalResults = "\"totalResults\":" + nbResults.toString();
 
             ObjectMapper mapper = new ObjectMapper();
-            String results;
             try {
-                results = "\"results\":" + mapper.writeValueAsString(resultsList);
-            } catch (JsonProcessingException e) {
-                throw OpenR66RestInternalServerException.jsonProcessing();
-            }
-            String responseBody = "{" + totalResults + "," + results + "}";
-            responder.sendJson(HttpResponseStatus.OK, responseBody);
+                String results = "\"results\":" + mapper.writeValueAsString(answers);
 
-        } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+                String responseBody = "{" + totalResults + "," + results + "}";
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (JsonProcessingException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            }
         }
     }
 
@@ -99,16 +134,24 @@ public class HostsHandler extends AbstractHttpHandler {
     @POST
     public void addHost(HttpRequest request, HttpResponder responder) {
         try {
-            Host host = RestUtils.deserializeRequest(request, Host.OptionalHost.class);
+            Host host = RestUtils.deserializeRequest(request, Host.class);
+            RestUtils.checkEntry(host);
+            host.defaultValues();
 
-            Hosts.addHost(host);
-
-            String responseBody = Hosts.toJsonString(host);
-            responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            if (HostsDatabase.insert(host)) {
+                String responseBody = RestUtils.toJsonString(host);
+                responder.sendJson(HttpResponseStatus.CREATED, responseBody);
+            } else {
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("host", host.hostID));
+            }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
-        } catch (OpenR66RestInternalServerException e) {
+        } catch (OpenR66RestInternalErrorException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 

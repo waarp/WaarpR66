@@ -20,16 +20,10 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rule;
-import org.waarp.openr66.protocol.http.restv2.data.rules.Rules;
-import org.waarp.openr66.protocol.http.restv2.data.transfers.Transfer;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestIdNotFoundException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalServerException;
 import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
+import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.GregorianCalendar;
@@ -106,8 +100,9 @@ public class ServerStatus {
                         System.err.println(Messages.getSlocale() + " $");
                         System.exit(69);
                     }
-                    try {
-                        Rule.ModeTrans modeTrans = Rules.loadRule(transfer.ruleID).modeTrans;
+                    Rule rule = RulesDatabase.select(transfer.ruleID);
+                    if(rule != null) {
+                        Rule.ModeTrans modeTrans = rule.modeTrans;
                         switch (modeTrans) {
                             case send:
                             case send_md5:
@@ -133,7 +128,6 @@ public class ServerStatus {
                                     this.outError++;
                                 }
                         }
-                    } catch (OpenR66RestIdNotFoundException ignored) {
                     }
                 }
             }
@@ -460,20 +454,5 @@ public class ServerStatus {
 
     public String getFromDate() {
         return RestUtils.fromCalendar(this.fromDate);
-    }
-
-    /**
-     * Returns the host configuration object as a String usable in a JSON file.
-     *
-     * @return The host as a String.
-     * @throws OpenR66RestInternalServerException Thrown if the config object could not be converted to JSON format.
-     */
-    public String toJsonString() throws OpenR66RestInternalServerException {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw OpenR66RestInternalServerException.jsonProcessing();
-        }
     }
 }

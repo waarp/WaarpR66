@@ -18,7 +18,7 @@
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.waarp.openr66.protocol.http.restv2.data.limits;
+package org.waarp.openr66.protocol.http.restv2.data;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,16 +28,6 @@ import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
 /** Bandwidth limits POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Limit {
-
-    public static class OptionalLimit extends Limit {
-        public OptionalLimit() {
-            this.upGlobalLimit = 0;
-            this.downGlobalLimit = 0;
-            this.upSessionLimit = 0;
-            this.downSessionLimit = 0;
-            this.delayLimit = 0;
-        }
-    }
 
     /** Ths id of the host applying these limits. */
     @JsonIgnore
@@ -60,4 +50,13 @@ public class Limit {
      * negative.
      */
     public Integer delayLimit;
+
+    /** Initialize all missing optional fields with their default values. */
+    public void defaultValues() {
+        if(this.upGlobalLimit == null)      this.upGlobalLimit = 0;
+        if(this.downGlobalLimit == null)    this.downGlobalLimit = 0;
+        if(this.upSessionLimit == null)     this.upSessionLimit = 0;
+        if(this.downSessionLimit == null)   this.downSessionLimit = 0;
+        if(this.delayLimit == null)         this.delayLimit = 0;
+    }
 }
