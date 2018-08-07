@@ -141,7 +141,7 @@ public abstract class DBHostDAOIT {
             dao.insert(new Host("chacha", "address", 666, "aaa".getBytes("utf-8"), false, false));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM HOSTS");
+                .executeQuery("SELECT COUNT(1) as count FROM HOSTS");
             res.next();
             assertEquals(4, res.getInt("count"));
 

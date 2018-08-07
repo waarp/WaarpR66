@@ -138,7 +138,7 @@ public abstract class DBTransferDAOIT {
             dao.insert(transfer);
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM RUNNER");
+                .executeQuery("SELECT COUNT(1) as count FROM RUNNER");
             res.next();
             assertEquals(5, res.getInt("count"));
 

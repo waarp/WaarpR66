@@ -137,7 +137,7 @@ public abstract class DBLimitDAOIT {
             dao.insert(new Limit("chacha", 4l, 1l, 5l, 13l, 12, -18));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM CONFIGURATION");
+                .executeQuery("SELECT COUNT(1) as count FROM CONFIGURATION");
             res.next();
             assertEquals(4, res.getInt("count"));
 

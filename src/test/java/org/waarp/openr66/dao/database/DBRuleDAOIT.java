@@ -144,7 +144,7 @@ public abstract class DBRuleDAOIT {
             dao.insert(new Rule("chacha", 2));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM RULES");
+                .executeQuery("SELECT COUNT(1) as count FROM RULES");
             res.next();
             assertEquals(4, res.getInt("count"));
 

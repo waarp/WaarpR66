@@ -135,7 +135,7 @@ public abstract class DBBusinessDAOIT {
             dao.insert(new Business("chacha", "lolo", "lala", "minou", "ect", -18));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM HOSTCONFIG");
+                .executeQuery("SELECT COUNT(1) as count FROM HOSTCONFIG");
             res.next();
             assertEquals(6, res.getInt("count"));
 

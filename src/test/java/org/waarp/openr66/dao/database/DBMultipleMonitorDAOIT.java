@@ -134,7 +134,7 @@ public abstract class DBMultipleMonitorDAOIT {
             dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) FROM MULTIPLEMONITOR");
+                .executeQuery("SELECT COUNT(1) as count FROM MULTIPLEMONITOR");
             res.next();
             assertEquals(5, res.getInt("count"));
 
