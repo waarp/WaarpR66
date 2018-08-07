@@ -4,18 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.Before;
-//import org.junit.Rule;
 import org.junit.Test;
 import static  org.junit.Assert.*;
-
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.RuleDAO;
@@ -23,13 +19,14 @@ import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBRuleDAO;
 import org.waarp.openr66.pojo.Rule;
 
-public class DBRuleDAOIT {
-
-    @org.junit.Rule
-    public PostgreSQLContainer db = new PostgreSQLContainer();
+public abstract class DBRuleDAOIT {
 
     private DAOFactory factory;
     private Connection con;
+
+    public abstract Connection getConnection() throws SQLException;
+    public abstract void initDB() throws SQLException;
+    public abstract void cleanDB() throws SQLException;
 
     public void runScript(String script) {
         try {
@@ -44,17 +41,9 @@ public class DBRuleDAOIT {
     @Before
     public void setUp() {
         try {
-            //InitDatabase
-            con = DriverManager.getConnection(
-                    db.getJdbcUrl(),
-                    db.getUsername(),
-                    db.getPassword());
-            runScript("initDB.sql"); 
-            //Create factory 
-            factory = DAOFactory.getDAOFactory(DriverManager.getConnection(
-                        db.getJdbcUrl(),
-                        db.getUsername(),
-                        db.getPassword()));
+            con = getConnection();
+            factory = DAOFactory.getDAOFactory(getConnection());
+            initDB();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -63,7 +52,7 @@ public class DBRuleDAOIT {
     @After
     public void wrapUp() {
         try {
-            runScript("wrapDB.sql");
+            cleanDB();
             con.close();
             //factory.close();
         } catch (Exception e) {
