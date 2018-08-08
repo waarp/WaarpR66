@@ -160,8 +160,24 @@
       <version>2.21.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mariadb</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>1.8.3</version>
+    </dependency>
   </dependencies>
   <properties>
+	 <skipTests>true</skipTests>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   	<attach-distribution>false</attach-distribution>
     <filtermodule>**</filtermodule>
@@ -189,6 +205,23 @@
             <optimize>true</optimize>
             <showDeprecations>true</showDeprecations>
           </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-failsafe-plugin</artifactId>
+	<version>2.22.0</version>
+	<configuration>
+		<skipITs>${skipTests}</skipITs>
+	</configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+	    </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
