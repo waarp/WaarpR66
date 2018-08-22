@@ -1,6 +1,7 @@
 package org.waarp.openr66.dao.database;
 
 import java.sql.SQLException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.ResultSet;
@@ -24,6 +25,10 @@ abstract class StatementExecutor {
     public void executeUpdate(PreparedStatement stm) throws SQLException {
         int res = 0;
         res = stm.executeUpdate();
+        Connection con = stm.getConnection();
+        if(!con.getAutoCommit()) {
+            con.commit();
+        }
         if (res < 1) {
             logger.warn("Update failed, no record updated.");
         } else {
