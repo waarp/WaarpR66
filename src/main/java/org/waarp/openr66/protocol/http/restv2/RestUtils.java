@@ -26,7 +26,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.waarp.openr66.protocol.http.restv2.data.NonWritable;
+import org.waarp.common.crypto.HmacSha256;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
@@ -38,6 +41,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,9 +54,32 @@ import java.util.GregorianCalendar;
 /** A series of utility methods shared by all REST handlers. */
 public final class RestUtils {
 
+    /** This is a utility class that should never be instantiated. */
+    private RestUtils() {
+        throw new UnsupportedOperationException("'RestUtils' cannot be instantiated.");
+    }
+
     /** This server's id. */
     //TODO: replace by loading the id from the config file.
-    public static final String HOST_ID = "server1";
+    public static final String HOST_ID = Configuration.configuration.getHOST_ID();
+
+    private static Connection getConnection() {
+        Connection connection;
+        try {
+            connection = DbConstant.connectionFactory.getConnection();
+            connection.setReadOnly(false);
+            return connection;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static final DAOFactory factory = DAOFactory.getDAOFactory(getConnection());
+
+
+    /** This server's Hmac key. */
+    public static HmacSha256 HMAC;
 
     /**
      * This method transforms a request body in JSON format into an object of the class passed as argument.
@@ -83,16 +111,11 @@ public final class RestUtils {
                 throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
             } else {
                 String name = e.getPath().get(0).getFieldName();
-                Field field;
                 try {
-                    field = c.getField(name);
+                    Field field = c.getField(name);
+                    throw new OpenR66RestBadRequestException(RestResponses.illegalValue(field.getType(), name));
                 } catch (NoSuchFieldException e1) {
                     throw new OpenR66RestBadRequestException(RestResponses.unknownField(name));
-                }
-                if(field.isAnnotationPresent(NonWritable.class)) {
-                    throw new OpenR66RestBadRequestException(RestResponses.unknownField(name));
-                } else {
-                    throw new OpenR66RestBadRequestException(RestResponses.illegalValue(field.getType(), name));
                 }
             }
         } catch (IllegalArgumentException e) {
@@ -100,7 +123,6 @@ public final class RestUtils {
         } catch (IOException e) {
             throw new OpenR66RestInternalErrorException(RestResponses.jsonProcessing());
         }
-
     }
 
     /**
@@ -126,7 +148,7 @@ public final class RestUtils {
      * @return The Calendar corresponding to the date in the string parameter.
      * @throws IllegalArgumentException Thrown if the string is not a valid ISO-8601 date.
      */
-    public static Calendar toCalendar(final String iso8601string) throws Exception {
+    public static Calendar toCalendar(final String iso8601string) throws IllegalArgumentException {
         try {
             Calendar calendar = GregorianCalendar.getInstance();
             String s = iso8601string.replace("Z", "+00:00");
@@ -136,9 +158,9 @@ public final class RestUtils {
             return calendar;
 
         } catch (IndexOutOfBoundsException e) {
-            throw new Exception();
+            throw new IllegalArgumentException();
         } catch (ParseException e) {
-            throw new Exception();
+            throw new IllegalArgumentException();
         }
 
     }
@@ -181,24 +203,21 @@ public final class RestUtils {
     }
 
     /**
-     * Checks if the NonWritable fields of the entry have been written or not.
+     * Checks the fields have all been initialized.
      * @param entry The entry to check.
      * @throws OpenR66RestInternalErrorException    Thrown if one of the entry fields is inaccessible.
-     * @throws OpenR66RestInvalidEntryException     Thrown if one of the NonWritable fields has been written into.
+     * @throws OpenR66RestInvalidEntryException     Thrown if one of the fields is missing its value.
      */
     public static void checkEntry(Object entry) throws OpenR66RestInternalErrorException,
             OpenR66RestInvalidEntryException {
         for(Field field : entry.getClass().getFields()) {
-            Object val;
             try {
-                val = field.get(entry);
+                Object val = field.get(entry);
+                if(val == null) {
+                    throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                }
             } catch(IllegalAccessException e) {
                 throw new OpenR66RestInternalErrorException(RestResponses.illegalAccess(field));
-            }
-            if(field.isAnnotationPresent(NonWritable.class)) {
-                if(val != null) {
-                    throw new OpenR66RestInvalidEntryException(RestResponses.unknownField(field.getName()));
-                }
             }
         }
     }
@@ -220,5 +239,13 @@ public final class RestUtils {
         } else {
             throw new IOException();
         }
+    }
+
+    public static String toArrayDbList(Object[] array) {
+        StringBuilder list = new StringBuilder();
+        for(Object object : array) {
+            list.append(object.toString() + " ");
+        }
+        return list.toString().trim();
     }
 }

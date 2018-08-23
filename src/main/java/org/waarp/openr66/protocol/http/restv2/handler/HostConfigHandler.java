@@ -27,13 +27,15 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.HostConfig;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.HostconfigDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -59,17 +61,20 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @GET
     public void getConfig(HttpRequest request, HttpResponder responder) {
-        HostConfig config = HostconfigDatabase.select(RestUtils.HOST_ID);
-
-        if(config != null) {
-            try {
+        try {
+            BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
+            Business business = businessDAO.select(RestUtils.HOST_ID);
+            if (business != null) {
+                RestHostConfig config = new RestHostConfig(business);
                 String responseBody = RestUtils.toJsonString(config);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            } else {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
             }
-        } else {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -84,13 +89,15 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @POST
     public void initializeConfig(HttpRequest request, HttpResponder responder) {
-
         try {
-            HostConfig config = RestUtils.deserializeRequest(request, HostConfig.class);
-            RestUtils.checkEntry(config);
+            RestHostConfig config = RestUtils.deserializeRequest(request, RestHostConfig.class);
             config.defaultValues();
+            RestUtils.checkEntry(config);
 
-            if(HostconfigDatabase.insert(config)) {
+            BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
+
+            if(!businessDAO.exist(config.hostID)) {
+                businessDAO.insert(config.toBusiness());
                 String responseBody = RestUtils.toJsonString(config);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
@@ -105,6 +112,8 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         } catch (OpenR66RestInvalidEntryException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -120,14 +129,18 @@ public class HostConfigHandler extends AbstractHttpHandler {
     @PUT
     public void replaceConfig(HttpRequest request, HttpResponder responder) {
         try {
-            HostConfig updatedConfig = RestUtils.deserializeRequest(request, HostConfig.class);
+            RestHostConfig config = RestUtils.deserializeRequest(request, RestHostConfig.class);
+            config.defaultValues();
+            RestUtils.checkEntry(config);
 
-            if(HostconfigDatabase.modify(RestUtils.HOST_ID, updatedConfig)) {
-                String responseBody = RestUtils.toJsonString(updatedConfig);
+            BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
+
+            if(businessDAO.exist(config.hostID)) {
+                businessDAO.update(config.toBusiness());
+                String responseBody = RestUtils.toJsonString(config);
                 responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST,
-                        RestResponses.alreadyInitialized("host configuration"));
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
             }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
@@ -135,12 +148,16 @@ public class HostConfigHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
     /**
-     * The method called when a DELETE request is made on /v2/hostconfig. If the request is valid and the does have a
-     * configuration, the queried host entry will be deleted from the database. If the host does not have a
+     * The method called when a DELETE request is made on /v2/hostconfig. If the request is valid and the host does
+     * have a configuration, the queried host entry will be deleted from the database. If the host does not have a
      * configuration or if the request is invalid, a '400 - Bad request' error will be sent in response.
      *
      * @param request   The Http request made on the resource.
@@ -148,10 +165,16 @@ public class HostConfigHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteConfig(HttpRequest request, HttpResponder responder) {
-        if(HostconfigDatabase.delete(RestUtils.HOST_ID)) {
-            responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } else {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        try {
+            BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
+            if (businessDAO.exist(RestUtils.HOST_ID)) {
+                businessDAO.delete(businessDAO.select(RestUtils.HOST_ID));
+                responder.sendStatus(HttpResponseStatus.NO_CONTENT);
+            } else {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+            }
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

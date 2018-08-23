@@ -22,50 +22,68 @@
 package org.waarp.openr66.protocol.http.restv2.data;
 
 
+import org.waarp.openr66.pojo.Host;
+
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**
- * Host POJO
+ * RestHost POJO
  * for Rest HTTP support for R66.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Host {
+public class RestHost {
+
+    public RestHost() {}
+
+    public RestHost(Host host) {
+        this.hostID = host.getHostid();
+        this.address = host.getAddress();
+        this.port = host.getPort();
+        this.hostKey = new String(host.getHostkey());
+        this.isSSL = host.isSSL();
+        this.adminRole = host.isAdmin();
+        this.isClient = host.isClient();
+        this.isActive = host.isActive();
+        this.isProxyfied = host.isProxified();
+    }
 
     /** All the possible ways to order a list of host objects. */
     public enum Order {
         /** By hostID, in ascending order. */
-        ascHostID("+id", new Comparator<Host>() {
+        ascHostID("+id", new Comparator<RestHost>() {
             @Override
-            public int compare(Host t1, Host t2) {
+            public int compare(RestHost t1, RestHost t2) {
                 return t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By hostID, in descending order. */
-        descHostID("-id", new Comparator<Host>() {
+        descHostID("-id", new Comparator<RestHost>() {
             @Override
-            public int compare(Host t1, Host t2) {
+            public int compare(RestHost t1, RestHost t2) {
                 return -t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By address, in ascending order. */
-        ascAddress("+address", new Comparator<Host>() {
+        ascAddress("+address", new Comparator<RestHost>() {
             @Override
-            public int compare(Host t1, Host t2) {
+            public int compare(RestHost t1, RestHost t2) {
                 return t1.address.compareTo(t2.address);
             }
         }),
         /** By address, in descending order. */
-        descAddress("-address", new Comparator<Host>() {
+        descAddress("-address", new Comparator<RestHost>() {
             @Override
-            public int compare(Host t1, Host t2) {
+            public int compare(RestHost t1, RestHost t2) {
                 return -t1.address.compareTo(t2.address);
             }
         });
 
-        public final Comparator<Host> comparator;
+        public final Comparator<RestHost> comparator;
         public final String value;
 
-        Order(String value, Comparator<Host> comparator) {
+        Order(String value, Comparator<RestHost> comparator) {
             this.value = value;
             this.comparator = comparator;
         }
@@ -125,4 +143,19 @@ public class Host {
 
     /** If true, the address field is actually the address of the proxy used by this host. */
     public Boolean isProxyfied;
+
+
+
+    public static List<RestHost> toRestList(List<Host> hosts) {
+        List<RestHost> restHosts = new ArrayList<RestHost>();
+        for(Host host : hosts) {
+            restHosts.add(new RestHost(host));
+        }
+        return restHosts;
+    }
+
+    public Host toHost() {
+        return new Host(this.hostID, this.address, this.port, this.hostKey.getBytes(),
+                this.isSSL, this.isClient, this.isProxyfied, this.adminRole, this.isActive);
+    }
 }

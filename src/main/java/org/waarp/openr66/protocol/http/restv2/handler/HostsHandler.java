@@ -28,13 +28,16 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.HostDAO;
+import org.waarp.openr66.dao.database.DBHostDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Host;
+import org.waarp.openr66.protocol.http.restv2.data.RestHost;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -43,6 +46,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -74,11 +79,11 @@ public class HostsHandler extends AbstractHttpHandler {
                             @QueryParam("isActive") String isActiveStr) {
 
         int limit, offset;
-        Host.Order order;
+        RestHost.Order order;
         Boolean isSSL, isActive;
         try {
             limit = Integer.parseInt(limitStr);
-            order = Host.Order.fromString(orderStr);
+            order = RestHost.Order.fromString(orderStr);
             isSSL = RestUtils.toBoolean(isSSLStr);
         } catch(NumberFormatException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(limitStr));
@@ -106,16 +111,34 @@ public class HostsHandler extends AbstractHttpHandler {
         } else if (offset < 0) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
         } else {
-            List<Host> answers = HostsDatabase.selectFilter(limit, offset, order, address, isSSL, isActive);
-            Integer nbResults = answers.size();
-            String totalResults = "\"totalResults\":" + nbResults.toString();
-
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                String results = "\"results\":" + mapper.writeValueAsString(answers);
+                HostDAO dao = RestUtils.factory.getHostDAO();
+                List<Filter> filters = new ArrayList<Filter>();
+                if(address != null)  filters.add(new Filter(DBHostDAO.ADDRESS_FIELD, "=", address));
+                if(isSSL != null)    filters.add(new Filter(DBHostDAO.IS_SSL_FIELD, "=", isSSL));
+                if(isActive != null) filters.add(new Filter(DBHostDAO.IS_ACTIVE_FIELD, "=", isActive));
+                List<RestHost> answers;
+                if(filters.isEmpty()) {
+                    answers = RestHost.toRestList(dao.getAll());
+                } else {
+                    answers = RestHost.toRestList(dao.find(filters));
+                }
+                Integer nbResults = answers.size();
+                String totalResults = "\"totalResults\":" + nbResults.toString();
+
+                Collections.sort(answers, order.comparator);
+                List<RestHost> orderedAnswers = new ArrayList<RestHost>();
+                for(int i=offset; i<offset+limit && i<answers.size(); i++) {
+                    orderedAnswers.add(answers.get(i));
+                }
+
+                ObjectMapper mapper = new ObjectMapper();
+                String results = "\"results\":" + mapper.writeValueAsString(orderedAnswers);
 
                 String responseBody = "{" + totalResults + "," + results + "}";
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
+            } catch (DAOException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e));
             } catch (JsonProcessingException e) {
                 responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
             }
@@ -134,15 +157,18 @@ public class HostsHandler extends AbstractHttpHandler {
     @POST
     public void addHost(HttpRequest request, HttpResponder responder) {
         try {
-            Host host = RestUtils.deserializeRequest(request, Host.class);
-            RestUtils.checkEntry(host);
-            host.defaultValues();
+            RestHost restHost = RestUtils.deserializeRequest(request, RestHost.class);
+            restHost.defaultValues();
+            RestUtils.checkEntry(restHost);
 
-            if (HostsDatabase.insert(host)) {
-                String responseBody = RestUtils.toJsonString(host);
+            HostDAO dao = RestUtils.factory.getHostDAO();
+
+            if (!dao.exist(restHost.hostID)) {
+                dao.insert(restHost.toHost());
+                String responseBody = RestUtils.toJsonString(restHost);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("host", host.hostID));
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("restHost", restHost.hostID));
             }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
@@ -152,6 +178,8 @@ public class HostsHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         } catch (OpenR66RestInvalidEntryException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

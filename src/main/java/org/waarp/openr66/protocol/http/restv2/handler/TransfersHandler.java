@@ -23,19 +23,22 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.database.DBTransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Transfer;
+import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
+import org.waarp.openr66.protocol.http.restv2.data.RestTransferInitializer;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -43,7 +46,9 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +67,7 @@ public class TransfersHandler extends AbstractHttpHandler {
      * @param orderName     The criteria used to sort the entries and the direction of the ordering.
      * @param ruleID        Filter transfers that use this rule.
      * @param partner       Filter transfers that have this partner.
-     * @param status        Filter transfers currently in one of these statutes.
+     * @param statuses        Filter transfers currently in one of these statutes.
      * @param fileName      Filter transfers of a particular file.
      * @param startTrans    Lower bound for the transfers' date.
      * @param stopTrans     Upper bound for the transfers' date.
@@ -74,7 +79,7 @@ public class TransfersHandler extends AbstractHttpHandler {
                                @QueryParam("order") @DefaultValue("+id") String orderName,
                                @QueryParam("ruleID") @DefaultValue("") String ruleID,
                                @QueryParam("partner") @DefaultValue("") String partner,
-                               @QueryParam("status") List<Transfer.Status> status,
+                               @QueryParam("status") List<RestTransfer.Status> statuses,
                                @QueryParam("fileName") @DefaultValue("") String fileName,
                                @QueryParam("startTrans") @DefaultValue("") String startTrans,
                                @QueryParam("stopTrans") @DefaultValue("") String stopTrans) {
@@ -88,39 +93,55 @@ public class TransfersHandler extends AbstractHttpHandler {
             Calendar stop;
             try {
                 start = (startTrans.isEmpty() ? null : RestUtils.toCalendar(startTrans));
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
                 return;
             }
             try {
                 stop = (stopTrans.isEmpty()) ? null : RestUtils.toCalendar(stopTrans);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
                 return;
             }
-            Transfer.Order order;
+            RestTransfer.Order order;
             try {
-                order = Transfer.Order.fromString(orderName);
+                order = RestTransfer.Order.fromString(orderName);
             } catch (InstantiationException e) {
                 responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderName));
                 return;
             }
 
-            List<Transfer> resultsList = TransfersDatabase.selectFilter(limit, offset, order,
-                    ruleID, partner, status, fileName, start, stop);
-            Integer nbResults = resultsList.size();
-            String totalResults = "\"totalResults\":" + nbResults.toString();
+            List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", ruleID));
+            filters.add(new Filter(DBTransferDAO.REQUESTED_FIELD, "=", partner));
+            filters.add(new Filter(DBTransferDAO.FILENAME_FIELD, "=", fileName));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, ">=", start));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, "<=", stop));
+            for(RestTransfer.Status status : statuses) {
+                filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD, "=", status.name()));
+            }
 
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
             try {
-                String results = "\"results\":" + mapper.writeValueAsString(resultsList);
+                TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+                List<RestTransfer> resultsList = RestTransfer.toRestList(transferDAO.find(filters));
+
+                Integer nbResults = resultsList.size();
+                String totalResults = "\"totalResults\":" + nbResults.toString();
+
+                Collections.sort(resultsList, order.comparator);
+                List<RestTransfer> orderedResults = new ArrayList<RestTransfer>();
+                for(int i=offset; i<offset+limit && i<resultsList.size(); i++) {
+                    orderedResults.add(resultsList.get(i));
+                }
+
+                String results = "\"results\":" + RestUtils.toJsonString(orderedResults);
 
                 String responseBody = "{" + totalResults + "," + results + "}";
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
             } catch (JsonProcessingException e) {
                 responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            } catch (DAOException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
             }
 
         }
@@ -138,13 +159,14 @@ public class TransfersHandler extends AbstractHttpHandler {
     public void createTransfer(HttpRequest request, HttpResponder responder) {
 
         try {
-            Transfer trans = RestUtils.deserializeRequest(request, Transfer.class);
-            RestUtils.checkEntry(trans);
-            trans.initValues();
+            RestTransferInitializer init = RestUtils.deserializeRequest(request, RestTransferInitializer.class);
+            RestUtils.checkEntry(init);
 
-            TransfersDatabase.insert(trans);
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            Transfer trans = init.toTransfer();
+            transferDAO.insert(trans);
 
-            String responseBody = RestUtils.toJsonString(trans);
+            String responseBody = RestUtils.toJsonString(new RestTransfer(trans));
             responder.sendJson(HttpResponseStatus.CREATED, responseBody);
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
@@ -154,6 +176,8 @@ public class TransfersHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         } catch (OpenR66RestInvalidEntryException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

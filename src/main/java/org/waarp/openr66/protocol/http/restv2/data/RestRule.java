@@ -20,33 +20,39 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import java.util.Comparator;
+import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.pojo.RuleTask;
 
-/** Transfer rule POJO for Rest HTTP support for R66. */
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
+/** RestTransfer rule POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Rule {
+public class RestRule {
 
     /** All the possible ways to order a list of rule objects. */
     public enum Order {
         /** By ruleID, in ascending order. */
-        ascRuleID("+id", new Comparator<Rule>() {
+        ascRuleID("+id", new Comparator<RestRule>() {
             @Override
-            public int compare(Rule t1, Rule t2) {
+            public int compare(RestRule t1, RestRule t2) {
                 return t1.ruleID.compareTo(t2.ruleID);
             }
         }),
         /** By ruleID, in descending order. */
-        descRuleID("+id", new Comparator<Rule>() {
+        descRuleID("+id", new Comparator<RestRule>() {
             @Override
-            public int compare(Rule t1, Rule t2) {
+            public int compare(RestRule t1, RestRule t2) {
                 return -t1.ruleID.compareTo(t2.ruleID);
             }
         });
 
-        public final Comparator<Rule> comparator;
+        public final Comparator<RestRule> comparator;
         public final String value;
 
-        Order(String value, Comparator<Rule> comparator) {
+        Order(String value, Comparator<RestRule> comparator) {
             this.value = value;
             this.comparator = comparator;
         }
@@ -130,7 +136,7 @@ public class Rule {
         execJava,
         /** Create a new transfer. */
         transfer,
-        /** Verify that the file exists at the path entered as an argument. */
+        /** Verify that the file exists at the argument entered as an argument. */
         validFilePath,
         /** Delete a file. */
         delete,
@@ -158,10 +164,36 @@ public class Rule {
         public TaskType type;
 
         /** The argument applied to the task where a substitution can occur (current date, file path...). */
-        public String arguments;
+        public String argument;
 
         /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
         public Integer delay;
+
+        public Task() {}
+
+        public Task(RuleTask task) {
+            this.type = TaskType.valueOf(task.getType());
+        }
+
+        public RuleTask toRuleTask() {
+            return new RuleTask(this.type.toString(), this.argument, this.delay);
+        }
+
+        public static List<RuleTask> toRuleTaskList(Task[] tasks) {
+            List<RuleTask> taskList = new ArrayList<RuleTask>();
+            for(Task task : tasks) {
+                taskList.add(task.toRuleTask());
+            }
+            return taskList;
+        }
+
+        public static Task[] fromRuleTaskList(List<RuleTask> taskList) {
+            Task[] tasks = new Task[taskList.size()];
+            for(int i=0; i<taskList.size(); i++) {
+                tasks[i] = new Task(taskList.get(i));
+            }
+            return tasks;
+        }
     }
 
     /** The rule's unique identifier. */
@@ -232,6 +264,25 @@ public class Rule {
     public Task[] sErrorTasks;
 
 
+    public RestRule() {}
+
+    public RestRule(Rule rule) {
+        this.ruleID = rule.getName();
+        this.modeTrans = ModeTrans.values()[rule.getMode()-1];
+        this.hostsIDs = rule.getHostids().toArray(new String[0]);
+        this.recvPath = rule.getRecvPath();
+        this.sendPath = rule.getSendPath();
+        this.archivePath = rule.getArchivePath();
+        this.workPath = rule.getWorkPath();
+        this.rPreTasks = Task.fromRuleTaskList(rule.getRPreTasks());
+        this.rPostTasks = Task.fromRuleTaskList(rule.getRPostTasks());
+        this.rErrorTasks = Task.fromRuleTaskList(rule.getRErrorTasks());
+        this.sPreTasks = Task.fromRuleTaskList(rule.getSPreTasks());
+        this.sPostTasks = Task.fromRuleTaskList(rule.getSPostTasks());
+        this.sErrorTasks = Task.fromRuleTaskList(rule.getSErrorTasks());
+    }
+
+
     /** Initialize all missing optional fields with their default values. */
     public void defaultValues() {
         if(this.hostsIDs == null)       this.hostsIDs = new String[0];
@@ -245,5 +296,26 @@ public class Rule {
         if(this.sPreTasks == null)      this.sPreTasks = new Task[0];
         if(this.sPostTasks == null)     this.sPostTasks = new Task[0];
         if(this.sErrorTasks == null)    this.sErrorTasks = new Task[0];
+    }
+
+    public Rule toRule() {
+        List<RuleTask> rPreTask = Task.toRuleTaskList(this.rPreTasks);
+        List<RuleTask> rPostTask = Task.toRuleTaskList(this.rPostTasks);
+        List<RuleTask> rErrorTask = Task.toRuleTaskList(this.rErrorTasks);
+        List<RuleTask> sPreTask = Task.toRuleTaskList(this.sPreTasks);
+        List<RuleTask> sPostTask = Task.toRuleTaskList(this.sPostTasks);
+        List<RuleTask> sErrorTask = Task.toRuleTaskList(this.sErrorTasks);
+
+        return new Rule(this.ruleID, this.modeTrans.ordinal()+1, Arrays.asList(this.hostsIDs), this.recvPath,
+                this.sendPath, this.archivePath, this.workPath, rPreTask, rPostTask, rErrorTask, sPreTask,
+                sPostTask, sErrorTask);
+    }
+
+    public static List<RestRule> toRestList(List<Rule> rules) {
+        List<RestRule> restRules = new ArrayList<RestRule>();
+        for(Rule rule : rules) {
+            restRules.add(new RestRule(rule));
+        }
+        return restRules;
     }
 }

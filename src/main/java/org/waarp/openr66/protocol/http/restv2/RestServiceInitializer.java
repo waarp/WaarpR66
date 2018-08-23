@@ -24,6 +24,7 @@ import co.cask.http.ChannelPipelineModifier;
 import co.cask.http.HttpHandler;
 import co.cask.http.NettyHttpService;
 import io.netty.channel.ChannelPipeline;
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.protocol.http.restv2.handler.HostConfigHandler;
 import org.waarp.openr66.protocol.http.restv2.handler.HostIdHandler;
@@ -40,7 +41,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 
-public class RestServiceInitializer {
+public final class RestServiceInitializer {
+
+    private RestServiceInitializer() {
+        throw new UnsupportedOperationException("'RestServiceInitializer' cannot be instantiated.");
+    }
 
     public static NettyHttpService initRestService(RestConfiguration config) {
         Collection<HttpHandler> handlers = new ArrayList<HttpHandler>();
@@ -72,6 +77,8 @@ public class RestServiceInitializer {
                 .setExecThreadKeepAliveSeconds(-1L)
                 .build();
 
+        RestUtils.HMAC = config.hmacSha256;
+
         try {
             restService.start();
             return restService;
@@ -80,7 +87,7 @@ public class RestServiceInitializer {
         }
     }
 
-    //!\ For testing purposes only, DO NOT USE TO LAUNCH THE REST SERVICE /!\
+    //!\ For testing purposes only, DO NOT USE TO LAUNCH THE R66 SERVER /!\
     public static void main(String[] args) throws InterruptedException {
 
         RestConfiguration config = new RestConfiguration();
@@ -88,6 +95,7 @@ public class RestServiceInitializer {
         config.REST_ADDRESS = "0.0.0.0";
         config.REST_AUTHENTICATED = true;
         config.REST_SIGNATURE = false;
+        config.hmacSha256 = new HmacSha256();
         NettyHttpService restService = initRestService(config);
 
         synchronized (restService) {

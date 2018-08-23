@@ -22,41 +22,58 @@ package org.waarp.openr66.protocol.http.restv2.data;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.waarp.openr66.pojo.Limit;
 
 import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
 
 /** Bandwidth limits POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Limit {
+public class RestLimit {
 
     /** Ths id of the host applying these limits. */
     @JsonIgnore
     public final String hostID = HOST_ID;
 
     /** The host's global upload bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Integer upGlobalLimit;
+    public Long upGlobalLimit;
 
     /** The host's global download bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Integer downGlobalLimit;
+    public Long downGlobalLimit;
 
     /** The upload bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Integer upSessionLimit;
+    public Long upSessionLimit;
 
     /** The download bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Integer downSessionLimit;
+    public Long downSessionLimit;
 
     /**
      * The maximum delay (in ms) between 2 checks of the current bandwidth usage. Set to 0 for no checks. Cannot be
      * negative.
      */
-    public Integer delayLimit;
+    public Long delayLimit;
+
+
+    public RestLimit() {}
+
+    public RestLimit(Limit limit) {
+        this.upGlobalLimit = limit.getReadGlobalLimit();
+        this.downGlobalLimit = limit.getWriteGlobalLimit();
+        this.upSessionLimit = limit.getReadSessionLimit();
+        this.downSessionLimit = limit.getWriteSessionLimit();
+        this.delayLimit = limit.getDelayLimit();
+    }
 
     /** Initialize all missing optional fields with their default values. */
     public void defaultValues() {
-        if(this.upGlobalLimit == null)      this.upGlobalLimit = 0;
-        if(this.downGlobalLimit == null)    this.downGlobalLimit = 0;
-        if(this.upSessionLimit == null)     this.upSessionLimit = 0;
-        if(this.downSessionLimit == null)   this.downSessionLimit = 0;
-        if(this.delayLimit == null)         this.delayLimit = 0;
+        if(this.upGlobalLimit == null)      this.upGlobalLimit = 0L;
+        if(this.downGlobalLimit == null)    this.downGlobalLimit = 0L;
+        if(this.upSessionLimit == null)     this.upSessionLimit = 0L;
+        if(this.downSessionLimit == null)   this.downSessionLimit = 0L;
+        if(this.delayLimit == null)         this.delayLimit = 0L;
+    }
+
+    public Limit toLimit() {
+        return new Limit(this.hostID, this.delayLimit, this.upGlobalLimit, this.downGlobalLimit, this.upSessionLimit,
+                this.downSessionLimit);
     }
 }

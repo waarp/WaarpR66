@@ -28,13 +28,17 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.RuleDAO;
+import org.waarp.openr66.dao.database.DBRuleDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Rule;
+import org.waarp.openr66.protocol.http.restv2.data.RestRule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -43,6 +47,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,11 +74,11 @@ public class RulesHandler extends AbstractHttpHandler {
                             @QueryParam("order") @DefaultValue("+id") String orderStr,
                             @QueryParam("modeTrans") List<String> modeTransStr) {
         int limit, offset;
-        Rule.Order order;
-        List<Rule.ModeTrans> modeTrans = new ArrayList<Rule.ModeTrans>();
+        RestRule.Order order;
+        List<RestRule.ModeTrans> modeTrans = new ArrayList<RestRule.ModeTrans>();
         try {
             limit = Integer.parseInt(limitStr);
-            order = Rule.Order.fromString(orderStr);
+            order = RestRule.Order.fromString(orderStr);
         } catch(NumberFormatException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(limitStr));
             return;
@@ -84,7 +89,7 @@ public class RulesHandler extends AbstractHttpHandler {
         try {
             offset = Integer.parseInt(offsetStr);
             for(String str : modeTransStr) {
-                modeTrans.add(Rule.ModeTrans.fromString(str));
+                modeTrans.add(RestRule.ModeTrans.fromString(str));
             }
         } catch(NumberFormatException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(offsetStr));
@@ -99,17 +104,37 @@ public class RulesHandler extends AbstractHttpHandler {
         } else if (offset < 0) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
         } else {
-
-            List<Rule> answers = RulesDatabase.selectFilter(limit,  offset, order, modeTrans);
-            Integer nbResults = answers.size();
-            String totalResults = "\"totalResults\":" + nbResults.toString();
-
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                String results = "\"results\":" + mapper.writeValueAsString(answers);
+                RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+                List<Filter> filters = new ArrayList<Filter>();
+                for(RestRule.ModeTrans md : modeTrans) {
+                    filters.add(new Filter(DBRuleDAO.MODE_TRANS_FIELD, "=", Integer.toString(md.ordinal())));
+                }
+                List<RestRule> answers;
+                if(filters.isEmpty()) {
+                    answers = RestRule.toRestList(ruleDAO.getAll());
+                } else {
+                    answers = RestRule.toRestList(ruleDAO.find(filters));
+                }
+
+                Integer nbResults = answers.size();
+                Collections.sort(answers, order.comparator);
+                String totalResults = "\"totalResults\":" + nbResults.toString();
+
+                List<RestRule> orderedAnswers = new ArrayList<RestRule>();
+                for(int i=offset; i<offset+limit && i<answers.size(); i++) {
+                    orderedAnswers.add(answers.get(i));
+                }
+
+                ObjectMapper mapper = new ObjectMapper();
+
+                String results = "\"results\":" + mapper.writeValueAsString(orderedAnswers);
 
                 String responseBody = "{" + totalResults + "," + results + "}";
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
+
+            } catch (DAOException e) {
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
             } catch (JsonProcessingException e) {
                 responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
             }
@@ -128,15 +153,18 @@ public class RulesHandler extends AbstractHttpHandler {
     @POST
     public void addRule(HttpRequest request, HttpResponder responder) {
         try {
-            Rule rule = RestUtils.deserializeRequest(request, Rule.class);
-            RestUtils.checkEntry(rule);
-            rule.defaultValues();
+            RestRule restRule = RestUtils.deserializeRequest(request, RestRule.class);
+            restRule.defaultValues();
+            RestUtils.checkEntry(restRule);
 
-            if (RulesDatabase.insert(rule)) {
-                String responseBody = RestUtils.toJsonString(rule);
+            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+
+            if (!ruleDAO.exist(restRule.ruleID)) {
+                ruleDAO.insert(restRule.toRule());
+                String responseBody = RestUtils.toJsonString(restRule);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("rules", rule.ruleID));
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("rules", restRule.ruleID));
             }
         } catch (OpenR66RestBadRequestException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
@@ -146,6 +174,8 @@ public class RulesHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         } catch (OpenR66RestInvalidEntryException e) {
             responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

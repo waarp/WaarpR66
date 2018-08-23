@@ -20,13 +20,14 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import org.waarp.openr66.protocol.configuration.Messages;
+import org.waarp.openr66.dao.RuleDAO;
+import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
 
 import java.util.GregorianCalendar;
+import java.util.List;
 
 /** A POJO representing the general status of the R66 server. */
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -64,45 +65,42 @@ public class ServerStatus {
 
         public int outError;
 
-        public Overall() {
-            for (Transfer transfer : TransfersDatabase.transfersDb) {
+        public Overall() throws DAOException {
+            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            List<RestTransfer> transferList = RestTransfer.toRestList(transferDAO.getAll());
+            for (RestTransfer transfer : transferList) {
                 if (ServerStatus.this.fromDate.before(transfer.startTrans)) {
                     this.allTransfer++;
-                    try {
-                        switch (transfer.status) {
-                            case notUpdated:
-                                this.notUpdated++;
-                                break;
-                            case interrupted:
-                                this.interrupted++;
-                                break;
-                            case toSubmit:
-                                this.toSubmit++;
-                                break;
-                            case running:
-                                this.running++;
-                                break;
-                            case done:
-                                this.done++;
-                                break;
-                            case inError:
-                                this.error++;
-                                break;
-                            case unknown:
-                                this.unknown++;
-                                break;
-                            default:
-                                this.unknown++;
-                                break;
-                        }
-                    } catch (ExceptionInInitializerError e) {
-                        System.err.println(e.getException().getLocalizedMessage());
-                        System.err.println(Messages.getSlocale() + " $");
-                        System.exit(69);
+                    switch (transfer.status) {
+                        case notUpdated:
+                            this.notUpdated++;
+                            break;
+                        case interrupted:
+                            this.interrupted++;
+                            break;
+                        case toSubmit:
+                            this.toSubmit++;
+                            break;
+                        case running:
+                            this.running++;
+                            break;
+                        case done:
+                            this.done++;
+                            break;
+                        case inError:
+                            this.error++;
+                            break;
+                        case unknown:
+                            this.unknown++;
+                            break;
+                        default:
+                            this.unknown++;
+                            break;
                     }
-                    Rule rule = RulesDatabase.select(transfer.ruleID);
-                    if(rule != null) {
-                        Rule.ModeTrans modeTrans = rule.modeTrans;
+                    RestRule restRule = new RestRule(ruleDAO.select(transfer.ruleID));
+                    if(restRule != null) {
+                        RestRule.ModeTrans modeTrans = restRule.modeTrans;
                         switch (modeTrans) {
                             case send:
                             case send_md5:
@@ -110,9 +108,9 @@ public class ServerStatus {
                                 if (this.lastOutRunning == null || this.lastOutRunning.before(transfer.startTrans)) {
                                     this.lastOutRunning = (GregorianCalendar) transfer.startTrans;
                                 }
-                                if (transfer.status == Transfer.Status.running) {
+                                if (transfer.status == RestTransfer.Status.running) {
                                     this.outRunning++;
-                                } else if (transfer.status == Transfer.Status.inError) {
+                                } else if (transfer.status == RestTransfer.Status.inError) {
                                     this.outError++;
                                 }
                                 break;
@@ -122,9 +120,9 @@ public class ServerStatus {
                                 if (this.lastInRunning == null || this.lastInRunning.before(transfer.startTrans)) {
                                     this.lastInRunning = (GregorianCalendar) transfer.startTrans;
                                 }
-                                if (transfer.status == Transfer.Status.running) {
+                                if (transfer.status == RestTransfer.Status.running) {
                                     this.inRunning++;
-                                } else if (transfer.status == Transfer.Status.inError) {
+                                } else if (transfer.status == RestTransfer.Status.inError) {
                                     this.outError++;
                                 }
                         }
@@ -155,8 +153,9 @@ public class ServerStatus {
 
         public int error;
 
-        public Steps() {
-            for (Transfer transfer : TransfersDatabase.transfersDb) {
+        public Steps() throws DAOException {
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
                 switch (transfer.globalStep) {
                     case noTask:
                         this.noTask++;
@@ -196,8 +195,9 @@ public class ServerStatus {
 
         public int completeOk;
 
-        public RunningSteps() {
-            for (Transfer transfer : TransfersDatabase.transfersDb) {
+        public RunningSteps() throws DAOException {
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
                 switch (transfer.step) {
                     case running:
                         this.running++;
@@ -273,8 +273,9 @@ public class ServerStatus {
 
         public int unknown;
 
-        public ErrorTypes() {
-            for (Transfer transfer : TransfersDatabase.transfersDb) {
+        public ErrorTypes() throws DAOException {
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
                 if ("ConnectionImpossible".equals(transfer.stepStatus)) {
                     this.connectionImpossible++;
                 } else if ("ServerOverloaded".equals(transfer.stepStatus)) {
@@ -435,7 +436,7 @@ public class ServerStatus {
 
     public ErrorTypes errorTypes;
 
-    public ServerStatus() {
+    public ServerStatus() throws DAOException {
         this.hostID = RestUtils.HOST_ID;
         this.date = new GregorianCalendar();
         this.fromDate = new GregorianCalendar();

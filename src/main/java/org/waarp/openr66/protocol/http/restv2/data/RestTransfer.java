@@ -20,80 +20,80 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
+import org.waarp.openr66.pojo.Transfer;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.GregorianCalendar;
+import java.util.List;
 
-/** Transfer POJO for Rest HTTP support for R66. */
+/** RestTransfer POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Transfer {
+public class RestTransfer {
 
     /** All the possible ways to order a list of transfer objects. */
     public enum Order {
         /** By tansferID, in ascending order. */
-        ascTransferID("+id", new Comparator<Transfer>() {
+        ascTransferID("+id", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return t1.transferID.compareTo(t2.transferID);
             }
         }),
         /** By tansferID, in descending order. */
-        descTransferID("-id", new Comparator<Transfer>() {
+        descTransferID("-id", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return -t1.transferID.compareTo(t2.transferID);
             }
         }),
         /** By fileName, in ascending order. */
-        ascFileName("+filename", new Comparator<Transfer>() {
+        ascFileName("+filename", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return t1.originalFileName.compareTo(t2.originalFileName);
             }
         }),
         /** By fileName, in descending order. */
-        descFileName("-filename", new Comparator<Transfer>() {
+        descFileName("-filename", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return -t1.originalFileName.compareTo(t2.originalFileName);
             }
         }),
         /** By date of transfer start, in ascending order. */
-        ascStartTrans("+startDate", new Comparator<Transfer>() {
+        ascStartTrans("+startDate", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return t1.startTrans.compareTo(t2.startTrans);
             }
         }),
         /** By date of transfer start, in descending order. */
-        descStartTrans("-startDate", new Comparator<Transfer>() {
+        descStartTrans("-startDate", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return -t1.startTrans.compareTo(t2.startTrans);
             }
         }),
         /** By date of transfer end, in ascending order. */
-        ascStopTrans("+stopDate", new Comparator<Transfer>() {
+        ascStopTrans("+stopDate", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return t1.stopTrans.compareTo(t2.stopTrans);
             }
         }),
         /** By date of transfer end, in descending order. */
-        descStopTrans("-stopDate", new Comparator<Transfer>() {
+        descStopTrans("-stopDate", new Comparator<RestTransfer>() {
             @Override
-            public int compare(Transfer t1, Transfer t2) {
+            public int compare(RestTransfer t1, RestTransfer t2) {
                 return -t1.stopTrans.compareTo(t2.stopTrans);
             }
         });
 
-        public final Comparator<Transfer> comparator;
+        public final Comparator<RestTransfer> comparator;
         public final String value;
 
-        Order(String value, Comparator<Transfer> comparator) {
+        Order(String value, Comparator<RestTransfer> comparator) {
             this.value = value;
             this.comparator = comparator;
         }
@@ -130,7 +130,7 @@ public class Transfer {
         postTask,
         /** Finished the transfer without error */
         allDone,
-        /** Transfer interrupted because of an error */
+        /** RestTransfer interrupted because of an error */
         error
     }
 
@@ -152,40 +152,38 @@ public class Transfer {
 
     /** All the possible statutes for a transfer. */
     public enum Status {
-        /** Transfer waiting to be processed. */
+        /** RestTransfer waiting to be processed. */
         toSubmit,
-        /** Transfer status was not updated. */
+        /** RestTransfer status was not updated. */
         notUpdated,
-        /** Transfer currently running. */
+        /** RestTransfer currently running. */
         running,
-        /** Transfer currently paused. */
+        /** RestTransfer currently paused. */
         interrupted,
-        /** Transfer finished normally. */
+        /** RestTransfer finished normally. */
         done,
-        /** Transfer interrupted by an error. */
+        /** RestTransfer interrupted by an error. */
         inError,
-        /** Transfer status unknown. */
+        /** RestTransfer status unknown. */
         unknown
     }
 
     /** The transfer's unique id, automatically generated at transfer creation. */
-    @NonWritable
-    public String transferID;
+    public Long transferID;
 
     /**
      * The transfer's current global step.
      *
      * @see GlobalStep
      */
-    @NonWritable
     public GlobalStep globalStep;
+
 
     /**
      * The transfer's last finished global step.
      *
      * @see GlobalStep
      */
-    @NonWritable
     public GlobalStep globalLastStep;
 
     /**
@@ -193,11 +191,9 @@ public class Transfer {
      *
      * @see Step
      */
-    @NonWritable
     public Step step;
 
     /** The number of packets transferred thus far. */
-    @NonWritable
     public Integer rank;
 
     /**
@@ -205,18 +201,15 @@ public class Transfer {
      *
      * @see Status
      */
-    @NonWritable
     public Status status;
 
     /** Additional information about the current status (error messages, etc...). */
-    @NonWritable
     public String stepStatus;
 
     /** The sent file's original name on the sender host before the transfer. */
     public String originalFileName;
 
     /** The sent file's new name on the receiver host after the transfer. */
-    @NonWritable
     public String fileName;
 
     /** The id of the rule used for the transfer. */
@@ -226,7 +219,6 @@ public class Transfer {
     public Integer blockSize = 4096;
 
     /** Additional metadata about the file (size in Bytes). */
-    @NonWritable
     public String fileInfo;
 
     /** Additional user inputted information about the transfer (comments). */
@@ -244,40 +236,24 @@ public class Transfer {
      *
      * @see Calendar
      */
-    @NonWritable
     public Calendar stopTrans;
 
-    /** Host id of the host which originally made the transfer request. */
-    @NonWritable
+    /** RestHost id of the host which originally made the transfer request. */
     public String requester;
 
-    /** Host id of the host to which the transfer was requested. */
+    /** RestHost id of the host to which the transfer was requested. */
     public String requested;
 
 
-    public void setStartTrans(String date) throws Exception {
-        this.startTrans = RestUtils.toCalendar(date);
+    public RestTransfer(Transfer trans) {
+        this.transferID = trans.getId();
     }
 
-    public String getStartTrans() {
-        return RestUtils.fromCalendar(this.startTrans);
-    }
-
-    public String getStopTrans() {
-        return RestUtils.fromCalendar(this.stopTrans);
-    }
-
-    /** Initialize all Non-Writable fields with their initial values. */
-    public void initValues() {
-        this.transferID = TransfersDatabase.nextID();
-        this.globalStep = GlobalStep.noTask;
-        this.globalLastStep = GlobalStep.noTask;
-        this.step = Step.running;
-        this.rank = 0;
-        this.status = Status.unknown;
-        this.stepStatus = "unknown";
-        this.stopTrans = null;
-        this.requester = RestUtils.HOST_ID;
-        if(this.startTrans == null) this.startTrans = new GregorianCalendar();
+    public static List<RestTransfer> toRestList(List<Transfer> transfers) {
+        List<RestTransfer> restTransfers = new ArrayList<RestTransfer>();
+        for(Transfer transfer : transfers) {
+            restTransfers.add(new RestTransfer(transfer));
+        }
+        return restTransfers;
     }
 }

@@ -31,11 +31,13 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.utility.Base64;
-import org.waarp.openr66.protocol.http.restv2.data.Host;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.HostDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.pojo.Host;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -92,10 +94,21 @@ public class RestHandlerHook implements HandlerHook {
                     String[] authKey = key.split(" ");
 
                     if("Basic".equals(authKey[0])) {
-                        String[] credentials = new String(Base64.decode(authKey[1]),
-                                Charset.forName("UTF-8")).split(":");
-                        Host requester = HostsDatabase.select(credentials[0]);
-                        if (requester == null || !requester.hostKey.equals(credentials[1])) {
+                        String[] credentials = new String(Base64.decode(authKey[1])).split(":");
+                        if(credentials.length != 2) {
+                            unauthorized(httpResponder);
+                            return false;
+                        }
+                        HostDAO dao = DAOFactory.getDAOFactory(DbConstant.connectionFactory).getHostDAO();
+                        Host requester = dao.select(credentials[0]);
+                        String cipher;
+                        try {
+                            cipher = new String(RestUtils.HMAC.crypt(credentials[1].getBytes()));
+                        } catch (Exception e) {
+                            httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.hashError());
+                            return false;
+                        }
+                        if (requester == null || cipher.equals(new String(requester.getHostkey()))) {
                             unauthorized(httpResponder);
                             return false;
                         }
@@ -111,6 +124,9 @@ public class RestHandlerHook implements HandlerHook {
                 } catch (ArrayIndexOutOfBoundsException e) {
                     unauthorized(httpResponder);
                     return false;
+                } catch (DAOException e) {
+                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                            RestResponses.dbException(e.getCause()));
                 }
             }
         }

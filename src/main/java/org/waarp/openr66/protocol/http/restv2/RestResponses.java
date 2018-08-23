@@ -24,15 +24,21 @@ import java.lang.reflect.Field;
 
 public final class RestResponses {
 
-    private static final int JSON_PROCESSING = 100;
+    private static final int DB_EXCEPTION = 100;
 
-    private static final int BASE64_DECODING = 101;
+    private static final int JSON_PROCESSING = 101;
 
-    private static final int ILLEGAL_ACCESS = 102;
+    private static final int BASE64_DECODING = 102;
+
+    private static final int ILLEGAL_ACCESS = 103;
+
+    private static final int HASHING_ERROR = 104;
 
 
     /** This class is a utility class, and should not be instantiated. */
-    private RestResponses () {}
+    private RestResponses () {
+        throw new UnsupportedOperationException("'RestResponse' cannot be instantiated.");
+    }
 
 
     public static String emptyBody() {
@@ -99,36 +105,36 @@ public final class RestResponses {
     public static String notAPort(String value) {
         return String.format(
                 "{" +
-                        "\"userMessage\":\"Not a port number\"," +
-                        "\"internalMessage\":\"The value '%s' is not a valid port number.\"" +
-                        "}",
+                    "\"userMessage\":\"Not a port number\"," +
+                    "\"internalMessage\":\"The value '%s' is not a valid port number.\"" +
+                    "}",
                 value);
     }
 
     public static String notANumber(String value) {
         return String.format(
                 "{" +
-                        "\"userMessage\":\"Not a number\"," +
-                        "\"internalMessage\":\"The value '%s' is not a number.\"" +
-                        "}",
+                    "\"userMessage\":\"Not a number\"," +
+                    "\"internalMessage\":\"The value '%s' is not a number.\"" +
+                    "}",
                 value);
     }
 
     public static String invalidNumber(Integer value, String fieldName) {
         return String.format(
                 "{" +
-                        "\"userMessage\":\"Invalid number\"," +
-                        "\"internalMessage\":\"The value '%d' is not valid for field %s.\"" +
-                        "}",
+                    "\"userMessage\":\"Invalid number\"," +
+                    "\"internalMessage\":\"The value '%d' is not valid for field %s.\"" +
+                    "}",
                 value, fieldName);
     }
 
     public static String notABoolean(String value) {
         return String.format(
                 "{" +
-                        "\"userMessage\":\"Not a number\"," +
-                        "\"internalMessage\":\"'%s' does not represent a valid boolean value.\"" +
-                        "}",
+                    "\"userMessage\":\"Not a number\"," +
+                    "\"internalMessage\":\"'%s' does not represent a valid boolean value.\"" +
+                    "}",
                 value);
     }
 
@@ -161,9 +167,9 @@ public final class RestResponses {
 
     public static String invalidCredentials() {
         return "{" +
-            "\"userMessage\":\"Invalid credentials\"," +
-            "\"internalMessage\":\"The provided authentication credentials are invalid.\"" +
-        "}";
+                    "\"userMessage\":\"Invalid credentials\"," +
+                    "\"internalMessage\":\"The provided authentication credentials are invalid.\"" +
+                "}";
     }
 
     public static String dateInThePast() {
@@ -196,6 +202,24 @@ public final class RestResponses {
                     "\"internalMessage\":\"An error occurred when trying to access the field '%s' of class '%s'.\"," +
                     "\"code\":" + ILLEGAL_ACCESS +
                 "}",
-        field.getName(), field.getDeclaringClass().getSimpleName());
+                field.getName(), field.getDeclaringClass().getSimpleName());
+    }
+
+    public static String dbException(Throwable t) {
+        return String.format(
+                "{" +
+                    "\"userMessage\":\"Database Error\"," +
+                    "\"internalMessage\":\"%s.\"," +
+                    "\"code\":" + DB_EXCEPTION +
+                    "}",
+                t.getMessage());
+    }
+
+    public static String hashError() {
+        return "{" +
+                    "\"userMessage\":\"Hashing Error\"," +
+                    "\"internalMessage\":\"An error occurred during the password hashing.\"," +
+                    "\"code\":" + HASHING_ERROR +
+                "}";
     }
 }

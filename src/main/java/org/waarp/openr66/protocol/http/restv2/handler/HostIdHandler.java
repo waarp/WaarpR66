@@ -27,12 +27,17 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.HostDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Host;
+import org.waarp.openr66.protocol.http.restv2.data.RestHost;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.HostsDatabase;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -60,16 +65,20 @@ public class HostIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Host host = HostsDatabase.select(id);
-        if(host == null) {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
-        } else {
-            try {
-                String responseBody = RestUtils.toJsonString(host);
+        try {
+            HostDAO dao = RestUtils.factory.getHostDAO();
+            Host host = dao.select(id);
+            if (host == null) {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+            } else {
+                RestHost restHost = new RestHost(host);
+                String responseBody = RestUtils.toJsonString(restHost);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
             }
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
         }
     }
 
@@ -86,11 +95,13 @@ public class HostIdHandler extends AbstractHttpHandler {
     @PUT
     public void replaceHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Host updatedHost = RestUtils.deserializeRequest(request, Host.class);
+            RestHost updatedRestHost = RestUtils.deserializeRequest(request, RestHost.class);
+            RestUtils.checkEntry(updatedRestHost);
+            HostDAO dao = RestUtils.factory.getHostDAO();
 
-
-            if (HostsDatabase.modify(id, updatedHost)) {
-                String responseBody = RestUtils.toJsonString(updatedHost);
+            if (dao.exist(id)) {
+                dao.update(updatedRestHost.toHost());
+                String responseBody = RestUtils.toJsonString(updatedRestHost);
                 responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
             } else {
                 responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("host", id));
@@ -101,6 +112,10 @@ public class HostIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+        } catch (OpenR66RestInvalidEntryException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -116,10 +131,16 @@ public class HostIdHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteHost(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        if(HostsDatabase.delete(id)) {
-            responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } else {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        try {
+            HostDAO dao = RestUtils.factory.getHostDAO();
+            if(dao.exist(id)) {
+                dao.delete(dao.select(id));
+                responder.sendStatus(HttpResponseStatus.NO_CONTENT);
+            } else {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+            }
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

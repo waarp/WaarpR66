@@ -27,10 +27,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
-import org.waarp.openr66.protocol.http.restv2.data.Transfer;
+import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -52,7 +53,7 @@ public class ServerHandler extends AbstractHttpHandler {
     //TODO: replace by loading the value from server config file
     public static final long period = (long) 1000 * 60 * 60 * 24;
 
-    //TODO: replace by loading path from server config file
+    //TODO: replace by loading argument from server config file
     private static final String archPath = "/arch";
 
     private static final String logsPath = "/logs";
@@ -66,12 +67,15 @@ public class ServerHandler extends AbstractHttpHandler {
     @Path("status")
     @GET
     public void getStatus(HttpRequest request, HttpResponder responder) {
-        ServerStatus status = new ServerStatus();
+
         try {
+            ServerStatus status = new ServerStatus();
             String jsonString = RestUtils.toJsonString(status);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -120,7 +124,7 @@ public class ServerHandler extends AbstractHttpHandler {
     public void getLogs(HttpRequest request, HttpResponder responder,
                         @QueryParam("purge") @DefaultValue("false") Boolean purge,
                         @QueryParam("clean") @DefaultValue("false") Boolean clean,
-                        @QueryParam("status") List<Transfer.Status> status,
+                        @QueryParam("status") List<RestTransfer.Status> status,
                         @QueryParam("rule") String rule,
                         @QueryParam("start") String start,
                         @QueryParam("stop") String stop,

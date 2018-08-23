@@ -27,12 +27,13 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.RuleDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Rule;
+import org.waarp.openr66.protocol.http.restv2.data.RestRule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.RulesDatabase;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -60,16 +61,19 @@ public class RuleIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Rule rule = RulesDatabase.select(id);
-        if(rule != null) {
-            try {
-                String responseBody = RestUtils.toJsonString(rule);
+        try {
+            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+            if (ruleDAO.exist(id)) {
+                RestRule restRule = new RestRule(ruleDAO.select(id));
+                String responseBody = RestUtils.toJsonString(restRule);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendString(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            } else {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
             }
-        } else {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -86,9 +90,12 @@ public class RuleIdHandler extends AbstractHttpHandler {
     @PUT
     public void replaceRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
         try {
-            Rule updatedRule = RestUtils.deserializeRequest(request, Rule.class);
-            if(RulesDatabase.modify(id, updatedRule)) {
-                String responseBody = RestUtils.toJsonString(updatedRule);
+            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+            if(ruleDAO.exist(id)) {
+                RestRule restRule = RestUtils.deserializeRequest(request, RestRule.class);
+                ruleDAO.delete(ruleDAO.select(id));
+                ruleDAO.insert(restRule.toRule());
+                String responseBody = RestUtils.toJsonString(restRule);
                 responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
             } else {
                 responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
@@ -99,6 +106,8 @@ public class RuleIdHandler extends AbstractHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
         } catch (JsonProcessingException e) {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -114,10 +123,16 @@ public class RuleIdHandler extends AbstractHttpHandler {
      */
     @DELETE
     public void deleteRule(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        if (RulesDatabase.delete(id)) {
-            responder.sendStatus(HttpResponseStatus.NO_CONTENT);
-        } else {
-            responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+        try {
+            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
+            if(ruleDAO.exist(id)) {
+                ruleDAO.delete(ruleDAO.select(id));
+                responder.sendStatus(HttpResponseStatus.NO_CONTENT);
+            } else {
+                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+            }
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 

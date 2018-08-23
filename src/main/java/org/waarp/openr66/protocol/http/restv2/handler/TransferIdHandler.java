@@ -27,10 +27,12 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.Transfer;
-import org.waarp.openr66.protocol.http.restv2.testdatabases.TransfersDatabase;
+import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
@@ -57,16 +59,22 @@ public class TransferIdHandler extends AbstractHttpHandler {
      */
     @GET
     public void getTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Transfer trans = TransfersDatabase.select(id);
-        if(trans == null) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
-        } else {
-            try {
+        try {
+            long transID = Long.parseLong(id);
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            if (!transferDAO.exist(transID)) {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+            } else {
+                RestTransfer trans = new RestTransfer(transferDAO.select(transID));
                 String responseBody = RestUtils.toJsonString(trans);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
             }
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(id));
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -101,17 +109,24 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("restart")
     @PUT
     public void restartTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Transfer trans = TransfersDatabase.select(id);
-        if(trans == null) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
-        } else {
-            try {
-                trans.status = Transfer.Status.toSubmit;
-                String responseBody = RestUtils.toJsonString(trans);
-                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        try {
+            long transID = Long.parseLong(id);
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            if (!transferDAO.exist(transID)) {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+            } else {
+                Transfer trans = transferDAO.select(transID);
+                //TODO: update the transfer status to restart it
+                transferDAO.update(trans);
+                String responseBody = RestUtils.toJsonString(new RestTransfer(trans));
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
             }
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(id));
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -129,17 +144,24 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("stop")
     @PUT
     public void stopTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Transfer trans = TransfersDatabase.select(id);
-        if(trans == null) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
-        } else {
-            try {
-                trans.status = Transfer.Status.interrupted;
-                String responseBody = RestUtils.toJsonString(trans);
-                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        try {
+            long transID = Long.parseLong(id);
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            if (!transferDAO.exist(transID)) {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+            } else {
+                Transfer trans = transferDAO.select(transID);
+                //TODO: update the transfer status to pause it
+                transferDAO.update(trans);
+                String responseBody = RestUtils.toJsonString(new RestTransfer(trans));
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
             }
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(id));
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 
@@ -157,18 +179,24 @@ public class TransferIdHandler extends AbstractHttpHandler {
     @Path("cancel")
     @PUT
     public void cancelTransfer(HttpRequest request, HttpResponder responder, @PathParam("id") String id) {
-        Transfer trans = TransfersDatabase.select(id);
-        if(trans == null) {
-            responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
-        } else {
-            try {
-                trans.status = Transfer.Status.inError;
-                trans.stepStatus = "Cancelled";
-                String responseBody = RestUtils.toJsonString(trans);
-                responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
-            } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        try {
+            long transID = Long.parseLong(id);
+            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            if (!transferDAO.exist(transID)) {
+                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+            } else {
+                Transfer trans = transferDAO.select(transID);
+                //TODO: update the transfer status to cancel it
+                transferDAO.update(trans);
+                String responseBody = RestUtils.toJsonString(new RestTransfer(trans));
+                responder.sendJson(HttpResponseStatus.OK, responseBody);
             }
+        } catch (JsonProcessingException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+        } catch (NumberFormatException e) {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(id));
+        } catch (DAOException e) {
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
         }
     }
 }
