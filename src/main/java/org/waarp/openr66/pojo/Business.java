@@ -32,6 +32,12 @@ public class Business {
         this.others = others;
     }
 
+    public DataError validate() {
+        DataError res = new DataError();
+        //Tests
+        return res;
+    }
+
     public String getHostid() {
         return this.hostid;
     }

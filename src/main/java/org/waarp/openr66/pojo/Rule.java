@@ -87,6 +87,19 @@ public class Rule {
         return hostids.contains(hostid);
     }
 
+    public DataError validate() {
+        DataError res = new DataError();
+        //Tests
+        if (mode < 0) {
+            res.add("mode", "Mode must be a valid mode");
+        }
+        if (mode > 7) {
+            res.add("mode", "Mode must be a valid mode");
+        }
+        //TODO Must validate the tasks
+        return res;
+    }
+
     @Deprecated
     public String getXMLHostids() {
         String res = "<hostids>";

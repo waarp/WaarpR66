@@ -42,6 +42,27 @@ public class Limit {
         this(hostid, delayLimit, 0, 0, 0, 0);
     }
 
+    public DataError validate() {
+        DataError res = new DataError();
+        //Tests
+        if (readGlobalLimit < 0) {
+            res.add("readGlobalLimit", "Limit must be positive or null");
+        }
+        if (writeGlobalLimit < 0) {
+            res.add("writeGlobalLimit", "Limit must be positive or null");
+        }
+        if (readSessionLimit < 0) {
+            res.add("readSessionLimit", "Limit must be positive or null");
+        }
+        if (writeSessionLimit < 0) {
+            res.add("writeSessionLimit", "Limit must be positive or null");
+        }
+        if (delayLimit < 0) {
+            res.add("delayLimit", "Limit must be positive or null");
+        }
+        return res;
+    }
+
     public String getHostid() {
         return this.hostid;
     }

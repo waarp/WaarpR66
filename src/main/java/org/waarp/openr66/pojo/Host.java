@@ -27,10 +27,10 @@ public class Host {
 
     private int updatedInfo = 0;
 
-    
+
     public Host(String hostid, String address, int port, byte[] hostkey,
-        boolean ssl, boolean client, boolean proxified, boolean admin, 
-        boolean active, int updatedInfo) {
+            boolean ssl, boolean client, boolean proxified, boolean admin, 
+            boolean active, int updatedInfo) {
         this(hostid, address, port, hostkey, ssl, 
                 client, proxified, admin, active);
         this.updatedInfo = updatedInfo;
@@ -66,6 +66,20 @@ public class Host {
     public Host(String hostid, String address, int port, byte[] hostkey,
             boolean ssl, boolean client) {
         this(hostid, address, port, hostkey, ssl, client, false, true);
+    }
+
+    public DataError validate() {
+        DataError res = new DataError();
+        //Tests
+        if (!client) {
+            if (port < 1) {
+                res.add("port", "Server port must be positive");
+            }
+            if (port > 65535) {
+                res.add("port", "Server port must be below 65535");
+            }
+        }
+        return res;
     }
 
     public String getHostid() {

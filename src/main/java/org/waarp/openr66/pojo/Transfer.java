@@ -133,6 +133,15 @@ public class Transfer {
                 new Timestamp(new Date().getTime()), null);
     }
 
+    public DataError validate() {
+        DataError res = new DataError();
+        //Tests
+        if (blockSize < 0) {
+            res.add("blockSize", "BlockSize must be positive or null");
+        }
+        return res;
+    }
+
     public long getId() {
         return this.id;
     }
