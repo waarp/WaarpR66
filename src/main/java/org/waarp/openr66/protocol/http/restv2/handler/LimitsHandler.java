@@ -90,7 +90,6 @@ public class LimitsHandler extends AbstractHttpHandler {
         try {
             RestLimit restLimit = RestUtils.deserializeRequest(request, RestLimit.class);
             RestUtils.checkEntry(restLimit);
-            restLimit.defaultValues();
 
             LimitDAO limitDAO = RestUtils.factory.getLimitDAO();
 
@@ -128,7 +127,6 @@ public class LimitsHandler extends AbstractHttpHandler {
         try {
             RestLimit restLimit = RestUtils.deserializeRequest(request, RestLimit.class);
             RestUtils.checkEntry(restLimit);
-            restLimit.defaultValues();
 
             LimitDAO limitDAO = RestUtils.factory.getLimitDAO();
 

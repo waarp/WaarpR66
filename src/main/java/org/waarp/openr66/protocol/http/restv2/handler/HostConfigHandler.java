@@ -91,7 +91,6 @@ public class HostConfigHandler extends AbstractHttpHandler {
     public void initializeConfig(HttpRequest request, HttpResponder responder) {
         try {
             RestHostConfig config = RestUtils.deserializeRequest(request, RestHostConfig.class);
-            config.defaultValues();
             RestUtils.checkEntry(config);
 
             BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
@@ -130,7 +129,6 @@ public class HostConfigHandler extends AbstractHttpHandler {
     public void replaceConfig(HttpRequest request, HttpResponder responder) {
         try {
             RestHostConfig config = RestUtils.deserializeRequest(request, RestHostConfig.class);
-            config.defaultValues();
             RestUtils.checkEntry(config);
 
             BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();

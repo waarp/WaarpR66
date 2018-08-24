@@ -27,9 +27,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.common.crypto.HmacSha256;
+import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.http.restv2.data.Bounds;
+import org.waarp.openr66.protocol.http.restv2.data.NotEmpty;
+import org.waarp.openr66.protocol.http.restv2.data.Or;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
@@ -88,7 +92,8 @@ public final class RestUtils {
      * @param c       The class of the object that will be created from the JSON object.
      * @param <T>     The generic type of the output object.
      * @return The Java object representing the source JSON object.
-     * @throws OpenR66RestBadRequestException Thrown if the JSON object cannot be converted to the specified Java class.
+     * @throws OpenR66RestBadRequestException Thrown if the JSON object is missing one or more fields.
+     * @throws OpenR66RestInternalErrorException Thrown if the JSON object could not be processed.
      */
     public static <T> T deserializeRequest(HttpRequest request, Class<T> c)
             throws OpenR66RestBadRequestException, OpenR66RestInternalErrorException {
@@ -107,16 +112,21 @@ public final class RestUtils {
                 throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
             }
         } catch (JsonMappingException e) {
-            if (e.getPath().size() < 1) {
-                throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
-            } else {
-                String name = e.getPath().get(0).getFieldName();
-                try {
-                    Field field = c.getField(name);
-                    throw new OpenR66RestBadRequestException(RestResponses.illegalValue(field.getType(), name));
-                } catch (NoSuchFieldException e1) {
-                    throw new OpenR66RestBadRequestException(RestResponses.unknownField(name));
+            if(e.getCause() == null) {
+                if(e.getPath().size() < 1) {
+                    throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
+                } else {
+                    try {
+                        Field field = c.getField(e.getPath().get(0).getFieldName());
+                        throw new OpenR66RestBadRequestException(
+                                RestResponses.illegalValue(field.getType(), field.getName()));
+                    } catch (NoSuchFieldException nsf) {
+                        throw new OpenR66RestBadRequestException(RestResponses.unknownField(
+                                e.getPath().get(0).getFieldName()));
+                    }
                 }
+            } else {
+                throw new OpenR66RestBadRequestException(e.getCause().getMessage());
             }
         } catch (IllegalArgumentException e) {
             throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
@@ -203,10 +213,25 @@ public final class RestUtils {
     }
 
     /**
+     * Checks if the value entered is within the bounds defined in the 'Or' annotation attached to the field.
+     * @param value     The value to check.
+     * @param bounds    The 'Or' annotation containing the bounds to check.
+     * @return  'true' if the value is within the bounds, 'false' if not.
+     */
+    private static boolean checkValue(long value, Or bounds) {
+        for(Bounds bound : bounds.value()) {
+            if (value >= bound.min() && value <= bound.max()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks the fields have all been initialized.
      * @param entry The entry to check.
      * @throws OpenR66RestInternalErrorException    Thrown if one of the entry fields is inaccessible.
-     * @throws OpenR66RestInvalidEntryException     Thrown if one of the fields is missing its value.
+     * @throws OpenR66RestInvalidEntryException     Thrown if one of the fields has an invalid value.
      */
     public static void checkEntry(Object entry) throws OpenR66RestInternalErrorException,
             OpenR66RestInvalidEntryException {
@@ -215,6 +240,27 @@ public final class RestUtils {
                 Object val = field.get(entry);
                 if(val == null) {
                     throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                } else {
+                    Class cla = field.getType();
+                    if(field.isAnnotationPresent(NotEmpty.class) && cla == String.class &&
+                            ((String) val).trim().isEmpty()) {
+                        throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                    }
+                    else if(field.isAnnotationPresent(Or.class)) {
+                        if(val.getClass() == Integer.class){
+                            long num = ((Integer) val).longValue();
+                            if (!checkValue(num, field.getAnnotation(Or.class))) {
+                                throw new OpenR66RestInvalidEntryException(
+                                        RestResponses.invalidNumber(num, field.getName()));
+                            }
+                        } else if(val.getClass() == Long.class) {
+                            long num = (Long) val;
+                            if (!checkValue(num, field.getAnnotation(Or.class))) {
+                                throw new OpenR66RestInvalidEntryException(
+                                        RestResponses.invalidNumber(num, field.getName()));
+                            }
+                        }
+                    }
                 }
             } catch(IllegalAccessException e) {
                 throw new OpenR66RestInternalErrorException(RestResponses.illegalAccess(field));
@@ -244,7 +290,7 @@ public final class RestUtils {
     public static String toArrayDbList(Object[] array) {
         StringBuilder list = new StringBuilder();
         for(Object object : array) {
-            list.append(object.toString() + " ");
+            list.append(object.toString()).append(" ");
         }
         return list.toString().trim();
     }

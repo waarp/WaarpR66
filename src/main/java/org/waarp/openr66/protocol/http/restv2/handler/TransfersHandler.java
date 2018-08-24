@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAO;

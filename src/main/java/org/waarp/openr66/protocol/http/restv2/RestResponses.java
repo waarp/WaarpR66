@@ -102,15 +102,6 @@ public final class RestResponses {
         value, id);
     }
 
-    public static String notAPort(String value) {
-        return String.format(
-                "{" +
-                    "\"userMessage\":\"Not a port number\"," +
-                    "\"internalMessage\":\"The value '%s' is not a valid port number.\"" +
-                    "}",
-                value);
-    }
-
     public static String notANumber(String value) {
         return String.format(
                 "{" +
@@ -120,13 +111,22 @@ public final class RestResponses {
                 value);
     }
 
-    public static String invalidNumber(Integer value, String fieldName) {
+    public static String notARule(String value) {
+        return String.format(
+                "{" +
+                        "\"userMessage\":\"Not a rule\"," +
+                        "\"internalMessage\":\"The transfer rule '%s' does not exist.\"" +
+                        "}",
+                value);
+    }
+
+    public static String invalidNumber(long value, String fieldName) {
         return String.format(
                 "{" +
                     "\"userMessage\":\"Invalid number\"," +
-                    "\"internalMessage\":\"The value '%d' is not valid for field %s.\"" +
+                    "\"internalMessage\":\"The field '%s' cannot have the value '%d'.\"" +
                     "}",
-                value, fieldName);
+                fieldName, value);
     }
 
     public static String notABoolean(String value) {
@@ -212,7 +212,7 @@ public final class RestResponses {
                     "\"internalMessage\":\"%s.\"," +
                     "\"code\":" + DB_EXCEPTION +
                     "}",
-                t.getMessage());
+                t.getMessage().replaceAll("\"", "'").replaceAll("\n", " "));
     }
 
     public static String hashError() {

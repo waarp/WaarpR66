@@ -197,10 +197,11 @@ public class RestRule {
     }
 
     /** The rule's unique identifier. */
+    @NotEmpty
     public String ruleID;
 
     /** The IDs of the hosts allowed to use this rule for their transfers. */
-    public String[] hostsIDs;
+    public String[] hostsIDs = new String[0];
 
     /**
      * The file transfer mode used.
@@ -210,58 +211,62 @@ public class RestRule {
     public ModeTrans modeTrans;
 
     /** The folder in which the file will be stored by the receiver after the transfer. */
-    public String recvPath;
+    @NotEmpty
+    public String recvPath = "/in";
 
     /** The folder in which the file is stored by the sender before being sent. */
-    public String sendPath;
+    @NotEmpty
+    public String sendPath = "out/";
 
     /** The folder in which the transfer logs will be exported if an export request is made. */
-    public String archivePath;
+    @NotEmpty
+    public String archivePath = "archive/";
 
     /** The folder in which received files are temporarily stored while the transfer is running. */
-    public String workPath;
+    @NotEmpty
+    public String workPath = "work/";
 
     /**
      * The list of tasks to be executed by the receiver before the file transfer.
      *
      * @see Task
      */
-    public Task[] rPreTasks;
+    public Task[] rPreTasks = new Task[0];
 
     /**
      * The list of tasks to be executed by the receiver after the file transfer.
      *
      * @see Task
      */
-    public Task[] rPostTasks;
+    public Task[] rPostTasks = new Task[0];
 
     /**
      * The list of tasks to be executed by the receiver in case of error.
      *
      * @see Task
      */
-    public Task[] rErrorTasks;
+    public Task[] rErrorTasks = new Task[0];
 
     /**
      * The list of tasks to be executed by the sender before the file transfer.
      *
      * @see Task
      */
-    public Task[] sPreTasks;
+    public Task[] sPreTasks = new Task[0];
 
     /**
      * The list of tasks to be executed by the sender after the file transfer.
      *
      * @see Task
      */
-    public Task[] sPostTasks;
+    public Task[] sPostTasks = new Task[0];
 
     /**
      * The list of tasks to be executed by the sender in case of error.
      *
      * @see Task
      */
-    public Task[] sErrorTasks;
+    public Task[] sErrorTasks = new Task[0];
 
 
     public RestRule() {}
@@ -280,22 +285,6 @@ public class RestRule {
         this.sPreTasks = Task.fromRuleTaskList(rule.getSPreTasks());
         this.sPostTasks = Task.fromRuleTaskList(rule.getSPostTasks());
         this.sErrorTasks = Task.fromRuleTaskList(rule.getSErrorTasks());
-    }
-
-
-    /** Initialize all missing optional fields with their default values. */
-    public void defaultValues() {
-        if(this.hostsIDs == null)       this.hostsIDs = new String[0];
-        if(this.recvPath == null)       this.recvPath = "in/";
-        if(this.sendPath == null)       this.sendPath = "out/";
-        if(this.archivePath == null)    this.archivePath = "arch/";
-        if(this.workPath == null)       this.workPath = "work/";
-        if(this.rPreTasks == null)      this.rPreTasks = new Task[0];
-        if(this.rPostTasks == null)     this.rPostTasks = new Task[0];
-        if(this.rErrorTasks == null)    this.rErrorTasks = new Task[0];
-        if(this.sPreTasks == null)      this.sPreTasks = new Task[0];
-        if(this.sPostTasks == null)     this.sPostTasks = new Task[0];
-        if(this.sErrorTasks == null)    this.sErrorTasks = new Task[0];
     }
 
     public Rule toRule() {

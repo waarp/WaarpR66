@@ -158,7 +158,6 @@ public class HostsHandler extends AbstractHttpHandler {
     public void addHost(HttpRequest request, HttpResponder responder) {
         try {
             RestHost restHost = RestUtils.deserializeRequest(request, RestHost.class);
-            restHost.defaultValues();
             RestUtils.checkEntry(restHost);
 
             HostDAO dao = RestUtils.factory.getHostDAO();

@@ -35,22 +35,27 @@ public class RestLimit {
     public final String hostID = HOST_ID;
 
     /** The host's global upload bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Long upGlobalLimit;
+    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
+    public Long upGlobalLimit = 0L;
 
     /** The host's global download bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Long downGlobalLimit;
+    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
+    public Long downGlobalLimit = 0L;
 
     /** The upload bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Long upSessionLimit;
+    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
+    public Long upSessionLimit = 0L;
 
     /** The download bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    public Long downSessionLimit;
+    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
+    public Long downSessionLimit = 0L;
 
     /**
      * The maximum delay (in ms) between 2 checks of the current bandwidth usage. Set to 0 for no checks. Cannot be
      * negative.
      */
-    public Long delayLimit;
+    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
+    public Long delayLimit = 0L;
 
 
     public RestLimit() {}
@@ -61,15 +66,6 @@ public class RestLimit {
         this.upSessionLimit = limit.getReadSessionLimit();
         this.downSessionLimit = limit.getWriteSessionLimit();
         this.delayLimit = limit.getDelayLimit();
-    }
-
-    /** Initialize all missing optional fields with their default values. */
-    public void defaultValues() {
-        if(this.upGlobalLimit == null)      this.upGlobalLimit = 0L;
-        if(this.downGlobalLimit == null)    this.downGlobalLimit = 0L;
-        if(this.upSessionLimit == null)     this.upSessionLimit = 0L;
-        if(this.downSessionLimit == null)   this.downSessionLimit = 0L;
-        if(this.delayLimit == null)         this.delayLimit = 0L;
     }
 
     public Limit toLimit() {

@@ -192,32 +192,24 @@ public class RestHostConfig {
     public final String hostID = HOST_ID;
 
     /** The list of al hosts allowed to make request to execute the server's business. */
-    public String[] business;
+    public String[] business = new String[0];
 
     /**
      * The list of all hosts paired with the list of actions they are each allowed to perform on the server.
      *
      * @see Role
      */
-    public Role[] roles;
+    public Role[] roles = new Role[0];
 
     /**
      * The list of all hosts paired with the list of their known aliases.
      *
      * @see Alias
      */
-    public Alias[] aliases;
+    public Alias[] aliases = new Alias[0];
 
     /** The database configuration version in XML format. */
-    public String others;
-
-    /** Initialize all missing optional fields with their default values. */
-    public void defaultValues() {
-        if(this.business == null)   this.business = new String[0];
-        if(this.roles == null)      this.roles = new Role[0];
-        if(this.aliases == null)    this.aliases = new Alias[0];
-        if(this.others == null)     this.others = "";
-    }
+    public String others = "";
 
 
     public Business toBusiness() {

@@ -154,7 +154,6 @@ public class RulesHandler extends AbstractHttpHandler {
     public void addRule(HttpRequest request, HttpResponder responder) {
         try {
             RestRule restRule = RestUtils.deserializeRequest(request, RestRule.class);
-            restRule.defaultValues();
             RestUtils.checkEntry(restRule);
 
             RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();

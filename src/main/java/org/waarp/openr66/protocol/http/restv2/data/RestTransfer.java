@@ -216,7 +216,7 @@ public class RestTransfer {
     public String ruleID;
 
     /** Size of a block of the sent file (in Bytes) */
-    public Integer blockSize = 4096;
+    public Integer blockSize;
 
     /** Additional metadata about the file (size in Bytes). */
     public String fileInfo;

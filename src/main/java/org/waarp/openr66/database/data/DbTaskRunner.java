@@ -216,7 +216,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static final String XMLEXTENSION = "_singlerunner.xml";
 
     /**
-     * GlobalStep Value
+     * GlobalStep Bounds
      */
     public static enum TASKSTEP {
         NOTASK, PRETASK, TRANSFERTASK, POSTTASK, ALLDONETASK, ERRORTASK;

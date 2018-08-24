@@ -108,41 +108,36 @@ public class RestHost {
         }
     }
 
-    /** Initializes all missing optional fields with their default values. */
-    public void defaultValues() {
-        if(this.isSSL == null)       this.isSSL = false;
-        if(this.adminRole == null)   this.adminRole = false;
-        if(this.isClient == null)    this.isClient = false;
-        if(this.isActive == null)    this.isActive = false;
-        if(this.isProxyfied == null) this.isProxyfied = false;
-    }
-
     /** The host's unique identifier. */
+    @NotEmpty
     public String hostID;
 
     /** The host's public address. Can be an IP address, or a web address which will then be resolved by DNS. */
+    @NotEmpty
     public String address;
 
     /** The server's listening port. Must be between -1 and 65535. */
+    @Or(value = {@Bounds(min = Long.MIN_VALUE, max = -1L), @Bounds(min = 1, max = Long.MAX_VALUE)})
     public Integer port;
 
     /** The host's DES encrypted password. DO NOT store the password in plaintext. */
+    @NotEmpty
     public String hostKey;
 
     /** If true, this host will accept SSL mode connections. */
-    public Boolean isSSL;
+    public Boolean isSSL = false;
 
     /** If true, the host will have admin access on other servers. */
-    public Boolean adminRole;
+    public Boolean adminRole = false;
 
     /** If true, this host is a client, and thus will not accept any incoming connections. */
-    public Boolean isClient;
+    public Boolean isClient = false;
 
     /** If true, this host is currently active. */
-    public Boolean isActive;
+    public Boolean isActive = false;
 
     /** If true, the address field is actually the address of the proxy used by this host. */
-    public Boolean isProxyfied;
+    public Boolean isProxyfied = false;
 
 
 
