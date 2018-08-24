@@ -35,8 +35,10 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of RuleDAO for standard SQL databases
@@ -232,7 +234,12 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public void insert(Rule rule) throws DAOException {
+    public void insert(Rule rule) throws DAOException, DataException {
+        DataError err = rule.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             rule.getName(),
             rule.getXMLHostids(),
@@ -263,7 +270,12 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public void update(Rule rule) throws DAOException {
+    public void update(Rule rule) throws DAOException, DataException {
+        DataError err = rule.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             rule.getName(),
             rule.getXMLHostids(),

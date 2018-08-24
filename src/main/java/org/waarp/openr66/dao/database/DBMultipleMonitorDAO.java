@@ -14,7 +14,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.MultipleMonitor;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of MultipleMonitorDAO for standard SQL databases
@@ -182,7 +184,13 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public void insert(MultipleMonitor multipleMonitor) throws DAOException {
+    public void insert(MultipleMonitor multipleMonitor) throws DAOException,
+           DataException {
+        DataError err = multipleMonitor.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             multipleMonitor.getHostid(),
             multipleMonitor.getCountConfig(),
@@ -203,7 +211,13 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public void update(MultipleMonitor multipleMonitor) throws DAOException {
+    public void update(MultipleMonitor multipleMonitor) throws DAOException,
+           DataException {
+        DataError err = multipleMonitor.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             multipleMonitor.getHostid(),
             multipleMonitor.getCountConfig(),

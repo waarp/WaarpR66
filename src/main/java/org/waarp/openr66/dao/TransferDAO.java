@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import java.util.List;
 
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Transfer;
 
 /**
@@ -51,7 +52,7 @@ public interface TransferDAO {
      * @param transfer Transfer object to insert
      * @throws DAOException If a data access error occurs
      */
-    void insert(Transfer transfer) throws DAOException;
+    void insert(Transfer transfer) throws DAOException, DataException;
 
     /**
      * Update the specified Transfer object in the persistance layer
@@ -59,7 +60,7 @@ public interface TransferDAO {
      * @param transfer Transfer object to update
      * @throws DAOException If a data access error occurs
      */
-    void update(Transfer transfer) throws DAOException;
+    void update(Transfer transfer) throws DAOException, DataException;
 
     /**
      * Remove the specified Transfer object from the persistance layer

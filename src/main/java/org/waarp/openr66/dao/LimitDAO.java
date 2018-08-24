@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import java.util.List;
 
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Limit;
 
 /**
@@ -50,7 +51,7 @@ public interface LimitDAO {
      * @param limit Limit object to insert
      * @throws DAOException If a data access error occurs
      */
-    void insert(Limit limit) throws DAOException;
+    void insert(Limit limit) throws DAOException, DataException;
 
     /**
      * Update the specified Limit object in the persistance layer
@@ -58,7 +59,7 @@ public interface LimitDAO {
      * @param limit Limit object to update
      * @throws DAOException If a data access error occurs
      */
-    void update(Limit limit) throws DAOException;
+    void update(Limit limit) throws DAOException, DataException;
 
     /**
      * Remove the specified Limit object from the persistance layer

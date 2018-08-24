@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import java.util.List;
 
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.MultipleMonitor;
 
 /**
@@ -51,7 +52,8 @@ public interface MultipleMonitorDAO {
      * @param multipleMonitor MultipleMonitor object to insert
      * @throws DAOException If a data access error occurs
      */
-    void insert(MultipleMonitor multipleMonitor) throws DAOException;
+    void insert(MultipleMonitor multipleMonitor) throws DAOException,
+         DataException;
 
     /**
      * Update the specified MultipleMonitor object in the persistance layer
@@ -59,7 +61,8 @@ public interface MultipleMonitorDAO {
      * @param multipleMonitor MultipleMonitor object to update
      * @throws DAOException If a data access error occurs
      */
-    void update(MultipleMonitor multipleMonitor) throws DAOException;
+    void update(MultipleMonitor multipleMonitor) throws DAOException,
+         DataException;
 
     /**
      * Remove the specified MultipleMonitor object from the persistance layer

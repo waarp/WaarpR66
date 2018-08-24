@@ -14,7 +14,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Host;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of HostDAO for standard SQL databases
@@ -197,7 +199,12 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public void insert(Host host) throws DAOException {
+    public void insert(Host host) throws DAOException, DataException {
+        DataError err = host.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             host.getHostid(),
             host.getAddress(),
@@ -224,7 +231,12 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public void update(Host host) throws DAOException {
+    public void update(Host host) throws DAOException, DataException {
+        DataError err = host.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             host.getHostid(),
             host.getAddress(),

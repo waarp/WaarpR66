@@ -14,7 +14,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Business;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of BusinessDAO for standard SQL databases
@@ -185,7 +187,12 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public void insert(Business business) throws DAOException {
+    public void insert(Business business) throws DAOException, DataException {
+        DataError err = business.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             business.getHostid(),
             business.getBusiness(),
@@ -208,7 +215,12 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public void update(Business business) throws DAOException {
+    public void update(Business business) throws DAOException, DataException {
+        DataError err = business.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             business.getHostid(),
             business.getBusiness(),

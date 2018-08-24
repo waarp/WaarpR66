@@ -14,7 +14,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Limit;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of LimitDAO for standard SQL databases
@@ -190,7 +192,12 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public void insert(Limit limit) throws DAOException {
+    public void insert(Limit limit) throws DAOException, DataException {
+        DataError err = limit.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             limit.getHostid(),
             limit.getReadGlobalLimit(),
@@ -214,7 +221,12 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public void update(Limit limit) throws DAOException {
+    public void update(Limit limit) throws DAOException, DataException {
+        DataError err = limit.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             limit.getHostid(),
             limit.getReadGlobalLimit(),

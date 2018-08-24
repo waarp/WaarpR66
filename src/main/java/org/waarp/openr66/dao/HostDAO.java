@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import java.util.List;
 
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Host;
 
 /**
@@ -50,7 +51,7 @@ public interface HostDAO {
      * @param host Host object to insert
      * @throws DAOException If a data access error occurs
      */
-    void insert(Host host) throws DAOException;
+    void insert(Host host) throws DAOException, DataException;
 
     /**
      * Update the specified Host object in the persistance layer
@@ -58,7 +59,7 @@ public interface HostDAO {
      * @param host Host object to update
      * @throws DAOException If a data access error occurs
      */
-    void update(Host host) throws DAOException;
+    void update(Host host) throws DAOException, DataException;
 
     /**
      * Remove the specified Host object from the persistance layer

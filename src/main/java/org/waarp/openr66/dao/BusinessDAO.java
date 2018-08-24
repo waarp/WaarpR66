@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import java.util.List;
 
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Business;
 
 /**
@@ -52,7 +53,7 @@ public interface BusinessDAO {
      * @param business Business object to insert
      * @throws DAOException If a data access error occurs
      */
-    void insert(Business business) throws DAOException;
+    void insert(Business business) throws DAOException, DataException;
 
     /**
      * Update the specified Business object in the persistance layer
@@ -60,7 +61,7 @@ public interface BusinessDAO {
      * @param business Business object to update
      * @throws DAOException If a data access error occurs
      */
-    void update(Business business) throws DAOException;
+    void update(Business business) throws DAOException, DataException;
 
     /**
      * Remove the specified Business object from the persistance layer

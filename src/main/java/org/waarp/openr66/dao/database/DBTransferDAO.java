@@ -14,7 +14,10 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DataException;
+import org.waarp.openr66.dao.exception.DataException;
 import org.waarp.openr66.pojo.Transfer;
+import org.waarp.openr66.pojo.DataError;
 
 /**
  * Implementation of TransferDAO for a standard SQL database
@@ -233,7 +236,12 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public void insert(Transfer transfer) throws DAOException {
+    public void insert(Transfer transfer) throws DAOException, DataException {
+        DataError err = transfer.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             transfer.getGlobalStep().ordinal(),
             transfer.getLastGlobalStep().ordinal(),
@@ -273,7 +281,12 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public void update(Transfer transfer) throws DAOException {
+    public void update(Transfer transfer) throws DAOException, DataException {
+        DataError err = transfer.validate();
+        if (err.isError()) {
+            throw new DataException("Invalid data", err);       
+        }
+
         Object[] params = {
             transfer.getId(),
             transfer.getGlobalStep().ordinal(),
