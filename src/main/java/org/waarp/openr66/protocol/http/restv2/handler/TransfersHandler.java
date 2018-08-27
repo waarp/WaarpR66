@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAO;
@@ -35,6 +34,7 @@ import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransferInitializer;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
@@ -48,6 +48,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -57,7 +58,21 @@ import java.util.List;
  * "/v2/transfers" URI.
  */
 @Path("/v2/transfers")
-public class TransfersHandler extends AbstractHttpHandler {
+public class TransfersHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.partner,
+            RestHostConfig.RoleType.transfer
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public TransfersHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/transfers. If the request is valid, the Http response will

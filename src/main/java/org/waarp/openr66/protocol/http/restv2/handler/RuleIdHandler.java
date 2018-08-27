@@ -31,6 +31,7 @@ import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestRule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
@@ -41,13 +42,27 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the handler for all requests made on a single 'rule' entry, accessible with the URI "/rule/{id}",
  * with {id} being the actual id of the desired rule.
  */
 @Path("/v2/rules/{id}")
-public class RuleIdHandler extends AbstractHttpHandler {
+public class RuleIdHandler extends AbstractRestHttpHandler {
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.rule
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public RuleIdHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/rules/{id}. If the request is valid and the id exists

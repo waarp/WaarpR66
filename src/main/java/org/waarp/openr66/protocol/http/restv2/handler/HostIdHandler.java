@@ -35,6 +35,7 @@ import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHost;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
@@ -45,13 +46,28 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the handler for all requests made on a single 'host' entry, accessible with the URI "/host/{id}",
  * with {id} being the actual id of the desired host.
  */
 @Path("/v2/hosts/{id}")
-public class HostIdHandler extends AbstractHttpHandler {
+public class HostIdHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.host
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public HostIdHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/hosts/{id}. If the request is valid and the id exists

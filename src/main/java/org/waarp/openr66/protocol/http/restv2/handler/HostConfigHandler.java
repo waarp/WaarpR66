@@ -20,7 +20,6 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
-import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -43,12 +42,27 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the handler for all request made on the 'hostconfig' database, accessible through the "/v2/hostconfig" URI.
  */
 @Path("/v2/hostconfig")
-public class HostConfigHandler extends AbstractHttpHandler {
+public class HostConfigHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.system
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public HostConfigHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/hostconfig. If the request is valid and the host does

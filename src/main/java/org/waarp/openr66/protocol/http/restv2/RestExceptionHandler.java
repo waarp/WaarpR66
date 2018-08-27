@@ -39,8 +39,8 @@ public class RestExceptionHandler extends ExceptionHandler {
     @Override
     public void handle(Throwable t, HttpRequest request, HttpResponder responder) {
         String internal = (t.getMessage() == null) ? "" : t.getMessage().replaceAll("\"", "'");
-        String message = String.format("{\"userMessage\":\"Unexpected internal error : " + t.getClass().getSimpleName() +
-                "\",\"internalMessage\":\"%s\"}", internal);
+        String message = String.format("{\"userMessage\":\"Unexpected internal error" +
+                "\",\"internalMessage\":\"%s -> %s\"}", t.getClass().getSimpleName(), internal);
         responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, message);
     }
 }

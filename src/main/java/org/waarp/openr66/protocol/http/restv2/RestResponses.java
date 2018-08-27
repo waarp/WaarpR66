@@ -34,6 +34,8 @@ public final class RestResponses {
 
     private static final int HASHING_ERROR = 104;
 
+    private static final int ILLEGAL_HANDLER = 105;
+
 
     /** This class is a utility class, and should not be instantiated. */
     private RestResponses () {
@@ -211,7 +213,7 @@ public final class RestResponses {
                     "\"userMessage\":\"Database Error\"," +
                     "\"internalMessage\":\"%s.\"," +
                     "\"code\":" + DB_EXCEPTION +
-                    "}",
+                "}",
                 t.getMessage().replaceAll("\"", "'").replaceAll("\n", " "));
     }
 
@@ -221,5 +223,31 @@ public final class RestResponses {
                     "\"internalMessage\":\"An error occurred during the password hashing.\"," +
                     "\"code\":" + HASHING_ERROR +
                 "}";
+    }
+
+    public static String illegalHandler() {
+        return "{" +
+                    "\"userMessage\":\"Illegal handler\"," +
+                    "\"internalMessage\":\"The handler selected for the request is not a valid one.\"," +
+                    "\"code\":" + ILLEGAL_HANDLER +
+                "}";
+    }
+
+    public static String badMethod(String uri) {
+        return String.format(
+                "{" +
+                    "\"userMessage\":\"Bad method\"," +
+                    "\"internalMessage\":\"Http method not allowed at URI '%s'.\"" +
+                "}",
+                uri);
+    }
+
+    public static String notFound(String uri) {
+        return String.format(
+                "{" +
+                    "\"userMessage\":\"Not found\"," +
+                    "\"internalMessage\":\"Resource '%s' was not found on this server.\"" +
+                "}",
+                uri);
     }
 }

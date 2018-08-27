@@ -32,6 +32,7 @@ import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 
 import javax.ws.rs.GET;
@@ -39,13 +40,29 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the handler for all requests made on a single 'transfer' entry, accessible with the URI "/transfer/{id}",
  * with {id} being the actual id of the desired transfer.
  */
 @Path("/v2/transfers/{id}")
-public class TransferIdHandler extends AbstractHttpHandler {
+public class TransferIdHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.partner,
+            RestHostConfig.RoleType.transfer
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public TransferIdHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/transfers/{id}. If the request is valid and the id exists

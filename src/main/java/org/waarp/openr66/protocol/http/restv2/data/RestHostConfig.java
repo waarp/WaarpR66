@@ -40,16 +40,7 @@ public class RestHostConfig {
         this.business = (business.getBusiness().isEmpty()) ? new String[0] : business.getBusiness().split(" ");
         this.others = business.getOthers().replaceAll("</?root>|</?version>", "");
 
-        if(business.getRoles().matches("<roles></roles>")) {
-            this.roles = new Role[0];
-        } else {
-            String rolesStr = business.getRoles().replaceAll("<roles><role>|</role></roles>", "");
-            String[] roles = rolesStr.split("</role><role>");
-            this.roles = new Role[roles.length];
-            for (int i = 0; i < roles.length; i++) {
-                this.roles[i] = new Role(roles[i]);
-            }
-        }
+        this.roles = Role.toRoleList(business.getRoles());
 
         if(business.getAliases().matches("<aliases></aliases>")) {
             this.aliases = new Alias[0];
@@ -92,6 +83,7 @@ public class RestHostConfig {
     /** A pair associating a host with the type of actions it is allowed to perform on the server. */
     public static class Role {
         /** The host's id. */
+        @NotEmpty
         public String host;
 
         /**
@@ -101,7 +93,7 @@ public class RestHostConfig {
          */
         public RoleType[] roleTypes;
 
-        public Role(){};
+        public Role(){}
 
         /**
          * Constructs a new role from a host and a list of actions.
@@ -134,6 +126,20 @@ public class RestHostConfig {
             }
         }
 
+        public static Role[] toRoleList(String business) {
+            if(business.matches("<roles></roles>")) {
+                return new Role[0];
+            } else {
+                String rolesStr = business.replaceAll("<roles><role>|</role></roles>", "");
+                String[] roles = rolesStr.split("</role><role>");
+                Role[] restRoles = new Role[roles.length];
+                for (int i = 0; i < roles.length; i++) {
+                    restRoles[i] = new Role(roles[i]);
+                }
+                return restRoles;
+            }
+        }
+
         public String toBusiness() {
             StringBuilder business = new StringBuilder("<role><roleid>" + this.host + "</roleid><roleset>");
             for(RoleType roleType : this.roleTypes) {
@@ -148,9 +154,11 @@ public class RestHostConfig {
     /** A pair associating a host with it's known aliases. */
     public static class Alias {
         /** The host's id. */
+        @NotEmpty
         public String host;
 
         /** The list of the server's known aliases. */
+        @NotEmpty
         public String[] aliasSet;
 
         public Alias(){}

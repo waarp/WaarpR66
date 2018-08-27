@@ -20,24 +20,37 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
-import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.channel.Channel;
+import io.netty.channel.local.LocalChannel;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
+import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
+import org.waarp.openr66.protocol.localhandler.ServerActions;
+import org.waarp.openr66.protocol.localhandler.packet.AuthentPacket;
+import org.waarp.openr66.protocol.localhandler.packet.StartupPacket;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -45,8 +58,9 @@ import java.util.List;
 import java.util.Map;
 
 /** This is the handler for all requests for server commands, accessible through the "/v2/server" URI. */
+
 @Path("/v2/server")
-public class ServerHandler extends AbstractHttpHandler {
+public class ServerHandler extends AbstractRestHttpHandler {
 
     public static final Calendar startDate = new GregorianCalendar();
 
@@ -57,6 +71,37 @@ public class ServerHandler extends AbstractHttpHandler {
     private static final String archPath = "/arch";
 
     private static final String logsPath = "/logs";
+
+
+    public ServerHandler() {
+        super(null, null);
+    }
+
+    @Override
+    public boolean isAuthorized(String user, HttpMethod httpMethod, String method) throws DAOException {
+        BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
+        RestHostConfig.Role[] roles = RestHostConfig.Role.toRoleList(businessDAO.select(RestUtils.HOST_ID).getRoles());
+        List<RestHostConfig.RoleType> rights = new ArrayList<RestHostConfig.RoleType>();
+        for (RestHostConfig.Role role : roles) {
+            if (role.host.equals(user)) {
+                rights = Arrays.asList(role.roleTypes);
+            }
+        }
+
+        if(rights.isEmpty()) {
+            return false;
+        } else if(rights.contains(RestHostConfig.RoleType.fullAdmin)) {
+            return true;
+        } else if(method.equals("getStatus")) {
+            return rights.contains(RestHostConfig.RoleType.readOnly) ||
+                    rights.contains(RestHostConfig.RoleType.partner) ||
+                    rights.contains(RestHostConfig.RoleType.configAdmin);
+        } else if(method.equals("getLogs")) {
+            return rights.contains(RestHostConfig.RoleType.logControl);
+        } else {
+            return rights.contains(RestHostConfig.RoleType.system);
+        }
+    }
 
     /**
      * Get the general status of the server.
@@ -88,8 +133,7 @@ public class ServerHandler extends AbstractHttpHandler {
     @Path("shutdown")
     @PUT
     public void shutdown(HttpRequest request, HttpResponder responder) {
-        //TODO: shutdown the server
-        responder.sendStatus(HttpResponseStatus.ACCEPTED);
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
     /**
@@ -101,8 +145,7 @@ public class ServerHandler extends AbstractHttpHandler {
     @Path("restart")
     @PUT
     public void restart(HttpRequest request, HttpResponder responder) {
-        //TODO: restart the server
-        responder.sendStatus(HttpResponseStatus.ACCEPTED);
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
     /**
@@ -213,7 +256,7 @@ public class ServerHandler extends AbstractHttpHandler {
     @Path("config")
     @PUT
     public void setConfig(HttpRequest request, HttpResponder responder) {
-        responder.sendStatus(HttpResponseStatus.ACCEPTED);
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
     /**
@@ -225,6 +268,6 @@ public class ServerHandler extends AbstractHttpHandler {
     @Path("business")
     @PUT
     public void execBusiness(HttpRequest request, HttpResponder responder) {
-        responder.sendStatus(HttpResponseStatus.ACCEPTED);
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 }

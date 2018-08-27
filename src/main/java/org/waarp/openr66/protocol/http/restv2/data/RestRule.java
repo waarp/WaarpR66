@@ -167,6 +167,7 @@ public class RestRule {
         public String argument;
 
         /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
+        @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
         public Integer delay;
 
         public Task() {}
@@ -201,6 +202,7 @@ public class RestRule {
     public String ruleID;
 
     /** The IDs of the hosts allowed to use this rule for their transfers. */
+    @NotEmpty
     public String[] hostsIDs = new String[0];
 
     /**

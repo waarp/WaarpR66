@@ -31,6 +31,7 @@ import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestLimit;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
@@ -42,12 +43,27 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the handler for all request made on the 'limits' database, accessible through the "/v2/limits" URI.
  */
 @Path("/v2/limits")
-public class LimitsHandler extends AbstractHttpHandler {
+public class LimitsHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.limit
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public LimitsHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/limits. If the request is valid and the host does

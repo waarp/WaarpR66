@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.common.crypto.HmacSha256;
-import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -64,7 +63,6 @@ public final class RestUtils {
     }
 
     /** This server's id. */
-    //TODO: replace by loading the id from the config file.
     public static final String HOST_ID = Configuration.configuration.getHOST_ID();
 
     private static Connection getConnection() {
@@ -218,7 +216,7 @@ public final class RestUtils {
      * @param bounds    The 'Or' annotation containing the bounds to check.
      * @return  'true' if the value is within the bounds, 'false' if not.
      */
-    private static boolean checkValue(long value, Or bounds) {
+    private static boolean checkBounds(long value, Or bounds) {
         for(Bounds bound : bounds.value()) {
             if (value >= bound.min() && value <= bound.max()) {
                 return true;
@@ -242,23 +240,39 @@ public final class RestUtils {
                     throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
                 } else {
                     Class cla = field.getType();
-                    if(field.isAnnotationPresent(NotEmpty.class) && cla == String.class &&
-                            ((String) val).trim().isEmpty()) {
-                        throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                    if(field.isAnnotationPresent(NotEmpty.class)) {
+                        if(cla == String.class && ((String) val).trim().isEmpty()) {
+                            throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                        } else if(cla == String[].class) {
+                            for(String str : (String[]) val) {
+                                if(str.trim().isEmpty()) {
+                                    throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(
+                                            field.getName()));
+                                }
+                            }
+                        }
                     }
                     else if(field.isAnnotationPresent(Or.class)) {
                         if(val.getClass() == Integer.class){
                             long num = ((Integer) val).longValue();
-                            if (!checkValue(num, field.getAnnotation(Or.class))) {
+                            if (!checkBounds(num, field.getAnnotation(Or.class))) {
                                 throw new OpenR66RestInvalidEntryException(
                                         RestResponses.invalidNumber(num, field.getName()));
                             }
                         } else if(val.getClass() == Long.class) {
                             long num = (Long) val;
-                            if (!checkValue(num, field.getAnnotation(Or.class))) {
+                            if (!checkBounds(num, field.getAnnotation(Or.class))) {
                                 throw new OpenR66RestInvalidEntryException(
                                         RestResponses.invalidNumber(num, field.getName()));
                             }
+                        }
+                    } else if(!cla.isEnum()) {
+                        if(cla.isArray()) {
+                            for(Object obj : (Object[]) val) {
+                                checkEntry(obj);
+                            }
+                        } else {
+                            checkEntry(val);
                         }
                     }
                 }

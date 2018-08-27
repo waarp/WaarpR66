@@ -35,6 +35,7 @@ import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHost;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
@@ -47,6 +48,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +56,20 @@ import java.util.List;
  * This is the handler for all request made on the 'hosts' database, accessible through the "/v2/hosts" URI.
  */
 @Path("/v2/hosts")
-public class HostsHandler extends AbstractHttpHandler {
+public class HostsHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.host
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public HostsHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/hosts. If the request is valid, the Http response will

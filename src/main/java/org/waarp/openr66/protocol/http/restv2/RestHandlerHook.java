@@ -30,12 +30,17 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.utility.Base64;
+import org.waarp.ftp.core.command.access.USER;
+import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.pojo.Host;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
+import org.waarp.openr66.protocol.http.restv2.handler.AbstractRestHttpHandler;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -70,6 +75,35 @@ public class RestHandlerHook implements HandlerHook {
                 headers);
     }
 
+    /**
+     * Sends a response saying the requester must authenticate itself to make the request.
+     *
+     * @param responder The HttpResponder through which the response is sent.
+     */
+    private static void forbidden(HttpResponder responder) {
+        HttpHeaders headers = new DefaultHttpHeaders();
+        headers.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+        responder.sendString(HttpResponseStatus.FORBIDDEN,
+                "{\"userMessage\":\"Forbidden\"," +
+                        "\"internalMessage\":\"You do not have the rights to access this resource.\"}",
+                headers);
+    }
+
+    private static AbstractRestHttpHandler getHandler(HandlerInfo info)  {
+        String name = info.getHandlerName();
+        try {
+            Class<?> cla = Class.forName(name);
+            return (AbstractRestHttpHandler) cla.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException();
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException();
+        } catch (InstantiationException e) {
+            throw new IllegalArgumentException();
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException();
+        }
+    }
 
     /**
      * Hook called before a request handler is called. Checks the request content type and accepted type. If the
@@ -84,50 +118,80 @@ public class RestHandlerHook implements HandlerHook {
      */
     @Override
     public boolean preCall(HttpRequest httpRequest, HttpResponder httpResponder, HandlerInfo handlerInfo) {
-        if (this.authenticated) {
-            String key = httpRequest.headers().get("X-Auth-Key");
-            if (key == null) {
-                unauthorized(httpResponder);
-                return false;
-            } else {
-                try {
-                    String[] authKey = key.split(" ");
+        if(this.authenticated) {
+            try {
+                String key = httpRequest.headers().get("X-Auth-Key");
+                String user;
+                if (key == null) {
+                    unauthorized(httpResponder);
+                    return false;
+                } else {
+                    HostDAO hostDAO = RestUtils.factory.getHostDAO();
+                    String[] authKey = key.split("\\s");
 
-                    if("Basic".equals(authKey[0])) {
+                    if ("Basic".equals(authKey[0])) {
                         String[] credentials = new String(Base64.decode(authKey[1])).split(":");
-                        if(credentials.length != 2) {
+                        if (credentials.length != 2) {
                             unauthorized(httpResponder);
                             return false;
                         }
-                        HostDAO dao = DAOFactory.getDAOFactory(DbConstant.connectionFactory).getHostDAO();
-                        Host requester = dao.select(credentials[0]);
+                        user = credentials[0];
+                        Host requester = hostDAO.select(user);
                         String cipher;
                         try {
-                            cipher = new String(RestUtils.HMAC.crypt(credentials[1].getBytes()));
+                            cipher = RestUtils.HMAC.cryptToHex(credentials[1]);
                         } catch (Exception e) {
                             httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.hashError());
                             return false;
                         }
-                        if (requester == null || cipher.equals(new String(requester.getHostkey()))) {
+                        if (requester == null || !cipher.equals(new String(requester.getHostkey()))) {
                             unauthorized(httpResponder);
                             return false;
                         }
-                    }
-                    else {
+                    } else if ("Hmac".equals(authKey[0])) {
+                        String time = httpRequest.headers().get("X-Auth-Timestamp");
+                        user = httpRequest.headers().get("X-Auth-User");
+                        Host requester = hostDAO.select(user);
+                        if (requester == null) {
+                            unauthorized(httpResponder);
+                            return false;
+                        } else {
+                            String pswd = new String(requester.getHostkey());
+                            String mkkey = RestUtils.HMAC.cryptToHex(time + user + pswd);
+                            System.err.println(mkkey);
+                            if (!mkkey.equals(authKey[1])) {
+                                unauthorized(httpResponder);
+                                return false;
+                            }
+                        }
+                    } else {
                         unauthorized(httpResponder);
                         return false;
                     }
-
-                } catch (IOException e) {
-                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.base64Decoding());
-                    return false;
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    unauthorized(httpResponder);
-                    return false;
-                } catch (DAOException e) {
-                    httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                            RestResponses.dbException(e.getCause()));
                 }
+
+                if(!getHandler(handlerInfo).isAuthorized(user, httpRequest.method(), handlerInfo.getMethodName())) {
+                    forbidden(httpResponder);
+                    return false;
+                }
+
+
+            } catch (IOException e) {
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.base64Decoding());
+                return false;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                unauthorized(httpResponder);
+                return false;
+            } catch (DAOException e) {
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        RestResponses.dbException(e.getCause()));
+                return false;
+            } catch (IllegalArgumentException e) {
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.illegalHandler());
+                return false;
+            } catch (Exception e) {
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.hashError());
+                return false;
             }
         }
 

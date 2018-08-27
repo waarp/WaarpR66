@@ -32,9 +32,9 @@ import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.database.DBRuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestRule;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
@@ -47,6 +47,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +55,20 @@ import java.util.List;
  * This is the handler for all request made on the 'rules' database, accessible through the "/v2/rules" URI.
  */
 @Path("/v2/rules")
-public class RulesHandler extends AbstractHttpHandler {
+public class RulesHandler extends AbstractRestHttpHandler {
+
+    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
+            RestHostConfig.RoleType.fullAdmin,
+            RestHostConfig.RoleType.configAdmin,
+            RestHostConfig.RoleType.rule
+    );
+    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
+            RestHostConfig.RoleType.readOnly
+    );
+
+    public RulesHandler() {
+        super(writeRoles, readRoles);
+    }
 
     /**
      * The method called when a GET request is made on /v2/rules. If the request is valid, the Http response will
