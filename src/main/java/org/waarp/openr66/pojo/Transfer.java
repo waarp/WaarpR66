@@ -130,7 +130,8 @@ public class Transfer {
         this(DbConstant.ILLEGALVALUE, rule, rulemode, file, file, fileInfo,
                 false, blockSize, retrieveMode, "", "", "", "", TASKSTEP.NOTASK, 
                 TASKSTEP.NOTASK, -1, "", "", 0, 
-                new Timestamp(new Date().getTime()), null);
+                new Timestamp(new Date().getTime()), 
+                new Timestamp(new Date().getTime()));
     }
 
     public DataError validate() {
@@ -138,6 +139,14 @@ public class Transfer {
         //Tests
         if (blockSize < 0) {
             res.add("blockSize", "BlockSize must be positive or null");
+        }
+        if (start == null) {
+            res.add("start", "Start cannot be null");
+        }
+        if (stop == null) {
+            res.add("stop", "Stop cannot be null");
+        } else if (stop.before(start)) {
+            res.add("sop", "Stop cannot be before start");
         }
         return res;
     }
