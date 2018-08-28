@@ -20,7 +20,6 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
-import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,13 +31,13 @@ import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.database.DBRuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestRule;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -87,6 +86,8 @@ public class RulesHandler extends AbstractRestHttpHandler {
                             @QueryParam("offset") @DefaultValue("0") String offsetStr,
                             @QueryParam("order") @DefaultValue("+id") String orderStr,
                             @QueryParam("modeTrans") List<String> modeTransStr) {
+        BadRequestResponse badResponse = new BadRequestResponse();
+
         int limit, offset;
         RestRule.Order order;
         List<RestRule.ModeTrans> modeTrans = new ArrayList<RestRule.ModeTrans>();
@@ -94,10 +95,10 @@ public class RulesHandler extends AbstractRestHttpHandler {
             limit = Integer.parseInt(limitStr);
             order = RestRule.Order.fromString(orderStr);
         } catch(NumberFormatException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(limitStr));
+            badResponse.illegalParameterValue("limit");
             return;
         } catch (InstantiationException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderStr));
+            badResponse.illegalParameterValue("order");
             return;
         }
         try {
@@ -106,18 +107,20 @@ public class RulesHandler extends AbstractRestHttpHandler {
                 modeTrans.add(RestRule.ModeTrans.fromString(str));
             }
         } catch(NumberFormatException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notANumber(offsetStr));
+            badResponse.illegalParameterValue("offset");
             return;
         } catch (InstantiationException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("modeTrans", e.getMessage()));
+            badResponse.illegalParameterValue("modeTrans");
             return;
         }
 
         if (limit < 0) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("limit"));
+            badResponse.illegalParameterValue("limit");
         } else if (offset < 0) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
-        } else {
+            badResponse.illegalParameterValue("offset");
+        }
+
+        if(badResponse.isEmpty()) {
             try {
                 RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
                 List<Filter> filters = new ArrayList<Filter>();
@@ -148,10 +151,15 @@ public class RulesHandler extends AbstractRestHttpHandler {
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
 
             } catch (DAOException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.databaseError().toJson());
             } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.jsonProcessingError().toJson());
             }
+        }
+        else {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, badResponse.toJson());
         }
     }
 
@@ -177,18 +185,19 @@ public class RulesHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(restRule);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyExisting("rules", restRule.ruleID));
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST,
+                        new BadRequestResponse().alreadyExisting(RestRule.class, restRule.ruleID).toJson());
             }
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 

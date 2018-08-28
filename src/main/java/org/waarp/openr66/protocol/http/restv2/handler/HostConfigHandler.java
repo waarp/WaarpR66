@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.dockerjava.api.model.HostConfig;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -29,12 +30,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -83,12 +84,14 @@ public class HostConfigHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(config);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -115,18 +118,18 @@ public class HostConfigHandler extends AbstractRestHttpHandler {
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
                 responder.sendJson(HttpResponseStatus.BAD_REQUEST,
-                        RestResponses.alreadyInitialized("host configuration"));
+                        new BadRequestResponse().alreadyInitialized(HostConfig.class).toJson());
             }
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -152,18 +155,18 @@ public class HostConfigHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(config);
                 responder.sendJson(HttpResponseStatus.ACCEPTED, responseBody);
             } else {
-                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -183,10 +186,11 @@ public class HostConfigHandler extends AbstractRestHttpHandler {
                 businessDAO.delete(businessDAO.select(RestUtils.HOST_ID));
                 responder.sendStatus(HttpResponseStatus.NO_CONTENT);
             } else {
-                responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
+                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 

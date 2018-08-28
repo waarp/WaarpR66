@@ -139,7 +139,7 @@
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="filtered">
 <TITRE>filtered</TITRE>
-<DOCUMENTATION>Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only messages received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used.</DOCUMENTATION>
+<DOCUMENTATION>Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only message received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used.</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="usetrap">
 <TITRE>usetrap</TITRE>

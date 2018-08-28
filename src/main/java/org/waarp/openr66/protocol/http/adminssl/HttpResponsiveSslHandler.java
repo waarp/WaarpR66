@@ -1839,7 +1839,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                     } catch (NumberFormatException e) {
                         extraInformation = Messages.getString("HttpSslHandler.42"); //$NON-NLS-1$
                     }
-                } else if (act.equalsIgnoreCase("HostConfig")) {
+                } else if (act.equalsIgnoreCase("Data.HostConfig")) {
                     config.setBusiness(getTrimValue("BUSINESS"));
                     config.setRoles(getTrimValue("ROLES"));
                     config.setAliases(getTrimValue("ALIASES"));

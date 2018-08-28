@@ -27,6 +27,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import org.waarp.openr66.protocol.http.restv2.errors.RestResponse;
 
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;
@@ -53,31 +54,16 @@ public class RestRoutingErrorHandler extends ChannelOutboundHandlerAdapter {
 
         FullHttpResponse fullResponse;
         fullResponse = ((FullHttpResponse) msg).copy();
-        String content = fullResponse.content().toString(UTF_8);
 
         FullHttpResponse newResponse;
         switch (fullResponse.status().code()) {
             case 404:
-                fullResponse.headers().remove(HttpHeaderNames.CONTENT_TYPE);
-                fullResponse.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-                Pattern pattern = Pattern.compile("(Problem accessing: )(.*)(\\. Reason: Not Found)");
-                Matcher matcher = pattern.matcher(content);
-                if(matcher.find()) {
-                    content = matcher.group(2);
-                }
-                String jsonNF = RestResponses.notFound(content);
-                newResponse = fullResponse.replace(Unpooled.copiedBuffer(jsonNF, UTF_8));
-                newResponse.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
-                newResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, jsonNF.length());
-                super.write(ctx, newResponse, promise);
-                break;
             case 405:
-                fullResponse.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-                String jsonBM = RestResponses.badMethod("");
-                newResponse = fullResponse.replace(Unpooled.copiedBuffer(jsonBM, UTF_8));
+                fullResponse.headers().remove(HttpHeaderNames.CONTENT_TYPE);
+                newResponse = fullResponse.replace(Unpooled.copiedBuffer("", UTF_8));
                 newResponse.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
-                newResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, jsonBM.length());
-                super.write(ctx, newResponse, promise);
+                newResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
+                super.write(ctx, fullResponse, promise);
                 break;
             default:
                 super.write(ctx, msg, promise);

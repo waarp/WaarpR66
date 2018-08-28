@@ -76,7 +76,7 @@ Detailed information
   *QueryAlreadyFinished : stands for special code where the Request is in fact remotely already
   finished and so can be finished locally.
 
-  * Other codes specifies different kinds of error (NotKnownHost, Shutdown, RemoteError, ...).
+  * Other code specifies different kinds of error (NotKnownHost, Shutdown, RemoteError, ...).
 
 Sequential logic
 

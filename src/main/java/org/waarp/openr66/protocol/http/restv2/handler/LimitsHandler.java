@@ -20,7 +20,6 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
-import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -29,13 +28,13 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestLimit;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -83,12 +82,14 @@ public class LimitsHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(restLimit);
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -114,18 +115,19 @@ public class LimitsHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(restLimit);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.alreadyInitialized("limits"));
+                responder.sendJson(HttpResponseStatus.BAD_REQUEST,
+                        new BadRequestResponse().alreadyInitialized(RestLimit.class).toJson());
             }
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -152,18 +154,18 @@ public class LimitsHandler extends AbstractRestHttpHandler {
                 String responseBody = RestUtils.toJsonString(restLimit);
                 responder.sendJson(HttpResponseStatus.CREATED, responseBody);
             } else {
-                responder.sendJson(HttpResponseStatus.NOT_FOUND, request.uri());
+                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -187,7 +189,8 @@ public class LimitsHandler extends AbstractRestHttpHandler {
                 responder.sendString(HttpResponseStatus.NOT_FOUND, request.uri());
             }
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 

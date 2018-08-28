@@ -30,21 +30,24 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.utility.Base64;
-import org.waarp.ftp.core.command.access.USER;
-import org.waarp.openr66.dao.BusinessDAO;
-import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.pojo.Host;
-import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
+import org.waarp.openr66.protocol.http.restv2.errors.ForbiddenResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.NotAcceptableResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.RestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.UnauthorizedResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.UnsupportedMediaResponse;
 import org.waarp.openr66.protocol.http.restv2.handler.AbstractRestHttpHandler;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 /** Hooks called before and after a request handler is called. */
 public class RestHandlerHook implements HandlerHook {
@@ -52,13 +55,9 @@ public class RestHandlerHook implements HandlerHook {
     private final boolean authenticated;
     private final boolean signed;
 
-    /** Message sent when the client does not accept the json format. */
-    private final static String notAcceptable =
-            "{\"userMessage\":\"Not acceptable\",\"internalMessage\":\"Client must accept JSON format.\"}";
-
-    /** Message sent when the request content type is not valid for the specified request. */
-    private final static String unsupportedMedia =
-            "{\"userMessage\":\"Unsupported media\",\"internalMessage\":\"Request's content type must be %s.\"}";
+    private static final String keyHeader = "X-Auth-Key";
+    private static final String userHeader = "X-Auth-User";
+    private static final String tsHeader = "X-Auth-Timestamp";
 
     /**
      * Sends a response saying the requester must authenticate itself to make the request.
@@ -70,8 +69,7 @@ public class RestHandlerHook implements HandlerHook {
         headers.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
         headers.add(HttpHeaderNames.WWW_AUTHENTICATE, "Basic, HMAC");
         responder.sendString(HttpResponseStatus.UNAUTHORIZED,
-                "{\"userMessage\":\"Unauthorized\"," +
-                        "\"internalMessage\":\"Must be authenticated to make this request.\"}",
+                new UnauthorizedResponse().toJson(),
                 headers);
     }
 
@@ -84,8 +82,7 @@ public class RestHandlerHook implements HandlerHook {
         HttpHeaders headers = new DefaultHttpHeaders();
         headers.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
         responder.sendString(HttpResponseStatus.FORBIDDEN,
-                "{\"userMessage\":\"Forbidden\"," +
-                        "\"internalMessage\":\"You do not have the rights to access this resource.\"}",
+                new ForbiddenResponse().toJson(),
                 headers);
     }
 
@@ -105,6 +102,23 @@ public class RestHandlerHook implements HandlerHook {
         }
     }
 
+    private static void setLocale(HttpRequest request) {
+        String langHead = request.headers().get(HttpHeaderNames.ACCEPT_LANGUAGE);
+        if(langHead != null) {
+            String[] langs = langHead.split(",");
+            for(String lang : langs) {
+                if(lang.matches("fr")) {
+                    RestResponse.restMessages = ResourceBundle.getBundle("RestMessages", Locale.FRENCH);
+                    return;
+                } else if(lang.matches("en")) {
+                    RestResponse.restMessages = ResourceBundle.getBundle("RestMessages", Locale.ENGLISH);
+                    return;
+                }
+            }
+        }
+        RestResponse.restMessages = ResourceBundle.getBundle("RestMessages", Locale.ENGLISH);
+    }
+
     /**
      * Hook called before a request handler is called. Checks the request content type and accepted type. If the
      * accepted type is invalid, the httpResponder sends a code 415 response. If the content type is invalid, sends a
@@ -118,9 +132,11 @@ public class RestHandlerHook implements HandlerHook {
      */
     @Override
     public boolean preCall(HttpRequest httpRequest, HttpResponder httpResponder, HandlerInfo handlerInfo) {
+        setLocale(httpRequest);
+
         if(this.authenticated) {
             try {
-                String key = httpRequest.headers().get("X-Auth-Key");
+                String key = httpRequest.headers().get(keyHeader);
                 String user;
                 if (key == null) {
                     unauthorized(httpResponder);
@@ -141,7 +157,8 @@ public class RestHandlerHook implements HandlerHook {
                         try {
                             cipher = RestUtils.HMAC.cryptToHex(credentials[1]);
                         } catch (Exception e) {
-                            httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.hashError());
+                            httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                                    InternalErrorResponse.hashError().toJson());
                             return false;
                         }
                         if (requester == null || !cipher.equals(new String(requester.getHostkey()))) {
@@ -149,8 +166,8 @@ public class RestHandlerHook implements HandlerHook {
                             return false;
                         }
                     } else if ("Hmac".equals(authKey[0])) {
-                        String time = httpRequest.headers().get("X-Auth-Timestamp");
-                        user = httpRequest.headers().get("X-Auth-User");
+                        String time = httpRequest.headers().get(tsHeader);
+                        user = httpRequest.headers().get(userHeader);
                         Host requester = hostDAO.select(user);
                         if (requester == null) {
                             unauthorized(httpResponder);
@@ -177,20 +194,23 @@ public class RestHandlerHook implements HandlerHook {
 
 
             } catch (IOException e) {
-                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.base64Decoding());
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.base64Decoding().toJson());
                 return false;
             } catch (ArrayIndexOutOfBoundsException e) {
                 unauthorized(httpResponder);
                 return false;
             } catch (DAOException e) {
                 httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                        RestResponses.dbException(e.getCause()));
+                        InternalErrorResponse.databaseError().toJson());
                 return false;
             } catch (IllegalArgumentException e) {
-                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.illegalHandler());
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.unknownHandler().toJson());
                 return false;
             } catch (Exception e) {
-                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.hashError());
+                httpResponder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.hashError().toJson());
                 return false;
             }
         }
@@ -212,18 +232,20 @@ public class RestHandlerHook implements HandlerHook {
                     contentType.equals(HttpHeaderValues.APPLICATION_JSON.toString()));
 
             if (!acceptJson) {
-                httpResponder.sendJson(HttpResponseStatus.NOT_ACCEPTABLE, notAcceptable);
+                httpResponder.sendJson(HttpResponseStatus.NOT_ACCEPTABLE, new NotAcceptableResponse().toJson());
                 return false;
             }
             if (httpRequest.method() == HttpMethod.GET) {
                 if (!contentUrlForm) {
                     httpResponder.sendJson(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE,
-                            String.format(unsupportedMedia, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED));
+                            new UnsupportedMediaResponse(
+                                    HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()).toJson());
                     return false;
                 }
             } else if (!contentJson) {
                 httpResponder.sendJson(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE,
-                        String.format(unsupportedMedia, HttpHeaderValues.APPLICATION_JSON));
+                        new UnsupportedMediaResponse(
+                                HttpHeaderValues.APPLICATION_JSON.toString()).toJson());
                 return false;
             }
         }

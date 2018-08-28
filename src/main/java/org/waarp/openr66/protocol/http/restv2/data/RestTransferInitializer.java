@@ -1,13 +1,11 @@
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.openr66.dao.RuleDAO;
-import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -37,19 +35,15 @@ public class RestTransferInitializer {
      * Extracts a date from the String argument and assigns it to the `start` field. The String must represent a date
      * in ISO-8601 format and cannot be in the past.
      * @param date  The String from which the date is extracted.
-     * @throws InvalidArgumentException Thrown if the date entered is in the past.
+     * @throws IllegalArgumentException Thrown if the date entered not in the right format or
      */
-    public void setStart(String date) throws InvalidArgumentException {
+    public void setStart(String date) throws IllegalArgumentException {
         if(date != null && !date.isEmpty()) {
-            try {
-                Calendar start = RestUtils.toCalendar(date);
-                if (start.before(new GregorianCalendar())) {
-                    throw new InvalidArgumentException(RestResponses.dateInThePast());
-                } else {
-                    this.start = start;
-                }
-            } catch(IllegalArgumentException e) {
-                throw new InvalidArgumentException(RestResponses.notADate("start", date));
+            Calendar start = RestUtils.toCalendar(date);
+            if (start.before(new GregorianCalendar())) {
+                throw new IllegalArgumentException();
+            } else {
+                this.start = start;
             }
         }
     }
@@ -58,8 +52,9 @@ public class RestTransferInitializer {
      * Transforms this RestTransferInitializer instance into a database Transfer instance.
      * @return The new Transfer created from this initializer instance.
      * @throws DAOException Thrown if the database could not be reached.
+     * @throws OpenR66RestBadRequestException Thrown if the rule entered is not a valid ruleID.
      */
-    public Transfer toTransfer() throws DAOException, OpenR66RestInvalidEntryException {
+    public Transfer toTransfer() throws DAOException, OpenR66RestBadRequestException {
         RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
         if(ruleDAO.exist(this.ruleID)) {
             int mode = ruleDAO.select(this.ruleID).getMode();
@@ -69,7 +64,8 @@ public class RestTransferInitializer {
 
             return transfer;
         } else {
-            throw new OpenR66RestInvalidEntryException(RestResponses.notARule(this.ruleID));
+            throw new OpenR66RestBadRequestException(
+                    new BadRequestResponse().illegalFieldValue(this.getClass(), "ruleID"));
         }
     }
 }

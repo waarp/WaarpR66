@@ -23,8 +23,6 @@ package org.waarp.openr66.protocol.http.restv2.handler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.Channel;
-import io.netty.channel.local.LocalChannel;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -32,17 +30,13 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.RestResponse;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
-import org.waarp.openr66.protocol.localhandler.packet.AuthentPacket;
-import org.waarp.openr66.protocol.localhandler.packet.StartupPacket;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -118,9 +112,11 @@ public class ServerHandler extends AbstractRestHttpHandler {
             String jsonString = RestUtils.toJsonString(status);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
@@ -189,7 +185,8 @@ public class ServerHandler extends AbstractRestHttpHandler {
             jsonString = mapper.writeValueAsString(response);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         }
     }
 
@@ -243,7 +240,8 @@ public class ServerHandler extends AbstractRestHttpHandler {
             jsonString = mapper.writeValueAsString(files);
             responder.sendJson(HttpResponseStatus.OK, jsonString);
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         }
     }
 

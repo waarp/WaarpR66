@@ -31,9 +31,9 @@
                     <xsd:annotation>
                     	<xsd:appinfo>
                     		<fg:node-info
-                    			message="Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only messages received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used." />
+                    			message="Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only message received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used." />
                     	</xsd:appinfo>
-                    	<xsd:documentation>Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only messages received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used.</xsd:documentation></xsd:annotation>
+                    	<xsd:documentation>Enables or disables source address filtering for incoming SNMPv1 or SNMPv2c packets. By default source address filtering is disabled! If enabled, only message received for community based security models are processed, that match an address in the snmpTargetAddressTable with the transport tag associated with the community used.</xsd:documentation></xsd:annotation>
 				  </xsd:element>
                 <xsd:element name="usetrap" type="booleanType" default="True" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>

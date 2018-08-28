@@ -641,9 +641,9 @@ where each field is separated by blank character. Last field (transferInformatio
 <div class="collapse" id="RESCHEDULE">
   <div class="well">
 <h4>RESCHEDULE</h4>
-<p>Reschedule Transfer task to a time delayed by the specified number of milliseconds, if the error code is one of the specified codes and the optional intervals of date are compatible with the new time schedule.</p><p>Result of arguments will be as following options (the two first are mandatory):</p>
+<p>Reschedule Transfer task to a time delayed by the specified number of milliseconds, if the error code is one of the specified code and the optional intervals of date are compatible with the new time schedule.</p><p>Result of arguments will be as following options (the two first are mandatory):</p>
 <ul><li><code>"-delay ms"</code> where ms is the added number of ms on current time before retry on schedule</li>
-<li><code>"-case errorCode,errorCode,..."</code> where errorCode is one of the following error of the current transfer (either literal or code in 1 character):
+<li><code>"-case code,code,..."</code> where code is one of the following error of the current transfer (either literal or code in 1 character):
 <code>ConnectionImpossible(C), ServerOverloaded(l), BadAuthent(A), ExternalOp(E), TransferError(T),</code> <code>MD5Error(M), Disconnection(D), RemoteShutdown(r), FinalOp(F), Unimplemented(U), Shutdown(S),</code> <code>RemoteError(R), Internal(I), StoppedTransfer(H), CanceledTransfer(K), Warning(W), Unknown(-),</code> <code>QueryAlreadyFinished(Q), QueryStillRunning(s), NotKnownHost(N), QueryRemotelyUnknown(u),</code> <code>FileNotFound(f), CommandNotFound(c), PassThroughMode(p)</code></li>
 <li><code>"-between start;end"</code> and/or <code>"-notbetween start;end"</code> (multiple times are allowed, start or end can be not set) and where start and stop are in the following format:
 <code>Yn:Mn:Dn:Hn:mn:Sn</code> where n is a number for each time specification, each specification is optional, as <code>Y=Year, M=Month, D=Day, H=Hour, m=minute, s=second</code>.

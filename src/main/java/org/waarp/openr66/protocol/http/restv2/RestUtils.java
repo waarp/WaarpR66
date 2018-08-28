@@ -33,9 +33,10 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.restv2.data.Bounds;
 import org.waarp.openr66.protocol.http.restv2.data.NotEmpty;
 import org.waarp.openr66.protocol.http.restv2.data.Or;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -90,12 +91,10 @@ public final class RestUtils {
      * @param c       The class of the object that will be created from the JSON object.
      * @param <T>     The generic type of the output object.
      * @return The Java object representing the source JSON object.
-     * @throws OpenR66RestBadRequestException Thrown if the JSON object is missing one or more fields.
-     * @throws OpenR66RestInternalErrorException Thrown if the JSON object could not be processed.
+     * @throws OpenR66RestInternalErrorException Thrown if an error occurred during the processing.
      */
-    public static <T> T deserializeRequest(HttpRequest request, Class<T> c)
-            throws OpenR66RestBadRequestException, OpenR66RestInternalErrorException {
-
+    public static <T> T deserializeRequest(HttpRequest request, Class<T> c) throws OpenR66RestInternalErrorException,
+            OpenR66RestBadRequestException {
         try {
             if (request instanceof FullHttpRequest) {
                 String body = ((FullHttpRequest) request).content().toString(Charset.forName("UTF-8"));
@@ -104,32 +103,18 @@ public final class RestUtils {
                 mapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
                 mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, true);
                 mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, true);
+                mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+                mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+                mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
 
                 return mapper.readValue(body, c);
             } else {
-                throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
+                throw new OpenR66RestBadRequestException(new BadRequestResponse().missingBody());
             }
         } catch (JsonMappingException e) {
-            if(e.getCause() == null) {
-                if(e.getPath().size() < 1) {
-                    throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
-                } else {
-                    try {
-                        Field field = c.getField(e.getPath().get(0).getFieldName());
-                        throw new OpenR66RestBadRequestException(
-                                RestResponses.illegalValue(field.getType(), field.getName()));
-                    } catch (NoSuchFieldException nsf) {
-                        throw new OpenR66RestBadRequestException(RestResponses.unknownField(
-                                e.getPath().get(0).getFieldName()));
-                    }
-                }
-            } else {
-                throw new OpenR66RestBadRequestException(e.getCause().getMessage());
-            }
-        } catch (IllegalArgumentException e) {
-            throw new OpenR66RestBadRequestException(RestResponses.emptyBody());
+            throw new RuntimeException(e.getMessage());
         } catch (IOException e) {
-            throw new OpenR66RestInternalErrorException(RestResponses.jsonProcessing());
+            throw new OpenR66RestInternalErrorException(InternalErrorResponse.jsonProcessingError());
         }
     }
 
@@ -229,25 +214,24 @@ public final class RestUtils {
      * Checks the fields have all been initialized.
      * @param entry The entry to check.
      * @throws OpenR66RestInternalErrorException    Thrown if one of the entry fields is inaccessible.
-     * @throws OpenR66RestInvalidEntryException     Thrown if one of the fields has an invalid value.
      */
     public static void checkEntry(Object entry) throws OpenR66RestInternalErrorException,
-            OpenR66RestInvalidEntryException {
+            OpenR66RestBadRequestException {
+        BadRequestResponse response = new BadRequestResponse();
         for(Field field : entry.getClass().getFields()) {
             try {
                 Object val = field.get(entry);
                 if(val == null) {
-                    throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                    response.illegalFieldValue(entry.getClass(), field.getName());
                 } else {
                     Class cla = field.getType();
                     if(field.isAnnotationPresent(NotEmpty.class)) {
                         if(cla == String.class && ((String) val).trim().isEmpty()) {
-                            throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(field.getName()));
+                            response.illegalFieldValue(entry.getClass(), field.getName());
                         } else if(cla == String[].class) {
                             for(String str : (String[]) val) {
                                 if(str.trim().isEmpty()) {
-                                    throw new OpenR66RestInvalidEntryException(RestResponses.emptyField(
-                                            field.getName()));
+                                    response.illegalFieldValue(entry.getClass(), field.getName());
                                 }
                             }
                         }
@@ -256,14 +240,12 @@ public final class RestUtils {
                         if(val.getClass() == Integer.class){
                             long num = ((Integer) val).longValue();
                             if (!checkBounds(num, field.getAnnotation(Or.class))) {
-                                throw new OpenR66RestInvalidEntryException(
-                                        RestResponses.invalidNumber(num, field.getName()));
+                                response.illegalFieldValue(entry.getClass(), field.getName());
                             }
                         } else if(val.getClass() == Long.class) {
                             long num = (Long) val;
                             if (!checkBounds(num, field.getAnnotation(Or.class))) {
-                                throw new OpenR66RestInvalidEntryException(
-                                        RestResponses.invalidNumber(num, field.getName()));
+                                response.illegalFieldValue(entry.getClass(), field.getName());
                             }
                         }
                     } else if(!cla.isEnum()) {
@@ -277,8 +259,12 @@ public final class RestUtils {
                     }
                 }
             } catch(IllegalAccessException e) {
-                throw new OpenR66RestInternalErrorException(RestResponses.illegalAccess(field));
+                throw new OpenR66RestInternalErrorException(InternalErrorResponse.illegalAccess(entry.getClass(),
+                        field.getName()));
             }
+        }
+        if(!response.isEmpty()) {
+            throw new OpenR66RestBadRequestException(response);
         }
     }
 

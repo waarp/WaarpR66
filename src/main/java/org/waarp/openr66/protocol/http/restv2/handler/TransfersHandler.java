@@ -20,26 +20,26 @@
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
-import co.cask.http.AbstractHttpHandler;
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.testcontainers.shaded.org.apache.commons.lang.math.NumberUtils;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.http.restv2.RestResponses;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransferInitializer;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInvalidEntryException;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -78,20 +78,20 @@ public class TransfersHandler extends AbstractRestHttpHandler {
      * The method called when a GET request is made on /v2/transfers. If the request is valid, the Http response will
      * contain an array of transfer entries. If not, the response will contain a '400 - Bad request' error message.
      *
-     * @param limit         Maximum number of entries allowed in the response.
-     * @param offset        Index of the first accepted entry in the list of all valid answers.
+     * @param limitStr      Maximum number of entries allowed in the response.
+     * @param offsetStr     Index of the first accepted entry in the list of all valid answers.
      * @param orderName     The criteria used to sort the entries and the direction of the ordering.
      * @param ruleID        Filter transfers that use this rule.
      * @param partner       Filter transfers that have this partner.
-     * @param statuses        Filter transfers currently in one of these statutes.
+     * @param statuses      Filter transfers currently in one of these statutes.
      * @param fileName      Filter transfers of a particular file.
      * @param startTrans    Lower bound for the transfers' date.
      * @param stopTrans     Upper bound for the transfers' date.
      */
     @GET
     public void filterTransfer(HttpRequest request, HttpResponder responder,
-                               @QueryParam("limit") @DefaultValue("20") int limit,
-                               @QueryParam("offset") @DefaultValue("0") int offset,
+                               @QueryParam("limit") @DefaultValue("20") String limitStr,
+                               @QueryParam("offset") @DefaultValue("0") String offsetStr,
                                @QueryParam("order") @DefaultValue("+id") String orderName,
                                @QueryParam("ruleID") @DefaultValue("") String ruleID,
                                @QueryParam("partner") @DefaultValue("") String partner,
@@ -100,40 +100,47 @@ public class TransfersHandler extends AbstractRestHttpHandler {
                                @QueryParam("startTrans") @DefaultValue("") String startTrans,
                                @QueryParam("stopTrans") @DefaultValue("") String stopTrans) {
 
-        if (limit < 0) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("limits"));
-        } else if (offset < 0) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.negative("offset"));
-        } else {
-            Calendar start;
-            Calendar stop;
-            try {
-                start = (startTrans.isEmpty() ? null : RestUtils.toCalendar(startTrans));
-            } catch (IllegalArgumentException e) {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
-                return;
-            }
-            try {
-                stop = (stopTrans.isEmpty()) ? null : RestUtils.toCalendar(stopTrans);
-            } catch (IllegalArgumentException e) {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.notADate("startTrans", startTrans));
-                return;
-            }
-            RestTransfer.Order order;
-            try {
-                order = RestTransfer.Order.fromString(orderName);
-            } catch (InstantiationException e) {
-                responder.sendJson(HttpResponseStatus.BAD_REQUEST, RestResponses.invalidEnum("order", orderName));
-                return;
-            }
+        BadRequestResponse badResponse = new BadRequestResponse();
 
+        int limit = -1, offset = -1;
+        if (NumberUtils.isDigits(limitStr)) {
+            limit = Integer.parseInt(limitStr);
+        } else {
+            badResponse.illegalParameterValue("limit");
+        }
+        if (NumberUtils.isDigits(offsetStr)) {
+            offset = Integer.parseInt(offsetStr);
+        } else {
+            badResponse.illegalParameterValue("offset");
+        }
+
+        Calendar start = null;
+        Calendar stop = null;
+        try {
+            start = (startTrans.isEmpty() ? null : RestUtils.toCalendar(startTrans));
+        } catch (IllegalArgumentException e) {
+            badResponse.illegalParameterValue("startTrans");
+        }
+        try {
+            stop = (stopTrans.isEmpty()) ? null : RestUtils.toCalendar(stopTrans);
+        } catch (IllegalArgumentException e) {
+            badResponse.illegalParameterValue("stopTrans");
+        }
+        RestTransfer.Order order = null;
+        try {
+            order = RestTransfer.Order.fromString(orderName);
+        } catch (InstantiationException e) {
+            badResponse.illegalParameterValue("order");
+        }
+
+        if(badResponse.isEmpty()) {
             List<Filter> filters = new ArrayList<Filter>();
             filters.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", ruleID));
             filters.add(new Filter(DBTransferDAO.REQUESTED_FIELD, "=", partner));
             filters.add(new Filter(DBTransferDAO.FILENAME_FIELD, "=", fileName));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, ">=", start));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, "<=", stop));
-            for(RestTransfer.Status status : statuses) {
+            for (RestTransfer.Status status : statuses) {
                 filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD, "=", status.name()));
             }
 
@@ -146,7 +153,7 @@ public class TransfersHandler extends AbstractRestHttpHandler {
 
                 Collections.sort(resultsList, order.comparator);
                 List<RestTransfer> orderedResults = new ArrayList<RestTransfer>();
-                for(int i=offset; i<offset+limit && i<resultsList.size(); i++) {
+                for (int i = offset; i < offset + limit && i < resultsList.size(); i++) {
                     orderedResults.add(resultsList.get(i));
                 }
 
@@ -155,11 +162,15 @@ public class TransfersHandler extends AbstractRestHttpHandler {
                 String responseBody = "{" + totalResults + "," + results + "}";
                 responder.sendJson(HttpResponseStatus.OK, responseBody);
             } catch (JsonProcessingException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.jsonProcessingError().toJson());
             } catch (DAOException e) {
-                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+                responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        InternalErrorResponse.databaseError().toJson());
             }
-
+        }
+        else {
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, badResponse.toJson());
         }
     }
 
@@ -185,15 +196,15 @@ public class TransfersHandler extends AbstractRestHttpHandler {
             String responseBody = RestUtils.toJsonString(new RestTransfer(trans));
             responder.sendJson(HttpResponseStatus.CREATED, responseBody);
         } catch (OpenR66RestBadRequestException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.toJson());
         } catch (OpenR66RestInternalErrorException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toJson());
         } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.jsonProcessing());
-        } catch (OpenR66RestInvalidEntryException e) {
-            responder.sendJson(HttpResponseStatus.BAD_REQUEST, e.message);
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, RestResponses.dbException(e.getCause()));
+            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                    InternalErrorResponse.databaseError().toJson());
         }
     }
 
