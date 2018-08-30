@@ -19,28 +19,4 @@
  *
  */
 
-package org.waarp.openr66.protocol.http.restv2.handler;
-
-import co.cask.http.AbstractHttpHandler;
-import io.netty.handler.codec.http.HttpMethod;
-import org.waarp.common.role.RoleDefault;
-import org.waarp.openr66.context.authentication.R66Auth;
-
-public abstract class AbstractRestHttpHandler extends AbstractHttpHandler {
-
-    private final RoleDefault.ROLE writeRole;
-
-    protected AbstractRestHttpHandler(RoleDefault.ROLE writeRole) {
-        this.writeRole = writeRole;
-    }
-
-    public boolean isAuthorized(HttpMethod method, R66Auth auth, String uri) {
-        if(method == HttpMethod.OPTIONS) {
-            return true;
-        } else if(method == HttpMethod.GET) {
-            return auth.isValidRole(writeRole);
-        } else {
-            return auth.isValidRole(writeRole) && !auth.getRole().hasReadOnly();
-        }
-    }
-}
+package org.waarp.openr66.protocol.http.restv2.errors;

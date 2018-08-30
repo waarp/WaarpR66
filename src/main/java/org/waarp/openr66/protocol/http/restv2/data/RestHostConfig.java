@@ -1,26 +1,28 @@
 /*
- * This file is part of Waarp Project (named also Waarp or GG).
+ *  This file is part of Waarp Project (named also Waarp or GG).
  *
- * Copyright 2009, Waarp SAS, and individual contributors by the @author
- * tags. See the COPYRIGHT.txt in the distribution for a full listing of
- * individual contributors.
+ *  Copyright 2009, Waarp SAS, and individual contributors by the @author
+ *  tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ *  individual contributors.
  *
- * All Waarp Project is free software: you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ *  All Waarp Project is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or (at your
+ *  option) any later version.
  *
- * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *  Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
+ *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ *  A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License along with
+ *  Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 
@@ -54,44 +56,14 @@ public class RestHostConfig {
         }
     }
 
-    /** All the different actions a host is allowed to perform on the server running this configuration. */
-    public enum RoleType {
-        /** No actions are allowed. */
-        noAccess,
-        /** The host is ony allowed to read the database. */
-        readOnly,
-        /** The host is allowed to create transfers. */
-        transfer,
-        /** The host is allowed to create and modify transfer rules. */
-        rule,
-        /** The host is allowed to create and modify host entries. */
-        host,
-        /** The host is allowed to create and modify bandwidth limits. */
-        limit,
-        /** The host is allowed to deactivate or reboot the server. */
-        system,
-        /** The host is allowed to export the server logs. */
-        logControl,
-        /** The host is allowed to perform all the 'readOnly' and 'transfer' actions. */
-        partner,
-        /** The host is allowed to perform all the 'partner', 'rule' and 'host' actions. */
-        configAdmin,
-        /** The host is allowed to perform all actions on the server. */
-        fullAdmin
-    }
-
     /** A pair associating a host with the type of actions it is allowed to perform on the server. */
     public static class Role {
         /** The host's id. */
         @NotEmpty
         public String host;
 
-        /**
-         * The list of allowed actions on the server.
-         *
-         * @see RoleType
-         */
-        public RoleType[] roleTypes;
+        /** The list of allowed actions on the server. */
+        public RoleDefault.ROLE[] roleTypes;
 
         public Role(){}
 
@@ -101,7 +73,7 @@ public class RestHostConfig {
          * @param host      The host's id.
          * @param roleTypes The host's allowed actions.
          */
-        public Role(String host, RoleType[] roleTypes) {
+        public Role(String host, RoleDefault.ROLE[] roleTypes) {
             this.host = host;
             this.roleTypes = roleTypes;
         }
@@ -117,9 +89,9 @@ public class RestHostConfig {
                 this.host = matcher.group(2);
 
                 String[] roles = matcher.group(4).split(" ");
-                this.roleTypes = new RoleType[roles.length];
+                this.roleTypes = new RoleDefault.ROLE[roles.length];
                 for(int i=0; i<roles.length; i++) {
-                    this.roleTypes[i] = RoleType.valueOf(roles[i]);
+                    this.roleTypes[i] = RoleDefault.ROLE.valueOf(roles[i]);
                 }
             } else {
                 throw new IllegalArgumentException("Could not match the role pattern.");
@@ -142,7 +114,7 @@ public class RestHostConfig {
 
         public String toBusiness() {
             StringBuilder business = new StringBuilder("<role><roleid>" + this.host + "</roleid><roleset>");
-            for(RoleType roleType : this.roleTypes) {
+            for(RoleDefault.ROLE roleType : this.roleTypes) {
                 business.append(roleType.name());
             }
             business = new StringBuilder(business.toString().trim());

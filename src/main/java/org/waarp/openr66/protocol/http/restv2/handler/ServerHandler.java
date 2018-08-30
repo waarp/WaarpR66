@@ -1,55 +1,50 @@
 /*
- * This file is part of Waarp Project (named also Waarp or GG).
+ *  This file is part of Waarp Project (named also Waarp or GG).
  *
- * Copyright 2009, Waarp SAS, and individual contributors by the @author
- * tags. See the COPYRIGHT.txt in the distribution for a full listing of
- * individual contributors.
+ *  Copyright 2009, Waarp SAS, and individual contributors by the @author
+ *  tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ *  individual contributors.
  *
- * All Waarp Project is free software: you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ *  All Waarp Project is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or (at your
+ *  option) any later version.
  *
- * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *  Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
+ *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ *  A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License along with
+ *  Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.waarp.openr66.protocol.http.restv2.handler;
 
 import co.cask.http.HttpResponder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.common.role.RoleDefault;
+import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
-import org.waarp.openr66.protocol.http.restv2.errors.RestResponse;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
-import org.waarp.openr66.protocol.localhandler.ServerActions;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /** This is the handler for all requests for server commands, accessible through the "/v2/server" URI. */
 
@@ -58,44 +53,30 @@ public class ServerHandler extends AbstractRestHttpHandler {
 
     public static final Calendar startDate = new GregorianCalendar();
 
-    //TODO: replace by loading the value from server config file
-    public static final long period = (long) 1000 * 60 * 60 * 24;
+    public static final long period = Configuration.configuration.getTimeLimitCache();
 
-    //TODO: replace by loading argument from server config file
     private static final String archPath = "/arch";
 
     private static final String logsPath = "/logs";
 
 
     public ServerHandler() {
-        super(null, null);
+        super(RoleDefault.ROLE.SYSTEM);
     }
 
     @Override
-    public boolean isAuthorized(String user, HttpMethod httpMethod, String method) throws DAOException {
-        BusinessDAO businessDAO = RestUtils.factory.getBusinessDAO();
-        RestHostConfig.Role[] roles = RestHostConfig.Role.toRoleList(businessDAO.select(RestUtils.HOST_ID).getRoles());
-        List<RestHostConfig.RoleType> rights = new ArrayList<RestHostConfig.RoleType>();
-        for (RestHostConfig.Role role : roles) {
-            if (role.host.equals(user)) {
-                rights = Arrays.asList(role.roleTypes);
+    public boolean isAuthorized(HttpMethod method, R66Auth auth, String uri) {
+        if(uri.equals(this.getClass().getAnnotation(Path.class).value() + "logs")) {
+            if(method == HttpMethod.GET) {
+                return auth.isValidRole(RoleDefault.ROLE.LOGCONTROL);
+            } else {
+                return auth.isValidRole(RoleDefault.ROLE.LOGCONTROL) && !auth.getRole().hasReadOnly();
             }
-        }
-
-        if(rights.isEmpty()) {
-            return false;
-        } else if(rights.contains(RestHostConfig.RoleType.fullAdmin)) {
-            return true;
-        } else if(method.equals("getStatus")) {
-            return rights.contains(RestHostConfig.RoleType.readOnly) ||
-                    rights.contains(RestHostConfig.RoleType.partner) ||
-                    rights.contains(RestHostConfig.RoleType.configAdmin);
-        } else if(method.equals("getLogs")) {
-            return rights.contains(RestHostConfig.RoleType.logControl);
         } else {
-            return rights.contains(RestHostConfig.RoleType.system);
+            return super.isAuthorized(method, auth, uri);
         }
     }
+
 
     /**
      * Get the general status of the server.
@@ -129,7 +110,10 @@ public class ServerHandler extends AbstractRestHttpHandler {
     @Path("shutdown")
     @PUT
     public void shutdown(HttpRequest request, HttpResponder responder) {
-        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
+        R66ShutdownHook.setRestart(false);
+        R66ShutdownHook.shutdownWillStart();
+        ChannelUtils.startShutdown();
+        responder.sendStatus(HttpResponseStatus.NO_CONTENT);
     }
 
     /**
@@ -141,7 +125,10 @@ public class ServerHandler extends AbstractRestHttpHandler {
     @Path("restart")
     @PUT
     public void restart(HttpRequest request, HttpResponder responder) {
-        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
+        R66ShutdownHook.setRestart(true);
+        R66ShutdownHook.shutdownWillStart();
+        ChannelUtils.startShutdown();
+        responder.sendStatus(HttpResponseStatus.NO_CONTENT);
     }
 
     /**
@@ -170,24 +157,7 @@ public class ServerHandler extends AbstractRestHttpHandler {
                         @QueryParam("startID") String startID,
                         @QueryParam("stopID") String stopID) {
 
-        Map<String, List<String>> query = (new QueryStringDecoder(request.uri())).parameters();
-
-        try {
-            //TODO: make a request on the transfers database
-
-            Map<String, String> response = new HashMap<String, String>();
-            response.put("filePath", logsPath + "/transfers.log");
-            response.put("exported", String.valueOf(0));
-            response.put("purged", String.valueOf(0));
-
-            String jsonString;
-            ObjectMapper mapper = new ObjectMapper();
-            jsonString = mapper.writeValueAsString(response);
-            responder.sendJson(HttpResponseStatus.OK, jsonString);
-        } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    InternalErrorResponse.jsonProcessingError().toJson());
-        }
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
     /**
@@ -210,39 +180,7 @@ public class ServerHandler extends AbstractRestHttpHandler {
                           @QueryParam("aliases") @DefaultValue("false") Boolean aliases,
                           @QueryParam("roles") @DefaultValue("false") Boolean roles) {
 
-        Map<String, List<String>> query = (new QueryStringDecoder(request.uri())).parameters();
-        Map<String, String> files = new HashMap<String, String>();
-
-        try {
-            if (hosts) {
-                //TODO: save hosts to file
-                files.put("hostFile", archPath + "/hosts");
-            }
-            if (rules) {
-                //TODO: save rules to file
-                files.put("ruleFile", archPath + "/rules");
-            }
-            if (business) {
-                //TODO: save business to file
-                files.put("businessFile", archPath + "/business");
-            }
-            if (aliases) {
-                //TODO: save aliases to file
-                files.put("aliasFile", archPath + "/aliases");
-            }
-            if (roles) {
-                //TODO: save roles to file
-                files.put("roleFile", archPath + "/roles");
-            }
-            String jsonString;
-            ObjectMapper mapper = new ObjectMapper();
-
-            jsonString = mapper.writeValueAsString(files);
-            responder.sendJson(HttpResponseStatus.OK, jsonString);
-        } catch (JsonProcessingException e) {
-            responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                    InternalErrorResponse.jsonProcessingError().toJson());
-        }
+        responder.sendStatus(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
     /**

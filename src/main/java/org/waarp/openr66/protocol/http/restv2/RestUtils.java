@@ -1,21 +1,22 @@
 /*
- * This file is part of Waarp Project (named also Waarp or GG).
+ *  This file is part of Waarp Project (named also Waarp or GG).
  *
- * Copyright 2009, Waarp SAS, and individual contributors by the @author
- * tags. See the COPYRIGHT.txt in the distribution for a full listing of
- * individual contributors.
+ *  Copyright 2009, Waarp SAS, and individual contributors by the @author
+ *  tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ *  individual contributors.
  *
- * All Waarp Project is free software: you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ *  All Waarp Project is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or (at your
+ *  option) any later version.
  *
- * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *  Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
+ *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ *  A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License along with
+ *  Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.waarp.openr66.protocol.http.restv2;
@@ -26,7 +27,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.waarp.common.crypto.HmacSha256;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -36,6 +36,7 @@ import org.waarp.openr66.protocol.http.restv2.data.Or;
 import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
 import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
+import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInitializationException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 
 import javax.ws.rs.HttpMethod;
@@ -66,23 +67,19 @@ public final class RestUtils {
     /** This server's id. */
     public static final String HOST_ID = Configuration.configuration.getHOST_ID();
 
-    private static Connection getConnection() {
+    static {
         Connection connection;
         try {
             connection = DbConstant.connectionFactory.getConnection();
             connection.setReadOnly(false);
-            return connection;
+            factory = DAOFactory.getDAOFactory(connection);
         } catch (SQLException e) {
             e.printStackTrace();
-            return null;
+            throw new OpenR66RestInitializationException();
         }
     }
 
-    public static final DAOFactory factory = DAOFactory.getDAOFactory(getConnection());
-
-
-    /** This server's Hmac key. */
-    public static HmacSha256 HMAC;
+    public static final DAOFactory factory;
 
     /**
      * This method transforms a request body in JSON format into an object of the class passed as argument.
@@ -104,7 +101,6 @@ public final class RestUtils {
                 mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, true);
                 mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, true);
                 mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-                mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
                 mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
 
                 return mapper.readValue(body, c);
@@ -112,7 +108,21 @@ public final class RestUtils {
                 throw new OpenR66RestBadRequestException(new BadRequestResponse().missingBody());
             }
         } catch (JsonMappingException e) {
-            throw new RuntimeException(e.getMessage());
+            JsonMappingException.Reference ref = e.getPath().get(e.getPath().size() - 1);
+            String field = ref.getFieldName();
+            Class entry = ref.getFrom().getClass();
+            if(e.getCause() == null) {
+                try {
+                    Class type = entry.getField(field).getType();
+                    throw new OpenR66RestBadRequestException(
+                            new BadRequestResponse().incorrectFieldType(entry, field, type));
+                } catch (NoSuchFieldException nsf) {
+                    throw new OpenR66RestBadRequestException(new BadRequestResponse().unknownField(entry, field));
+                }
+            }
+            else {
+                throw new OpenR66RestBadRequestException(new BadRequestResponse().illegalFieldValue(entry, field));
+            }
         } catch (IOException e) {
             throw new OpenR66RestInternalErrorException(InternalErrorResponse.jsonProcessingError());
         }
@@ -222,16 +232,16 @@ public final class RestUtils {
             try {
                 Object val = field.get(entry);
                 if(val == null) {
-                    response.illegalFieldValue(entry.getClass(), field.getName());
+                    response.missingFieldValue(entry.getClass(), field.getName());
                 } else {
                     Class cla = field.getType();
                     if(field.isAnnotationPresent(NotEmpty.class)) {
                         if(cla == String.class && ((String) val).trim().isEmpty()) {
-                            response.illegalFieldValue(entry.getClass(), field.getName());
+                            response.missingFieldValue(entry.getClass(), field.getName());
                         } else if(cla == String[].class) {
                             for(String str : (String[]) val) {
                                 if(str.trim().isEmpty()) {
-                                    response.illegalFieldValue(entry.getClass(), field.getName());
+                                    response.missingFieldValue(entry.getClass(), field.getName());
                                 }
                             }
                         }

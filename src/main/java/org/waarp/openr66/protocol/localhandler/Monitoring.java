@@ -861,7 +861,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
         node2 = node.putObject("STEPS");
         node2.put("Notask", nbCountStepNotask);
         node2.put("Pretask", nbCountStepPretask);
-        node2.put("Data.Transfer", nbCountStepTransfer);
+        node2.put("Data.TransferInitializer", nbCountStepTransfer);
         node2.put("Posttask", nbCountStepPosttask);
         node2.put("AllDone", nbCountStepAllDone);
         node2.put("Error", nbCountStepError);

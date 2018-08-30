@@ -1,21 +1,22 @@
 /*
- * This file is part of Waarp Project (named also Waarp or GG).
+ *  This file is part of Waarp Project (named also Waarp or GG).
  *
- * Copyright 2009, Waarp SAS, and individual contributors by the @author
- * tags. See the COPYRIGHT.txt in the distribution for a full listing of
- * individual contributors.
+ *  Copyright 2009, Waarp SAS, and individual contributors by the @author
+ *  tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ *  individual contributors.
  *
- * All Waarp Project is free software: you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ *  All Waarp Project is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or (at your
+ *  option) any later version.
  *
- * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *  Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
+ *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ *  A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License along with
+ *  Waarp . If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.waarp.openr66.protocol.http.restv2.handler;
@@ -26,12 +27,12 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.data.RestHost;
-import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
 import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
@@ -42,8 +43,6 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * This is the handler for all requests made on a single 'host' entry, accessible with the URI "/host/{id}",
@@ -52,17 +51,8 @@ import java.util.List;
 @Path("/v2/hosts/{id}")
 public class HostIdHandler extends AbstractRestHttpHandler {
 
-    private final static List<RestHostConfig.RoleType> writeRoles = Arrays.asList(
-            RestHostConfig.RoleType.fullAdmin,
-            RestHostConfig.RoleType.configAdmin,
-            RestHostConfig.RoleType.host
-    );
-    private final static List<RestHostConfig.RoleType> readRoles = Arrays.asList(
-            RestHostConfig.RoleType.readOnly
-    );
-
     public HostIdHandler() {
-        super(writeRoles, readRoles);
+        super(RoleDefault.ROLE.HOST);
     }
 
     /**
