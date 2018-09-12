@@ -26,13 +26,13 @@ public class DBRuleMariaDBDAOIT extends DBRuleDAOIT {
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws Exception {
         runScript(createScript); 
         runScript(populateScript); 
     }
 
     @Override
-    public void cleanDB() {
+    public void cleanDB() throws Exception {
         runScript(cleanScript);
     }
 }

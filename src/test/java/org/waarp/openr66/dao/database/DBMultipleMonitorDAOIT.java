@@ -13,6 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 import static  org.junit.Assert.*;
 
+import static org.mockito.Mockito.*;
+
+import org.waarp.common.database.ConnectionFactory;
+import org.waarp.openr66.configuration.Configuration;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.Filter;
@@ -25,160 +29,124 @@ public abstract class DBMultipleMonitorDAOIT {
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
-    public abstract void initDB() throws SQLException;
-    public abstract void cleanDB() throws SQLException;
+    public abstract void initDB() throws Exception;
+    public abstract void cleanDB() throws Exception;
 
-    public void runScript(String script) {
-        try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
-            URL url = Thread.currentThread().getContextClassLoader().getResource(script);
-            runner.runScript(new BufferedReader(new FileReader(url.getPath())));
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+    public void runScript(String script) throws Exception {
+        ScriptRunner runner = new ScriptRunner(con, false, true); 
+        URL url = Thread.currentThread().getContextClassLoader().getResource(script);
+        runner.runScript(new BufferedReader(new FileReader(url.getPath())));
     }
 
     @Before
-    public void setUp() {
-        try {
-            con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
-            initDB();
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+    public void setUp() throws Exception {
+        //Force DAOFactory to use DBDAO
+        Configuration.database.url = "";
+        //Mock factory.getConnection()
+        ConnectionFactory mockedFactory = mock(ConnectionFactory.class);
+        Configuration.database.factory = mockedFactory;
+        when(mockedFactory.getConnection()).thenReturn(getConnection());
+
+        con = getConnection();
+        factory = DAOFactory.getDAOFactory();
+        initDB();
     }
 
     @After
-    public void wrapUp() {
-        try {
-            cleanDB();
-            con.close();
-            //factory.close();
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+    public void wrapUp() throws Exception {
+        cleanDB();
+        con.close();
+        factory.close();
     }
 
     @Test
-    public void testDeleteAll() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            dao.deleteAll();
+    public void testDeleteAll() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        dao.deleteAll();
 
-            ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR");
-            assertEquals(false, res.next());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+        ResultSet res = con.createStatement()
+            .executeQuery("SELECT * FROM MULTIPLEMONITOR");
+        assertEquals(false, res.next());
     }
 
     @Test
-    public void testDelete() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            dao.delete(new MultipleMonitor("server1", 0, 0, 0));
+    public void testDelete() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        dao.delete(new MultipleMonitor("server1", 0, 0, 0));
 
-            ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR where hostid = 'server1'");
-            assertEquals(false, res.next());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+        ResultSet res = con.createStatement()
+            .executeQuery("SELECT * FROM MULTIPLEMONITOR where hostid = 'server1'");
+        assertEquals(false, res.next());
     }
 
     @Test
-    public void testGetAll() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            assertEquals(4, dao.getAll().size());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+    public void testGetAll() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        assertEquals(4, dao.getAll().size());
     }
 
     @Test
-    public void testSelect() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            MultipleMonitor multiple = dao.select("server1");
-            MultipleMonitor multiple2 = dao.select("ghost");
+    public void testSelect() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        MultipleMonitor multiple = dao.select("server1");
+        MultipleMonitor multiple2 = dao.select("ghost");
 
-            assertEquals("server1", multiple.getHostid());
-            assertEquals(11, multiple.getCountConfig());
-            assertEquals(29, multiple.getCountRule());
-            assertEquals(18, multiple.getCountHost());
-            assertEquals(null, multiple2);
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+        assertEquals("server1", multiple.getHostid());
+        assertEquals(11, multiple.getCountConfig());
+        assertEquals(29, multiple.getCountRule());
+        assertEquals(18, multiple.getCountHost());
+        assertEquals(null, multiple2);
     }
 
     @Test
-    public void testExist() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            assertEquals(true, dao.exist("server1"));
-            assertEquals(false, dao.exist("ghost"));
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+    public void testExist() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        assertEquals(true, dao.exist("server1"));
+        assertEquals(false, dao.exist("ghost"));
     }
 
 
     @Test
-    public void testInsert() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
+    public void testInsert() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
 
-            ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) as count FROM MULTIPLEMONITOR");
-            res.next();
-            assertEquals(5, res.getInt("count"));
+        ResultSet res = con.createStatement()
+            .executeQuery("SELECT COUNT(1) as count FROM MULTIPLEMONITOR");
+        res.next();
+        assertEquals(5, res.getInt("count"));
 
-            ResultSet res2 = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'chacha'");
-            res2.next();
-            assertEquals("chacha", res2.getString("hostid"));
-            assertEquals(98, res2.getInt("countRule"));
-            assertEquals(19, res2.getInt("countHost"));
-            assertEquals(31, res2.getInt("countConfig"));
-        } catch (Exception e) {
-            fail(e.getMessage());
-        } 
+        ResultSet res2 = con.createStatement()
+            .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'chacha'");
+        res2.next();
+        assertEquals("chacha", res2.getString("hostid"));
+        assertEquals(98, res2.getInt("countRule"));
+        assertEquals(19, res2.getInt("countHost"));
+        assertEquals(31, res2.getInt("countConfig"));
     }
 
     @Test
-    public void testUpdate() {
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            dao.update(new MultipleMonitor("server2", 31, 19, 98));
+    public void testUpdate() throws Exception {
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        dao.update(new MultipleMonitor("server2", 31, 19, 98));
 
-            ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'server2'");
-            res.next();
-            assertEquals("server2", res.getString("hostid"));
-            assertEquals(98, res.getInt("countRule"));
-            assertEquals(19, res.getInt("countHost"));
-            assertEquals(31, res.getInt("countConfig"));
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+        ResultSet res = con.createStatement()
+            .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'server2'");
+        res.next();
+        assertEquals("server2", res.getString("hostid"));
+        assertEquals(98, res.getInt("countRule"));
+        assertEquals(19, res.getInt("countHost"));
+        assertEquals(31, res.getInt("countConfig"));
     } 
 
 
     @Test
-    public void testFind() {
+    public void testFind() throws Exception {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBMultipleMonitorDAO.COUNT_CONFIG_FIELD, "=" , 0));
-        try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
-            assertEquals(2, dao.find(map).size());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+
+        MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+        assertEquals(2, dao.find(map).size());
     } 
 }
 

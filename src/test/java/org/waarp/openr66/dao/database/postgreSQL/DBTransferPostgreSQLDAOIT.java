@@ -26,13 +26,13 @@ public class DBTransferPostgreSQLDAOIT extends DBTransferDAOIT {
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws Exception {
         runScript(createScript); 
         runScript(populateScript); 
     }
 
     @Override
-    public void cleanDB() {
+    public void cleanDB() throws Exception {
         runScript(cleanScript);
     }
 }
