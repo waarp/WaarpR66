@@ -1,8 +1,8 @@
 package org.waarp.openr66.dao;
 
-import java.sql.Connection;
+import java.sql.SQLException;
 
-import org.waarp.common.database.ConnectionFactory;
+import org.waarp.openr66.configuration.Configuration;
 import org.waarp.openr66.dao.database.DBDAOFactory;
 import org.waarp.openr66.dao.exception.DAOException;
 
@@ -62,42 +62,59 @@ public abstract class DAOFactory {
     public abstract TransferDAO getTransferDAO() throws DAOException;
 
     /**
-     * Return a file based DAOFactory
      * 
-     * @return a file based factory
      */
-    public static DAOFactory getDAOFactory() {
-        //return new NoDBDAOFactory();
-        return null;
+    public abstract void close();
+
+    /**
+     * 
+     */
+    public static DAOFactory getDAOFactory() throws DAOException {
+        if (Configuration.database.url == null) {
+            //return new noDBDAOFactory
+            return null;
+        } else {
+            try {
+                return new DBDAOFactory(Configuration.database.factory
+                        .getConnection());
+            } catch (SQLException e) {
+                throw new DAOException(e);
+            }
+        }
     }
 
     /**
-     * Return a DAOFactory using the Connection provided
-     * 
-     * @param connection the connection used to access the database
-     * @return a database DAOFactory using the connection passed as argument;
-     * a file based DAO if the Connection is null.
+     *
      */
-    public static DAOFactory getDAOFactory(Connection connection) {
-        if(connection == null) {
-            //return new NoDBDAOFactory();
+    public static DAOFactory getDAOFactory(boolean readOnly) throws DAOException {
+        if (Configuration.database.url == null) { 
+            //return new noDBDAOFactory
+            return null;
+        } else {
+            try {
+                return new DBDAOFactory(Configuration.database.factory
+                        .getConnection(readOnly));
+            } catch (SQLException e) {
+                throw new DAOException(e);
+            }
         }
-        return new DBDAOFactory(connection);
     }
 
     /**
-     * Return a DAOFactory using the ConnectionFactory provided
-     * 
-     * @param factory the connectionFactory used to access the 
-     * database
-     * @return a database DAOFactory using the connectionFactory passed as
-     * argument;
-     * a file based DAO if the Connection is null.
+     *
      */
-    public static DAOFactory getDAOFactory(ConnectionFactory factory) {
-        if(factory == null) {
-            //return new NoDBDAOFactory();
+    public static DAOFactory getDAOFactory(boolean readOnly,
+            boolean autoCommit) throws DAOException {
+        if (Configuration.database.url == null) {
+            //return new noDBDAOFactory
+            return null;
+        } else {
+            try {
+                return new DBDAOFactory(Configuration.database.factory
+                        .getConnection(readOnly, autoCommit));
+            } catch (SQLException e) {
+                throw new DAOException(e);
+            }
         }
-        return new DBDAOFactory(factory);
     }
 }
