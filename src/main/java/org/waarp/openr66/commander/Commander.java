@@ -229,7 +229,7 @@ public class Commander implements CommanderInterface {
                 }
                 return;
             }
-            logger.debug("Before " + multipleMonitor);
+            //logger.debug("Before " + multipleMonitor);
             // First check Configuration
             try {
                 preparedStatementConfig.executeQuery();
@@ -453,7 +453,7 @@ public class Commander implements CommanderInterface {
                 // no more task to submit
                 return;
             }
-            logger.debug("start runner");
+            //logger.debug("start runner");
             // Check TaskRunner
             try {
                 DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
@@ -520,7 +520,7 @@ public class Commander implements CommanderInterface {
             } finally {
                 preparedStatementRunner.close();
             }
-            logger.debug("end commander");
+            //logger.debug("end commander");
         } finally {
             if (multipleMonitor != null) {
                 try {
