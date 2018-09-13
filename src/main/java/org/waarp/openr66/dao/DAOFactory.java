@@ -2,7 +2,7 @@ package org.waarp.openr66.dao;
 
 import java.sql.SQLException;
 
-import org.waarp.openr66.configuration.Configuration;
+import org.waarp.common.database.ConnectionFactory;
 import org.waarp.openr66.dao.database.DBDAOFactory;
 import org.waarp.openr66.dao.exception.DAOException;
 
@@ -70,13 +70,13 @@ public abstract class DAOFactory {
      * 
      */
     public static DAOFactory getDAOFactory() throws DAOException {
-        if (Configuration.database.url == null) {
+        ConnectionFactory factory = ConnectionFactory.getInstance();
+        if (factory == null) {
             //return new noDBDAOFactory
             return null;
         } else {
             try {
-                return new DBDAOFactory(Configuration.database.factory
-                        .getConnection());
+                return new DBDAOFactory(factory.getConnection());
             } catch (SQLException e) {
                 throw new DAOException(e);
             }
@@ -87,13 +87,13 @@ public abstract class DAOFactory {
      *
      */
     public static DAOFactory getDAOFactory(boolean readOnly) throws DAOException {
-        if (Configuration.database.url == null) { 
+        ConnectionFactory factory = ConnectionFactory.getInstance();
+        if (factory == null) {
             //return new noDBDAOFactory
             return null;
         } else {
             try {
-                return new DBDAOFactory(Configuration.database.factory
-                        .getConnection(readOnly));
+                return new DBDAOFactory(factory.getConnection(readOnly));
             } catch (SQLException e) {
                 throw new DAOException(e);
             }
@@ -105,13 +105,14 @@ public abstract class DAOFactory {
      */
     public static DAOFactory getDAOFactory(boolean readOnly,
             boolean autoCommit) throws DAOException {
-        if (Configuration.database.url == null) {
+        ConnectionFactory factory = ConnectionFactory.getInstance();
+        if (factory == null) {
             //return new noDBDAOFactory
             return null;
         } else {
             try {
-                return new DBDAOFactory(Configuration.database.factory
-                        .getConnection(readOnly, autoCommit));
+                return new DBDAOFactory(factory.getConnection(
+                            readOnly, autoCommit));
             } catch (SQLException e) {
                 throw new DAOException(e);
             }

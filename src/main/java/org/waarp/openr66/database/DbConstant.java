@@ -26,5 +26,10 @@ import org.waarp.common.database.ConnectionFactory;
  * 
  */
 public class DbConstant extends org.waarp.common.database.DbConstant {
-   public static ConnectionFactory connectionFactory = null; 
+
+   public static void close() {
+       if (admin != null) {
+           admin.close();
+       }
+   }
 }
