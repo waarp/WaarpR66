@@ -1824,14 +1824,6 @@ public class FileBasedConfiguration {
                     DbConstant.admin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
-                    try {
-                        DbConstant.connectionFactory = new ConnectionFactory(
-                            ConnectionFactory.propertiesFor(dbserver),  dbserver,
-                            dbuser, dbpasswd);
-                    } catch (SQLException e) {
-                        logger.error("Cannot create ConnectionFactory", e);
-                    }
-
                     if (config.getMultipleMonitors() > 1) {
                         DbConstant.noCommitAdmin =
                                 DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,

@@ -1,15 +1,28 @@
 package org.waarp.openr66.configuration;
 
-import org.waarp.common.xml.XmlHash;
+import org.apache.commons.configuration2.FileBasedConfiguration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
 public class Configuration {
+    private static FileBasedConfiguration conf = null;
+
+    // Configuration classes
     public static DatabaseConfiguration database;
     
-    public static void readFromXML(XmlHash xml) {
-        database.readFromXML(new XmlHash(xml.get("database").getSubXml()));
-    } 
+    public static void init(String filepath) throws BadConfigurationException {
+        if (filepath == null || filepath == "") {
+             throw new BadConfigurationException("Empty configuration");
+        }
+        // Load Configuration
+        try {
+            conf = new Configurations().xml(filepath);
+        } catch (ConfigurationException e) {
+             throw new BadConfigurationException("Cannot read configuration");
+        }
+    }
 
-    public static void close() {
-        database.close();
+    public static FileBasedConfiguration get() {
+         return conf;
     }
 }

@@ -2,20 +2,24 @@ package org.waarp.openr66.configuration;
 
 import java.sql.SQLException;
 
-import org.waarp.common.database.ConnectionFactory;
-import org.waarp.common.xml.XmlHash;
-import org.waarp.common.xml.XmlValue;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 
+import org.waarp.common.database.ConnectionFactory;
+
+/**
+ * Class to read and access the Database Configuration
+ */
 public class DatabaseConfiguration {
 
-    private static final String XML_URL = "dbserver"; 
-    private static final String XML_USER = "dbuser"; 
-    private static final String XML_PASSWORD = "dbpassword"; 
-    private static final String XML_READONLY = "dbreadonly"; 
-    private static final String XML_AUTOCOMMIT = "dbautocommit"; 
-    private static final String XML_MAX_CONNECTION = "dbmaxconnection"; 
-    private static final String XML_CONNECTION_TIMEOUT = "dbconnectiontimeout"; 
-    private static final String XML_VALIDATION_TIMEOUT = "dbvalidationtimeout"; 
+    private static final String PATH_URL = "database.dbserver"; 
+    private static final String PATH_USER = "database.dbuser"; 
+    private static final String PATH_PASSWORD = "database.dbpassword"; 
+    private static final String PATH_READONLY = "database.dbreadonly"; 
+    private static final String PATH_AUTOCOMMIT = "database.dbautocommit"; 
+    private static final String PATH_MAX_CONNECTION = "database.dbmaxconnection"; 
+    private static final String PATH_CONNECTION_TIMEOUT = "datatabase.dbconnectiontimeout"; 
+    private static final String PATH_VALIDATION_TIMEOUT = "database.dbvalidationtimeout"; 
 
     /**
      * Url used to connect to the database.
@@ -57,80 +61,33 @@ public class DatabaseConfiguration {
      */
     public static int validationTimeout = 2;
 
-    /**
-     * ConnectionFactory to ask connection to the database
-     */
-    public static ConnectionFactory factory = null;
-
-    public static void readFromXML(XmlHash xml) {
-        //Read url
-        XmlValue value = xml.get(XML_URL);
-        if (value == null || (value.isEmpty())) { 
-            //throw BadConfigurationException("Bad Database Configuration");
-            return;
+    public static void init(Configuration conf) 
+            throws BadConfigurationException {
+        // Read Configuration
+        try {
+            // Mandatory configuration
+            url = conf.getString(PATH_URL);
+            user = conf.getString(PATH_USER);  
+            password = conf.getString(PATH_PASSWORD);
+            // Optionial configuration
+            defaultReadOnly = conf.getBoolean(PATH_READONLY, defaultReadOnly);
+            defaultAutoCommit = conf.getBoolean(PATH_AUTOCOMMIT, 
+                    defaultAutoCommit);
+            maxConnection = conf.getInt(PATH_MAX_CONNECTION, maxConnection);
+            connectionTimeout = conf.getInt(PATH_CONNECTION_TIMEOUT,
+                    connectionTimeout);
+            validationTimeout = conf.getInt(PATH_VALIDATION_TIMEOUT,
+                    validationTimeout);
+        } catch (ConfigurationRuntimeException e) {
+             throw new BadConfigurationException("Error while parsing configuration", e);
         }
-        url = value.getString();
-        //Read user
-        value = xml.get(XML_USER);
-        if (value == null || (value.isEmpty())) { 
-            //throw BadConfigurationException("Bad Database Configuration");
-            return;
-        }
-        user = value.getString();        
-        //Read password
-        value = xml.get(XML_USER);
-        if (value == null || (value.isEmpty())) { 
-            //throw BadConfigurationException("Bad Database Configuration");
-            return;
-        }
-        password = value.getString();        
-        //Read readOnly
-        value = xml.get(XML_READONLY);
-        if (value != null && !(value.isEmpty())) { 
-            defaultReadOnly = value.getBoolean();        
-        }
-        //Read autoCommit
-        value = xml.get(XML_AUTOCOMMIT);
-        if (value != null && !(value.isEmpty())) { 
-            defaultAutoCommit = value.getBoolean();        
-        }
-        //Read maxConnection
-        value = xml.get(XML_MAX_CONNECTION);
-        if (value != null && !(value.isEmpty())) { 
-            maxConnection = value.getInteger();        
-        }
-        //Read connectionTimeout
-        value = xml.get(XML_CONNECTION_TIMEOUT);
-        if (value != null && !(value.isEmpty())) { 
-            connectionTimeout = value.getInteger();        
-        }
-        //Read autoCommit
-        value = xml.get(XML_VALIDATION_TIMEOUT);
-        if (value != null && !(value.isEmpty())) { 
-            validationTimeout = value.getInteger();        
-        }
-    }
-
-    public static void init() {
-        if (url != null) {
-            try {
-                factory = new ConnectionFactory(
-                        ConnectionFactory.propertiesFor(url), url, user, password, 
-                        defaultReadOnly, defaultAutoCommit, maxConnection,
-                        connectionTimeout, validationTimeout);
-            } catch (SQLException e) {
-                //throw BadConfigurationException("Bad Database Configuration");
-                return;
-            }
-        } else {
-            //throw BadConfigurationException("Bad Database Configuration");
-            return;
-        }
-    }
-
-    public static void close() {
-        if (factory != null) {
-            factory.close();
+        // Init ConnectionFactory
+        try {
+            ConnectionFactory.init(ConnectionFactory.propertiesFor(url), 
+                    url, user, password, defaultReadOnly, defaultAutoCommit, 
+                    maxConnection, connectionTimeout, validationTimeout);
+        } catch (SQLException e) {
+            throw new BadConfigurationException("Cannot connect to database", e);
         }
     }
 }
