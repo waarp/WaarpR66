@@ -22,6 +22,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.exec.CommandLine;
+
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.client.SubmitTransfer;
@@ -45,7 +47,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * @author Frederic Bregier
  * 
  */
-public class TransferTask extends AbstractTask {
+public class TransferTask extends AbstractExecTask {
     /**
      * Internal Logger
      */
@@ -67,9 +69,14 @@ public class TransferTask extends AbstractTask {
     public void run() {
         logger.info("Transfer with " + argRule + ":" + argTransfer + " and {}",
                 session);
-        String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer.split(" "));
-        String[] args = finalname.split(" ");
+        String finalname = applyTransferSubstitutions(argRule);
+
+        finalname = finalname.replaceAll("#([A-Z]+)#", "\\${$1}");
+        CommandLine commandLine = new CommandLine("dummy");
+        commandLine.setSubstitutionMap(getSubstitutionMap());
+        commandLine.addArguments(finalname, false);
+        String[] args = commandLine.getArguments();
+
         if (args.length < 6) {
             futureCompletion.setFailure(
                     new OpenR66RunnerErrorException("Not enough argument in Transfer"));
