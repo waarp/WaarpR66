@@ -1217,9 +1217,6 @@ public class FileBasedConfiguration {
             if (value != null && (!value.isEmpty())) {
                 config.setRUNNER_THREAD(value.getInteger());
             }
-            if (config.getRUNNER_THREAD() < 10) {
-                config.setRUNNER_THREAD(10);
-            }
             logger.info("Limit of Runner: {}",
                     config.getRUNNER_THREAD());
             value = hashConfig.get(XML_DELAYCOMMANDER);

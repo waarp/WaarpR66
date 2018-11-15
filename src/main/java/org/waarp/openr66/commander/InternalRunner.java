@@ -90,23 +90,22 @@ public class InternalRunner {
      */
     public void submitTaskRunner(DbTaskRunner taskRunner) {
         if (isRunning || !Configuration.configuration.isShutdown()) {
-            if (threadPoolExecutor.getActiveCount() > Configuration.configuration.getRUNNER_THREAD()) {
+            if (threadPoolExecutor.getActiveCount() < 
+                    Configuration.configuration.getRUNNER_THREAD()) {
+                logger.debug("Will run {}", taskRunner);
+                ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
+                if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()
+                        || taskRunner.isPreTaskStarting())) {
+                    runner.setSendThroughMode();
+                    taskRunner.checkThroughMode();
+                }
+                runner.setDaemon(true);
+                // create the client, connect and run
+                threadPoolExecutor.execute(runner);
+            } else {
                 // too many current active threads
-                taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-                taskRunner.forceSaveStatus();
-                return;
+                logger.debug("Task rescheduled {}", taskRunner);
             }
-            logger.debug("Will run {}", taskRunner);
-            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
-            if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()
-                    || taskRunner.isPreTaskStarting())) {
-                runner.setSendThroughMode();
-                taskRunner.checkThroughMode();
-            }
-            runner.setDaemon(true);
-            // create the client, connect and run
-            threadPoolExecutor.execute(runner);
-            runner = null;
         }
     }
 
