@@ -491,8 +491,6 @@ public class Commander implements CommanderInterface {
                         taskRunner.update();
                         continue;
                     }
-                    taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
-                    taskRunner.forceSaveStatus();
                     internalRunner.submitTaskRunner(taskRunner);
                     taskRunner = null;
                 }
