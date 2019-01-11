@@ -577,6 +577,8 @@ public abstract class ConnectionActions {
             }
             return;
         } else if (code.code == ErrorCode.StoppedTransfer.code) {
+            NetworkTransaction.stopRetrieve(
+                    session.getLocalChannelReference());
             exception =
                     new OpenR66ProtocolBusinessStopException(packet.getSheader());
             String[] vars = packet.getSheader().split(" ");
