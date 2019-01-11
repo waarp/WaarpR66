@@ -2336,9 +2336,7 @@ public class DbTaskRunner extends AbstractDbData {
                 Columns.UPDATEDINFO.name() + "=" +
                 AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal() +
                 " WHERE (" + Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.RUNNING.ordinal() +
-                " OR " + Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.INTERRUPTED.ordinal() + ") AND " +
+                AbstractDbData.UpdatedInfo.RUNNING.ordinal() + ") AND " +
                 getLimitWhereCondition();
         DbPreparedStatement initial = new DbPreparedStatement(session);
         try {
@@ -2513,10 +2511,10 @@ public class DbTaskRunner extends AbstractDbData {
                 case CanceledTransfer:
                 case StoppedTransfer:
                 case RemoteShutdown:
-                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
                     break;
                 default:
-                    this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
             }
             forceSaveStatus();
             logger.warn("StopOrCancel: {}     {}", code.mesg, this.toShortString());
@@ -3435,17 +3433,14 @@ public class DbTaskRunner extends AbstractDbData {
             // delete file, reset runner
             this.setRankAtStartup(0);
             this.deleteTempFile();
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
             finalValue.setAnswered(true);
         } else if (runnerStatus == ErrorCode.StoppedTransfer) {
             // just save runner and stop
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
             finalValue.setAnswered(true);
         } else if (runnerStatus == ErrorCode.Shutdown) {
             // just save runner and stop
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
             finalValue.setAnswered(true);
         }
@@ -3484,9 +3479,6 @@ public class DbTaskRunner extends AbstractDbData {
                 }
                 throw e1;
             }
-        }
-        if (!this.isRescheduledTransfer()) {
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
         }
         if (RequestPacket.isThroughMode(this.getMode())) {
             this.setErrorExecutionStatus(runnerStatus);
