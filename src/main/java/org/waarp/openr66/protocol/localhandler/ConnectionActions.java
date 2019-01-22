@@ -5,8 +5,8 @@
    tags. See the COPYRIGHT.txt in the distribution for a full listing of
    individual contributors.
 
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
+   All Waarp Project is free software: you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as published
    by the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
@@ -70,7 +70,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 /**
  * Class to implement actions related to general connection handler: channelClosed, startup, authentication, and error.
  * Used to store and retrieve the session information.
- * 
+ *
  * @author "Frederic Bregier"
  *
  */
@@ -139,7 +139,7 @@ public abstract class ConnectionActions {
 
     /**
      * Operations to ensure that channel closing is done correctly
-     * 
+     *
      * @param e
      */
     public void channelClosed(ChannelHandlerContext e) {
@@ -256,7 +256,7 @@ public abstract class ConnectionActions {
 
     /**
      * Startup of the session and the local channel reference
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolPacketException
@@ -302,7 +302,7 @@ public abstract class ConnectionActions {
 
     /**
      * Refuse a connection
-     * 
+     *
      * @param channel
      * @param packet
      * @param e1
@@ -352,7 +352,7 @@ public abstract class ConnectionActions {
 
     /**
      * Authentication
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolPacketException
@@ -491,7 +491,7 @@ public abstract class ConnectionActions {
 
     /**
      * Receive a connection error
-     * 
+     *
      * @param channel
      * @param packet
      */
@@ -514,9 +514,9 @@ public abstract class ConnectionActions {
 
     /**
      * Class to finalize a runner when the future is over
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static final class RunnerChannelFutureListener implements ChannelFutureListener {
         private LocalChannelReference localChannelReference;
@@ -537,7 +537,7 @@ public abstract class ConnectionActions {
 
     /**
      * Receive a remote error
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -645,7 +645,7 @@ public abstract class ConnectionActions {
 
     /**
      * Try to finalize the request if possible
-     * 
+     *
      * @param errorValue
      *            in case of Error
      * @throws OpenR66ProtocolSystemException
