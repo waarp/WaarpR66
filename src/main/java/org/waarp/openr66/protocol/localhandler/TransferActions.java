@@ -614,6 +614,7 @@ public class TransferActions extends ServerActions {
     public void data(Channel channel, DataPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException,
             OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
+        logger.trace("receiving data block {}", packet.getPacketRank());
         if (!session.isAuthenticated()) {
             logger.debug("Not authenticated while Data received");
             packet.clear();
