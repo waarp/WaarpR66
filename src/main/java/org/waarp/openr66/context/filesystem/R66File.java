@@ -142,12 +142,15 @@ public class R66File extends FilesystemBasedFileImpl {
                 }
             }
             // While not last block
-            while (block != null && (!block.isEOF()) && (running.get())) {
+            while (block != null && (!block.isEOF())) {
                 try {
                     future1.await();
                 } catch (InterruptedException e) {
                 }
                 if (!future1.isSuccess()) {
+                    return;
+                }
+                if (!running.get()) {
                     return;
                 }
                 try {
