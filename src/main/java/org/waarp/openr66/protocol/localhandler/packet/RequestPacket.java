@@ -57,7 +57,7 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     protected static enum FIELDS {
-        rule, mode, filename, block, rank, id, code, length
+        rule, mode, filename, block, rank, id, code, length, limit
     }
 
     protected static final byte REQVALIDATE = 0;
@@ -81,6 +81,8 @@ public class RequestPacket extends AbstractLocalPacket {
     protected char code;
 
     protected long originalSize;
+
+    protected long limit = 0;
 
     protected final String fileInformation;
 
@@ -231,11 +233,17 @@ public class RequestPacket extends AbstractLocalPacket {
             logger.debug("Request is using JSON");
             ObjectNode map = JsonHandler.getFromString(sheader);
             ObjectNode map2 = JsonHandler.getFromString(smiddle);
-            return new RequestPacket(map.path(FIELDS.rule.name()).asText(), map.path(FIELDS.mode.name()).asInt(),
-                    map2.path(FIELDS.filename.name()).asText(), map2.path(FIELDS.block.name()).asInt(),
-                    map2.path(FIELDS.rank.name()).asInt(), map2.path(FIELDS.id.name()).asLong(),
+            return new RequestPacket(map.path(FIELDS.rule.name()).asText(),
+                    map.path(FIELDS.mode.name()).asInt(),
+                    map2.path(FIELDS.filename.name()).asText(),
+                    map2.path(FIELDS.block.name()).asInt(),
+                    map2.path(FIELDS.rank.name()).asInt(), 
+                    map2.path(FIELDS.id.name()).asLong(),
                     valid, send,
-                    (char) map2.path(FIELDS.code.name()).asInt(), map2.path(FIELDS.length.name()).asLong(),
+                    (char) map2.path(FIELDS.code.name()).asInt(),
+                    map2.path(FIELDS.length.name()).asLong(),
+                    // Get speed if it exists if not speed is set to 0
+                    map2.path(FIELDS.limit.name()).asLong(0),
                     PartnerConfiguration.BAR_JSON_FIELD);
         }
 
@@ -315,6 +323,18 @@ public class RequestPacket extends AbstractLocalPacket {
                 REQVALIDATE, fileInformation, ErrorCode.InitOk.code, originalSize, separator);
     }
 
+    /**
+     * Create a Request packet with a speed negociation
+     */
+    private RequestPacket(String rulename, int mode, String filename,
+            int blocksize, int rank, long specialId, byte valid,
+            String fileInformation, char code, long originalSize, long limit,
+            String separator) {
+        this(rulename, mode, filename, blocksize, rank, specialId,
+                REQVALIDATE, fileInformation, code, originalSize, separator);
+        this.limit = limit;
+    }
+
     @Override
     public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
         if (fileInformation != null) {
@@ -356,6 +376,10 @@ public class RequestPacket extends AbstractLocalPacket {
             JsonHandler.setValue(node, FIELDS.id, specialId);
             JsonHandler.setValue(node, FIELDS.code, code);
             JsonHandler.setValue(node, FIELDS.length, originalSize);
+            // Add limit if specified
+            if (limit != 0) {
+                JsonHandler.setValue(node, FIELDS.limit, limit);
+            }
             middle = Unpooled.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
         } else {
             middle = Unpooled.wrappedBuffer(away, filename.getBytes(),
@@ -507,4 +531,11 @@ public class RequestPacket extends AbstractLocalPacket {
         this.code = code;
     }
 
+    public long getLimit() {
+        return this.limit;
+    }
+
+    public void setLimit(long limit) {
+        this.limit = limit;
+    }
 }
