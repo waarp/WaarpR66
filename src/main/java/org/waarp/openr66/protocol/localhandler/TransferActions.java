@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -483,6 +484,22 @@ public class TransferActions extends ServerActions {
         }
         session.setReady(true);
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
+
+        // Set read/write limit
+        long remoteLimit = packet.getLimit();
+        long localLimit = localChannelReference.getChannelLimit(
+                runner.isSender());
+        // Take the minimum speed
+        logger.trace("Received limit {}", packet.getLimit());
+        logger.trace("Local limit {}", localChannelReference.getChannelLimit(runner.isSender()));
+        if (localLimit <= 0) {
+            localLimit = remoteLimit;
+        } else if (remoteLimit > 0 && remoteLimit < localLimit) {
+            localLimit = remoteLimit;
+        }
+        localChannelReference.setChannelLimit(runner.isSender(), localLimit);
+        packet.setLimit(localLimit);
+
         // inform back
         if (packet.isToValidate()) {
             if (Configuration.configuration.getMonitoring() != null) {

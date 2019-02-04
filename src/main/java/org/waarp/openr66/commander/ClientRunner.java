@@ -548,6 +548,8 @@ public class ClientRunner extends Thread {
                             taskRunner.getRank() + " {}", taskRunner);
         }
         RequestPacket request = taskRunner.getRequest();
+        request.setLimit(localChannelReference.getChannelLimit(
+                    taskRunner.isSender()));
         logger.debug("Will send request {} {}", request, localChannelReference);
         localChannelReference.setClientRunner(this);
         localChannelReference.sessionNewState(R66FiniteDualStates.REQUESTR);
