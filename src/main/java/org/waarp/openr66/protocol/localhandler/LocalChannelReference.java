@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler;
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -594,6 +595,44 @@ public class LocalChannelReference {
             if (!futureRequest.getResult().isAnswered()) {
                 futureRequest.getResult().setAnswered(finalValue.isAnswered());
             }
+        }
+    }
+
+    private long getMinLimit(long a, long b) {
+        long res = a;
+        if (a <= 0) {
+            res = b;
+        } else if (b > 0 && b < a) {
+            res = b;
+        }
+        return res;
+    }
+
+    public void setChannelLimit(boolean isSender, long limit) {
+        GlobalChannelTrafficShapingHandler limitHandler =
+            (GlobalChannelTrafficShapingHandler) networkChannelRef.channel()
+                .pipeline().get("LIMIT");
+        if (isSender) {
+            limitHandler.setWriteChannelLimit(limit);
+            logger.info("Will write at {} bytes/sec", limit);
+        } else {
+            limitHandler.setReadChannelLimit(limit);
+            logger.info("Will read at {} bytes/sec", limit);
+        }
+    }
+
+    public long getChannelLimit(boolean isSender) {
+        GlobalChannelTrafficShapingHandler limitHandler =
+            (GlobalChannelTrafficShapingHandler) networkChannelRef.channel()
+                .pipeline().get("LIMIT");
+        if (!isSender) {
+            long global = limitHandler.getReadLimit();
+            long channel = limitHandler.getReadChannelLimit();
+            return getMinLimit(global, channel);
+        } else {
+            long global = limitHandler.getWriteLimit();
+            long channel = limitHandler.getWriteChannelLimit();
+            return getMinLimit(global, channel);
         }
     }
 
