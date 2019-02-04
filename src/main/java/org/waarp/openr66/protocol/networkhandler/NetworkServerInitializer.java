@@ -50,22 +50,13 @@ public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> 
     protected void initChannel(SocketChannel ch) throws Exception {
         final ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
-        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0, Configuration.configuration.getTIMEOUTCON(),
-                TimeUnit.MILLISECONDS));
-        GlobalTrafficHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
-        if (handler != null) {
-            pipeline.addLast(LIMIT, handler);
-        }
-        ChannelTrafficShapingHandler trafficChannel = null;
-        try {
-            trafficChannel = Configuration.configuration.newChannelTrafficShapingHandler();
-            if (trafficChannel != null) {
-                pipeline.addLast(LIMITCHANNEL, trafficChannel);
-            }
-        } catch (OpenR66ProtocolNoDataException e) {
-        }
-        pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler",
-                new NetworkServerHandler(this.server));
+        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0,
+                    Configuration.configuration.getTIMEOUTCON(),
+                    TimeUnit.MILLISECONDS));
+        pipeline.addLast(LIMIT,
+                Configuration.configuration.getGlobalTrafficShapingHandler());
+        pipeline.addLast(Configuration.configuration.getHandlerGroup(),
+                "handler", new NetworkServerHandler(this.server));
     }
 
 }

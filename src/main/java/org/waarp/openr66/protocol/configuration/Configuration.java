@@ -766,9 +766,7 @@ public class Configuration {
         }
 
         // Factory for TrafficShapingHandler
-        globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, getServerGlobalWriteLimit(),
-                getServerGlobalReadLimit(), getServerChannelWriteLimit(), getServerChannelReadLimit(), getDelayLimit());
-        this.getConstraintLimitHandler().setHandler(globalTrafficShapingHandler);
+        setupLimitHandler();
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();
@@ -782,6 +780,14 @@ public class Configuration {
         }
     }
 
+    public void setupLimitHandler() {
+        globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup,
+                getServerGlobalWriteLimit(), getServerGlobalReadLimit(),
+                getServerChannelWriteLimit(), getServerChannelReadLimit(),
+                getDelayLimit());
+        this.getConstraintLimitHandler().setHandler(
+                globalTrafficShapingHandler);
+    }
     public void startHttpSupport() {
         // Now start the HTTP support
         logger.info(Messages.getString("Configuration.HTTPStart") + getSERVER_HTTPPORT() + //$NON-NLS-1$
