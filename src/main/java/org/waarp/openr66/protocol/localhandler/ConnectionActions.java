@@ -558,6 +558,8 @@ public abstract class ConnectionActions {
         session.getLocalChannelReference().setErrorMessage(packet.getSheader(), code);
         OpenR66ProtocolBusinessException exception;
         if (code.code == ErrorCode.CanceledTransfer.code) {
+            NetworkTransaction.stopRetrieve(session.getLocalChannelReference());
+            logger.debug("Stop retrieving file: the transfer has been canceled");
             exception =
                     new OpenR66ProtocolBusinessCancelException(packet.getSheader());
             int rank = 0;
@@ -577,6 +579,8 @@ public abstract class ConnectionActions {
             }
             return;
         } else if (code.code == ErrorCode.StoppedTransfer.code) {
+            NetworkTransaction.stopRetrieve(session.getLocalChannelReference());
+            logger.debug("Stop retrieving file: the transfer has been stopped");
             exception =
                     new OpenR66ProtocolBusinessStopException(packet.getSheader());
             String[] vars = packet.getSheader().split(" ");
