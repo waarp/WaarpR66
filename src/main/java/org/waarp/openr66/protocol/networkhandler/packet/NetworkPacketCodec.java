@@ -23,6 +23,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.KeepAlivePacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
@@ -39,6 +41,11 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
+    /**
+     * Internal Logger
+     */
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(NetworkPacketCodec.class);
+
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
@@ -70,6 +77,7 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
         buffer.retain();
         buf.skipBytes(length - 9);
         NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
+        logger.trace("received network packet {}", networkPacket);
         if (code == LocalPacketFactory.KEEPALIVEPACKET) {
             KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
                     LocalPacketCodec.decodeNetworkPacket(networkPacket.getBuffer());
@@ -95,7 +103,8 @@ public class NetworkPacketCodec extends ByteToMessageCodec<NetworkPacket> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, NetworkPacket msg, ByteBuf out) throws Exception {
-        final NetworkPacket packet = (NetworkPacket) msg;
+        final NetworkPacket packet = msg;
+        logger.trace("sending network packet {}", packet);
         final ByteBuf finalBuf = packet.getNetworkPacket();
         out.writeBytes(finalBuf);
         finalBuf.release();
