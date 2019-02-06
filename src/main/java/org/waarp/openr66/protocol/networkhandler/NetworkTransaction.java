@@ -145,6 +145,7 @@ public class NetworkTransaction {
         WaarpNettyUtil.setBootstrap(clientBootstrap, Configuration.configuration.getNetworkWorkerGroup(),
                 (int) Configuration.configuration.getTIMEOUTCON());
         clientBootstrap.handler(networkServerInitializer);
+        Configuration.configuration.setupLimitHandler();
         clientSslBootstrap = new Bootstrap();
         if (Configuration.configuration.isUseSSL() && Configuration.configuration.getHOST_SSLID() != null) {
             NetworkSslServerInitializer networkSslServerInitializer = new NetworkSslServerInitializer(true);

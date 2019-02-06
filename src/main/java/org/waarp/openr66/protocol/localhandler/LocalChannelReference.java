@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler;
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -595,6 +596,42 @@ public class LocalChannelReference {
                 futureRequest.getResult().setAnswered(finalValue.isAnswered());
             }
         }
+    }
+
+    private long getMinLimit(long a, long b) {
+        long res = a;
+        if (a <= 0) {
+            res = b;
+        } else if (b > 0 && b < a) {
+            res = b;
+        }
+        return res;
+    }
+
+    public void setChannelLimit(boolean isSender, long limit) {
+        ChannelTrafficShapingHandler limitHandler =
+            (ChannelTrafficShapingHandler) networkChannelRef.channel()
+                .pipeline().get("CHANNELLIMIT");
+        if (isSender) {
+            limitHandler.setWriteLimit(limit);
+            logger.info("Will write at {} Bytes/sec", limit);
+        } else {
+            limitHandler.setReadLimit(limit);
+            logger.info("Will read at {} Bytes/sec", limit);
+        }
+    }
+
+    public long getChannelLimit(boolean isSender) {
+        long global = 0;
+        long channel = 0;
+        if (isSender) {
+            global = Configuration.configuration.getServerGlobalWriteLimit();
+            channel = Configuration.configuration.getServerChannelWriteLimit();
+        } else {
+            global = Configuration.configuration.getServerGlobalReadLimit();
+            channel = Configuration.configuration.getServerChannelReadLimit();
+        }
+        return getMinLimit(global, channel);
     }
 
     @Override
