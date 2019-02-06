@@ -338,17 +338,14 @@ public class ChannelUtils extends Thread {
             }
         }
         if (Configuration.configuration.getServerGlobalWriteLimit() > 0) {
-            GlobalTrafficHandler gts = Configuration.configuration
-                    .getGlobalTrafficShapingHandler();
-            if (gts != null) {
-                TrafficCounter tc = gts.trafficCounter();
-                if (tc != null) {
-                    long wait = waitTraffic(Configuration.configuration.getServerGlobalWriteLimit(),
-                            tc.currentWrittenBytes() + size,
-                            tc.lastTime(), currentTime);
-                    if (wait > 0) {
-                        return wait;
-                    }
+            TrafficCounter tc = Configuration.configuration
+                .getGlobalTrafficShapingHandler().trafficCounter();
+            if (tc != null) {
+                long wait = waitTraffic(Configuration.configuration.getServerGlobalWriteLimit(),
+                        tc.currentWrittenBytes() + size,
+                        tc.lastTime(), currentTime);
+                if (wait > 0) {
+                    return wait;
                 }
             }
         }

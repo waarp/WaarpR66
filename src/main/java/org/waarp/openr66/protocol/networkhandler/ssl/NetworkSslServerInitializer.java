@@ -70,13 +70,22 @@ public class NetworkSslServerInitializer extends ChannelInitializer<SocketChanne
         }
         pipeline.addLast("ssl", sslHandler);
 
-        pipeline.addLast("codec", new NetworkPacketCodec());
         pipeline.addLast(NetworkServerInitializer.TIMEOUT,
                 new IdleStateHandler(0, 0,
                     Configuration.configuration.getTIMEOUTCON(),
                     TimeUnit.MILLISECONDS));
-        pipeline.addLast(NetworkServerInitializer.LIMIT,
+
+        // Global limitation
+        pipeline.addLast(NetworkServerInitializer.LIMITGLOBAL,
                 Configuration.configuration.getGlobalTrafficShapingHandler());
+        // Per channel limitation
+        pipeline.addLast(NetworkServerInitializer.LIMITCHANNEL,
+                new ChannelTrafficShapingHandler(
+                    Configuration.configuration.getServerChannelWriteLimit(),
+                    Configuration.configuration.getServerChannelReadLimit(),
+                    Configuration.configuration.getDelayLimit()));
+ 
+        pipeline.addLast("codec", new NetworkPacketCodec());
         pipeline.addLast(Configuration.configuration.getHandlerGroup(),
                 "handler", new NetworkSslServerHandler(!this.isClient));
     }
