@@ -609,31 +609,29 @@ public class LocalChannelReference {
     }
 
     public void setChannelLimit(boolean isSender, long limit) {
-        GlobalChannelTrafficShapingHandler limitHandler =
-            (GlobalChannelTrafficShapingHandler) networkChannelRef.channel()
-                .pipeline().get("LIMIT");
+        ChannelTrafficShapingHandler limitHandler =
+            (ChannelTrafficShapingHandler) networkChannelRef.channel()
+                .pipeline().get("CHANNELLIMIT");
         if (isSender) {
-            limitHandler.setWriteChannelLimit(limit);
-            logger.info("Will write at {} bytes/sec", limit);
+            limitHandler.setWriteLimit(limit);
+            logger.info("Will write at {} Bytes/sec", limit);
         } else {
-            limitHandler.setReadChannelLimit(limit);
-            logger.info("Will read at {} bytes/sec", limit);
+            limitHandler.setReadLimit(limit);
+            logger.info("Will read at {} Bytes/sec", limit);
         }
     }
 
     public long getChannelLimit(boolean isSender) {
-        GlobalChannelTrafficShapingHandler limitHandler =
-            (GlobalChannelTrafficShapingHandler) networkChannelRef.channel()
-                .pipeline().get("LIMIT");
-        if (!isSender) {
-            long global = limitHandler.getReadLimit();
-            long channel = limitHandler.getReadChannelLimit();
-            return getMinLimit(global, channel);
+        long global = 0;
+        long channel = 0;
+        if (isSender) {
+            global = Configuration.configuration.getServerGlobalWriteLimit();
+            channel = Configuration.configuration.getServerChannelWriteLimit();
         } else {
-            long global = limitHandler.getWriteLimit();
-            long channel = limitHandler.getWriteChannelLimit();
-            return getMinLimit(global, channel);
+            global = Configuration.configuration.getServerGlobalReadLimit();
+            channel = Configuration.configuration.getServerChannelReadLimit();
         }
+        return getMinLimit(global, channel);
     }
 
     @Override

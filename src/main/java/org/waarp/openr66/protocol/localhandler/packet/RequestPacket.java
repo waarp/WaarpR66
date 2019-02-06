@@ -331,7 +331,7 @@ public class RequestPacket extends AbstractLocalPacket {
             String fileInformation, char code, long originalSize, long limit,
             String separator) {
         this(rulename, mode, filename, blocksize, rank, specialId,
-                REQVALIDATE, fileInformation, code, originalSize, separator);
+                valid, fileInformation, code, originalSize, separator);
         this.limit = limit;
     }
 
@@ -377,9 +377,7 @@ public class RequestPacket extends AbstractLocalPacket {
             JsonHandler.setValue(node, FIELDS.code, code);
             JsonHandler.setValue(node, FIELDS.length, originalSize);
             // Add limit if specified
-            if (limit != 0) {
-                JsonHandler.setValue(node, FIELDS.limit, limit);
-            }
+            JsonHandler.setValue(node, FIELDS.limit, limit);
             middle = Unpooled.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
         } else {
             middle = Unpooled.wrappedBuffer(away, filename.getBytes(),
@@ -402,7 +400,8 @@ public class RequestPacket extends AbstractLocalPacket {
     public String toString() {
         return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
                 " : " + fileInformation + " : " + blocksize + " : " + rank +
-                " : " + way + " : " + code + " : " + originalSize;
+                " : " + way + " : " + code + " : " + originalSize +
+                " : " + limit;
     }
 
     /**
