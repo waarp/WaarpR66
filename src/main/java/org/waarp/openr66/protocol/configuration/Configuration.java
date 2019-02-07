@@ -1080,11 +1080,12 @@ public class Configuration {
         this.setServerChannelReadLimit(readSessionLimit);
         this.setServerChannelWriteLimit(writeSessionLimit);
         this.setDelayLimit(delayLimit);
-
-        globalTrafficShapingHandler.configure(writeGlobalLimit, readGlobalLimit,
-                delayLimit);
-        logger.info(Messages.getString("Configuration.BandwidthChange"),
-                globalTrafficShapingHandler);
+	if (globalTrafficShapingHandler != null) {
+        	globalTrafficShapingHandler.configure(writeGlobalLimit, readGlobalLimit,
+                	delayLimit);
+        	logger.info(Messages.getString("Configuration.BandwidthChange"),
+                	globalTrafficShapingHandler);
+	}
     }
 
     /**
