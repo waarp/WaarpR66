@@ -92,9 +92,18 @@ public abstract class AbstractExecTask extends AbstractTask {
      * @param line the command  to process as a string
      */
     protected CommandLine buildCommandLine(String line) {
-        String executable = CommandLine.parse(line).getExecutable();
-        String arguments = line.replace(executable, "");
-        File exec = new File(executable);
+        if (line.contains(NOWAIT)) {
+            waitForValidation = false;
+        }
+        if (line.contains(LOCALEXEC)) {
+            useLocalExec = true;
+        }
+
+        String replacedLine = line.replaceAll("#([A-Z]+)#", "\\${$1}");
+
+        CommandLine commandLine = CommandLine.parse(replacedLine, getSubstitutionMap());
+
+        File exec = new File(commandLine.getExecutable());
         if (exec.isAbsolute()) {
             if (!exec.canExecute()) {
                 logger.error("Exec command is not executable: " + line);
@@ -106,18 +115,6 @@ public abstract class AbstractExecTask extends AbstractTask {
             }
         }
 
-        if (arguments.contains(NOWAIT)) {
-            waitForValidation = false;
-        }
-        if (arguments.contains(LOCALEXEC)) {
-            useLocalExec = true;
-        }
-
-        arguments = arguments.replaceAll("#([A-Z]+)#", "\\${$1}");
-
-        CommandLine commandLine = new CommandLine(exec);
-        commandLine.setSubstitutionMap(getSubstitutionMap());
-        commandLine.addArguments(arguments, false);
         return commandLine;
     }
 
