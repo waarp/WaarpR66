@@ -142,8 +142,7 @@ public class LocalTransaction {
             }
             return localChannelReference;
         }
-        throw new OpenR66ProtocolSystemException(
-                "Cannot find LocalChannelReference");
+        throw new OpenR66ProtocolSystemException("Cannot find LocalChannelReference");
     }
 
     private static class SendLater extends Thread {
@@ -314,20 +313,6 @@ public class LocalTransaction {
      * @return the LocalChannelReference
      */
     public LocalChannelReference getFromId(Integer id) {
-        int maxtry = (int) (Configuration.configuration.getTIMEOUTCON() / Configuration.RETRYINMS) / 2;
-        maxtry = 100;
-        for (int i = 0; i < maxtry; i++) {
-            LocalChannelReference lcr = localChannelHashMap.get(id);
-            if (lcr == null) {
-                try {
-                    Thread.sleep(Configuration.RETRYINMS);
-                    Thread.yield();
-                } catch (InterruptedException e) {
-                }
-            } else {
-                return lcr;
-            }
-        }
         return localChannelHashMap.get(id);
     }
 

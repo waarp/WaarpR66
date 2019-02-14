@@ -216,7 +216,6 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, NetworkPacket msg) throws Exception {
-        logger.trace("entering NSH.channelRead0");
         if (isBlackListed) {
             // ignore message since close on going
             return;
@@ -284,7 +283,6 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                     channel.id());
             NetworkTransaction.createConnectionFromNetworkChannelStartup(
                     this.networkChannelReference, packet);
-            logger.trace("exiting NSH.channelRead0");
             return;
         } else {
             if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
@@ -303,7 +301,6 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                                 packet.toString());
                     }
                     packet.clear();
-                    logger.trace("exiting NSH.channelRead0");
                     return;
                 }
                 // OK continue and send to the local channel
@@ -323,7 +320,6 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                                 packet.toString());
                     }
                     packet.clear();
-                    logger.trace("exiting NSH.channelRead0");
                     return;
                 }
                 // OK continue and send to the local channel
@@ -340,19 +336,9 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                             || R66ShutdownHook.isShutdownStarting()) {
                         // ignore
                         packet.clear();
-                        logger.trace("exiting NSH.channelRead0");
                         return;
                     }
-                    // try to send later
-                    Configuration.configuration.getLocalTransaction()
-                        .sendLaterToClient(channel, packet.getRemoteId(), packet.getLocalId(), packet);
-                    /*logger.debug("Cannot get LocalChannel: " + packet + " due to " +
-                            e1.getMessage());
-                    final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                            "Cannot get localChannel since localId is not found anymore", "" + packet.getLocalId());
-                    writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);*/
                     packet.clear();
-                    logger.trace("exiting NSH.channelRead0");
                     return;
                 }
             }
@@ -364,12 +350,10 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             logger.debug("Cannot use LocalChannel since already in shutdown: " + packet);
             // ignore
             packet.clear();
-            logger.trace("exiting NSH.channelRead0");
             return;
         }
         ByteBuf buf = packet.getBuffer();
         localChannelReference.getLocalChannel().writeAndFlush(buf);
-        logger.trace("exiting NSH.channelRead0");
     }
 
     @Override
