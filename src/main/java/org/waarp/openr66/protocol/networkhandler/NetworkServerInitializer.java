@@ -19,14 +19,16 @@ package org.waarp.openr66.protocol.networkhandler;
 
 import java.util.concurrent.TimeUnit;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 /**
@@ -35,10 +37,11 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * @author Frederic Bregier
  */
 public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> {
+
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
-    public static final String LIMIT = "LIMIT";
-    public static final String LIMITCHANNEL = "LIMITCHANNEL";
+    public static final String LIMITGLOBAL = "GLOBALLIMIT";
+    public static final String LIMITCHANNEL = "CHANNELLIMIT";
 
     protected boolean server = false;
 
@@ -49,23 +52,26 @@ public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         final ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0,
+                    Configuration.configuration.getTIMEOUTCON(),
+                    TimeUnit.MILLISECONDS));
+        // Global limitation
+	GlobalTrafficShapingHandler handler =
+                Configuration.configuration.getGlobalTrafficShapingHandler();
+	if (handler == null) {
+		throw new OpenR66ProtocolNetworkException(
+			"Error at pipeline initialization,"
+			+ " GlobalTrafficShapingHandler configured.");
+	}
+        pipeline.addLast(LIMITGLOBAL, handler);
+        // Per channel limitation
+        pipeline.addLast(LIMITCHANNEL,
+                new ChannelTrafficShapingHandler(
+                    Configuration.configuration.getServerChannelWriteLimit(),
+                    Configuration.configuration.getServerChannelReadLimit(),
+                    Configuration.configuration.getDelayLimit()));
         pipeline.addLast("codec", new NetworkPacketCodec());
-        pipeline.addLast(TIMEOUT, new IdleStateHandler(0, 0, Configuration.configuration.getTIMEOUTCON(),
-                TimeUnit.MILLISECONDS));
-        GlobalTrafficHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
-        if (handler != null) {
-            pipeline.addLast(LIMIT, handler);
-        }
-        ChannelTrafficShapingHandler trafficChannel = null;
-        try {
-            trafficChannel = Configuration.configuration.newChannelTrafficShapingHandler();
-            if (trafficChannel != null) {
-                pipeline.addLast(LIMITCHANNEL, trafficChannel);
-            }
-        } catch (OpenR66ProtocolNoDataException e) {
-        }
-        pipeline.addLast(Configuration.configuration.getHandlerGroup(), "handler",
-                new NetworkServerHandler(this.server));
+        pipeline.addLast(Configuration.configuration.getHandlerGroup(),
+                "handler", new NetworkServerHandler(this.server));
     }
-
 }
