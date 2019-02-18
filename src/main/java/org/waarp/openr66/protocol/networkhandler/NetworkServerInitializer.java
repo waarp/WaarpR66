@@ -19,14 +19,16 @@ package org.waarp.openr66.protocol.networkhandler;
 
 import java.util.concurrent.TimeUnit;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 /**
@@ -35,6 +37,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * @author Frederic Bregier
  */
 public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> {
+
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
     public static final String LIMITGLOBAL = "GLOBALLIMIT";
@@ -53,8 +56,14 @@ public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> 
                     Configuration.configuration.getTIMEOUTCON(),
                     TimeUnit.MILLISECONDS));
         // Global limitation
-        pipeline.addLast(LIMITGLOBAL,
-                Configuration.configuration.getGlobalTrafficShapingHandler());
+	GlobalTrafficShapingHandler handler =
+                Configuration.configuration.getGlobalTrafficShapingHandler();
+	if (handler == null) {
+		throw new OpenR66ProtocolNetworkException(
+			"Error at pipeline initialization,"
+			+ " GlobalTrafficShapingHandler configured.");
+	}
+        pipeline.addLast(LIMITGLOBAL, handler);
         // Per channel limitation
         pipeline.addLast(LIMITCHANNEL,
                 new ChannelTrafficShapingHandler(
@@ -65,5 +74,4 @@ public class NetworkServerInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast(Configuration.configuration.getHandlerGroup(),
                 "handler", new NetworkServerHandler(this.server));
     }
-
 }

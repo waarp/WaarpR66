@@ -76,8 +76,14 @@ public class NetworkSslServerInitializer extends ChannelInitializer<SocketChanne
                     TimeUnit.MILLISECONDS));
 
         // Global limitation
-        pipeline.addLast(NetworkServerInitializer.LIMITGLOBAL,
-                Configuration.configuration.getGlobalTrafficShapingHandler());
+	GlobalTrafficShapingHandler handler =
+                Configuration.configuration.getGlobalTrafficShapingHandler();
+	if (handler == null) {
+		throw new OpenR66ProtocolNetworkException(
+			"Error at pipeline initialization,"
+			+ " GlobalTrafficShapingHandler configured.");
+	}
+        pipeline.addLast(NetworkServerInitializer.LIMITGLOBAL, handler);
         // Per channel limitation
         pipeline.addLast(NetworkServerInitializer.LIMITCHANNEL,
                 new ChannelTrafficShapingHandler(
