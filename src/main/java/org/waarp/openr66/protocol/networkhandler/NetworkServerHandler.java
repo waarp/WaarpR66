@@ -274,8 +274,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             packet.clear();
             return;
         }
-        logger.debug("GET MSG: {}" + packet.getCode());
-        logger.trace("MSG: {}" + packet);
+        logger.trace("GET MSG: {}", packet);
         this.networkChannelReference.use();
         LocalChannelReference localChannelReference = null;
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
