@@ -76,4 +76,6 @@ public interface RuleDAO {
      * @throws DAOException If a data access error occurs
      */
     void deleteAll() throws DAOException;
+
+    void close();
 }

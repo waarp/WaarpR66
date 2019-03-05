@@ -60,6 +60,7 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -1851,7 +1852,9 @@ public class ServerActions extends ConnectionActions {
      * @param id
      * @return the Result to answer
      * @throws OpenR66ProtocolNotAuthenticatedException
+     * @deprecated use stopTransfer or cancel transfer instead
      */
+    @Deprecated
     public final R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
             throws OpenR66ProtocolNotAuthenticatedException {
         // should be from the local server or from an authorized hosts: SYSTEM
@@ -1907,6 +1910,78 @@ public class ServerActions extends ConnectionActions {
             }
         }
         return resulttest;
+    }
+
+    private LocalChannelReference getLocalChannelReference(Transfer transfer) {
+        String key = transfer.getRequested() + " " + transfer.getRequester()
+                + " " + transfer.getId();
+        return Configuration.configuration.getLocalTransaction().
+                getFromRequest(key);
+    }
+
+    /**
+     * @param transfer the transfer to stop
+     * @return
+     */
+    public R66Result stopTransfer(Transfer transfer) {
+	    ErrorCode code = ErrorCode.StoppedTransfer;
+        LocalChannelReference lcr = getLocalChannelReference(transfer);
+        if (lcr == null) {
+            // Transfer is not running
+            transfer.setUpdatedInfo(
+                    AbstractDbData.UpdatedInfo.INERROR.ordinal());
+            transfer.setTransferInfo(code.getCode());
+            return new R66Result(session, true,
+                    ErrorCode.CompleteOk, session.getRunner());
+        }
+        ErrorPacket error = new ErrorPacket(
+                code.name() + " " + transfer.getRank(),
+                code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+        try {
+            ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Cannot stop transfer (" + transfer + ")", e);
+            return new R66Result(session, true,
+                    ErrorCode.TransferOk, session.getRunner());
+        }
+        // Update session and transfer status
+        session.setErrorState();
+        transfer.setTransferInfo(code.getCode());
+        return new R66Result(session, true,
+                ErrorCode.CompleteOk, session.getRunner());
+    }
+
+    /**
+     *
+     * @param transfer the transfer to stop
+     * @return
+     */
+    public R66Result cancelTransfer(Transfer transfer) {
+        ErrorCode code = ErrorCode.CanceledTransfer;
+        LocalChannelReference lcr = getLocalChannelReference(transfer);
+        if (lcr == null) {
+            // Transfer is not running
+            transfer.setUpdatedInfo(
+                    AbstractDbData.UpdatedInfo.INERROR.ordinal());
+            transfer.setTransferInfo(code.getCode());
+            return new R66Result(session, true,
+                    ErrorCode.CompleteOk, session.getRunner());
+        }
+        ErrorPacket error = new ErrorPacket(
+                code.name() + " " + transfer.getRank(),
+                code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+        try {
+            ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Cannot cancel transfer (" + transfer + ")", e);
+            return new R66Result(session, true,
+                    ErrorCode.TransferOk, session.getRunner());
+        }
+        // Update session and transfer status
+        session.setErrorState();
+        transfer.setTransferInfo(code.getCode());
+        return new R66Result(session, true,
+                ErrorCode.CompleteOk, session.getRunner());
     }
 
     /**

@@ -170,6 +170,14 @@ public class R66Session implements SessionInterface {
         }
     }
 
+    public void setErrorState() {
+        try {
+            state.setCurrent(R66FiniteDualStates.ERROR);
+        } catch (IllegalFiniteStateException e) {
+            logger.error("Couldn't pass to error state. This should not happen");
+	}
+    }
+
     /**
      * 
      * @return the current state in the finite state machine

@@ -58,6 +58,15 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
+    public void close() {
+	try {
+            this.connection.close();
+	} catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+	}
+    }
+
+    @Override
     public void delete(MultipleMonitor multipleMonitor) throws DAOException {
         PreparedStatement stm = null;
         try {

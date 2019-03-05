@@ -67,6 +67,15 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
+    public void close() {
+	try {
+            this.connection.close();
+	} catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+	}
+    }
+
+    @Override
     public void delete(Limit limit) throws DAOException {
         PreparedStatement stm = null;
         try {

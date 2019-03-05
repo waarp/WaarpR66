@@ -74,6 +74,15 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
+    public void close() {
+	try {
+            this.connection.close();
+	} catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+	}
+    }
+
+    @Override
     public void delete(Host host) throws DAOException {
         PreparedStatement stm = null;
         try {

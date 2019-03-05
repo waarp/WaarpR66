@@ -3,6 +3,7 @@ package org.waarp.openr66.dao.database;
 import java.sql.SQLException;
 
 import org.waarp.common.database.ConnectionFactory;
+import org.waarp.common.database.properties.*;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.DAOFactory;
@@ -69,7 +70,20 @@ public class DBDAOFactory extends DAOFactory {
     @Override
     public DBTransferDAO getTransferDAO() throws DAOException {
         try {
-             return new DBTransferDAO(connectionFactory.getConnection());
+	     DbProperties prop = connectionFactory.getProperties();
+	     if (prop instanceof H2Properties) {
+                 return new H2TransferDAO(connectionFactory.getConnection());
+	     } else if (prop instanceof MariaDBProperties) {
+                 return new DBTransferDAO(connectionFactory.getConnection());
+	     } else if (prop instanceof MySQLProperties) {
+                 return new DBTransferDAO(connectionFactory.getConnection());
+	     } else if (prop instanceof OracleProperties) {
+                 return new OracleTransferDAO(connectionFactory.getConnection());
+	     } else if (prop instanceof PostgreSQLProperties) {
+                 return new PostgreSQLTransferDAO(connectionFactory.getConnection());
+	     } else {
+	         throw new DAOException("Unsupported database");
+	     }
         } catch (SQLException e) {
             throw new DAOException("data access error", e);
         }
