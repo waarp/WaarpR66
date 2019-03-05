@@ -968,7 +968,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * Check if closing of the localChannel will bring future closing of NetworkChannel
+     * ConsistencyCheck if closing of the localChannel will bring future closing of NetworkChannel
      * 
      * @param networkChannelReference
      * @param localChannelReference

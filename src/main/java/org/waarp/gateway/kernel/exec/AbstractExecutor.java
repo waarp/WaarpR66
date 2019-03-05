@@ -272,7 +272,7 @@ public abstract class AbstractExecutor {
     }
 
     /**
-     * Check if the given operation is allowed Globally
+     * ConsistencyCheck if the given operation is allowed Globally
      * 
      * @param isStore
      * @return True if allowed, else False

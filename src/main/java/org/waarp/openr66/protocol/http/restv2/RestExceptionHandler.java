@@ -25,9 +25,16 @@ import co.cask.http.ExceptionHandler;
 import co.cask.http.HttpResponder;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
+
+import javax.swing.*;
 
 /** Handles unknown exceptions that occur during the processing of an HTTP request. */
 public class RestExceptionHandler extends ExceptionHandler {
+
+    private static final WaarpLogger logger = WaarpLoggerFactory.getInstance(RestExceptionHandler.class);
 
     /**
      * Called when an unknown exception is thrown during the program execution. Creates and sends an http response with
@@ -39,9 +46,8 @@ public class RestExceptionHandler extends ExceptionHandler {
      */
     @Override
     public void handle(Throwable t, HttpRequest request, HttpResponder responder) {
-        String internal = (t.getMessage() == null) ? "" : t.getMessage().replaceAll("\"", "'");
-        String message = String.format("{\"userMessage\":\"Unexpected internal error" +
-                "\",\"internalMessage\":\"%s -> %s\"}", t.getClass().getSimpleName(), internal);
-        responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, message);
+        logger.error(t);
+        responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                InternalErrorResponse.unexpectedError().toJson());
     }
 }

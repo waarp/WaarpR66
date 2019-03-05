@@ -227,7 +227,7 @@ public class TransferActions extends ServerActions {
                 throw new OpenR66ProtocolNotAuthenticatedException(
                         Messages.getString("LocalServerHandler.10")); //$NON-NLS-1$
             }
-            // Check if the blocksize is greater than local value
+            // ConsistencyCheck if the blocksize is greater than local value
             if (Configuration.configuration.getBLOCKSIZE() < blocksize) {
                 blocksize = Configuration.configuration.getBLOCKSIZE();
                 String sep = localChannelReference.getPartner().getSeperator();
@@ -384,7 +384,7 @@ public class TransferActions extends ServerActions {
             packet.setSpecialId(runner.getSpecialId());
         }
         logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
-        // Check now if request is a valid one
+        // ConsistencyCheck now if request is a valid one
         if (packet.getCode() != ErrorCode.InitOk.code) {
             // not valid so create an error from there
             ErrorCode code = ErrorCode.getFromCode("" + packet.getCode());
@@ -698,7 +698,7 @@ public class TransferActions extends ServerActions {
                 return;
             }
         }
-        // Check global size
+        // ConsistencyCheck global size
         long originalSize = session.getRunner().getOriginalSize();
         if (originalSize >= 0) {
             if (session.getRunner().getBlocksize() * (session.getRunner().getRank() - 1) > originalSize) {
@@ -805,7 +805,7 @@ public class TransferActions extends ServerActions {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated while EndTransfer received");
         }
-        // Check end of transfer
+        // ConsistencyCheck end of transfer
         long originalSize = session.getRunner().getOriginalSize();
         logger.debug("OSize: " + originalSize + " isSender: " + session.getRunner().isSender());
         if (packet.isToValidate()) {
@@ -1136,7 +1136,7 @@ public class TransferActions extends ServerActions {
         if (runner != null) {
             if (newSize > 0) {
                 runner.setOriginalSize(newSize);
-                // Check if a CHKFILE task was supposely needed to run
+                // ConsistencyCheck if a CHKFILE task was supposely needed to run
                 String[][] rpretasks = runner.getRule().getRpreTasksArray();
                 if (rpretasks != null) {
                     for (String[] strings : rpretasks) {

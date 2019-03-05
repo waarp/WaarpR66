@@ -446,7 +446,7 @@ public class FileBasedConfiguration {
     private static final String XML_DBCHECK = "dbcheck";
 
     /**
-     * Check version in protocol
+     * ConsistencyCheck version in protocol
      */
     private static final String XML_CHECKVERSION = "checkversion";
     /**
@@ -1863,7 +1863,7 @@ public class FileBasedConfiguration {
                     logger.error(Messages.getString("Database.CannotConnect"), e2); //$NON-NLS-1$
                     return false;
                 }
-                // Check if the database is ready (initdb already done before)
+                // ConsistencyCheck if the database is ready (initdb already done before)
                 DbRequest request = null;
                 if (checkInit) {
                     try {
@@ -1889,7 +1889,7 @@ public class FileBasedConfiguration {
                     checkDatabase = value.getBoolean();
                 }
                 if (checkDatabase) {
-                    // Check if the database is up to date
+                    // ConsistencyCheck if the database is up to date
                     if (!ServerInitDatabase.upgradedb()) {
                         return false;
                     }

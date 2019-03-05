@@ -71,7 +71,7 @@ public class ExecTask extends AbstractExecTask {
                 session);
         String finalname = applyTransferSubstitutions(argRule);
         
-        // Check if the execution will be done through LocalExec daemon
+        // ConsistencyCheck if the execution will be done through LocalExec daemon
         if (Configuration.configuration.isUseLocalExec() && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {

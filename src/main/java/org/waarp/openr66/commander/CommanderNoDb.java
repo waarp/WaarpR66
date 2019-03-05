@@ -140,21 +140,21 @@ public class CommanderNoDb implements CommanderInterface {
                     configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     configuration.update();
                 }
-                // Check HostAuthent
+                // ConsistencyCheck HostAuthent
                 else if (data instanceof DbHostAuth) {
                     DbHostAuth hostAuth = (DbHostAuth) data;
                     // Nothing to do except validate
                     hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     hostAuth.update();
                 }
-                // Check Rules
+                // ConsistencyCheck Rules
                 else if (data instanceof DbRule) {
                     // Nothing to do except validate
                     DbRule rule = (DbRule) data;
                     rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     rule.update();
                 }
-                // Check TaskRunner
+                // ConsistencyCheck TaskRunner
                 else if (data instanceof DbTaskRunner) {
                     DbTaskRunner taskRunner = (DbTaskRunner) data;
                     logger.debug("get a task: {}", taskRunner);

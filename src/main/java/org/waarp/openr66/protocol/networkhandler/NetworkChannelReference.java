@@ -239,7 +239,7 @@ public class NetworkChannelReference {
     }
 
     /**
-     * Check if the last time used is ok with a delay applied to the current time (timeout)
+     * ConsistencyCheck if the last time used is ok with a delay applied to the current time (timeout)
      * 
      * @param delay
      * @return <= 0 if OK, else > 0 (should send a KeepAlive or wait that time in ms)

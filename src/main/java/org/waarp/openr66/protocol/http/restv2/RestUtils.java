@@ -27,10 +27,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
+import org.waarp.common.database.ConnectionFactory;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.restv2.data.Bounds;
+import org.waarp.openr66.protocol.http.restv2.data.ConsistencyCheck;
 import org.waarp.openr66.protocol.http.restv2.data.NotEmpty;
 import org.waarp.openr66.protocol.http.restv2.data.Or;
 import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
@@ -67,19 +69,12 @@ public final class RestUtils {
     /** This server's id. */
     public static final String HOST_ID = Configuration.configuration.getHOST_ID();
 
-    static {
-        Connection connection;
-        try {
-            connection = DbConstant.connectionFactory.getConnection();
-            connection.setReadOnly(false);
-            factory = DAOFactory.getDAOFactory(connection);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new OpenR66RestInitializationException();
-        }
-    }
-
     public static final DAOFactory factory;
+
+    static {
+        DAOFactory.initialize(ConnectionFactory.getInstance());
+        factory = DAOFactory.getInstance();
+    }
 
     /**
      * This method transforms a request body in JSON format into an object of the class passed as argument.
@@ -263,14 +258,13 @@ public final class RestUtils {
                             for(Object obj : (Object[]) val) {
                                 checkEntry(obj);
                             }
-                        } else {
+                        } else if(cla.isAnnotationPresent(ConsistencyCheck.class)){
                             checkEntry(val);
                         }
                     }
                 }
             } catch(IllegalAccessException e) {
-                throw new OpenR66RestInternalErrorException(InternalErrorResponse.illegalAccess(entry.getClass(),
-                        field.getName()));
+                throw new OpenR66RestInternalErrorException(InternalErrorResponse.illegalAccess());
             }
         }
         if(!response.isEmpty()) {

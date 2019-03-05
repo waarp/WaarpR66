@@ -156,6 +156,7 @@ public class RestRule {
     }
 
     /** An object representing a task processed by a host. */
+    @ConsistencyCheck
     public static class Task {
         /**
          * The type of the task.

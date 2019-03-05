@@ -72,7 +72,7 @@ public class ExecuteExecutor extends AbstractExecutor {
     }
 
     public void run() throws Reply421Exception {
-        // Check if the execution will be done through LocalExec daemon
+        // ConsistencyCheck if the execution will be done through LocalExec daemon
         if (AbstractExecutor.useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {

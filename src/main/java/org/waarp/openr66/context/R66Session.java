@@ -713,7 +713,7 @@ public class R66Session implements SessionInterface {
                 this.businessObject.checkAfterPreCommand(this);
             }
             if (!this.runner.isSender()) {
-                // Check file length according to rank
+                // ConsistencyCheck file length according to rank
                 if (runner.isRecvThrough()) {
                     // no size can be checked
                 } else {
@@ -737,7 +737,7 @@ public class R66Session implements SessionInterface {
                         available = truefile.getFreeSpace();
                         targetDir = truefile.getPath();
                     }
-                    logger.debug("Check available space: " + available + " >? " + needed + "(+" + length + ")");
+                    logger.debug("ConsistencyCheck available space: " + available + " >? " + needed + "(+" + length + ")");
                     // Available > 0 since some system returns 0 (wrong size)
                     if (available > 0 && needed > available) {
                         // not enough space

@@ -424,7 +424,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 
     public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
             throws WaarpDatabaseNoConnectionException {
-        // Check if the database is up to date
+        // ConsistencyCheck if the database is up to date
         DbRequest request = null;
         if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
             try {

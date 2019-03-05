@@ -253,7 +253,7 @@ public class Commander implements CommanderInterface {
                 logger.error("Database Error: Cannot execute Commander", e);
                 // XXX no return since table might not be initialized return;
             }
-            // Check HostAuthent
+            // ConsistencyCheck HostAuthent
             try {
                 DbHostAuth[] auths = DbHostAuth.getUpdatedPreparedStatement();
                 int i = 0;

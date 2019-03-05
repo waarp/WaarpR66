@@ -38,9 +38,9 @@ public abstract class AbstractRestHttpHandler extends AbstractHttpHandler {
         if(method == HttpMethod.OPTIONS) {
             return true;
         } else if(method == HttpMethod.GET) {
-            return auth.isValidRole(writeRole);
+            return auth.getRole().hasReadOnly();
         } else {
-            return auth.isValidRole(writeRole) && !auth.getRole().hasReadOnly();
+            return auth.isValidRole(writeRole);
         }
     }
 }

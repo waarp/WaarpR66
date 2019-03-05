@@ -323,12 +323,12 @@ public class RescheduleTransferTask extends AbstractTask {
                 }
                 logger.debug("Dates before check: Not between " + start.getTime() + " and "
                         + stop.getTime());
-                // Check that start < stop
+                // ConsistencyCheck that start < stop
                 if (start.compareTo(stop) > 0) {
                     // no so add 24H to stop
                     stop.add(Calendar.DAY_OF_MONTH, 1);
                 }
-                // Check that start and stop > newDate (only start is checked since start <= stop)
+                // ConsistencyCheck that start and stop > newDate (only start is checked since start <= stop)
                 if (start.compareTo(newDate) < 0) {
                     start.add(Calendar.DAY_OF_MONTH, 1);
                     stop.add(Calendar.DAY_OF_MONTH, 1);
@@ -370,12 +370,12 @@ public class RescheduleTransferTask extends AbstractTask {
                 }
                 logger.debug("Dates before check: Between " + start.getTime() + " and "
                         + stop.getTime());
-                // Check that start < stop
+                // ConsistencyCheck that start < stop
                 if (start.compareTo(stop) > 0) {
                     // no so add 24H to stop
                     stop.add(Calendar.DAY_OF_MONTH, 1);
                 }
-                // Check that start and stop > newDate (only start is checked since start <= stop)
+                // ConsistencyCheck that start and stop > newDate (only start is checked since start <= stop)
                 if (start.compareTo(newDate) < 0) {
                     start.add(Calendar.DAY_OF_MONTH, 1);
                     stop.add(Calendar.DAY_OF_MONTH, 1);

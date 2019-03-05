@@ -28,6 +28,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.testcontainers.shaded.org.apache.commons.lang.math.NumberUtils;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
@@ -42,6 +44,7 @@ import org.waarp.openr66.protocol.http.restv2.errors.InternalErrorResponse;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
 import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestInternalErrorException;
 
+import javax.swing.*;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
@@ -53,6 +56,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * This is the handler for all request made on the 'transfers' database collection, accessible through the
@@ -64,6 +68,8 @@ public class TransfersHandler extends AbstractRestHttpHandler {
     public TransfersHandler() {
         super(RoleDefault.ROLE.TRANSFER);
     }
+
+    private static final WaarpLogger logger = WaarpLoggerFactory.getInstance(TransferHandler.class);
 
     /**
      * The method called when a GET request is made on /v2/transfers. If the request is valid, the Http response will
@@ -175,7 +181,6 @@ public class TransfersHandler extends AbstractRestHttpHandler {
      */
     @POST
     public void createTransfer(HttpRequest request, HttpResponder responder) {
-
         try {
             RestTransferInitializer init = RestUtils.deserializeRequest(request, RestTransferInitializer.class);
             RestUtils.checkEntry(init);
@@ -194,6 +199,7 @@ public class TransfersHandler extends AbstractRestHttpHandler {
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     InternalErrorResponse.jsonProcessingError().toJson());
         } catch (DAOException e) {
+            e.printStackTrace();
             responder.sendJson(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                     InternalErrorResponse.databaseError().toJson());
         }

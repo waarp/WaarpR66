@@ -22,6 +22,7 @@
 package org.waarp.openr66.protocol.http.restv2.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.waarp.common.database.DbConstant;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.RestUtils;
@@ -57,6 +58,7 @@ public class RestHostConfig {
     }
 
     /** A pair associating a host with the type of actions it is allowed to perform on the server. */
+    @ConsistencyCheck
     public static class Role {
         /** The host's id. */
         @NotEmpty
@@ -124,6 +126,7 @@ public class RestHostConfig {
     }
 
     /** A pair associating a host with it's known aliases. */
+    @ConsistencyCheck
     public static class Alias {
         /** The host's id. */
         @NotEmpty

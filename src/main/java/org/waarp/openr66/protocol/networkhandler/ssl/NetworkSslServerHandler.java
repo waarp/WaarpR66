@@ -63,7 +63,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
         logger.debug("Add channel to ssl");
         WaarpSslUtility.addSslOpenedChannel(networkChannel);
         isSSL = true;
-        // Check first if allowed
+        // ConsistencyCheck first if allowed
         if (NetworkTransaction.isBlacklisted(networkChannel)) {
             logger.warn("Connection refused since Partner is in BlackListed from "
                     + networkChannel.remoteAddress().toString());

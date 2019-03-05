@@ -202,7 +202,6 @@ public class RestHandlerHook implements HandlerHook {
                 byte[] key = FilesystemBasedDigest.passwdCrypt(pswd.getBytes());
                 // FIXME: 'key' is the MD5 encrypted password, which is necessary to initiate the connection
                 if(session.getAuth().connection(DbConstant.admin.getSession(), user, key)) {
-                    System.err.println(session.getAuth().getRole());
                     boolean found = false;
                     for(AbstractRestHttpHandler handler : RestServiceInitializer.handlers) {
                         if(handler.getClass().getName().equals(handlerInfo.getHandlerName())) {

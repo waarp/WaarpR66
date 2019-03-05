@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -55,9 +55,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Host Authentication Table object
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbHostAuth extends AbstractDbData {
     public static final String DEFAULT_CLIENT_ADDRESS = "0.0.0.0";
@@ -309,7 +309,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * Delete all entries (used when purge and reload)
-     * 
+     *
      * @param dbSession
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
@@ -420,7 +420,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * Get All DbHostAuth from database or from internal hashMap in case of no database support
-     * 
+     *
      * @param dbSession
      *            may be null
      * @return the array of DbHostAuth
@@ -609,7 +609,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * Is the given key a valid one
-     * 
+     *
      * @param newkey
      * @return True if the key is valid (or any key is valid)
      */
@@ -656,7 +656,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * Test if the address is 0.0.0.0 for a client or isClient
-     * 
+     *
      * @return True if the address is a client address (0.0.0.0) or isClient
      */
     public boolean isClient() {
@@ -665,7 +665,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * True if the address is a client address (0.0.0.0) or if the port is < 0
-     * 
+     *
      * @return True if the address is a client address (0.0.0.0) or if the port is < 0
      */
     public boolean isNoAddress() {
@@ -674,7 +674,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the SocketAddress from the address and port
      * @exception IllegalArgumentException
      *                when the address is for a Client and therefore cannot be checked
@@ -687,7 +687,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this Host ref is with SSL support
      */
     public boolean isSsl() {
@@ -763,7 +763,7 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      * Write selected DbHostAuth to a Json String
-     * 
+     *
      * @param preparedStatement
      * @return the associated Json String
      * @throws WaarpDatabaseNoConnectionException
@@ -815,7 +815,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the Json string for this
      */
     public String getJsonAsString() {
@@ -864,7 +864,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @return True if any of the server has the isProxified property
      */
@@ -887,7 +887,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {

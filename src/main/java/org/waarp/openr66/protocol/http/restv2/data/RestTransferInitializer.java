@@ -30,6 +30,7 @@ import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestExc
 
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class RestTransferInitializer {
@@ -81,7 +82,13 @@ public class RestTransferInitializer {
             int mode = ruleDAO.select(this.ruleID).getMode();
             boolean retrieve = (mode == 2 || mode == 4);
             Transfer transfer = new Transfer(this.ruleID, mode, retrieve, this.fileName, this.fileInfo, this.blockSize);
-            transfer.setStart(new Timestamp(this.start.getTimeInMillis()));
+            if (this.start != null) {
+                transfer.setStart(new Timestamp(this.start.getTimeInMillis()));
+            }
+            else {
+                transfer.setStart(new Timestamp(new GregorianCalendar().getTimeInMillis()));
+            }
+            transfer.setStop(transfer.getStart());
 
             return transfer;
         } else {
