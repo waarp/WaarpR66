@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -23,7 +23,6 @@ import org.waarp.openr66.pojo.Transfer;
 
 public abstract class DBTransferDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -44,7 +43,6 @@ public abstract class DBTransferDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -56,7 +54,6 @@ public abstract class DBTransferDAOIT {
         try {
             cleanDB();
             con.close();
-            //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -65,7 +62,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testDeleteAll() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
@@ -79,7 +76,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testDelete() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             dao.delete(new Transfer(0l, "", 1, "", "", "", false, 0, false, "",
                         "", "", "", Transfer.TASKSTEP.NOTASK,
                         Transfer.TASKSTEP.NOTASK, 0, "", "" , 0, null, null));
@@ -95,7 +92,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testGetAll() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             assertEquals(4, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -105,7 +102,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testSelect() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             Transfer transfer = dao.select(0l);
             Transfer transfer2 = dao.select(1l);
 
@@ -119,7 +116,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testExist() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             assertEquals(true, dao.exist(0l));
             assertEquals(false, dao.exist(1));
         } catch (Exception e) {
@@ -131,7 +128,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testInsert() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             Transfer transfer = new Transfer("rule", 1, false, "file", "info", 3);
             transfer.setStart(new Timestamp(1112242l));
             transfer.setStop(new Timestamp(122l));
@@ -162,7 +159,7 @@ public abstract class DBTransferDAOIT {
     @Test
     public void testUpdate() {
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             dao.update(new Transfer(0l, "rule", 13, "test", "testOrig",
                         "testInfo", true, 42, true, "owner", "requester",
                         "requested", "transferInfo", Transfer.TASKSTEP.ERRORTASK,
@@ -205,7 +202,7 @@ public abstract class DBTransferDAOIT {
         map.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", "tintin"));
         map.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,"=", "server1"));
         try {
-            TransferDAO dao = factory.getTransferDAO();
+            TransferDAO dao = new DBTransferDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());

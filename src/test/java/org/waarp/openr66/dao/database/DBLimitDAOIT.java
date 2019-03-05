@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -21,7 +21,6 @@ import org.waarp.openr66.pojo.Limit;
 
 public abstract class DBLimitDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -42,7 +41,6 @@ public abstract class DBLimitDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -54,7 +52,6 @@ public abstract class DBLimitDAOIT {
         try {
             cleanDB();
             con.close();
-            //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -63,7 +60,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testDeleteAll() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
@@ -77,7 +74,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testDelete() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             dao.delete(new Limit("server1", 0l));
 
             ResultSet res = con.createStatement()
@@ -91,7 +88,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testGetAll() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             assertEquals(3, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -101,7 +98,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testSelect() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             Limit limit = dao.select("server1");
             Limit limit2 = dao.select("ghost");
 
@@ -121,7 +118,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testExist() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             assertEquals(true, dao.exist("server1"));
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
@@ -133,7 +130,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testInsert() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             dao.insert(new Limit("chacha", 4l, 1l, 5l, 13l, 12, -18));
 
             ResultSet res = con.createStatement()
@@ -159,7 +156,7 @@ public abstract class DBLimitDAOIT {
     @Test
     public void testUpdate() {
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             dao.update(new Limit("server2", 4l, 1l, 5l, 13l, 12l, 18));
 
             ResultSet res = con.createStatement()
@@ -183,7 +180,7 @@ public abstract class DBLimitDAOIT {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBLimitDAO.READ_SESSION_LIMIT_FIELD, ">", 2));
         try {
-            LimitDAO dao = factory.getLimitDAO();
+            LimitDAO dao = new DBLimitDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());

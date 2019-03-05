@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.mySQL.test;
+package org.waarp.openr66.dao.database.mySQL;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import org.junit.Rule;
 import org.testcontainers.containers.MySQLContainer;
-import org.waarp.openr66.dao.database.test.DBTransferDAOIT;
+import org.waarp.openr66.dao.database.DBTransferDAOIT;
 
 public class DBTransferMySQLDAOIT extends DBTransferDAOIT {
 

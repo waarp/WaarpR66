@@ -1,6 +1,5 @@
 package org.waarp.openr66.dao.database;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.waarp.common.database.ConnectionFactory;
@@ -17,77 +16,73 @@ public class DBDAOFactory extends DAOFactory {
     private static WaarpLogger logger = WaarpLoggerFactory.getLogger(DBDAOFactory.class);
 
     private ConnectionFactory connectionFactory;
-    private Connection sharedConnection;
-
-    public DBDAOFactory(Connection con) { 
-        this.sharedConnection = con;
-        this.connectionFactory = null;
-    }
 
     public DBDAOFactory(ConnectionFactory factory) { 
-        this.sharedConnection = null;
         this.connectionFactory = factory;
-    }
-
-    private Connection getConnection() throws DAOException {
-        if (connectionFactory != null) {
-            try {
-                return connectionFactory.getConnection();
-            } catch (SQLException e) {
-                throw new DAOException("Data access Error.", e);
-            }
-        }
-        return sharedConnection;
     }
 
     @Override
     public DBBusinessDAO getBusinessDAO() throws DAOException {
-        return new DBBusinessDAO(getConnection());
+        try {
+            return new DBBusinessDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     @Override
     public DBHostDAO getHostDAO() throws DAOException {
-        return new DBHostDAO(getConnection());
+        try {
+            return new DBHostDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     @Override
     public DBLimitDAO getLimitDAO() throws DAOException {
-        return new DBLimitDAO(getConnection());
+        try {
+            return new DBLimitDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     @Override
     public DBMultipleMonitorDAO getMultipleMonitorDAO() throws DAOException {
-        return new DBMultipleMonitorDAO(getConnection());
+        try {
+            return new DBMultipleMonitorDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     @Override
     public DBRuleDAO getRuleDAO() throws DAOException {
-        return new DBRuleDAO(getConnection());
+        try {
+            return new DBRuleDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     @Override
     public DBTransferDAO getTransferDAO() throws DAOException {
-        return new DBTransferDAO(getConnection());
+        try {
+             return new DBTransferDAO(connectionFactory.getConnection());
+        } catch (SQLException e) {
+            throw new DAOException("data access error", e);
+        }
     }
 
     /**
-     * Close the DBDAOFactory and close the ConnectionFactory if one was
-     * provided.
+     * Close the DBDAOFactory and close the ConnectionFactory
      * Warning: You need to close the Connection yourself!
      */
     public void close() {
         logger.debug("Closing DAOFactory.");
-        if (sharedConnection != null) {
-            logger.debug("Closing factory Connection.");
-            try {
-                sharedConnection.close();
-            } catch (SQLException e) {
-                logger.warn("An error occurs while atempting to close the Database connection.", e);
-            }
-        } else {
-            logger.debug("Closing factory ConnectionFactory.");
-            connectionFactory.close();
-        }
+        logger.debug("Closing factory ConnectionFactory.");
+        connectionFactory.close();
     }
 }
 

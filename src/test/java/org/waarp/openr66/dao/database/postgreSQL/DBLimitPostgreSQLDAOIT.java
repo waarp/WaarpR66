@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.postgreSQL.test;
+package org.waarp.openr66.dao.database.postgreSQL;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import org.junit.Rule;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.waarp.openr66.dao.database.test.DBLimitDAOIT;
+import org.waarp.openr66.dao.database.DBLimitDAOIT;
 
 public class DBLimitPostgreSQLDAOIT extends DBLimitDAOIT {
 

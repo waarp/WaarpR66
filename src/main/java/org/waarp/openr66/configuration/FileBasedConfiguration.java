@@ -1821,12 +1821,15 @@ public class FileBasedConfiguration {
                     DbConstant.admin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
+		    // New way of initializing database services
                     try {
-                        DbConstant.connectionFactory = new ConnectionFactory(
-                            ConnectionFactory.propertiesFor(dbserver),  dbserver,
-                            dbuser, dbpasswd);
+                        ConnectionFactory.initialize(dbserver, dbuser, dbpasswd);
+		    } catch (UnsupportedOperationException e) {
+		        logger.error(e);
+			return false;
                     } catch (SQLException e) {
                         logger.error("Cannot create ConnectionFactory", e);
+			return false;
                     }
 
                     if (config.getMultipleMonitors() > 1) {

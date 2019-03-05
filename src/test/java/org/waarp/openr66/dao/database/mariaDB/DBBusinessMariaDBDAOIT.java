@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.mariaDB.test;
+package org.waarp.openr66.dao.database.mariaDB;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import org.junit.Rule;
 import org.testcontainers.containers.MariaDBContainer;
-import org.waarp.openr66.dao.database.test.DBBusinessDAOIT;
+import org.waarp.openr66.dao.database.DBBusinessDAOIT;
 
 public class DBBusinessMariaDBDAOIT extends DBBusinessDAOIT {
 

@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,15 +13,12 @@ import org.junit.Before;
 import org.junit.Test;
 import static  org.junit.Assert.*;
 
-import org.waarp.openr66.dao.DAOFactory;
-import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.openr66.dao.BusinessDAO; 
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.database.DBBusinessDAO;
 import org.waarp.openr66.pojo.Business;
 
 public abstract class DBBusinessDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -42,7 +39,6 @@ public abstract class DBBusinessDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -53,7 +49,6 @@ public abstract class DBBusinessDAOIT {
     public void wrapUp() {
         try {
             cleanDB();
-            //factory.close();
             con.close();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -63,7 +58,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testDeleteAll() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
@@ -77,7 +72,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testDelete() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             dao.delete(new Business("server1", "", "", "", ""));
 
             ResultSet res = con.createStatement()
@@ -91,7 +86,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testGetAll() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             assertEquals(5, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -101,7 +96,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testSelect() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             Business business = dao.select("server1");
             Business business2 = dao.select("ghost");
 
@@ -119,7 +114,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testExist() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             assertEquals(true, dao.exist("server1"));
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
@@ -131,7 +126,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testInsert() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             dao.insert(new Business("chacha", "lolo", "lala", "minou", "ect", -18));
 
             ResultSet res = con.createStatement()
@@ -156,7 +151,7 @@ public abstract class DBBusinessDAOIT {
     @Test
     public void testUpdate() {
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             dao.update(new Business("server2", "lolo", "lala", "minou", "ect", 18));
 
             ResultSet res = con.createStatement()
@@ -179,7 +174,7 @@ public abstract class DBBusinessDAOIT {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBBusinessDAO.BUSINESS_FIELD, "=", "ba"));
         try {
-            BusinessDAO dao = factory.getBusinessDAO();
+            BusinessDAO dao = new DBBusinessDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());

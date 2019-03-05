@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -21,7 +21,6 @@ import org.waarp.openr66.pojo.MultipleMonitor;
 
 public abstract class DBMultipleMonitorDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -42,7 +41,6 @@ public abstract class DBMultipleMonitorDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -54,7 +52,6 @@ public abstract class DBMultipleMonitorDAOIT {
         try {
             cleanDB();
             con.close();
-            //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -63,7 +60,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testDeleteAll() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
@@ -77,7 +74,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testDelete() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             dao.delete(new MultipleMonitor("server1", 0, 0, 0));
 
             ResultSet res = con.createStatement()
@@ -91,7 +88,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testGetAll() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             assertEquals(4, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -101,7 +98,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testSelect() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             MultipleMonitor multiple = dao.select("server1");
             MultipleMonitor multiple2 = dao.select("ghost");
 
@@ -118,7 +115,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testExist() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             assertEquals(true, dao.exist("server1"));
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
@@ -130,7 +127,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testInsert() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
 
             ResultSet res = con.createStatement()
@@ -153,7 +150,7 @@ public abstract class DBMultipleMonitorDAOIT {
     @Test
     public void testUpdate() {
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             dao.update(new MultipleMonitor("server2", 31, 19, 98));
 
             ResultSet res = con.createStatement()
@@ -174,7 +171,7 @@ public abstract class DBMultipleMonitorDAOIT {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBMultipleMonitorDAO.COUNT_CONFIG_FIELD, "=" , 0));
         try {
-            MultipleMonitorDAO dao = factory.getMultipleMonitorDAO();
+            MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());

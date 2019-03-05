@@ -12,6 +12,24 @@ import org.waarp.openr66.dao.exception.DAOException;
  */
 public abstract class DAOFactory {
 
+    private static DAOFactory instance;
+
+    public static void initialize() {
+        if (instance != null) {
+
+        }
+    }
+
+    public static void initialize(ConnectionFactory factory) {
+        if (instance != null) {
+            instance = new DBDAOFactory(factory);
+        }
+    }
+
+    public static DAOFactory getInstance() {
+        return instance;
+    }
+
     /**
      * Return a BusinessDAO
      *

@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -21,7 +21,6 @@ import org.waarp.openr66.pojo.Host;
 
 public abstract class DBHostDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -42,7 +41,6 @@ public abstract class DBHostDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.toString());
@@ -54,7 +52,6 @@ public abstract class DBHostDAOIT {
         try {
             cleanDB();
             con.close();
-            //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -63,7 +60,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testDeleteAll() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
@@ -77,7 +74,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testDelete() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             dao.delete(new Host("server1", "", 666, null, false, false));
 
             ResultSet res = con.createStatement()
@@ -91,7 +88,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testGetAll() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             assertEquals(3, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -101,7 +98,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testSelect() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             Host host = dao.select("server1");
             Host host2 = dao.select("ghost");
 
@@ -125,7 +122,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testExist() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             assertEquals(true, dao.exist("server1"));
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
@@ -137,7 +134,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testInsert() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             dao.insert(new Host("chacha", "address", 666, "aaa".getBytes("utf-8"), false, false));
 
             ResultSet res = con.createStatement()
@@ -166,7 +163,7 @@ public abstract class DBHostDAOIT {
     @Test
     public void testUpdate() {
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             dao.update(new Host("server2", "address", 666, "password".getBytes("utf-8"), false, false));
 
             ResultSet res = con.createStatement()
@@ -193,7 +190,7 @@ public abstract class DBHostDAOIT {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBHostDAO.ADDRESS_FIELD, "=", "127.0.0.1"));
         try {
-            HostDAO dao = factory.getHostDAO();
+            HostDAO dao = new DBHostDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());
