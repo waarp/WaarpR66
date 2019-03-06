@@ -18,24 +18,7 @@
  *  Waarp . If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-package org.waarp.openr66.protocol.http.restv2.errors;
-
-public class ForbiddenResponse extends RestResponse {
-
-    private final String message;
-
-    public ForbiddenResponse() {
-        this.message = RestResponse.restMessages.getString("Authentication.Forbidden");
-    }
-
-    @Override
-    public String toJson() {
-        return String.format(
-                "{" +
-                    "\"message\" : \"%s\"" +
-                "}",
-                this.message.replaceAll("\"", "\\\"")
-        );
-    }
-}
+/**
+ * End point handlers for all REST HTTP methods.
+ */
+package org.waarp.openr66.protocol.http.restv2.dbhandlers;

@@ -303,7 +303,9 @@ public class Monitoring implements WaarpInterfaceMonitor {
         } catch (Exception e) {
         }
         if (!dbSession.equals(DbConstant.admin.getSession())) {
-            dbSession.forceDisconnect();
+            if (DbAdmin.getNbConnection() > 0) {
+                dbSession.forceDisconnect();
+            }
             dbSession = null;
         }
     }

@@ -21,91 +21,195 @@
 
 package org.waarp.openr66.protocol.http.restv2;
 
-import co.cask.http.AbstractHttpHandler;
-import co.cask.http.ChannelPipelineModifier;
-import co.cask.http.HttpHandler;
-import co.cask.http.NettyHttpService;
+import io.cdap.http.ChannelPipelineModifier;
+import io.cdap.http.NettyHttpService;
+import io.cdap.http.SSLConfig;
 import io.netty.channel.ChannelPipeline;
-import org.waarp.common.crypto.HmacSha256;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import org.joda.time.DateTime;
+import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
-import org.waarp.openr66.protocol.http.restv2.handler.AbstractRestHttpHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.HostConfigHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.HostIdHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.HostsHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.LimitsHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.RuleIdHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.RulesHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.TransferIdHandler;
-import org.waarp.openr66.protocol.http.restv2.handler.TransfersHandler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.AbstractRestDbHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.HostConfigHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.HostIdHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.HostsHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.LimitsHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.RuleIdHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.RulesHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.ServerHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.TransferIdHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.TransfersHandler;
+import org.waarp.openr66.protocol.http.restv2.resthandlers.RestExceptionHandler;
+import org.waarp.openr66.protocol.http.restv2.resthandlers.RestHandlerHook;
+import org.waarp.openr66.protocol.http.restv2.resthandlers.RestSignatureHandler;
+import org.waarp.openr66.protocol.http.restv2.resthandlers.RestVersionHandler;
+import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerInitializer;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-
+/**
+ * This class is called to initialize the RESTv2 API.
+ */
 public final class RestServiceInitializer {
 
+    /** The logger for all unexpected errors during the service initialization. */
+    private static final WaarpLogger logger =
+            WaarpLoggerFactory.getLogger(RestServiceInitializer.class);
+
+    /** This is the {@link NettyHttpService} in charge of handling the RESTv2 API. */
+    private static NettyHttpService restService;
+
+    /** This is a static class that should never be instantiated with a constructor. */
     private RestServiceInitializer() {
-        throw new UnsupportedOperationException("'RestServiceInitializer' cannot be instantiated.");
+        throw new UnsupportedOperationException(this.getClass().getName() +
+                " cannot be instantiated.");
     }
 
-    public static final Collection<AbstractRestHttpHandler> handlers;
+    /** The list of all {@link AbstractRestDbHandler} used by the API. */
+    public static final Collection<AbstractRestDbHandler> handlers  =
+            new ArrayList<AbstractRestDbHandler>();
 
-    static {
-        handlers = new ArrayList<AbstractRestHttpHandler>();
-        handlers.add(new TransfersHandler());
-        handlers.add(new TransferIdHandler());
-        handlers.add(new HostConfigHandler());
-        handlers.add(new HostsHandler());
-        handlers.add(new HostIdHandler());
-        handlers.add(new LimitsHandler());
-        handlers.add(new RulesHandler());
-        handlers.add(new RuleIdHandler());
-        handlers.add(new ServerHandler());
-    }
+    /** Stores the date at which the server was started. */
+    public static final DateTime restStartTime = DateTime.now();
 
-    public static NettyHttpService initRestService(RestConfiguration config) {
-        NettyHttpService restService = NettyHttpService.builder("WaarpR66-Rest v2")
-                .setPort(config.REST_PORT)
-                .setHost(config.REST_ADDRESS)
-                .setHttpHandlers(handlers)
-                .setHandlerHooks(Collections.singleton(new RestHandlerHook(config.REST_AUTHENTICATED,
-                        config.REST_SIGNATURE, config.hmacSha256, config.REST_TIME_LIMIT)))
-                .setExceptionHandler(new RestExceptionHandler())
-                /* Adds the routing error handler to the service pipeline. */
-                .setChannelPipelineModifier(new ChannelPipelineModifier() {
-                    @Override
-                    public void modify(ChannelPipeline channelPipeline) {
-                        channelPipeline.addBefore("router", "errorHandler", new RestRoutingErrorHandler());
-                        channelPipeline.remove("compressor");
-                    }
-                })
-                .setExecThreadKeepAliveSeconds(-1L)
-                .build();
-        try {
-            restService.start();
-            return restService;
-        } catch (Throwable e) {
-            throw new RuntimeException();
+    /**
+     * Fills the list of {@link AbstractRestDbHandler} with all handlers
+     * activated in the API configuration.
+     *
+     * @param config    The REST API configuration object.
+     */
+    private static void initHandlers(RestConfiguration config) {
+        byte hostsCRUD = config.RESTHANDLERS_CRUD[
+                HttpRestR66Handler.RESTHANDLERS.DbHostAuth.ordinal()];
+        byte rulesCRUD = config.RESTHANDLERS_CRUD[
+                HttpRestR66Handler.RESTHANDLERS.DbRule.ordinal()];
+        byte transferCRUD = config.RESTHANDLERS_CRUD[
+                HttpRestR66Handler.RESTHANDLERS.DbTaskRunner.ordinal()];
+        byte configCRUD = config.RESTHANDLERS_CRUD[
+                HttpRestR66Handler.RESTHANDLERS.DbHostConfiguration.ordinal()];
+        byte limitCRUD = config.RESTHANDLERS_CRUD[
+                HttpRestR66Handler.RESTHANDLERS.Bandwidth.ordinal()];
+        int serverCRUD =
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Business.ordinal()] +
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Config.ordinal()] +
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Information.ordinal()] +
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Log.ordinal()] +
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Server.ordinal()] +
+                config.RESTHANDLERS_CRUD[
+                        HttpRestR66Handler.RESTHANDLERS.Control.ordinal()];
+
+        if (hostsCRUD != 0) {
+            handlers.add(new HostsHandler(hostsCRUD));
+            handlers.add(new HostIdHandler(hostsCRUD));
+        }
+        if (rulesCRUD != 0) {
+            handlers.add(new RulesHandler(rulesCRUD));
+            handlers.add(new RuleIdHandler(rulesCRUD));
+        }
+        if (transferCRUD != 0) {
+            handlers.add(new TransfersHandler(transferCRUD));
+            handlers.add(new TransferIdHandler(transferCRUD));
+        }
+        if (configCRUD != 0) {
+            handlers.add(new HostConfigHandler(configCRUD));
+        }
+        if (limitCRUD != 0) {
+            handlers.add(new LimitsHandler(limitCRUD));
+        }
+        if (serverCRUD != 0) {
+            handlers.add(new ServerHandler(config.RESTHANDLERS_CRUD));
         }
     }
 
-    //!\ For testing purposes only, DO NOT USE TO LAUNCH THE R66 SERVER /!\
-    public static void main(String[] args) throws InterruptedException {
+    /**
+     * Initializes the RESTv2 service with the given {@link RestConfiguration}.
+     * @param config    The REST API configuration object.
+     */
+    public static void initRestService(final RestConfiguration config) {
+        initHandlers(config);
 
-        RestConfiguration config = new RestConfiguration();
-        config.REST_PORT = 8088;
-        config.REST_ADDRESS = "0.0.0.0";
-        config.REST_AUTHENTICATED = true;
-        config.REST_SIGNATURE = false;
-        config.hmacSha256 = new HmacSha256();
-        NettyHttpService restService = initRestService(config);
+        NettyHttpService.Builder restServiceBuilder =
+                NettyHttpService.builder("R66_RESTv2")
+                .setPort(config.REST_PORT)
+                .setHost(config.REST_ADDRESS)
+                .setHttpHandlers(handlers)
+                .setHandlerHooks(Collections.singleton(new RestHandlerHook(
+                        config.REST_AUTHENTICATED, config.hmacSha256,
+                        config.REST_TIME_LIMIT)))
+                .setExceptionHandler(new RestExceptionHandler())
+                .setExecThreadKeepAliveSeconds(-1L)
+                .setChannelPipelineModifier(new ChannelPipelineModifier() {
+                    @Override
+                    public void modify(ChannelPipeline channelPipeline) {
+                        channelPipeline.addBefore("router", "aggregator",
+                                new HttpObjectAggregator(Integer.MAX_VALUE));
+                        channelPipeline.addBefore("router", RestVersionHandler.name,
+                                new RestVersionHandler(config));
+                        if (config.REST_AUTHENTICATED && config.REST_SIGNATURE) {
+                            channelPipeline.addAfter("router", "signature",
+                                    new RestSignatureHandler(config.hmacSha256));
+                        }
 
-        synchronized (restService) {
-            restService.wait();
+                        //Removes the HTTP compressor which causes problems
+                        //on systems running java6 or earlier
+                        double JRE_version = Double.parseDouble(
+                                System.getProperty("java.specification.version"));
+                        if (JRE_version <= 1.6) {
+                            logger.info("Removed REST HTTP compressor due to incompatibility " +
+                                    "with the Java Runtime version");
+                            channelPipeline.remove("compressor");
+                        }
+                    }
+                });
+
+        if (config.REST_SSL) {
+            WaarpSecureKeyStore keyStore =
+                    NetworkSslServerInitializer.getWaarpSecureKeyStore();
+            String keyStoreFilename =
+                    new String(keyStore.getKeyStoreFilename());
+            String keyStorePass =
+                    new String(keyStore.getKeyStorePassword());
+            String certificatePassword =
+                    new String(keyStore.getCertificatePassword());
+
+            restServiceBuilder.enableSSL(
+                    SSLConfig.builder(new File(keyStoreFilename), keyStorePass)
+                            .setCertificatePassword(certificatePassword)
+                            .build()
+            );
+        }
+
+        restService = restServiceBuilder.build();
+        try {
+            restService.start();
+        } catch (Throwable t) {
+            logger.error(t);
+            throw new ExceptionInInitializerError(
+                    "FATAL ERROR : Failed to initialize RESTv2 service");
+        }
+    }
+
+
+    public static void stopRestService() {
+        if (restService != null) {
+            try {
+                restService.stop();
+            } catch (Exception e) {
+                logger.error("Exception caught during RESTv2 service shutdown", e);
+            }
+        } else {
+            logger.warn("Error RESTv2 service is not running, cannot stop");
         }
     }
 }

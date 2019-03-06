@@ -21,107 +21,90 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.waarp.common.database.DbConstant;
-import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.pojo.Business;
-import org.waarp.openr66.protocol.http.restv2.RestUtils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.InternalServerErrorException;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlList;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.transform.stream.StreamSource;
+import java.io.StringReader;
+import java.io.StringWriter;
 
-import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
+import static org.waarp.common.role.RoleDefault.ROLE;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
+import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.arrayToSpaceString;
 
 
 /** RestHost configuration JSON object for Rest HTTP support for R66. */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class RestHostConfig {
 
     public RestHostConfig() {}
 
     public RestHostConfig(Business business) {
-        this.business = (business.getBusiness().isEmpty()) ? new String[0] : business.getBusiness().split(" ");
-        this.others = business.getOthers().replaceAll("</?root>|</?version>", "");
+        try {
+            this.business = (business.getBusiness().isEmpty()) ?
+                    new String[0] : business.getBusiness().split(" ");
 
-        this.roles = Role.toRoleList(business.getRoles());
-
-        if(business.getAliases().matches("<aliases></aliases>")) {
-            this.aliases = new Alias[0];
-        } else {
-            String aliasesStr = business.getAliases().replaceAll("<aliases><alias>|</alias></aliases>", "");
-            String[] aliases = aliasesStr.split("</alias><alias>");
-            this.aliases = new Alias[aliases.length];
-            for (int i = 0; i < aliases.length; i++) {
-                this.aliases[i] = new Alias(aliases[i]);
-            }
+            this.others = business.getOthers();
+            this.roles = Role.toRoleArray(business.getRoles());
+            this.aliases = Alias.toAliasList(business.getAliases());
+        } catch (JAXBException e) {
+            throw new InternalServerErrorException(e);
         }
     }
 
-    /** A pair associating a host with the type of actions it is allowed to perform on the server. */
+    /**
+     * A pair associating a host with the type of actions it is allowed to
+     * perform on the server.
+     */
     @ConsistencyCheck
+    @XmlType(name = "restrole")
     public static class Role {
         /** The host's id. */
-        @NotEmpty
-        public String host;
+        @Required
+        @XmlElement(name = "roleid")
+        public String hostName;
 
         /** The list of allowed actions on the server. */
-        public RoleDefault.ROLE[] roleTypes;
+        @XmlElement(name = "roleset")
+        @XmlList
+        public ROLE[] roleTypes = new ROLE[0];
 
-        public Role(){}
-
-        /**
-         * Constructs a new role from a host and a list of actions.
-         *
-         * @param host      The host's id.
-         * @param roleTypes The host's allowed actions.
-         */
-        public Role(String host, RoleDefault.ROLE[] roleTypes) {
-            this.host = host;
-            this.roleTypes = roleTypes;
+        @XmlRootElement(name = "roles")
+        private static class RestRoleList {
+            @XmlElement(name = "role")
+            public Role[] roles;
         }
 
-        /**
-         * Constructs a new role entry from a database xml role string.
-         * @param business  The role xml string.
-         */
-        public Role(String business) {
-            Pattern pattern = Pattern.compile("(<roleid>)(.+)(</roleid><roleset>)(.+)(</roleset>)");
-            Matcher matcher = pattern.matcher(business);
-            if(matcher.find()) {
-                this.host = matcher.group(2);
+        public static Role[] toRoleArray(String roles_str) throws JAXBException {
+            StreamSource businessSource = new StreamSource(new StringReader(roles_str));
+            JAXBContext context = JAXBContext.newInstance(RestRoleList.class);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            Role[] roles = unmarshaller.unmarshal(businessSource, RestRoleList.class)
+                    .getValue().roles;
 
-                String[] roles = matcher.group(4).split(" ");
-                this.roleTypes = new RoleDefault.ROLE[roles.length];
-                for(int i=0; i<roles.length; i++) {
-                    this.roleTypes[i] = RoleDefault.ROLE.valueOf(roles[i]);
-                }
-            } else {
-                throw new IllegalArgumentException("Could not match the role pattern.");
-            }
+            return (roles == null) ? new Role[0] : roles;
         }
 
-        public static Role[] toRoleList(String business) {
-            if(business.matches("<roles></roles>")) {
-                return new Role[0];
-            } else {
-                String rolesStr = business.replaceAll("<roles><role>|</role></roles>", "");
-                String[] roles = rolesStr.split("</role><role>");
-                Role[] restRoles = new Role[roles.length];
-                for (int i = 0; i < roles.length; i++) {
-                    restRoles[i] = new Role(roles[i]);
-                }
-                return restRoles;
-            }
-        }
 
-        public String toBusiness() {
-            StringBuilder business = new StringBuilder("<role><roleid>" + this.host + "</roleid><roleset>");
-            for(RoleDefault.ROLE roleType : this.roleTypes) {
-                business.append(roleType.name());
-            }
-            business = new StringBuilder(business.toString().trim());
-            business.append("</roleset></role>");
-            return business.toString();
+        public static String toDbRoles(Role[] roles) throws JAXBException {
+            RestRoleList restRoles = new RestRoleList();
+            restRoles.roles = roles;
+
+            StringWriter writer = new StringWriter();
+            JAXBContext context = JAXBContext.newInstance(RestRoleList.class);
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.marshal(restRoles, writer);
+
+            return writer.toString();
         }
     }
 
@@ -129,88 +112,78 @@ public class RestHostConfig {
     @ConsistencyCheck
     public static class Alias {
         /** The host's id. */
-        @NotEmpty
+        @Required
+        @XmlElement(name = "realid")
         public String host;
 
         /** The list of the server's known aliases. */
-        @NotEmpty
-        public String[] aliasSet;
+        @XmlElement(name = "aliasid")
+        public String[] aliasSet = new String[0];
 
-        public Alias(){}
-
-        /**
-         * Constructs a new alias entry from a host and a list of alias.
-         *
-         * @param host      The host's id.
-         * @param aliasSet  The host's known aliases.
-         */
-        public Alias(String host, String[] aliasSet) {
-            this.host = host;
-            this.aliasSet = aliasSet;
+        @XmlRootElement(name = "aliases")
+        private static class RestAliasList {
+            @XmlElement(name = "alias")
+            public Alias[] aliases;
         }
 
-        /**
-         * Constructs a new alias entry from an xml alias string typically found in the database.
-         * @param business  The alias xml string.
-         */
-        public Alias(String business) {
-            Pattern pattern = Pattern.compile("(<realid>)(.+)(</realid><aliasid>)(.+)(</aliasid>)");
-            Matcher matcher = pattern.matcher(business);
-            if(matcher.find()) {
-                this.host = matcher.group(2);
-                this.aliasSet = matcher.group(4).split(" ");
-            } else {
-                throw new IllegalArgumentException("Could not match the alias pattern.");
-            }
+        public static Alias[] toAliasList(String alias_str) throws JAXBException {
+            StreamSource businessSource = new StreamSource(new StringReader(alias_str));
+            JAXBContext context = JAXBContext.newInstance(RestAliasList.class);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            Alias[] aliases = unmarshaller.unmarshal(businessSource, RestAliasList.class)
+                    .getValue().aliases;
+
+            return (aliases == null) ? new Alias[0] : aliases;
         }
 
-        public String toBusiness() {
-            return "<alias><realid>" + this.host + "</realid><aliasid>" + RestUtils.toArrayDbList(this.aliasSet) +
-                    "</aliasid></alias>";
+        public static String toDbAliases(Alias[] aliases) throws JAXBException {
+            RestAliasList restAliases = new RestAliasList();
+            restAliases.aliases = aliases;
+
+            StringWriter writer = new StringWriter();
+            JAXBContext context = JAXBContext.newInstance(RestAliasList.class);
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.marshal(restAliases, writer);
+
+            return writer.toString();
         }
     }
 
-    /** The host of the host using this configuration. */
-    @JsonIgnore
-    public final String hostID = HOST_ID;
-
-    /** The list of al hosts allowed to make request to execute the server's business. */
-    public String[] business = new String[0];
+    /** The list of al hosts allowed to execute the server's business. */
+    public String[] business;
 
     /**
-     * The list of all hosts paired with the list of actions they are each allowed to perform on the server.
+     * The list of all hosts paired with the list of actions they are each
+     * allowed to perform on the server.
      *
      * @see Role
      */
-    public Role[] roles = new Role[0];
+    public Role[] roles;
 
     /**
      * The list of all hosts paired with the list of their known aliases.
      *
      * @see Alias
      */
-    public Alias[] aliases = new Alias[0];
+    public Alias[] aliases;
 
     /** The database configuration version in XML format. */
-    public String others = "";
+    @DefaultValue("")
+    public String others;
 
 
     public Business toBusiness() {
-        String business = RestUtils.toArrayDbList(this.business);
+        try {
+            String business = arrayToSpaceString(this.business);
 
-        StringBuilder aliases = new StringBuilder("<aliases>");
-        for(Alias alias : this.aliases) {
-            aliases.append(alias.toBusiness());
+            String aliases = Alias.toDbAliases(this.aliases);
+            String roles = Role.toDbRoles(this.roles);
+
+            String others = this.others;
+
+            return new Business(HOST_ID, business, roles, aliases, others);
+        } catch (JAXBException e) {
+            throw new InternalServerErrorException(e);
         }
-        aliases.append("</aliases>");
-        StringBuilder roles = new StringBuilder("<roles>");
-        for(Role role : this.roles) {
-            roles.append(role.toBusiness());
-        }
-        roles.append("</roles>");
-
-        String others = "<root><version>" + this.others + "</version></root>";
-
-        return new Business(this.hostID, business, roles.toString(), aliases.toString(), others);
     }
 }

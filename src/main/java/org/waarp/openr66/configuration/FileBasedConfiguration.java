@@ -1595,7 +1595,7 @@ public class FileBasedConfiguration {
                             restSignature = value.getBoolean();
                         }
                         config.REST_SIGNATURE = restSignature;
-                        if (config.REST_SIGNATURE) {
+                        if (config.REST_SIGNATURE || config.REST_AUTHENTICATED) {
                             XmlValue valueKey = subHash.get(XML_REST_AUTH_KEY);
                             if (valueKey != null && (!valueKey.isEmpty())) {
                                 String fileKey = valueKey.getString();
@@ -1606,7 +1606,7 @@ public class FileBasedConfiguration {
                                         logger.error("Unable to find REST Key in Config file");
                                         return false;
                                     }
-                                    fileKey = configuration.getConfigPath() + FilesystemBasedDirImpl.SEPARATOR + fileKey;
+                                    (fileKey) = configuration.getConfigPath() + FilesystemBasedDirImpl.SEPARATOR + fileKey;
                                 }
                                 try {
                                     config.initializeKey(file);

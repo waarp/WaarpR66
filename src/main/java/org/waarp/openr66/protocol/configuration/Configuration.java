@@ -828,7 +828,7 @@ public class Configuration {
     public void startRestSupport() {
         HttpRestR66Handler.initialize(getBaseDirectory() + "/" + getWorkingPath() + "/httptemp");
         for (RestConfiguration config : getRestConfigurations()) {
-            Object o = RestServiceInitializer.initRestService(config);
+            RestServiceInitializer.initRestService(config);
             //HttpRestR66Handler.initializeService(config);
             logger.info(Messages.getString("Configuration.HTTPStart") + " (REST Support) " + config.toString());
         }

@@ -520,8 +520,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
         PreparedStatement stm = null;
         try {
-            stm = connection.prepareStatement(getInsertRequest(),
-                    Statement.RETURN_GENERATED_KEYS);
+            stm = connection.prepareStatement(SQL_INSERT);
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {

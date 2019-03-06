@@ -22,41 +22,54 @@
 package org.waarp.openr66.protocol.http.restv2.data;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.waarp.openr66.pojo.Limit;
 
-import static org.waarp.openr66.protocol.http.restv2.RestUtils.HOST_ID;
+import javax.ws.rs.DefaultValue;
+
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
 
 /** Bandwidth limits POJO for Rest HTTP support for R66. */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class RestLimit {
-
-    /** Ths id of the host applying these limits. */
-    @JsonIgnore
-    public final String hostID = HOST_ID;
-
-    /** The host's global upload bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-    public Long upGlobalLimit = 0L;
-
-    /** The host's global download bandwidth limit in B/s. Set to 0 for no limit. Cannot be negative. */
-    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-    public Long downGlobalLimit = 0L;
-
-    /** The upload bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-    public Long upSessionLimit = 0L;
-
-    /** The download bandwidth limit per transfer in B/s. Set to 0 for no limit. Cannot be negative. */
-    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-    public Long downSessionLimit = 0L;
+    /**
+     * The host's global upload bandwidth limit in B/s. Set to 0 for no limit.
+     * Cannot be negative.
+     */
+    @Bounds(min = 0, max = Long.MAX_VALUE)
+    @DefaultValue("0")
+    public Long upGlobalLimit;
 
     /**
-     * The maximum delay (in ms) between 2 checks of the current bandwidth usage. Set to 0 for no checks. Cannot be
-     * negative.
+     * The host's global download bandwidth limit in B/s. Set to 0 for no limit.
+     * Cannot be negative.
      */
-    @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-    public Long delayLimit = 0L;
+    @Bounds(min = 0, max = Long.MAX_VALUE)
+    @DefaultValue("0")
+    public Long downGlobalLimit;
+
+    /**
+     * The upload bandwidth limit per transfer in B/s. Set to 0 for no limit.
+     * Cannot be negative.
+     */
+    @Bounds(min = 0, max = Long.MAX_VALUE)
+    @DefaultValue("0")
+    public Long upSessionLimit;
+
+    /**
+     * The download bandwidth limit per transfer in B/s. Set to 0 for no limit.
+     * Cannot be negative.
+     */
+    @Bounds(min = 0, max = Long.MAX_VALUE)
+    @DefaultValue("0")
+    public Long downSessionLimit;
+
+    /**
+     * The maximum delay (in ms) between 2 checks of the current bandwidth usage.
+     * Set to 0 to skip checks. Cannot be negative.
+     */
+    @Bounds(min = 0, max = Long.MAX_VALUE)
+    @DefaultValue("0")
+    public Long delayLimit;
 
 
     public RestLimit() {}
@@ -70,7 +83,7 @@ public class RestLimit {
     }
 
     public Limit toLimit() {
-        return new Limit(this.hostID, this.delayLimit, this.upGlobalLimit, this.downGlobalLimit, this.upSessionLimit,
-                this.downSessionLimit);
+        return new Limit(HOST_ID, this.delayLimit, this.upGlobalLimit,
+                this.downGlobalLimit, this.upSessionLimit, this.downSessionLimit);
     }
 }

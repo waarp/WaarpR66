@@ -21,18 +21,26 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
+import org.joda.time.DateTime;
+import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.handler.ServerHandler;
+import org.waarp.openr66.pojo.Host;
 
-import java.util.GregorianCalendar;
+import javax.ws.rs.InternalServerErrorException;
 import java.util.List;
+
+import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
+import static org.waarp.openr66.protocol.http.restv2.RestServiceInitializer.restStartTime;
+import static org.waarp.openr66.protocol.http.restv2.resthandlers.RestExceptionHandler.logger;
 
 /** A POJO representing the general status of the R66 server. */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ServerStatus {
+
     public class Overall {
         public int allTransfer;
 
@@ -54,9 +62,9 @@ public class ServerStatus {
 
         public int outRunning;
 
-        public GregorianCalendar lastInRunning;
+        public DateTime lastInRunning;
 
-        public GregorianCalendar lastOutRunning;
+        public DateTime lastOutRunning;
 
         public int inAll;
 
@@ -67,77 +75,77 @@ public class ServerStatus {
         public int outError;
 
         public Overall() throws DAOException {
-            RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
-            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
-            List<RestTransfer> transferList = RestTransfer.toRestList(transferDAO.getAll());
+            RuleDAO ruleDAO = DAO_FACTORY.getRuleDAO();
+            TransferDAO transferDAO = DAO_FACTORY.getTransferDAO();
+            List<RestTransfer> transferList = RestTransfer.toRestList(
+                    transferDAO.getAll());
             for (RestTransfer transfer : transferList) {
-                if (ServerStatus.this.fromDate.before(transfer.startTrans)) {
-                    this.allTransfer++;
-                    switch (transfer.status) {
-                        case notUpdated:
-                            this.notUpdated++;
-                            break;
-                        case interrupted:
-                            this.interrupted++;
-                            break;
-                        case toSubmit:
-                            this.toSubmit++;
-                            break;
-                        case running:
-                            this.running++;
-                            break;
-                        case done:
-                            this.done++;
-                            break;
-                        case inError:
-                            this.error++;
-                            break;
-                        case unknown:
-                            this.unknown++;
-                            break;
-                        default:
-                            this.unknown++;
-                            break;
-                    }
-                    RestRule restRule = new RestRule(ruleDAO.select(transfer.ruleID));
-                    if(restRule != null) {
-                        RestRule.ModeTrans modeTrans = restRule.modeTrans;
-                        switch (modeTrans) {
-                            case send:
-                            case send_md5:
-                                this.outAll++;
-                                if (this.lastOutRunning == null || this.lastOutRunning.before(transfer.startTrans)) {
-                                    this.lastOutRunning = (GregorianCalendar) transfer.startTrans;
-                                }
-                                if (transfer.status == RestTransfer.Status.running) {
-                                    this.outRunning++;
-                                } else if (transfer.status == RestTransfer.Status.inError) {
-                                    this.outError++;
-                                }
-                                break;
-                            case receive:
-                            case receive_md5:
-                                this.inAll++;
-                                if (this.lastInRunning == null || this.lastInRunning.before(transfer.startTrans)) {
-                                    this.lastInRunning = (GregorianCalendar) transfer.startTrans;
-                                }
-                                if (transfer.status == RestTransfer.Status.running) {
-                                    this.inRunning++;
-                                } else if (transfer.status == RestTransfer.Status.inError) {
-                                    this.outError++;
-                                }
+                this.allTransfer++;
+                switch (transfer.status) {
+                    case notUpdated:
+                        this.notUpdated++;
+                        break;
+                    case interrupted:
+                        this.interrupted++;
+                        break;
+                    case toSubmit:
+                        this.toSubmit++;
+                        break;
+                    case running:
+                        this.running++;
+                        break;
+                    case done:
+                        this.done++;
+                        break;
+                    case inError:
+                        this.error++;
+                        break;
+                    case unknown:
+                        this.unknown++;
+                        break;
+                    default:
+                        this.unknown++;
+                        break;
+                }
+                RestRule restRule = new RestRule(
+                        ruleDAO.select(transfer.ruleID));
+                RestRule.ModeTrans modeTrans = restRule.modeTrans;
+                switch (modeTrans) {
+                    case send:
+                    case send_md5:
+                        this.outAll++;
+                        if (this.lastOutRunning == null ||
+                                this.lastOutRunning.isBefore(transfer.startTrans())) {
+                            this.lastOutRunning = transfer.startTrans();
                         }
-                    }
+                        if (transfer.status == RestTransfer.Status.running) {
+                            this.outRunning++;
+                        } else if (transfer.status == RestTransfer.Status.inError) {
+                            this.outError++;
+                        }
+                        break;
+                    case receive:
+                    case receive_md5:
+                        this.inAll++;
+                        if (this.lastInRunning == null ||
+                                this.lastInRunning.isBefore(transfer.startTrans())) {
+                            this.lastInRunning = transfer.startTrans();
+                        }
+                        if (transfer.status == RestTransfer.Status.running) {
+                            this.inRunning++;
+                        } else if (transfer.status == RestTransfer.Status.inError) {
+                            this.outError++;
+                        }
                 }
             }
         }
 
         public String getLastInRunning() {
-            return RestUtils.fromCalendar(this.lastInRunning);
+            return (this.lastInRunning == null) ? null : this.lastInRunning.toString();
         }
 
         public String getLastOutRunning() {
-            return RestUtils.fromCalendar(this.lastOutRunning);
+            return (this.lastOutRunning == null) ? null : this.lastOutRunning.toString();
         }
     }
 
@@ -155,7 +163,7 @@ public class ServerStatus {
         public int error;
 
         public Steps() throws DAOException {
-            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            TransferDAO transferDAO = DAO_FACTORY.getTransferDAO();
             for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
                 switch (transfer.globalStep) {
                     case noTask:
@@ -197,7 +205,7 @@ public class ServerStatus {
         public int completeOk;
 
         public RunningSteps() throws DAOException {
-            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            TransferDAO transferDAO = DAO_FACTORY.getTransferDAO();
             for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
                 switch (transfer.step) {
                     case running:
@@ -220,8 +228,8 @@ public class ServerStatus {
                         break;
                 }
             }
-            this.allRunning = this.running + this.initOk + this.preProcessingOk + this.transferOk +
-                    this.postProcessingOk;
+            this.allRunning = this.running + this.initOk + this.preProcessingOk +
+                    this.transferOk + this.postProcessingOk;
         }
     }
 
@@ -240,13 +248,25 @@ public class ServerStatus {
 
         public int disconnection;
 
+        public int remoteShutdown;
+
         public int finalOp;
 
         public int unimplemented;
 
+        public int shutdown;
+
+        public int remoteError;
+
         public int internal;
 
+        public int stopped;
+
+        public int canceled;
+
         public int warning;
+
+        public int unknown;
 
         public int queryAlreadyFinished;
 
@@ -254,207 +274,164 @@ public class ServerStatus {
 
         public int unknownHost;
 
+        public int loopSelfRequestedHost;
+
         public int remotelyUnknown;
+
+        public int fileNotFound;
 
         public int commandNotFound;
 
         public int passThroughMode;
 
-        public int remoteShutdown;
+        public int running;
 
-        public int shutdown;
+        public int incorrectCommand;
 
-        public int remoteError;
+        public int fileNotAllowed;
 
-        public int stopped;
-
-        public int canceled;
-
-        public int fileNotFound;
-
-        public int unknown;
+        public int sizeNotAllowed;
 
         public ErrorTypes() throws DAOException {
-            TransferDAO transferDAO = RestUtils.factory.getTransferDAO();
+            TransferDAO transferDAO = DAO_FACTORY.getTransferDAO();
             for (RestTransfer transfer : RestTransfer.toRestList(transferDAO.getAll())) {
-                if ("ConnectionImpossible".equals(transfer.stepStatus)) {
-                    this.connectionImpossible++;
-                } else if ("ServerOverloaded".equals(transfer.stepStatus)) {
-                    this.serverOverloaded++;
-                } else if ("BadAuthent".equals(transfer.stepStatus)) {
-                    this.badAuthent++;
-                } else if ("ExternalOp".equals(transfer.stepStatus)) {
-                    this.externalOp++;
-                } else if ("TransferError".equals(transfer.stepStatus)) {
-                    this.transferError++;
-                } else if ("MD5Error".equals(transfer.stepStatus)) {
-                    this.md5Error++;
-                } else if ("Disconnection".equals(transfer.stepStatus)) {
-                    this.disconnection++;
-                } else if ("RemoteShutdown".equals(transfer.stepStatus)) {
-                    this.remoteShutdown++;
-                } else if ("FinalOp".equals(transfer.stepStatus)) {
-                    this.finalOp++;
-                } else if ("Unimplemented".equals(transfer.stepStatus)) {
-                    this.unimplemented++;
-                } else if ("Shutdown".equals(transfer.stepStatus)) {
-                    this.shutdown++;
-                } else if ("RemoteError".equals(transfer.stepStatus)) {
-                    this.remoteError++;
-                } else if ("Internal".equals(transfer.stepStatus)) {
-                    this.internal++;
-                } else if ("StoppedTransfer".equals(transfer.stepStatus)) {
-                    this.stopped++;
-                } else if ("CanceledTransfer".equals(transfer.stepStatus)) {
-                    this.canceled++;
-                } else if ("Warning".equals(transfer.stepStatus)) {
-                    this.warning++;
-                } else if ("Unknown".equals(transfer.stepStatus)) {
-                    this.unknown++;
-                } else if ("QueryAlreadyFinished".equals(transfer.stepStatus)) {
-                    this.queryAlreadyFinished++;
-                } else if ("QueryStillRunning".equals(transfer.stepStatus)) {
-                    this.queryStillRunning++;
-                } else if ("NotKnownHost".equals(transfer.stepStatus)) {
-                    this.unknownHost++;
-                } else if ("QueryRemotelyUnknown".equals(transfer.stepStatus)) {
-                    this.remotelyUnknown++;
-                } else if ("FileNotFound".equals(transfer.stepStatus)) {
-                    this.fileNotFound++;
-                } else if ("CommandNotFound".equals(transfer.stepStatus)) {
-                    this.commandNotFound++;
-                } else if ("PassThroughMode".equals(transfer.stepStatus)) {
-                    this.passThroughMode++;
-                }
-                /*
-                ErrorCode errorCode = ErrorCode.getFromCode(transfer.stepStatus);
-                switch (errorCode) {
-                    case ConnectionImpossible:
+                if (!"".equals(transfer.stepStatus)) {
+                    if ("C".equals(transfer.stepStatus)) {
                         this.connectionImpossible++;
-                        break;
-                    case ServerOverloaded:
+                    } else if ("l".equals(transfer.stepStatus)) {
                         this.serverOverloaded++;
-                        break;
-                    case BadAuthent:
+                    } else if ("A".equals(transfer.stepStatus)) {
                         this.badAuthent++;
-                        break;
-                    case ExternalOp:
+                    } else if ("E".equals(transfer.stepStatus)) {
                         this.externalOp++;
-                        break;
-                    case TransferError:
+                    } else if ("T".equals(transfer.stepStatus)) {
                         this.transferError++;
-                        break;
-                    case MD5Error:
+                    } else if ("M".equals(transfer.stepStatus)) {
                         this.md5Error++;
-                        break;
-                    case Disconnection:
+                    } else if ("D".equals(transfer.stepStatus)) {
                         this.disconnection++;
-                        break;
-                    case RemoteShutdown:
+                    } else if ("r".equals(transfer.stepStatus)) {
                         this.remoteShutdown++;
-                        break;
-                    case FinalOp:
+                    } else if ("F".equals(transfer.stepStatus)) {
                         this.finalOp++;
-                        break;
-                    case Unimplemented:
+                    } else if ("U".equals(transfer.stepStatus)) {
                         this.unimplemented++;
-                        break;
-                    case Shutdown:
+                    } else if ("S".equals(transfer.stepStatus)) {
                         this.shutdown++;
-                        break;
-                    case RemoteError:
+                    } else if ("R".equals(transfer.stepStatus)) {
                         this.remoteError++;
-                        break;
-                    case Internal:
+                    } else if ("I".equals(transfer.stepStatus)) {
                         this.internal++;
-                        break;
-                    case StoppedTransfer:
+                    } else if ("H".equals(transfer.stepStatus)) {
                         this.stopped++;
-                        break;
-                    case CanceledTransfer:
+                    } else if ("K".equals(transfer.stepStatus)) {
                         this.canceled++;
-                        break;
-                    case Warning:
+                    } else if ("W".equals(transfer.stepStatus)) {
                         this.warning++;
-                        break;
-                    case Unknown:
+                    } else if ("-".equals(transfer.stepStatus)) {
                         this.unknown++;
-                        break;
-                    case QueryAlreadyFinished:
+                    } else if ("Q".equals(transfer.stepStatus)) {
                         this.queryAlreadyFinished++;
-                        break;
-                    case QueryStillRunning:
+                    } else if ("s".equals(transfer.stepStatus)) {
                         this.queryStillRunning++;
-                        break;
-                    case NotKnownHost:
+                    } else if ("N".equals(transfer.stepStatus)) {
                         this.unknownHost++;
-                        break;
-                    case QueryRemotelyUnknown:
+                    } else if ("L".equals(transfer.stepStatus)) {
+                        this.loopSelfRequestedHost++;
+                    } else if ("u".equals(transfer.stepStatus)) {
                         this.remotelyUnknown++;
-                        break;
-                    case FileNotFound:
+                    } else if ("f".equals(transfer.stepStatus)) {
                         this.fileNotFound++;
-                        break;
-                    case CommandNotFound:
+                    } else if ("c".equals(transfer.stepStatus)) {
                         this.commandNotFound++;
-                        break;
-                    case PassThroughMode:
+                    } else if ("p".equals(transfer.stepStatus)) {
                         this.passThroughMode++;
-                        break;
+                    } else if ("z".equals(transfer.stepStatus)) {
+                        this.running++;
+                    } else if ("n".equals(transfer.stepStatus)) {
+                        this.incorrectCommand++;
+                    } else if ("a".equals(transfer.stepStatus)) {
+                        this.fileNotAllowed++;
+                    } else if ("d".equals(transfer.stepStatus)) {
+                        this.sizeNotAllowed++;
+                    } else {
+                        logger.error("Unknown transfer error code '" +
+                                transfer.stepStatus + "' found.");
+                    }
                 }
-                */
             }
         }
     }
 
-    public String hostID;
+    public final String hostID = HOST_ID;
 
-    public boolean running;
+    public final boolean running;
 
-    public boolean useSSL;
+    public final boolean useSSL = configuration.isUseSSL();
 
-    public boolean useNoSSL;
+    public final boolean useNoSSL = configuration.isUseNOSSL();
 
-    public GregorianCalendar date;
+    public final DateTime date = DateTime.now();
 
-    public GregorianCalendar fromDate;
+    public final DateTime fromDate = restStartTime;
 
-    public int secondsRunning;
+    public final int secondsRunning;
 
-    public int networkConnections;
+    public final int networkConnections;
 
-    public int nbThreads;
+    public final int nbThreads;
 
-    public long downBandwidth;
+    public final long downBandwidth;
 
-    public long upBandwidth;
+    public final long upBandwidth;
 
-    public Overall overall;
+    public final Overall overall;
 
-    public Steps steps;
+    public final Steps steps;
 
-    public RunningSteps runningSteps;
+    public final RunningSteps runningSteps;
 
-    public ErrorTypes errorTypes;
+    public final ErrorTypes errorTypes;
 
-    public ServerStatus() throws DAOException {
-        this.hostID = RestUtils.HOST_ID;
-        this.date = new GregorianCalendar();
-        this.fromDate = new GregorianCalendar();
-        this.fromDate.setTimeInMillis(this.fromDate.getTimeInMillis() - ServerHandler.period);
-        this.secondsRunning = (int) (((new GregorianCalendar()).getTimeInMillis() -
-                ServerHandler.startDate.getTimeInMillis()) / 1000);
-        this.overall = new Overall();
-        this.runningSteps = new RunningSteps();
-        this.steps = new Steps();
-        this.errorTypes = new ErrorTypes();
+    public ServerStatus() {
+        this.secondsRunning = (int) ((DateTime.now().getMillis() -
+                restStartTime.getMillis()) / 1000);
+
+        HostDAO hostDAO = null;
+        try {
+            hostDAO = DAO_FACTORY.getHostDAO();
+            Host host = hostDAO.select(HOST_ID);
+            
+            this.running = (host != null) ? host.isActive() :
+                    !configuration.isShutdown();
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (hostDAO != null) {
+                hostDAO.close();
+            }
+        }
+
+        this.downBandwidth = 0;
+        this.upBandwidth = 0;
+        this.networkConnections = 0;
+        this.nbThreads = 0;
+
+        try {
+            this.overall = new Overall();
+            this.runningSteps = new RunningSteps();
+            this.steps = new Steps();
+            this.errorTypes = new ErrorTypes();
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        }
     }
 
     public String getDate() {
-        return RestUtils.fromCalendar(this.date);
+        return this.date.toString();
     }
 
     public String getFromDate() {
-        return RestUtils.fromCalendar(this.fromDate);
+        return this.fromDate.toString();
     }
 }

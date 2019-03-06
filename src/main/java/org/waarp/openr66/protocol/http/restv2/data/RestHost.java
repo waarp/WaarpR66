@@ -25,19 +25,40 @@ package org.waarp.openr66.protocol.http.restv2.data;
 
 import org.waarp.openr66.pojo.Host;
 
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.InternalServerErrorException;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
+
 /**
- * RestHost POJO
- * for Rest HTTP support for R66.
+ * Defines a single host entry as represented in the REST API after*
+ * deserialization of the host JSON object.
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
+@XmlType(name = "host")
 public class RestHost {
+
+    @XmlRootElement(name = "hosts")
+    public static class RestHostList {
+        @XmlElement(name = "host")
+        public List<RestHost> hosts;
+    }
 
     public RestHost() {}
 
+    /**
+     * Creates a RestHost instance from an existing {@link Host} instance.
+     * This is used to convert a host entry from the database to an object that
+     * can be serialised as a JSON.
+     *
+     * @param host The host POJO.
+     */
     public RestHost(Host host) {
         this.hostID = host.getHostid();
         this.address = host.getAddress();
@@ -50,98 +71,101 @@ public class RestHost {
         this.isProxyfied = host.isProxified();
     }
 
-    /** All the possible ways to order a list of host objects. */
+    /** Represents all the possible ways to order a list of host objects. */
     public enum Order {
         /** By hostID, in ascending order. */
-        ascHostID("+id", new Comparator<RestHost>() {
+        ascHostID(new Comparator<RestHost>() {
             @Override
             public int compare(RestHost t1, RestHost t2) {
                 return t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By hostID, in descending order. */
-        descHostID("-id", new Comparator<RestHost>() {
+        descHostID(new Comparator<RestHost>() {
             @Override
             public int compare(RestHost t1, RestHost t2) {
                 return -t1.hostID.compareTo(t2.hostID);
             }
         }),
         /** By address, in ascending order. */
-        ascAddress("+address", new Comparator<RestHost>() {
+        ascAddress(new Comparator<RestHost>() {
             @Override
             public int compare(RestHost t1, RestHost t2) {
                 return t1.address.compareTo(t2.address);
             }
         }),
         /** By address, in descending order. */
-        descAddress("-address", new Comparator<RestHost>() {
+        descAddress(new Comparator<RestHost>() {
             @Override
             public int compare(RestHost t1, RestHost t2) {
                 return -t1.address.compareTo(t2.address);
             }
         });
 
+        /** The comparator used to sort the list of RestHost objects. */
         public final Comparator<RestHost> comparator;
-        public final String value;
 
-        Order(String value, Comparator<RestHost> comparator) {
-            this.value = value;
+        Order(Comparator<RestHost> comparator) {
             this.comparator = comparator;
-        }
-
-        @Override
-        public String toString(){
-            return this.value;
-        }
-
-        public static Order fromString(String str) throws InstantiationException {
-            if(str == null || str.isEmpty()) {
-                return ascHostID;
-            }
-            else {
-                for(Order order : Order.values()) {
-                    if(order.value.equals(str)) {
-                        return order;
-                    }
-                }
-                throw new InstantiationException();
-            }
         }
     }
 
     /** The host's unique identifier. */
-    @NotEmpty
+    @Required
+    @XmlElement
     public String hostID;
 
-    /** The host's public address. Can be an IP address, or a web address which will then be resolved by DNS. */
-    @NotEmpty
+    /**
+     * The host's public address. Can be an IP address, or a web address which
+     * will then be resolved by DNS.
+     */
+    @Required
+    @XmlElement
     public String address;
 
-    /** The server's listening port. Must be between -1 and 65535. */
-    @Or(value = {@Bounds(min = Long.MIN_VALUE, max = -1L), @Bounds(min = 1, max = Long.MAX_VALUE)})
+    /** The server's listening port. Must be between 0 and 65535. */
+    @Bounds(min = 0, max = 65535)
+    @XmlElement
+    @Required
     public Integer port;
 
-    /** The host's DES encrypted password. DO NOT store the password in plaintext. */
-    @NotEmpty
+    /** The host's DES encrypted password. */
+    @Required
+    @XmlElement
     public String hostKey;
 
     /** If true, this host will accept SSL mode connections. */
-    public Boolean isSSL = false;
+    @XmlElement
+    @DefaultValue("false")
+    public Boolean isSSL;
 
     /** If true, the host will have admin access on other servers. */
-    public Boolean adminRole = false;
+    @XmlElement
+    @DefaultValue("false")
+    public Boolean adminRole;
 
-    /** If true, this host is a client, and thus will not accept any incoming connections. */
-    public Boolean isClient = false;
+    /** If true, the host will not accept any incoming transfer requests. */
+    @XmlElement
+    @DefaultValue("false")
+    public Boolean isClient;
 
-    /** If true, this host is currently active. */
-    public Boolean isActive = false;
+    /** If false, this host cannot participate in transfers. */
+    @XmlElement
+    @DefaultValue("true")
+    public Boolean isActive;
 
-    /** If true, the address field is actually the address of the proxy used by this host. */
-    public Boolean isProxyfied = false;
+    /** If true, this host is using a proxy instead of its' real address. */
+    @XmlElement
+    @DefaultValue("false")
+    public Boolean isProxyfied;
 
-
-
+    /**
+     * Creates a list of {@code RestHost} objects from an existing list of
+     * {@link Host} objects for serialization purposes.
+     *
+     * @param hosts The list of database host entries.
+     * @return  The list of corresponding {@code RestHost} objects.
+     */
     public static List<RestHost> toRestList(List<Host> hosts) {
         List<RestHost> restHosts = new ArrayList<RestHost>();
         for(Host host : hosts) {
@@ -150,8 +174,23 @@ public class RestHost {
         return restHosts;
     }
 
+    public void encryptPassword() {
+        try {
+            this.hostKey = configuration.getCryptoKey().cryptToHex(this.hostKey);
+        } catch (Exception e) {
+            throw new InternalServerErrorException("Failed to encrypt the host password", e);
+        }
+    }
+
+    /**
+     * Creates a {@link Host} object equivalent to the current {@code RestHost}
+     * instance.
+     *
+     * @return  The created database host entry.
+     */
     public Host toHost() {
-        return new Host(this.hostID, this.address, this.port, this.hostKey.getBytes(),
-                this.isSSL, this.isClient, this.isProxyfied, this.adminRole, this.isActive);
+        return new Host(this.hostID, this.address, this.port,
+                this.hostKey.getBytes(), this.isSSL, this.isClient,
+                this.isProxyfied, this.adminRole, this.isActive);
     }
 }

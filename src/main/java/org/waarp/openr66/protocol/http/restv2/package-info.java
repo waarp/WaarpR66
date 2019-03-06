@@ -19,6 +19,6 @@
  *
  */
 /**
- * Http Rest R66 interface version 2
+ * WaarpR66 REST HTTP API version 2.
  */
 package org.waarp.openr66.protocol.http.restv2;

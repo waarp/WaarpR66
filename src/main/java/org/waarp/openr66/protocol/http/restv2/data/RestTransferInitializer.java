@@ -21,79 +21,111 @@
 
 package org.waarp.openr66.protocol.http.restv2.data;
 
+import org.joda.time.DateTime;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.http.restv2.RestUtils;
-import org.waarp.openr66.protocol.http.restv2.errors.BadRequestResponse;
-import org.waarp.openr66.protocol.http.restv2.exception.OpenR66RestBadRequestException;
+import org.waarp.openr66.protocol.http.restv2.errors.BadRequestException;
 
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.InternalServerErrorException;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
+import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_FIELD_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.UNKNOWN_RULE;
+
+/**
+ * This class represents the minimum fields necessary to initiate a new transfer.
+ * When making a transfer creation request, the body of the request will be
+ * deserialized into an instance of this class.
+ */
+@SuppressWarnings({"CanBeFinal", "unused"})
 public class RestTransferInitializer {
 
-    @NotEmpty
+    /** The ID of the rule used for the transfer. */
+    @Required
     public String ruleID;
 
-    @NotEmpty
-    public String fileName;
+    /** The path to the transferred file. */
+    @Required
+    public String filename;
 
+    /** The name of the host/user who created the new transfer entry. */
     @NotEmpty
+    public String ownerReq;
+
+    /** The name of the host to which the transfer request will be made. */
+    @Required
     public String requested;
 
-    @Or(@Bounds(min = 0, max = Integer.MAX_VALUE))
-    public Integer blockSize = 4096;
+    /** The size of a transfer block (in Bytes). Cannot be negative. */
+    @Bounds(min = 1, max = Integer.MAX_VALUE)
+    @DefaultValue("65536")
+    public Integer blockSize;
 
-    public String fileInfo = "";
-
-    /* Since the ObjectMapper cannot directly extract a Calendar from a String in ISO-8601 format, the value of
-     * the field `start` is assigned by the `setStart' method which takes the String as an argument. */
-    private Calendar start = null;
+    /** Additional information about the transferred file. */
+    @DefaultValue("")
+    public String transferInfo;
 
     /**
-     * Extracts a date from the String argument and assigns it to the `start` field. The String must represent a date
-     * in ISO-8601 format and cannot be in the past.
-     * @param date  The String from which the date is extracted.
-     * @throws IllegalArgumentException Thrown if the date entered not in the right format or
+     * The date at which the transfer should start in ISO-8601 format. If left
+     * empty, the date will be set to the current date.
      */
-    public void setStart(String date) throws IllegalArgumentException {
-        if(date != null && !date.isEmpty()) {
-            Calendar start = RestUtils.toCalendar(date);
-            if (start.before(new GregorianCalendar())) {
-                throw new IllegalArgumentException();
-            } else {
-                this.start = start;
-            }
+    @DefaultValue("")
+    public String start;
+
+
+    private Timestamp getStart() throws BadRequestException {
+        if (this.start == null || this.start.isEmpty()) {
+            return new Timestamp(System.currentTimeMillis());
         }
+
+        DateTime start;
+        try {
+            start = DateTime.parse(this.start);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(ILLEGAL_FIELD_VALUE("start", this.start));
+        }
+        if (start.isBeforeNow()) {
+            throw new BadRequestException(ILLEGAL_FIELD_VALUE("start", this.start));
+        }
+        return new Timestamp(start.getMillis());
     }
 
     /**
-     * Transforms this RestTransferInitializer instance into a database Transfer instance.
-     * @return The new Transfer created from this initializer instance.
-     * @throws DAOException Thrown if the database could not be reached.
-     * @throws OpenR66RestBadRequestException Thrown if the rule entered is not a valid ruleID.
+     * Transforms this RestTransferInitializer instance into an equivalent
+     * {@link Transfer} instance.
+     *
+     * @return The new {@link Transfer} created from this initializer instance.
      */
-    public Transfer toTransfer() throws DAOException, OpenR66RestBadRequestException {
-        RuleDAO ruleDAO = RestUtils.factory.getRuleDAO();
-        if(ruleDAO.exist(this.ruleID)) {
-            int mode = ruleDAO.select(this.ruleID).getMode();
-            boolean retrieve = (mode == 2 || mode == 4);
-            Transfer transfer = new Transfer(this.ruleID, mode, retrieve, this.fileName, this.fileInfo, this.blockSize);
-            if (this.start != null) {
-                transfer.setStart(new Timestamp(this.start.getTimeInMillis()));
-            }
-            else {
-                transfer.setStart(new Timestamp(new GregorianCalendar().getTimeInMillis()));
-            }
-            transfer.setStop(transfer.getStart());
+    public Transfer toTransfer() {
+        RuleDAO ruleDAO = null;
+        try {
+            ruleDAO = DAO_FACTORY.getRuleDAO();
+            if (ruleDAO.exist(this.ruleID)) {
+                int mode = ruleDAO.select(this.ruleID).getMode();
+                boolean retrieve = (mode == 2 || mode == 4);
+                Transfer transfer = new Transfer(this.ruleID, mode, retrieve,
+                        this.filename, "", this.blockSize);
 
-            return transfer;
-        } else {
-            throw new OpenR66RestBadRequestException(
-                    new BadRequestResponse().illegalFieldValue(this.getClass(), "ruleID"));
+            transfer.setStart(this.getStart());
+            transfer.setStop(transfer.getStart());
+            transfer.setRequested(requested);
+            transfer.setRequester(RestConstants.HOST_ID());
+            transfer.setOwnerRequest(this.ownerReq);
+
+                return transfer;
+            } else {
+                throw new BadRequestException(UNKNOWN_RULE(this.ruleID));
+            }
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (ruleDAO != null) {
+                ruleDAO.close();
+            }
         }
     }
 }

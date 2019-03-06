@@ -24,6 +24,15 @@ package org.waarp.openr66.protocol.http.restv2.data;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
 
+import javax.ws.rs.DefaultValue;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -31,7 +40,14 @@ import java.util.List;
 
 /** RestTransfer rule POJO for Rest HTTP support for R66. */
 @SuppressWarnings({"unused", "WeakerAccess"})
+@XmlType(name = "rule")
 public class RestRule {
+
+    @XmlRootElement(name = "rules")
+    public static class RestRuleList {
+        @XmlElement(name = "rule")
+        public List<RestRule> rules;
+    }
 
     /** All the possible ways to order a list of rule objects. */
     public enum Order {
@@ -50,7 +66,10 @@ public class RestRule {
             }
         });
 
+        /** The {@link Comparator} used to sort a list of {@code RestRule}. */
         public final Comparator<RestRule> comparator;
+
+        /** The {@code Order}'s short name. */
         public final String value;
 
         Order(String value, Comparator<RestRule> comparator) {
@@ -58,11 +77,23 @@ public class RestRule {
             this.comparator = comparator;
         }
 
+        /**
+         * @return  The {@code Order} instance's short name.
+         */
         @Override
         public String toString() {
             return this.value;
         }
 
+        /**
+         * Creates a new {@code Order} instance corresponding to the given
+         * order short name.
+         *
+         * @param str   The order's short name.
+         * @return      The corresponding {@code Order} instance.
+         * @throws InstantiationException Thrown if the given name does not match
+         *                                any possible {@code Order} name.
+         */
         public static Order fromString(String str) throws InstantiationException {
             if(str == null || str.isEmpty()) {
                 return ascRuleID;
@@ -81,105 +112,102 @@ public class RestRule {
     /** All the different modes of file transfer. */
     public enum ModeTrans {
         /** The requester will be the one sending the file to the requested. */
-        send("send"),
-        /** The requester will be the one receiving the file from the requested; */
-        receive("receive"),
-        /** Same as 'send' but with MD5 file signature. */
-        send_md5("send+md5"),
-        /** Same as 'receive but with MD5 file signature. */
-        receive_md5("receive+md5");
-
-        public final String value;
-
-        ModeTrans(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return this.value;
-        }
-
-        public static ModeTrans fromString(String str) throws InstantiationException {
-            if(str == null || str.isEmpty()) {
-                return null;
-            }
-            else {
-                for(ModeTrans mode : ModeTrans.values()) {
-                    if(mode.value.equals(str)) {
-                        return mode;
-                    }
-                }
-                throw new InstantiationException(str);
-            }
-        }
+        send,
+        /** The requester will be the one receiving the file from the requested. */
+        receive,
+        /** Same as {@code send}' but with MD5 file signature. */
+        send_md5,
+        /** Same as {@code receive} but with MD5 file signature. */
+        receive_md5
     }
 
-    /** All the different types of tasks. */
+    /** All the different types of pre and post tasks for a transfer. */
+    @XmlType(name = "type")
+    @XmlEnum
     public enum TaskType {
         /** Log the transfer info to a file or to the server logs. */
-        log,
+        LOG,
         /** Move the file. */
-        move,
+        MOVE,
         /** Move the file and rename it. */
-        moveRename,
+        MOVERENAME,
         /** Copy the file. */
-        copy,
+        COPY,
         /** Copy the file and rename it. */
-        copyRename,
+        COPYRENAME,
         /** Execute a script/program. */
-        exec,
+        EXEC,
         /** Execute a script/program which renames the file. */
-        execMove,
-        /** Execute a script/program, and its output will be used as the new active file in case of error. */
-        execOutput,
+        EXECMOVE,
+        /**
+         * Execute a script/program, and its output will be used as the new
+         * active file in case of error.
+         */
+        EXECOUTPUT,
         /** Execute a java binary. */
-        execJava,
+        EXECJAVA,
         /** Create a new transfer. */
-        transfer,
+        TRANSFER,
         /** Verify that the file exists at the argument entered as an argument. */
-        validFilePath,
+        VALIDFILEPATH,
         /** Delete a file. */
-        delete,
+        DELETE,
         /** Create a link to a file and rename it. */
-        linkRename,
+        LINKRENAME,
         /** Reschedule a transfer. */
-        reschedule,
+        RESCHEDULE,
         /** Compress the file to a .tar archive. */
-        tar,
+        TAR,
         /** Compress the file to a .zip archive. */
-        zip,
+        ZIP,
         /** Convert the file to another type of encoding. */
-        transcode,
-        /** Send the transfer info to the snmp server defined in the server configuration. */
-        snmp
+        TRANSCODE,
+        /**
+         * Send the transfer info to the snmp server defined in the server
+         * configuration.
+         */
+        SNMP
     }
 
     /** An object representing a task processed by a host. */
     @ConsistencyCheck
+    @XmlAccessorType(value = XmlAccessType.FIELD)
     public static class Task {
         /**
          * The type of the task.
          *
          * @see TaskType
          */
+        @XmlElement
+        @Required
         public TaskType type;
 
-        /** The argument applied to the task where a substitution can occur (current date, file path...). */
-        public String argument;
+        /**
+         * The argument applied to the task where a substitution can occur
+         * (ex: current date, filename, etc..).
+         */
+        @XmlElement
+        public String arguments = "";
 
-        /** The maximum delay (in ms) for the execution of the task. Set to 0 for no limit. Cannot be negative. */
-        @Or(@Bounds(min = 0, max = Long.MAX_VALUE))
-        public Integer delay;
+        /**
+         * The delay before which the command becomes out of time.
+         * Cannot be negative.
+         */
+        @Bounds(min = 0, max = Long.MAX_VALUE)
+        @XmlElement
+        public Integer delay = 0;
 
         public Task() {}
 
         public Task(RuleTask task) {
             this.type = TaskType.valueOf(task.getType());
+            this.arguments = task.getPath();
+            this.delay = task.getDelay();
         }
 
         public RuleTask toRuleTask() {
-            return new RuleTask(this.type.toString(), this.argument, this.delay);
+            return new RuleTask(this.type.toString(),
+                    this.arguments, this.delay);
         }
 
         public static List<RuleTask> toRuleTaskList(Task[] tasks) {
@@ -200,77 +228,112 @@ public class RestRule {
     }
 
     /** The rule's unique identifier. */
-    @NotEmpty
+    @Required
+    @XmlElement
     public String ruleID;
 
     /** The IDs of the hosts allowed to use this rule for their transfers. */
-    @NotEmpty
-    public String[] hostsIDs = new String[0];
+    @XmlElement
+    @DefaultValue("")
+    public String[] hostsIDs;
 
     /**
      * The file transfer mode used.
      *
      * @see ModeTrans
      */
+    @Required
+    @XmlElement
     public ModeTrans modeTrans;
 
-    /** The folder in which the file will be stored by the receiver after the transfer. */
-    @NotEmpty
-    public String recvPath = "/in";
+    /** The folder in which the receiver will store the file after the transfer. */
+    @XmlElement
+    public String recvPath;
 
     /** The folder in which the file is stored by the sender before being sent. */
-    @NotEmpty
-    public String sendPath = "out/";
-
-    /** The folder in which the transfer logs will be exported if an export request is made. */
-    @NotEmpty
-    public String archivePath = "archive/";
-
-    /** The folder in which received files are temporarily stored while the transfer is running. */
-    @NotEmpty
-    public String workPath = "work/";
+    @XmlElement
+    public String sendPath;
 
     /**
-     * The list of tasks to be executed by the receiver before the file transfer.
-     *
-     * @see Task
+     * The folder in which the transfer logs will be exported if an export
+     * request is made.
      */
-    public Task[] rPreTasks = new Task[0];
+    @XmlElement
+    public String archivePath;
 
     /**
-     * The list of tasks to be executed by the receiver after the file transfer.
-     *
-     * @see Task
+     * The folder in which received files are temporarily stored while
+     * the transfer is running.
      */
-    public Task[] rPostTasks = new Task[0];
+    @XmlElement
+    public String workPath;
 
     /**
-     * The list of tasks to be executed by the receiver in case of error.
-     *
-     * @see Task
+     * The list of {@link Task} to be executed by the receiver before the file
+     * transfer.
      */
-    public Task[] rErrorTasks = new Task[0];
+    @XmlElementWrapper(name = "rPreTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] rPreTasks;
 
     /**
-     * The list of tasks to be executed by the sender before the file transfer.
-     *
-     * @see Task
+     * The list of {@link Task} to be executed by the receiver after the file
+     * transfer.
      */
-    public Task[] sPreTasks = new Task[0];
+    @XmlElementWrapper(name = "rPostTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] rPostTasks;
 
     /**
-     * The list of tasks to be executed by the sender after the file transfer.
-     *
-     * @see Task
+     * The list of {@link Task} to be executed by the receiver in case of
+     * error.
      */
-    public Task[] sPostTasks = new Task[0];
+    @XmlElementWrapper(name = "rErrorTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] rErrorTasks;
+
+    /**
+     * The list of {@link Task} to be executed by the sender before the file
+     * transfer.
+     */
+    @XmlElementWrapper(name = "sPreTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] sPreTasks;
+
+    /**
+     * The list of {@link Task} to be executed by the sender after the file
+     * transfer.
+     */
+    @XmlElementWrapper(name = "sPostTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] sPostTasks;
 
     /**
      * The list of tasks to be executed by the sender in case of error.
      *
      * @see Task
      */
-    public Task[] sErrorTasks = new Task[0];
+    @XmlElementWrapper(name = "sErrorTasks")
+    @XmlElements(
+            @XmlElement(name = "task")
+    )
+    @DefaultValue("")
+    public Task[] sErrorTasks;
 
 
     public RestRule() {}
@@ -299,9 +362,10 @@ public class RestRule {
         List<RuleTask> sPostTask = Task.toRuleTaskList(this.sPostTasks);
         List<RuleTask> sErrorTask = Task.toRuleTaskList(this.sErrorTasks);
 
-        return new Rule(this.ruleID, this.modeTrans.ordinal()+1, Arrays.asList(this.hostsIDs), this.recvPath,
-                this.sendPath, this.archivePath, this.workPath, rPreTask, rPostTask, rErrorTask, sPreTask,
-                sPostTask, sErrorTask);
+        return new Rule(this.ruleID, this.modeTrans.ordinal()+1,
+                Arrays.asList(this.hostsIDs), this.recvPath, this.sendPath,
+                this.archivePath, this.workPath, rPreTask, rPostTask,
+                rErrorTask, sPreTask, sPostTask, sErrorTask);
     }
 
     public static List<RestRule> toRestList(List<Rule> rules) {
