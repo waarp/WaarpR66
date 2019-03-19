@@ -1362,12 +1362,12 @@ public class DbTaskRunner extends AbstractDbData {
         // getting the preparedStatement
         if (preparedStatementUpdate == null) {
             preparedStatementUpdate = new DbPreparedStatement(dbSession);
-            preparedStatementUpdate.createPrepareStatement("UPDATE " + getTable() +
-                    " SET " + getUpdateAllFields() + " WHERE " +
-                    getWherePrimaryKey());
             dbSession.addLongTermPreparedStatement(preparedStatementUpdate);
         }
         try {
+            preparedStatementUpdate.createPrepareStatement("UPDATE " + getTable() +
+                    " SET " + getUpdateAllFields() + " WHERE " +
+                    getWherePrimaryKey());
             setValues(preparedStatementUpdate, allFields);
             int count = preparedStatementUpdate.executeUpdate();
             if (count <= 0) {
