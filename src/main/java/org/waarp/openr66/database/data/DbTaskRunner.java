@@ -2289,7 +2289,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To set the rank at startup of the request if the request specify a specific rank
-     * 
+     *
      * @param rank the rank to set
      */
     public void setRankAtStartup(int rank) {
@@ -2648,7 +2648,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the status of the transfer
-     * 
+     *
      * @param code TransferOk if success
      * @return the current rank of transfer
      */
@@ -2675,7 +2675,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the transfer is valid to continue
      */
     public boolean continueTransfer() {
