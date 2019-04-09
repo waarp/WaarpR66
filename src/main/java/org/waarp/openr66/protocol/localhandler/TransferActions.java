@@ -209,7 +209,7 @@ public class TransferActions extends ServerActions {
         }
         DbRule rule;
         try {
-            rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
+            rule = new DbRule(packet.getRulename());
         } catch (WaarpDatabaseException e) {
             logger.info("Rule is unknown: " + packet.getRulename() + " {}", e.getMessage());
             session.setStatus(49);
@@ -255,8 +255,7 @@ public class TransferActions extends ServerActions {
                 // Id could be a creation or a reload
                 // Try reload
                 try {
-                    runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                            session, rule, packet.getSpecialId(),
+                    runner = new DbTaskRunner(session, rule, packet.getSpecialId(),
                             requester, requested);
                     // Patch to prevent self request to be stored by sender
                     boolean ignoreSave = runner.shallIgnoreSave();
@@ -271,8 +270,7 @@ public class TransferActions extends ServerActions {
                 } catch (WaarpDatabaseNoDataException e) {
                     // Reception of request from requester host
                     try {
-                        runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                                session, rule, isRetrieve, packet);
+                        runner = new DbTaskRunner(session, rule, isRetrieve, packet);
                         logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
                     } catch (WaarpDatabaseException e1) {
                         session.setStatus(33);
@@ -326,14 +324,14 @@ public class TransferActions extends ServerActions {
             } else {
                 // Id should be a reload
                 try {
-                    runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                    runner = new DbTaskRunner(
                             session, rule, packet.getSpecialId(),
                             requester, requested);
                 } catch (WaarpDatabaseException e) {
                     if (localChannelReference.getDbSession() == null) {
                         // Special case of no database client
                         try {
-                            runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                            runner = new DbTaskRunner(
                                     session, rule, isRetrieve, packet);
                             logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
                         } catch (WaarpDatabaseException e1) {
@@ -376,8 +374,7 @@ public class TransferActions extends ServerActions {
             // should not be the case (the requester should always set the id)
             logger.error("NO TransferID specified: SHOULD NOT BE THE CASE");
             try {
-                runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                        session, rule, isRetrieve, packet);
+                runner = new DbTaskRunner(session, rule, isRetrieve, packet);
             } catch (WaarpDatabaseException e) {
                 session.setStatus(37);
                 endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,

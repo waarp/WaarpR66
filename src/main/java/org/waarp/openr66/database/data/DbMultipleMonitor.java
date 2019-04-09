@@ -26,8 +26,11 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.MultipleMonitorDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.MultipleMonitor;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
@@ -45,7 +48,11 @@ public class DbMultipleMonitor extends AbstractDbData {
     }
 
     public static final int[] dbTypes = {
-            Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.NVARCHAR };
+        Types.INTEGER,
+        Types.INTEGER,
+        Types.INTEGER,
+        Types.NVARCHAR
+    };
 
     public static final String table = " MULTIPLEMONITOR ";
 
@@ -55,56 +62,28 @@ public class DbMultipleMonitor extends AbstractDbData {
     private static final ConcurrentHashMap<String, DbMultipleMonitor> dbR66MMHashMap =
             new ConcurrentHashMap<String, DbMultipleMonitor>();
 
-    private String hostid;
-
-    private int countConfig;
-
-    private int countHost;
-
-    private int countRule;
+    private MultipleMonitor multipleMonitor;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     public static final int NBPRKEY = 1;
 
-    protected static final String selectAllFields = Columns.COUNTCONFIG
-            .name()
-            +
-            ","
-            +
-            Columns.COUNTHOST
-                    .name()
-            +
-            ","
-            +
-            Columns.COUNTRULE
-                    .name()
-            +
-            ","
-            +
-            Columns.HOSTID
-                    .name();
+    protected static final String selectAllFields =
+        Columns.COUNTCONFIG.name() + ","
+        + Columns.COUNTHOST.name() + ","
+        + Columns.COUNTRULE.name() + ","
+        + Columns.HOSTID.name();
 
-    protected static final String updateAllFields = Columns.COUNTCONFIG
-            .name()
-            +
-            "=?,"
-            +
-            Columns.COUNTHOST
-                    .name()
-            +
-            "=?,"
-            +
-            Columns.COUNTRULE
-                    .name()
-            +
-            "=?";
+    protected static final String updateAllFields =
+        Columns.COUNTCONFIG.name() + "=?,"
+        + Columns.COUNTHOST.name() + "=?,"
+        + Columns.COUNTRULE.name() + "=?";
 
     protected static final String insertAllValues = " (?,?,?,?) ";
 
     @Override
     protected void initObject() {
-        primaryKey = new DbValue[] { new DbValue(hostid, Columns.HOSTID
-                .name()) };
+        primaryKey = new DbValue[] { new DbValue(multipleMonitor.getHostid(),
+                Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
                 new DbValue(getCountConfig(), Columns.COUNTCONFIG.name()),
                 new DbValue(getCountHost(), Columns.COUNTHOST.name()),
@@ -135,23 +114,18 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     @Override
     protected void setToArray() {
-        allFields[Columns.HOSTID.ordinal()].setValue(hostid);
+        allFields[Columns.HOSTID.ordinal()].setValue(multipleMonitor.getHostid());
         allFields[Columns.COUNTCONFIG.ordinal()].setValue(getCountConfig());
-        allFields[Columns.COUNTHOST.ordinal()]
-                .setValue(getCountHost());
-        allFields[Columns.COUNTRULE.ordinal()]
-                .setValue(getCountRule());
+        allFields[Columns.COUNTHOST.ordinal()].setValue(getCountHost());
+        allFields[Columns.COUNTRULE.ordinal()].setValue(getCountRule());
     }
 
     @Override
     protected void setFromArray() throws WaarpDatabaseSqlException {
-        hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
-        setCountConfig((Integer) allFields[Columns.COUNTCONFIG.ordinal()]
-                .getValue());
-        setCountHost((Integer) allFields[Columns.COUNTHOST.ordinal()]
-                .getValue());
-        setCountRule((Integer) allFields[Columns.COUNTRULE.ordinal()]
-                .getValue());
+        multipleMonitor.setHostid((String) allFields[Columns.HOSTID.ordinal()].getValue());
+        setCountConfig((Integer) allFields[Columns.COUNTCONFIG.ordinal()].getValue());
+        setCountHost((Integer) allFields[Columns.COUNTHOST.ordinal()].getValue());
+        setCountRule((Integer) allFields[Columns.COUNTRULE.ordinal()].getValue());
     }
 
     @Override
@@ -161,7 +135,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     @Override
     protected void setPrimaryKey() {
-        primaryKey[0].setValue(hostid);
+        primaryKey[0].setValue(multipleMonitor.getHostid());
     }
 
     /**
@@ -174,14 +148,9 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @param cr
      *            count for Rule
      */
-    public DbMultipleMonitor(DbSession dbSession, String hostid, int cc, int ch, int cr) {
-        super(dbSession);
-        this.hostid = hostid;
-        setCountConfig(cc);
-        setCountHost(ch);
-        setCountRule(cr);
-        setToArray();
-        isSaved = false;
+    public DbMultipleMonitor(String hostid, int cc, int ch, int cr) {
+        super(null);
+        multipleMonitor = new MultipleMonitor(hostid, cc, ch, cr);
     }
 
     /**
@@ -189,81 +158,102 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @param hostid
      * @throws WaarpDatabaseException
      */
-    public DbMultipleMonitor(DbSession dbSession, String hostid) throws WaarpDatabaseException {
-        super(dbSession);
-        this.hostid = hostid;
-        // load from DB
-        select();
+    public DbMultipleMonitor(String hostid) throws WaarpDatabaseException {
+        super(null);
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            multipleMonitor = monitorAccess.select(hostid);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
+            }
+        }
     }
 
     @Override
     public void delete() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            dbR66MMHashMap.remove(this.hostid);
-            isSaved = false;
-            return;
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            monitorAccess.delete(multipleMonitor);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
+            }
         }
-        super.delete();
     }
 
     @Override
     public void insert() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            monitorAccess.insert(multipleMonitor);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
+            }
         }
-        if (dbSession == null) {
-            dbR66MMHashMap.put(this.hostid, this);
-            isSaved = true;
-            return;
-        }
-        super.insert();
     }
 
     @Override
     public boolean exist() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            return dbR66MMHashMap.containsKey(hostid);
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            return monitorAccess.exist(multipleMonitor.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
+            }
         }
-        return super.exist();
     }
 
     @Override
     public void select() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            DbMultipleMonitor conf = dbR66MMHashMap.get(this.hostid);
-            if (conf == null) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            } else {
-                // copy info
-                for (int i = 0; i < allFields.length; i++) {
-                    allFields[i].setValue(conf.allFields[i].getValue());
-                }
-                setFromArray();
-                isSaved = true;
-                return;
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            multipleMonitor = monitorAccess.select(multipleMonitor.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
             }
         }
-        super.select();
     }
 
     @Override
     public void update() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
+        MultipleMonitorDAO monitorAccess = null;
+        try {
+            monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
+            monitorAccess.update(multipleMonitor);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (monitorAccess != null) {
+                monitorAccess.close();
+            }
         }
-        if (dbSession == null) {
-            dbR66MMHashMap.put(this.hostid, this);
-            isSaved = true;
-            return;
-        }
-        super.update();
     }
 
     /**
      * Private constructor for Commander only
      */
-    private DbMultipleMonitor(DbSession session) {
-        super(session);
+    private DbMultipleMonitor() {
+        super(null);
+        multipleMonitor = new MultipleMonitor();
     }
 
     /**
@@ -276,7 +266,7 @@ public class DbMultipleMonitor extends AbstractDbData {
      */
     public static DbMultipleMonitor getFromStatement(DbPreparedStatement preparedStatement)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbMultipleMonitor dbMm = new DbMultipleMonitor(preparedStatement.getDbSession());
+        DbMultipleMonitor dbMm = new DbMultipleMonitor();
         dbMm.getValues(preparedStatement, dbMm.allFields);
         dbMm.setFromArray();
         dbMm.isSaved = true;
@@ -291,7 +281,7 @@ public class DbMultipleMonitor extends AbstractDbData {
      */
     public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(
                 Configuration.configuration.getHOST_ID(), 0, 0, 0);
         try {
             if (!multipleMonitor.exist()) {
@@ -374,41 +364,41 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @return the countConfig
      */
     public int getCountConfig() {
-        return countConfig;
+        return multipleMonitor.getCountConfig();
     }
 
     /**
      * @param countConfig the countConfig to set
      */
     private void setCountConfig(int countConfig) {
-        this.countConfig = countConfig;
+        multipleMonitor.setCountConfig(countConfig);
     }
 
     /**
      * @return the countHost
      */
     public int getCountHost() {
-        return countHost;
+        return multipleMonitor.getCountHost();
     }
 
     /**
      * @param countHost the countHost to set
      */
     private void setCountHost(int countHost) {
-        this.countHost = countHost;
+        multipleMonitor.setCountHost(countHost);
     }
 
     /**
      * @return the countRule
      */
     public int getCountRule() {
-        return countRule;
+        return multipleMonitor.getCountRule();
     }
 
     /**
      * @param countRule the countRule to set
      */
     private void setCountRule(int countRule) {
-        this.countRule = countRule;
+        multipleMonitor.setCountRule(countRule);
     }
 }

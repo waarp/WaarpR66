@@ -381,7 +381,7 @@ public class ConfigImport implements Runnable {
             transaction.setSpecialIds(lhost, lrule, lbusiness, lalias, lrole);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
+                    transaction.setHost(new DbHostAuth(stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("ConfigImport in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();

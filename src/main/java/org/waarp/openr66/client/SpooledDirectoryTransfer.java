@@ -234,7 +234,7 @@ public class SpooledDirectoryTransfer implements Runnable {
         // first check if rule is for SEND
         DbRule dbrule = null;
         try {
-            dbrule = new DbRule(DbConstant.admin.getSession(), rulename);
+            dbrule = new DbRule(rulename);
         } catch (WaarpDatabaseException e1) {
             logger.error(Messages.getString("Transfer.18"), e1); //$NON-NLS-1$
             this.future.setFailure(e1);

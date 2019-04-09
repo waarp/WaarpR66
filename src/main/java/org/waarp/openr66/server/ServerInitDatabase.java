@@ -229,7 +229,7 @@ public class ServerInitDatabase {
                 }
                 DbHostConfiguration hostConfiguration = null;
                 try {
-                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
+                    hostConfiguration = new DbHostConfiguration(
                             Configuration.configuration.getHOST_ID());
                     if (salias != null) {
                         hostConfiguration.setAliases(salias);
@@ -242,7 +242,7 @@ public class ServerInitDatabase {
                     }
                     hostConfiguration.update();
                 } catch (WaarpDatabaseException e) {
-                    hostConfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
+                    hostConfiguration = new DbHostConfiguration(
                             Configuration.configuration.getHOST_ID(),
                             sbusiness, sroles, salias, "");
                     try {
@@ -278,7 +278,7 @@ public class ServerInitDatabase {
         boolean uptodate = true;
         // Check if the database is up to date
         String version = DbHostConfiguration
-                .getVersionDb(DbConstant.admin.getSession(), Configuration.configuration.getHOST_ID());
+                .getVersionDb(Configuration.configuration.getHOST_ID());
         try {
             if (version != null) {
                 uptodate = DbConstant.admin.getSession().getAdmin().getDbModel().needUpgradeDb(DbConstant.admin.getSession(), version, true);

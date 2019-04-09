@@ -125,7 +125,7 @@ public class LogExport implements Runnable {
             // Update all UpdatedInfo to DONE
             // where GlobalLastStep = ALLDONETASK and status = CompleteOk
             try {
-                DbTaskRunner.changeFinishedToDone(DbConstant.admin.getSession());
+                DbTaskRunner.changeFinishedToDone();
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.warn("Clean cannot be done {}", e.getMessage());
             }
@@ -238,7 +238,7 @@ public class LogExport implements Runnable {
                     networkTransaction);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
+                    transaction.setHost(new DbHostAuth(stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("LogExport in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();

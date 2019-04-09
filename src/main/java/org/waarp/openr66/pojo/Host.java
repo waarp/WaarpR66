@@ -25,12 +25,17 @@ public class Host {
 
     private boolean active = true;
 
-    private int updatedInfo = 0;
+    private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
 
+    /**
+     * Empty constructor for compatibility issues
+     */
+    @Deprecated
+    public Host() {}
     
     public Host(String hostid, String address, int port, byte[] hostkey,
         boolean ssl, boolean client, boolean proxified, boolean admin, 
-        boolean active, int updatedInfo) {
+        boolean active, UpdatedInfo updatedInfo) {
         this(hostid, address, port, hostkey, ssl, 
                 client, proxified, admin, active);
         this.updatedInfo = updatedInfo;
@@ -140,11 +145,11 @@ public class Host {
         this.active = active;
     }
 
-    public int getUpdatedInfo() {
+    public UpdatedInfo getUpdatedInfo() {
         return this.updatedInfo;
     }
 
-    public void setUpdatedInfo(int info) {
+    public void setUpdatedInfo(UpdatedInfo info) {
         this.updatedInfo = info;
     }
 }

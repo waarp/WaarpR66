@@ -91,7 +91,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
             } else {
                 id = node.asText();
             }
-            return new DbHostConfiguration(handler.getDbSession(), id);
+            return new DbHostConfiguration(id);
         } catch (WaarpDatabaseException e) {
             throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
         }
@@ -104,7 +104,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
         ObjectNode arg = arguments.getUriArgs().deepCopy();
         arg.setAll(arguments.getBody());
         try {
-            return new DbHostConfiguration(handler.getDbSession(), arg);
+            return new DbHostConfiguration(arg);
         } catch (WaarpDatabaseException e) {
             throw new HttpIncorrectRequestException("Issue while inserting into database", e);
         }

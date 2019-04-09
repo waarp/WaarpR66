@@ -58,17 +58,16 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     protected static String SQL_GET_ID = "SELECT NEXT VALUE FOR runseq";
     // CRUD requests
     protected static String SQL_DELETE = "DELETE FROM " + TABLE
-            + " WHERE " + UPDATED_INFO_FIELD + " = ?  WHERE "
-            + OWNER_REQUEST_FIELD + " = ? AND "
+            + " WHERE " + ID_FIELD + " = ? AND "
             + REQUESTER_FIELD + " = ? AND "
             + REQUESTED_FIELD + " = ? AND "
-            + ID_FIELD + " = ?";
+            + OWNER_REQUEST_FIELD  + " = ?";
     protected static String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
     protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE + " WHERE "
-            + OWNER_REQUEST_FIELD + " = ? AND "
+            + ID_FIELD + " = ? AND "
             + REQUESTER_FIELD + " = ? AND "
             + REQUESTED_FIELD + " = ? AND "
-            + ID_FIELD + " = ?";
+            + OWNER_REQUEST_FIELD + " = ?";
     protected static String SQL_GET_ALL = "SELECT * FROM " + TABLE;
     protected static String SQL_INSERT = "INSERT INTO " + TABLE
             + " (" + GLOBAL_STEP_FIELD + ", "
@@ -94,11 +93,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
             + ID_FIELD + ", "
             + UPDATED_INFO_FIELD
             + ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    protected static String SQL_SELECT = "SELECT * FROM " + TABLE + " WHERE "
-            + OWNER_REQUEST_FIELD + " = ? AND "
+    protected static String SQL_SELECT = "SELECT * FROM " + TABLE
+            + " WHERE " + ID_FIELD + " = ? AND "
             + REQUESTER_FIELD + " = ? AND "
             + REQUESTED_FIELD + " = ? AND "
-            + ID_FIELD + " = ?";
+            + OWNER_REQUEST_FIELD + " = ?";
     protected static String SQL_UPDATE = "UPDATE " + TABLE
             + " SET " + ID_FIELD + " = ?, "
             + GLOBAL_STEP_FIELD + " = ?, "
@@ -377,10 +376,10 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
-                Configuration.configuration.getHOST_ID(),
+                id,
                 requester,
                 requested,
-                id
+                Configuration.configuration.getHOST_ID()
         };
         try {
             stm = connection.prepareStatement(getExistRequest());
@@ -401,10 +400,10 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
-                Configuration.configuration.getHOST_ID(),
+                id,
                 requester,
                 requested,
-                id
+                Configuration.configuration.getHOST_ID()
         };
         try {
             stm = connection.prepareStatement(getSelectRequest());

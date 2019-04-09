@@ -86,7 +86,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.getSession(), request.getRule());
+            rule = new DbRule(request.getRule());
         } catch (WaarpDatabaseException e) {
             logger.warn("Cannot get Rule: " + request.getRule(), e);
             return null;
@@ -102,8 +102,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
         }
         if (tid != DbConstant.ILLEGALVALUE) {
             try {
-                taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), tid,
-                        request.getDestuid());
+                taskRunner = new DbTaskRunner(tid, request.getDestuid());
                 // requested
                 taskRunner.setSenderByRequestToValidate(true);
             } catch (WaarpDatabaseException e) {
@@ -119,7 +118,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
             boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
             try {
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isRetrieve, requestPacket,
+                        new DbTaskRunner(rule, isRetrieve, requestPacket,
                                 request.getDestuid(), ttimestart);
             } catch (WaarpDatabaseException e) {
                 logger.warn("Cannot get task", e);
@@ -219,8 +218,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
     private int stopOrCancelRunner(long id, String reqd, String reqr, org.waarp.openr66.context.ErrorCode code) {
         try {
             DbTaskRunner taskRunner =
-                    new DbTaskRunner(DbConstant.admin.getSession(), null,
-                            null, id, reqr, reqd);
+                    new DbTaskRunner(null, null, id, reqr, reqd);
             return taskRunner.stopOrCancelRunner(code) ? 1 : 0;
         } catch (WaarpDatabaseException e) {
         }
@@ -281,8 +279,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
         // header = ?; middle = requested+blank+requester+blank+specialId
         DbTaskRunner taskRunner = null;
         try {
-            taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), null,
-                    null, request.getTid(), request.getFromuid(), request.getDestuid());
+            taskRunner = new DbTaskRunner(null, null,
+                    request.getTid(), request.getFromuid(), request.getDestuid());
             org.waarp.openr66.context.R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
             return new R66Result(request.getMode(), ErrorCode.valueOf(resulttest.getCode().name()),
                     resulttest.getMessage());
@@ -326,9 +324,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
                     setResultFromLCR(lcr, result);
                 } else {
                     try {
-                        DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.getSession(), null,
-                                null, request.getTid(), request.getFromuid(),
-                                request.getDestuid());
+                        DbTaskRunner runner = new DbTaskRunner(null, null,
+                                request.getTid(), request.getFromuid(), request.getDestuid());
                         if (runner != null) {
                             setResultFromRunner(runner, result);
                         }
@@ -387,7 +384,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
         session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.getSession(), request.getRule());
+            rule = new DbRule(request.getRule());
         } catch (WaarpDatabaseException e) {
             logger.warn("Rule is unknown: " + request.getRule());
             list.add("Rule is unknown: " + request.getRule());

@@ -36,13 +36,19 @@ public class Rule {
 
     private List<RuleTask> sErrorTasks;
 
-    private int updatedInfo = 0;
+    private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
+
+    /**
+     * Empty constructor for compatibility issues
+     */
+    @Deprecated
+    public Rule() {}
 
     public Rule(String name, int mode, List<String> hostids, String recvPath,
             String sendPath, String archivePath, String workPath, 
             List<RuleTask> rPre, List<RuleTask> rPost, List<RuleTask> rError,
             List<RuleTask> sPre, List<RuleTask> sPost, List<RuleTask> sError,
-            int updatedInfo) {
+            UpdatedInfo updatedInfo) {
         this(name, mode, hostids, recvPath, sendPath, archivePath, workPath,
                 rPre, rPost, rError, sPre, sPost, sError);
         this.updatedInfo = updatedInfo;
@@ -239,11 +245,11 @@ public class Rule {
         this.sErrorTasks = sErrorTasks;
     }
 
-    public int getUpdatedInfo() {
+    public UpdatedInfo getUpdatedInfo() {
         return this.updatedInfo;
     }
 
-    public void setUpdatedInfo(int info) {
+    public void setUpdatedInfo(UpdatedInfo info) {
         this.updatedInfo = info;
     }
 }

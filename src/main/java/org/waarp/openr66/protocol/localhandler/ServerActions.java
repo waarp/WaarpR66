@@ -64,6 +64,7 @@ import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.pojo.Transfer;
+import org.waarp.openr66.pojo.UpdatedInfo;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -390,24 +391,24 @@ public class ServerActions extends ConnectionActions {
                         Timestamp.valueOf(sstop);
                 packet.clear();
                 // create export of log and optionally purge them from database
-                DbPreparedStatement getValid = null;
                 String filename = Configuration.configuration.getBaseDirectory() +
                         Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
                         Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                         "_runners.xml";
+                DbPreparedStatement statement = null;
                 try {
-                    getValid =
+                    statement =
                             DbTaskRunner.getLogPrepareStatement(
                                     localChannelReference.getDbSession(),
                                     start, stop);
-                    DbTaskRunner.writeXMLWriter(getValid, filename);
-                } catch (WaarpDatabaseNoConnectionException e1) {
-                    throw new OpenR66ProtocolBusinessException(e1);
-                } catch (WaarpDatabaseSqlException e1) {
-                    throw new OpenR66ProtocolBusinessException(e1);
+                    DbTaskRunner.writeXMLWriter(statement, filename);
+                } catch (WaarpDatabaseNoConnectionException e) {
+                    throw new OpenR66ProtocolBusinessException(e);
+                } catch (WaarpDatabaseSqlException e) {
+                    throw new OpenR66ProtocolBusinessException(e);
                 } finally {
-                    if (getValid != null) {
-                        getValid.realClose();
+                    if (statement != null) {
+                        statement.realClose();
                     }
                 }
                 // in case of purge
@@ -500,7 +501,7 @@ public class ServerActions extends ConnectionActions {
                     if (bhostPurge) {
                         // Need to first delete all entries
                         try {
-                            oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
+                            oldHosts = DbHostAuth.deleteAll();
                         } catch (WaarpDatabaseException e) {
                             // ignore
                         }
@@ -534,7 +535,7 @@ public class ServerActions extends ConnectionActions {
                     if (brulePurge) {
                         // Need to first delete all entries
                         try {
-                            oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
+                            oldRules = DbRule.deleteAll();
                         } catch (WaarpDatabaseException e) {
                             // ignore
                         }
@@ -1231,8 +1232,7 @@ public class ServerActions extends ConnectionActions {
             if (hostid != DbConstant.ILLEGALVALUE && local != null) {
                 // need to find the local filename
                 try {
-                    runner = new DbTaskRunner(dbSession,
-                            session, null,
+                    runner = new DbTaskRunner(session, null,
                             hostid, remote, local);
                     shost = runner.getFullFilePath();
                 } catch (WaarpDatabaseException e) {
@@ -1247,7 +1247,7 @@ public class ServerActions extends ConnectionActions {
                 if (bhostPurge) {
                     // Need to first delete all entries
                     try {
-                        oldHosts = DbHostAuth.deleteAll(dbSession);
+                        oldHosts = DbHostAuth.deleteAll();
                     } catch (WaarpDatabaseException e) {
                         // ignore
                     }
@@ -1281,8 +1281,7 @@ public class ServerActions extends ConnectionActions {
             if (ruleid != DbConstant.ILLEGALVALUE && local != null) {
                 // need to find the local filename
                 try {
-                    runner = new DbTaskRunner(dbSession,
-                            session, null,
+                    runner = new DbTaskRunner(session, null,
                             ruleid, remote, local);
                     srule = runner.getFullFilePath();
                 } catch (WaarpDatabaseException e) {
@@ -1297,7 +1296,7 @@ public class ServerActions extends ConnectionActions {
                 if (brulePurge) {
                     // Need to first delete all entries
                     try {
-                        oldRules = DbRule.deleteAll(dbSession);
+                        oldRules = DbRule.deleteAll();
                     } catch (WaarpDatabaseException e) {
                         // ignore
                     }
@@ -1341,14 +1340,13 @@ public class ServerActions extends ConnectionActions {
                 roleid != DbConstant.ILLEGALVALUE) && local != null)) {
             DbHostConfiguration host = null;
             try {
-                host = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
+                host = new DbHostConfiguration(Configuration.configuration.getHOST_ID());
                 DbTaskRunner runner = null;
                 if (businessid != DbConstant.ILLEGALVALUE && local != null) {
                     // need to find the local filename
                     try {
-                        runner = new DbTaskRunner(dbSession,
-                                session, null,
-                                businessid, remote, local);
+                        runner = new DbTaskRunner(session, null, businessid,
+                                remote, local);
                         sbusiness = runner.getFullFilePath();
                     } catch (WaarpDatabaseException e) {
                         logger.error("RunnerTask is not found: " + businessid, e);
@@ -1374,9 +1372,8 @@ public class ServerActions extends ConnectionActions {
                 if (aliasid != DbConstant.ILLEGALVALUE && local != null) {
                     // need to find the local filename
                     try {
-                        runner = new DbTaskRunner(dbSession,
-                                session, null,
-                                aliasid, remote, local);
+                        runner = new DbTaskRunner(session, null, aliasid,
+                                remote, local);
                         salias = runner.getFullFilePath();
                     } catch (WaarpDatabaseException e) {
                         logger.error("RunnerTask is not found: " + aliasid, e);
@@ -1402,9 +1399,8 @@ public class ServerActions extends ConnectionActions {
                 if (roleid != DbConstant.ILLEGALVALUE && local != null) {
                     // need to find the local filename
                     try {
-                        runner = new DbTaskRunner(dbSession,
-                                session, null,
-                                roleid, remote, local);
+                        runner = new DbTaskRunner(session, null, roleid,
+                                remote, local);
                         sroles = runner.getFullFilePath();
                     } catch (WaarpDatabaseException e) {
                         logger.error("RunnerTask is not found: " + roleid, e);
@@ -1552,7 +1548,8 @@ public class ServerActions extends ConnectionActions {
         }
         if (bbusiness || balias || broles) {
             try {
-                DbHostConfiguration host = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
+                DbHostConfiguration host = new DbHostConfiguration(
+                        Configuration.configuration.getHOST_ID());
                 if (bbusiness) {
                     sbusiness = host.getBusiness();
                     if (sbusiness != null) {
@@ -1669,8 +1666,7 @@ public class ServerActions extends ConnectionActions {
                 try {
                     DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
                             : DbConstant.admin.getSession();
-                    taskRunner = new DbTaskRunner(dbSession, session,
-                            null, id, reqr, reqd);
+                    taskRunner = new DbTaskRunner(session,null, id, reqr, reqd);
                     Timestamp timestart = null;
                     if (date != null) {
                         // time to reschedule in yyyyMMddHHmmss format
@@ -1787,18 +1783,18 @@ public class ServerActions extends ConnectionActions {
             // Update all UpdatedInfo to DONE
             // where GlobalLastStep = ALLDONETASK and status = CompleteOk
             try {
-                DbTaskRunner.changeFinishedToDone(dbSession);
+                DbTaskRunner.changeFinishedToDone();
             } catch (WaarpDatabaseNoConnectionException e) {
                 logger.warn("Clean cannot be done {}", e.getMessage());
             }
         }
         // create export of log and optionally purge them from database
-        DbPreparedStatement getValid = null;
         String filename = Configuration.configuration.getBaseDirectory() +
                 Configuration.configuration.getArchivePath() + R66Dir.SEPARATOR +
                 Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                 "_runners.xml";
         NbAndSpecialId nb = null;
+<<<<<<< HEAD
 
         ArrayList<Filter> filters = new ArrayList<Filter>();
         if (start != null) {
@@ -1823,6 +1819,9 @@ public class ServerActions extends ConnectionActions {
             filters.add(new Filter(DBTransferDAO.REQUESTED_FIELD, "=", request));
         }
 
+=======
+        DbPreparedStatement getValid = null;
+>>>>>>> Integration of Pojo/DAO
         try {
             getValid =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
@@ -1838,6 +1837,7 @@ public class ServerActions extends ConnectionActions {
                 getValid.realClose();
             }
         }
+
         // in case of purge
         int npurge = 0;
         if (nb != null && nb.nb > 0 && isPurge) {
@@ -1955,8 +1955,12 @@ public class ServerActions extends ConnectionActions {
         LocalChannelReference lcr = getLocalChannelReference(transfer);
         if (lcr == null) {
             // Transfer is not running
+<<<<<<< HEAD
             transfer.setUpdatedInfo(
                     org.waarp.openr66.pojo.UpdatedInfo.INERROR);
+=======
+            transfer.setUpdatedInfo(UpdatedInfo.INERROR);
+>>>>>>> Integration of Pojo/DAO
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());
@@ -1988,8 +1992,12 @@ public class ServerActions extends ConnectionActions {
         LocalChannelReference lcr = getLocalChannelReference(transfer);
         if (lcr == null) {
             // Transfer is not running
+<<<<<<< HEAD
             transfer.setUpdatedInfo(
                     org.waarp.openr66.pojo.UpdatedInfo.INERROR);
+=======
+            transfer.setUpdatedInfo(UpdatedInfo.INERROR);
+>>>>>>> Integration of Pojo/DAO
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());
@@ -2025,8 +2033,7 @@ public class ServerActions extends ConnectionActions {
             DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession()
                     : DbConstant.admin.getSession();
             DbTaskRunner taskRunner =
-                    new DbTaskRunner(dbSession, session,
-                            null, id, reqr, reqd);
+                    new DbTaskRunner(session, null, id, reqr, reqd);
             return taskRunner.stopOrCancelRunner(code);
         } catch (WaarpDatabaseException e) {
         }
@@ -2271,7 +2278,7 @@ public class ServerActions extends ConnectionActions {
                 : DbConstant.admin.getSession();
         DbRule rule;
         try {
-            rule = new DbRule(dbSession, rulename);
+            rule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Rule is unknown: " + rulename, e);
             throw new OpenR66ProtocolNoDataException(e);
@@ -2404,9 +2411,7 @@ public class ServerActions extends ConnectionActions {
         DbTaskRunner runner = null;
         if (isTo) {
             try {
-                runner = new DbTaskRunner(dbSession,
-                        session, null,
-                        id, remote, local);
+                runner = new DbTaskRunner(session, null, id, remote, local);
             } catch (WaarpDatabaseException e) {
                 logger.error(Messages.getString("LocalServerHandler.21") + id); //$NON-NLS-1$
                 logger.debug("RunnerTask is not found: " + id + ":" + remote + ":" + local, e);
@@ -2414,9 +2419,7 @@ public class ServerActions extends ConnectionActions {
             }
         } else {
             try {
-                runner = new DbTaskRunner(dbSession,
-                        session, null,
-                        id, local, remote);
+                runner = new DbTaskRunner(session, null, id, local, remote);
             } catch (WaarpDatabaseException e) {
                 logger.debug("RunnerTask is not found: " + id + ":" + local + ":" + remote, e);
                 logger.error(Messages.getString("LocalServerHandler.21") + id);
@@ -2500,7 +2503,7 @@ public class ServerActions extends ConnectionActions {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.getSession(), request.getRulename());
+            rule = new DbRule(request.getRulename());
         } catch (WaarpDatabaseException e) {
             logger.warn("Cannot get Rule: " + request.getRulename(), e);
             return null;
@@ -2516,8 +2519,7 @@ public class ServerActions extends ConnectionActions {
         }
         if (tid != DbConstant.ILLEGALVALUE) {
             try {
-                taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), tid,
-                        request.getRequested());
+                taskRunner = new DbTaskRunner(tid, request.getRequested());
                 // requested
                 taskRunner.setSenderByRequestToValidate(true);
             } catch (WaarpDatabaseException e) {
@@ -2533,7 +2535,7 @@ public class ServerActions extends ConnectionActions {
             boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
             try {
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isRetrieve, requestPacket,
+                        new DbTaskRunner(rule, isRetrieve, requestPacket,
                                 request.getRequested(), ttimestart);
             } catch (WaarpDatabaseException e) {
                 logger.warn("Cannot get task", e);

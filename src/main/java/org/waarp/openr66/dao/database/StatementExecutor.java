@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
-import org.waarp.openr66.dao.exception.DAOException;
 
 abstract class StatementExecutor {
 

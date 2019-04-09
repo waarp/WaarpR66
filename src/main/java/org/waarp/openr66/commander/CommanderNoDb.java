@@ -92,14 +92,14 @@ public class CommanderNoDb implements CommanderInterface {
                 }
                 DbRule rule;
                 try {
-                    rule = new DbRule(null, info[2]);
+                    rule = new DbRule(info[2]);
                 } catch (WaarpDatabaseException e) {
                     logger.warn("Cannot find the rule named: " + info[2]);
                     continue;
                 }
                 long id = Long.parseLong(info[3]);
                 try {
-                    DbTaskRunner task = new DbTaskRunner(null, null, rule, id, info[0], info[1]);
+                    DbTaskRunner task = new DbTaskRunner(null, rule, id, info[0], info[1]);
                     UpdatedInfo status = task.getUpdatedInfo();
                     if (status == UpdatedInfo.RUNNING || status == UpdatedInfo.INTERRUPTED) {
                         task.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);

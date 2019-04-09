@@ -81,7 +81,7 @@ public class TestTasks {
         String argRule = out + "/#DATE#_%s_%s_" + filename;
         String argTransfer = "basic information";
         R66Session session = new R66Session();
-        DbRule rule = new DbRule(null, "idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in,
+        DbRule rule = new DbRule("idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in,
                 null, null, null, null, null, null);
         RequestPacket requestPacket = new RequestPacket(rule.getIdRule(), rule.getMode(), filename,
                 Configuration.BUFFERSIZEDEFAULT, (int) size / Configuration.BUFFERSIZEDEFAULT + 1,
@@ -90,7 +90,7 @@ public class TestTasks {
         DbConstant.admin = new DbAdmin();
         session.getAuth().specialNoSessionAuth(false, "false");
         try {
-            runner = new DbTaskRunner(null, session, rule, false, requestPacket);
+            runner = new DbTaskRunner(session, rule, false, requestPacket);
         } catch (WaarpDatabaseException e) {
         }
         runner.setPostTask();

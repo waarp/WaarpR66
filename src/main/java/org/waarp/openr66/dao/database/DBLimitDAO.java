@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Limit;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 /**
  * Implementation of LimitDAO for standard SQL databases
@@ -23,7 +23,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(LimitDAO.class);
 
-    protected static final String TABLE = "CONFIGURATION";
+    protected static final String TABLE = "configuration";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String READ_GLOBAL_LIMIT_FIELD = "readgloballimit";
@@ -207,7 +207,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
             limit.getReadSessionLimit(),
             limit.getWriteSessionLimit(),
             limit.getDelayLimit(),
-            limit.getUpdatedInfo()
+            limit.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -231,7 +231,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
             limit.getReadSessionLimit(),
             limit.getWriteSessionLimit(),
             limit.getDelayLimit(),
-            limit.getUpdatedInfo(),
+            limit.getUpdatedInfo().ordinal(),
             limit.getHostid()
         };
 
@@ -255,6 +255,6 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
                 set.getLong(WRITE_GLOBAL_LIMIT_FIELD),
                 set.getLong(READ_SESSION_LIMIT_FIELD),
                 set.getLong(WRITE_SESSION_LIMIT_FIELD),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf((set.getInt(UPDATED_INFO_FIELD))));
     }
 }

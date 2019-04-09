@@ -1243,7 +1243,6 @@ public class FileBasedConfiguration {
                 if (value != null && (!value.isEmpty())) {
                     config.setHOST_ID(value.getString());
                     DbConfiguration configuration = new DbConfiguration(
-                            DbConstant.admin.getSession(),
                             config.getHOST_ID(),
                             config.getServerGlobalReadLimit(),
                             config.getServerGlobalWriteLimit(),
@@ -1724,9 +1723,7 @@ public class FileBasedConfiguration {
         if (DbConstant.admin.isActive()) {
             // load from database the limit to apply
             try {
-                DbConfiguration configuration = new DbConfiguration(
-                        DbConstant.admin.getSession(),
-                        config.getHOST_ID());
+                DbConfiguration configuration = new DbConfiguration(config.getHOST_ID());
                 configuration.updateConfiguration();
             } catch (WaarpDatabaseException e) {
                 logger.info(Messages.getString("FileBasedConfiguration.NoBandwidth") + e.getMessage()); //$NON-NLS-1$
@@ -1925,8 +1922,7 @@ public class FileBasedConfiguration {
             // now check in DB
             if (DbConstant.admin != null) {
                 try {
-                    DbHostConfiguration hostconfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
-                            config.getHOST_ID());
+                    DbHostConfiguration hostconfiguration = new DbHostConfiguration(config.getHOST_ID());
                     if (hostconfiguration != null) {
                         DbHostConfiguration.updateHostConfiguration(config, hostconfiguration);
                     }

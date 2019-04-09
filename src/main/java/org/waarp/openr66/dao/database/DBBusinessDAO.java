@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 /**
  * Implementation of BusinessDAO for standard SQL databases
@@ -23,7 +23,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBBusinessDAO.class);
 
-    protected static final String TABLE = "HOSTCONFIG";
+    protected static final String TABLE = "hostconfig";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String BUSINESS_FIELD = "business";
@@ -201,7 +201,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             business.getRoles(),
             business.getAliases(),
             business.getOthers(),
-            business.getUpdatedInfo()
+            business.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -224,7 +224,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             business.getRoles(),
             business.getAliases(),
             business.getOthers(),
-            business.getUpdatedInfo(),
+            business.getUpdatedInfo().ordinal(),
             business.getHostid()
         };
 
@@ -247,7 +247,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
                 set.getString(ROLES_FIELD),
                 set.getString(ALIASES_FIELD),
                 set.getString(OTHERS_FIELD),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 }
 

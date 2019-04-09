@@ -1,7 +1,5 @@
 package org.waarp.openr66.dao;
 
-import java.sql.Connection;
-
 import org.waarp.common.database.ConnectionFactory;
 import org.waarp.openr66.dao.database.DBDAOFactory;
 import org.waarp.openr66.dao.exception.DAOException;
@@ -16,7 +14,6 @@ public abstract class DAOFactory {
 
     public static void initialize() {
         if (instance != null) {
-
         }
     }
 

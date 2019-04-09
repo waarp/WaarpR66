@@ -18,10 +18,8 @@
 package org.waarp.openr66.protocol.http;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.Timestamp;
+import java.util.*;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -49,7 +47,6 @@ import io.netty.handler.traffic.TrafficCounter;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
-import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
@@ -62,15 +59,23 @@ import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.SpooledInformTask;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.database.DBTransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
+import org.waarp.openr66.pojo.Transfer;
+import org.waarp.openr66.pojo.UpdatedInfo;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * Handler for HTTP information support
@@ -393,6 +398,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
+<<<<<<< HEAD
     private void addRunners(DbPreparedStatement preparedStatement, String type,
                             int nb) throws WaarpDatabaseNoConnectionException,
             WaarpDatabaseSqlException {
@@ -421,14 +427,35 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                     if (i >= nb) {
                         break;
                     }
+=======
+    private void addRunners(List<Transfer> transfers, String type, int nb) {
+        responseContent
+                .append("<style>td{font-size: 8pt;}</style><table border=\"2\">")
+                .append("<tr><td>").append(type).append("</td>")
+                .append(DbTaskRunner.headerHtml()).append("</tr>\r\n");
+
+        int i = 0;
+        for (Transfer transfer: transfers) {
+            DbTaskRunner taskRunner = new DbTaskRunner(transfer);
+            responseContent.append("<tr><td>").append(taskRunner.isSender() ? "S" : "R").append("</td>");
+            LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                            getFromRequest(taskRunner.getKey());
+            responseContent.append(
+                    taskRunner.toHtml(
+                            getAuthentHttp(),
+                            lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
+                                    .getString("HttpSslHandler.NotActive")))
+                    .append("</tr>\r\n");
+            if (nb > 0) {
+                i++;
+                if (i >= nb) {
+                    break;
+>>>>>>> Integration of Pojo/DAO
                 }
             }
-            responseContent.append("</table><br>\r\n");
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
         }
+        responseContent.append("</table><br>\r\n");
     }
 
     /**
@@ -439,39 +466,99 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     private void active(ChannelHandlerContext ctx, int nb) {
         responseContent.append(REQUEST.active.readHeader(this));
-        DbPreparedStatement preparedStatement = null;
+
+        TransferDAO transferAccess = null;
+        List<Filter> filters = new ArrayList<Filter>();
+        List<Transfer> transfers = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.Running, nb);
-            addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.INTERRUPTED, true, nb);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(), nb);
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.TOSUBMIT, true, nb);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            addRunners(preparedStatement, UpdatedInfo.TOSUBMIT.name(), nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.InitOk, nb);
-            addRunners(preparedStatement, ErrorCode.InitOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.PreProcessingOk, nb);
-            addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.TransferOk, nb);
-            addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.PostProcessingOk, nb);
-            addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
-            preparedStatement = null;
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+            transferAccess = DAOFactory.getInstance().getTransferDAO();
+
+            // Find Status = RUNNING transfer
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.Running.mesg));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, ErrorCode.Running.mesg, nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find UpdatedInfo = INTERUPTED transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.INTERRUPTED));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
+                    "<", new Timestamp(System.currentTimeMillis())));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, UpdatedInfo.INTERRUPTED.name(), nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find UpdatedInfo = TOSUBMIT transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.TOSUBMIT));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
+                    "<", new Timestamp(System.currentTimeMillis())));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, UpdatedInfo.TOSUBMIT.name(), nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find Status = INITOK transfer
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.InitOk.mesg));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, ErrorCode.InitOk.mesg, nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find Status = PREPROCESSINGOK transfer
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.PreProcessingOk.mesg));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, ErrorCode.PreProcessingOk.mesg, nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find Status = TRANSFEROK transfer
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.TransferOk.mesg));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, ErrorCode.TransferOk.mesg, nb);
+
+            transfers.clear();
+            filters.clear();
+            // Find Status = POSTPROCESSING transfer
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.PostProcessingOk.mesg));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, ErrorCode.PostProcessingOk.mesg, nb);
+        } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
         }
         responseContent.append(REQUEST.active.readEnd());
     }
@@ -484,27 +571,56 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     private void error(ChannelHandlerContext ctx, int nb) {
         responseContent.append(REQUEST.error.readHeader(this));
-        DbPreparedStatement preparedStatement = null;
+        TransferDAO transferAccess = null;
+        List<Filter> filters = new ArrayList<Filter>();
+        List<Transfer> transfers = null;
         try {
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.INERROR, true, nb / 2);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            addRunners(preparedStatement, UpdatedInfo.INERROR.name(), nb / 2);
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.INTERRUPTED, true, nb / 2);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(),
-                    nb / 2);
-            preparedStatement = DbTaskRunner.getStepPrepareStatement(dbSession,
-                    TASKSTEP.ERRORTASK, nb / 4);
-            addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb / 4);
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+            transferAccess = DAOFactory.getInstance().getTransferDAO();
+
+            // Find UpdatedInfo = INERROR transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.INERROR));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
+                    "<", new Timestamp(System.currentTimeMillis())));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb/2);
+            addRunners(transfers, UpdatedInfo.INERROR.name(), nb/2);
+
+            transfers.clear();
+            filters.clear();
+            // Find UpdatedInfo = INTERUPTED transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.INTERRUPTED));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
+                    "<", new Timestamp(System.currentTimeMillis())));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb/2);
+            addRunners(transfers, UpdatedInfo.INTERRUPTED.name(), nb/2);
+
+            transfers.clear();
+            filters.clear();
+            // Find GlobalStep = ERRORTASK transfer
+            filters.add(new Filter(DBTransferDAO.GLOBAL_STEP_FIELD,
+                    "=", Transfer.TASKSTEP.ERRORTASK));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
+                    "<", new Timestamp(System.currentTimeMillis())));
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb/4);
+            addRunners(transfers, TASKSTEP.ERRORTASK.name(), nb/4);
+        } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
         }
         responseContent.append(REQUEST.error.readEnd());
     }
@@ -517,18 +633,29 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     private void done(ChannelHandlerContext ctx, int nb) {
         responseContent.append(REQUEST.done.readHeader(this));
-        DbPreparedStatement preparedStatement = null;
+
+        TransferDAO transferAccess = null;
+        List<Transfer> transfers = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    ErrorCode.CompleteOk, nb);
-            addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+            transferAccess = DAOFactory.getInstance().getTransferDAO();
+
+            List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new Filter(DBTransferDAO.STEP_FIELD,
+                    "=", ErrorCode.CompleteOk));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, "ALL RUNNERS: " + nb, nb);
+        } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
         }
         responseContent.append(REQUEST.done.readEnd());
     }
@@ -541,18 +668,27 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     private void all(ChannelHandlerContext ctx, int nb) {
         responseContent.append(REQUEST.all.readHeader(this));
-        DbPreparedStatement preparedStatement = null;
+
+        TransferDAO transferAccess = null;
+        List<Transfer> transfers = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
-                    null, nb);// means all
-            addRunners(preparedStatement, "ALL RUNNERS: " + nb, nb);
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+            transferAccess = DAOFactory.getInstance().getTransferDAO();
+
+            List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, nb);
+            addRunners(transfers, "ALL RUNNERS: " + nb, nb);
+        } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
         }
         responseContent.append(REQUEST.all.readEnd());
     }
@@ -565,59 +701,66 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     private void status(ChannelHandlerContext ctx, int nb) {
         responseContent.append(REQUEST.status.readHeader(this));
-        DbPreparedStatement preparedStatement = null;
+
+        TransferDAO transferAccess = null;
+        List<Filter> filters = new ArrayList<Filter>();
+        List<Transfer> transfers = null;
         try {
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.INERROR, true, 1);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            try {
-                preparedStatement.executeQuery();
-                if (preparedStatement.getNext()) {
-                    responseContent.append("<p>Some Transfers are in ERROR</p><br>");
-                    status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-                }
-            } finally {
-                if (preparedStatement != null) {
-                    preparedStatement.realClose();
-                }
+            transferAccess = DAOFactory.getInstance().getTransferDAO();
+
+            // Find UpdatedInfo = INERROR transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.INERROR));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, 1);
+            if(transfers.size() > 0) {
+                responseContent.append("<p>Some Transfers are in ERROR</p><br>");
+                status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
             }
-            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
-                    dbSession, UpdatedInfo.INTERRUPTED, true, 1);
-            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
-            try {
-                preparedStatement.executeQuery();
-                if (preparedStatement.getNext()) {
-                    responseContent.append("<p>Some Transfers are INTERRUPTED</p><br>");
-                    status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-                }
-            } finally {
-                if (preparedStatement != null) {
-                    preparedStatement.realClose();
-                }
+
+            filters.clear();
+            transfers.clear();
+            // Find UpdatedInfo = INTERUPTED transfer
+            filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
+                    "=", UpdatedInfo.INTERRUPTED));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                    "=", Configuration.configuration.getHOST_ID()));
+
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, 1);
+            if(transfers.size() > 0) {
+                responseContent.append("<p>Some Transfers are INTERRUPTED</p><br>");
+                status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
             }
-            preparedStatement = DbTaskRunner.getStepPrepareStatement(dbSession,
-                    TASKSTEP.ERRORTASK, 1);
-            try {
-                preparedStatement.executeQuery();
-                if (preparedStatement.getNext()) {
-                    responseContent.append("<p>Some Transfers are in ERRORTASK</p><br>");
-                    status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-                }
-            } finally {
-                if (preparedStatement != null) {
-                    preparedStatement.realClose();
-                }
+            filters.clear();
+            transfers.clear();
+
+            // Find GLOBAL_STEP = Error transfer
+            filters.add(new Filter(DBTransferDAO.GLOBAL_STEP_FIELD,
+                    "=", Transfer.TASKSTEP.ERRORTASK));
+            filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
+                "=", Configuration.configuration.getHOST_ID()));
+
+            transfers = transferAccess.find(filters,
+                    DBTransferDAO.TRANSFER_START_FIELD, false, 1);
+            if(transfers.size() > 0) {
+                responseContent.append("<p>Some Transfers are in ERRORTASK</p><br>");
+                status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
             }
-            if (status != HttpResponseStatus.INTERNAL_SERVER_ERROR) {
-                responseContent.append("<p>No problem is found in Transfers</p><br>");
-            }
-        } catch (WaarpDatabaseException e) {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+        } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
+        }
+        if (status != HttpResponseStatus.INTERNAL_SERVER_ERROR) {
+            responseContent.append("<p>No problem is found in Transfers</p><br>");
         }
         responseContent.append(REQUEST.status.readEnd());
     }

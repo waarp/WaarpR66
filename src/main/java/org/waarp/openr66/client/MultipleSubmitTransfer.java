@@ -80,7 +80,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         // first check if filenames contains wildcards
         DbRule dbrule = null;
         try {
-            dbrule = new DbRule(DbConstant.admin.getSession(), rulename);
+            dbrule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
             logger.error(Messages.getString("SubmitTransfer.2") + rule); //$NON-NLS-1$
             ChannelUtils.stopLogger();

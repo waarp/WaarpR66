@@ -17,11 +17,17 @@ public class Limit {
 
     private long delayLimit;
 
-    private int updatedInfo = 0;
+    private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
+
+    /**
+     * Empty constructor for compatibility issues
+     */
+    @Deprecated
+    public Limit() {}
 
     public Limit(String hostid, long delayLimit, long readGlobalLimit,
             long writeGlobalLimit, long readSessionLimit,
-            long writeSessionLimit, int updatedInfo) {
+            long writeSessionLimit, UpdatedInfo updatedInfo) {
         this(hostid, delayLimit, readGlobalLimit, writeGlobalLimit, 
                 readSessionLimit, writeSessionLimit);
         this.updatedInfo = updatedInfo;
@@ -90,11 +96,11 @@ public class Limit {
         this.delayLimit = delayLimit;
     }
 
-    public int getUpdatedInfo() {
+    public UpdatedInfo getUpdatedInfo() {
         return this.updatedInfo;
     }
 
-    public void setUpdatedInfo(int info) {
+    public void setUpdatedInfo(UpdatedInfo info) {
         this.updatedInfo = info;
     }
 }

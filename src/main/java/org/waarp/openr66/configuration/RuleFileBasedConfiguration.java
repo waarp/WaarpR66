@@ -448,7 +448,7 @@ public class RuleFileBasedConfiguration {
             }
         }
 
-        newRule = new DbRule(DbConstant.admin.getSession(), idrule, idsArray, mode, recvpath, sendpath,
+        newRule = new DbRule(idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, rpretasks, rposttasks, rerrortasks,
                 spretasks, sposttasks, serrortasks);
         if (DbConstant.admin != null && DbConstant.admin.getSession() != null) {
@@ -665,7 +665,7 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+        DbRule[] rules = DbRule.getAllRules();
         for (DbRule rule : rules) {
             String filename = dir.getAbsolutePath() + File.separator + hostname + "_" + rule.getIdRule()
                     +
@@ -692,7 +692,7 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+        DbRule[] rules = DbRule.getAllRules();
         String filename = dir.getAbsolutePath() + File.separator + hostname +
                 RuleFileBasedConfiguration.EXT_RULES;
         Document document = DocumentHelper.createDocument();

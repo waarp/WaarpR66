@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Host;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 /**
  * Implementation of HostDAO for standard SQL databases
@@ -23,7 +23,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBHostDAO.class);
 
-    protected static final String TABLE = "HOSTS";
+    protected static final String TABLE = "hosts";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String ADDRESS_FIELD = "address";
@@ -217,7 +217,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
             host.isProxified(),
             host.getHostkey(),
             host.isAdmin(),
-            host.getUpdatedInfo()
+            host.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -244,7 +244,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
             host.isProxified(),
             host.getHostkey(),
             host.isAdmin(),
-            host.getUpdatedInfo(),
+            host.getUpdatedInfo().ordinal(),
             host.getHostid()
         };
 
@@ -271,7 +271,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
                 set.getBoolean(IS_PROXIFIED_FIELD),
                 set.getBoolean(ADMINROLE_FIELD),
                 set.getBoolean(IS_ACTIVE_FIELD),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 }
 

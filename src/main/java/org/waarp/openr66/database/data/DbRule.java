@@ -22,6 +22,8 @@ import java.io.StringReader;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.dom4j.Document;
@@ -33,7 +35,6 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.json.JsonHandler;
@@ -44,7 +45,14 @@ import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.RuleDAO;
+import org.waarp.openr66.dao.database.DBRuleDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
+import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.pojo.RuleTask;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -85,11 +93,19 @@ public class DbRule extends AbstractDbData {
 
     public static final int[] dbTypes = {
             Types.LONGVARCHAR,
-            Types.INTEGER, Types.NVARCHAR, Types.NVARCHAR,
-            Types.NVARCHAR, Types.NVARCHAR,
-            Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-            Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-            Types.INTEGER, Types.NVARCHAR };
+            Types.INTEGER,
+            Types.NVARCHAR,
+            Types.NVARCHAR,
+            Types.NVARCHAR,
+            Types.NVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.INTEGER,
+            Types.NVARCHAR };
 
     public static final String table = " RULES ";
 
@@ -177,229 +193,64 @@ public class DbRule extends AbstractDbData {
     /**
      * Global Id
      */
-    private String idRule = null;
-
-    /**
-     * The Name addresses (serverIds)
-     */
-    private String ids = null;
-
-    /**
-     * Supported Mode for this rule (SENDMODE => SENDMD5MODE, RECVMODE => RECVMD5MODE)
-     */
-    private int mode;
-
-    /**
-     * The associated Recv Path
-     */
-    private String recvPath = null;
-
-    /**
-     * The associated Send Path
-     */
-    private String sendPath = null;
-
-    /**
-     * The associated Archive Path
-     */
-    private String archivePath = null;
-
-    /**
-     * The associated Work Path
-     */
-    private String workPath = null;
-
-    /**
-     * The associated Pre Tasks for Receiver
-     */
-    private String rpreTasks = null;
-
-    /**
-     * The associated Post Tasks for Receiver
-     */
-    private String rpostTasks = null;
-
-    /**
-     * The associated Error Tasks for Receiver
-     */
-    private String rerrorTasks = null;
-
-    /**
-     * The associated Pre Tasks for Sender
-     */
-    private String spreTasks = null;
-
-    /**
-     * The associated Post Tasks for Sender
-     */
-    private String spostTasks = null;
-
-    /**
-     * The associated Error Tasks for Sender
-     */
-    private String serrorTasks = null;
-
-    /**
-     * The Ids as an array
-     */
-    private String[] idsArray = null;
-
-    /**
-     * The associated Pre Tasks as an array for Receiver
-     */
-    private String[][] rpreTasksArray = null;
-
-    /**
-     * The associated Post Tasks as an array for Receiver
-     */
-    private String[][] rpostTasksArray = null;
-
-    /**
-     * The associated Error Tasks as an array for Receiver
-     */
-    private String[][] rerrorTasksArray = null;
-
-    /**
-     * The associated Pre Tasks as an array for Sender
-     */
-    private String[][] spreTasksArray = null;
-
-    /**
-     * The associated Post Tasks as an array for Sender
-     */
-    private String[][] spostTasksArray = null;
-
-    /**
-     * The associated Error Tasks as an array for Sender
-     */
-    private String[][] serrorTasksArray = null;
-
-    private int updatedInfo = UpdatedInfo.UNKNOWN
-            .ordinal();
+    private Rule rule;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     public static final int NBPRKEY = 1;
 
-    protected static final String selectAllFields = Columns.HOSTIDS
-            .name()
-            + ","
-            +
-            Columns.MODETRANS
-                    .name()
-            + ","
-            + Columns.RECVPATH
-                    .name()
-            + ","
-            +
-            Columns.SENDPATH
-                    .name()
-            + ","
-            + Columns.ARCHIVEPATH
-                    .name()
-            + ","
-            +
-            Columns.WORKPATH
-                    .name()
-            + ","
-            +
-            Columns.RPRETASKS
-                    .name()
-            + ","
-            +
-            Columns.RPOSTTASKS
-                    .name()
-            + ","
-            + Columns.RERRORTASKS
-                    .name()
-            + ","
-            +
-            Columns.SPRETASKS
-                    .name()
-            + ","
-            +
-            Columns.SPOSTTASKS
-                    .name()
-            + ","
-            + Columns.SERRORTASKS
-                    .name()
-            + ","
-            +
-            Columns.UPDATEDINFO
-                    .name()
-            + ","
-            + Columns.IDRULE
-                    .name();
+    protected static final String selectAllFields =
+            Columns.HOSTIDS.name() + ","
+            + Columns.MODETRANS.name() + ","
+            + Columns.RECVPATH.name() + ","
+            + Columns.SENDPATH.name() + ","
+            + Columns.ARCHIVEPATH.name() + ","
+            + Columns.WORKPATH.name() + ","
+            + Columns.RPRETASKS.name() + ","
+            + Columns.RPOSTTASKS.name() + ","
+            + Columns.RERRORTASKS.name() + ","
+            + Columns.SPRETASKS.name() + ","
+            + Columns.SPOSTTASKS.name() + ","
+            + Columns.SERRORTASKS.name() + ","
+            + Columns.UPDATEDINFO.name() + ","
+            + Columns.IDRULE.name();
 
-    protected static final String updateAllFields = Columns.HOSTIDS
-            .name()
-            +
-            "=?,"
-            + Columns.MODETRANS
-                    .name()
-            + "=?,"
-            + Columns.RECVPATH
-                    .name()
-            +
-            "=?,"
-            + Columns.SENDPATH
-                    .name()
-            + "=?,"
-            +
-            Columns.ARCHIVEPATH
-                    .name()
-            + "=?,"
-            + Columns.WORKPATH
-                    .name()
-            +
-            "=?,"
-            + Columns.RPRETASKS
-                    .name()
-            + "=?,"
-            + Columns.RPOSTTASKS
-                    .name()
-            +
-            "=?,"
-            + Columns.RERRORTASKS
-                    .name()
-            + "=?,"
-            +
-            Columns.SPRETASKS
-                    .name()
-            + "=?,"
-            + Columns.SPOSTTASKS
-                    .name()
-            +
-            "=?,"
-            + Columns.SERRORTASKS
-                    .name()
-            + "=?,"
-            +
-            Columns.UPDATEDINFO
-                    .name()
-            + "=?";
+    protected static final String updateAllFields =
+            Columns.HOSTIDS.name() + "=?,"
+            + Columns.MODETRANS.name() + "=?,"
+            + Columns.RECVPATH.name() + "=?,"
+            + Columns.SENDPATH.name() + "=?,"
+            + Columns.ARCHIVEPATH.name() + "=?,"
+            + Columns.WORKPATH.name() + "=?,"
+            + Columns.RPRETASKS.name() + "=?,"
+            + Columns.RPOSTTASKS.name() + "=?,"
+            + Columns.RERRORTASKS.name() + "=?,"
+            + Columns.SPRETASKS.name() + "=?,"
+            + Columns.SPOSTTASKS.name() + "=?,"
+            + Columns.SERRORTASKS.name() + "=?,"
+            + Columns.UPDATEDINFO.name() + "=?";
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void initObject() {
-        primaryKey = new DbValue[] { new DbValue(getIdRule(), Columns.IDRULE
-                .name()) };
+        primaryKey = new DbValue[] { new DbValue(getIdRule(),
+                Columns.IDRULE.name()) };
         otherFields = new DbValue[] {
                 // HOSTIDS, MODETRANS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
                 // PRETASKS, POSTTASKS, ERRORTASKS
-                new DbValue(ids, Columns.HOSTIDS.name(), true),
-                new DbValue(getMode(), Columns.MODETRANS.name()),
-                new DbValue(recvPath, Columns.RECVPATH.name()),
-                new DbValue(sendPath, Columns.SENDPATH.name()),
-                new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
-                new DbValue(workPath, Columns.WORKPATH.name()),
-                new DbValue(rpreTasks, Columns.RPRETASKS.name(), true),
-                new DbValue(rpostTasks, Columns.RPOSTTASKS.name(), true),
-                new DbValue(rerrorTasks, Columns.RERRORTASKS.name(), true),
-                new DbValue(spreTasks, Columns.SPRETASKS.name(), true),
-                new DbValue(spostTasks, Columns.SPOSTTASKS.name(), true),
-                new DbValue(serrorTasks, Columns.SERRORTASKS.name(), true),
-                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+                new DbValue(rule.getXMLHostids(), Columns.HOSTIDS.name(), true),
+                new DbValue(rule.getMode(), Columns.MODETRANS.name()),
+                new DbValue(rule.getRecvPath(), Columns.RECVPATH.name()),
+                new DbValue(rule.getSendPath(), Columns.SENDPATH.name()),
+                new DbValue(rule.getArchivePath(), Columns.ARCHIVEPATH.name()),
+                new DbValue(rule.getWorkPath(), Columns.WORKPATH.name()),
+                new DbValue(rule.getXMLRPreTasks(), Columns.RPRETASKS.name(), true),
+                new DbValue(rule.getXMLRPostTasks(), Columns.RPOSTTASKS.name(), true),
+                new DbValue(rule.getXMLRErrorTasks(), Columns.RERRORTASKS.name(), true),
+                new DbValue(rule.getXMLSPreTasks(), Columns.SPRETASKS.name(), true),
+                new DbValue(rule.getXMLSPostTasks(), Columns.SPOSTTASKS.name(), true),
+                new DbValue(rule.getXMLSErrorTasks(), Columns.SERRORTASKS.name(), true),
+                new DbValue(rule.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], otherFields[5], otherFields[6], otherFields[7],
@@ -428,102 +279,88 @@ public class DbRule extends AbstractDbData {
     }
 
     protected final void checkPath() {
-        if (recvPath != null && !recvPath.isEmpty() && recvPath.charAt(0) != DirInterface.SEPARATORCHAR) {
-            recvPath = DirInterface.SEPARATOR + recvPath;
+        if (getRecvPath() != null && !getRecvPath().isEmpty()
+                && getRecvPath().charAt(0) != DirInterface.SEPARATORCHAR) {
+            rule.setRecvPath(DirInterface.SEPARATOR + getRecvPath());
         }
-        if (sendPath != null && !sendPath.isEmpty() && sendPath.charAt(0) != DirInterface.SEPARATORCHAR) {
-            sendPath = DirInterface.SEPARATOR + sendPath;
+        if (getSendPath() != null && !getSendPath().isEmpty()
+                && getSendPath().charAt(0) != DirInterface.SEPARATORCHAR) {
+            rule.setSendPath(DirInterface.SEPARATOR + getSendPath());
         }
-        if (archivePath != null && !archivePath.isEmpty() && archivePath.charAt(0) != DirInterface.SEPARATORCHAR) {
-            archivePath = DirInterface.SEPARATOR + archivePath;
+        if (getArchivePath() != null && !getArchivePath().isEmpty()
+                && getArchivePath().charAt(0) != DirInterface.SEPARATORCHAR) {
+            rule.setArchivePath(DirInterface.SEPARATOR + getArchivePath());
         }
-        if (workPath != null && !workPath.isEmpty() && workPath.charAt(0) != DirInterface.SEPARATORCHAR) {
-            workPath = DirInterface.SEPARATOR + workPath;
+        if (getWorkPath() != null && !getWorkPath().isEmpty()
+                && getWorkPath().charAt(0) != DirInterface.SEPARATORCHAR) {
+            rule.setWorkPath(DirInterface.SEPARATOR + getWorkPath());
         }
     }
 
     @Override
     protected void setToArray() {
         checkPath();
-        allFields[Columns.HOSTIDS.ordinal()].setValue(ids);
+        allFields[Columns.HOSTIDS.ordinal()].setValue(rule.getXMLHostids());
         allFields[Columns.MODETRANS.ordinal()].setValue(getMode());
-        allFields[Columns.RECVPATH.ordinal()].setValue(recvPath);
-        allFields[Columns.SENDPATH.ordinal()].setValue(sendPath);
-        allFields[Columns.ARCHIVEPATH.ordinal()].setValue(archivePath);
-        allFields[Columns.WORKPATH.ordinal()].setValue(workPath);
-        allFields[Columns.RPRETASKS.ordinal()].setValue(rpreTasks);
-        allFields[Columns.RPOSTTASKS.ordinal()].setValue(rpostTasks);
-        allFields[Columns.RERRORTASKS.ordinal()].setValue(rerrorTasks);
-        allFields[Columns.SPRETASKS.ordinal()].setValue(spreTasks);
-        allFields[Columns.SPOSTTASKS.ordinal()].setValue(spostTasks);
-        allFields[Columns.SERRORTASKS.ordinal()].setValue(serrorTasks);
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.RECVPATH.ordinal()].setValue(getRecvPath());
+        allFields[Columns.SENDPATH.ordinal()].setValue(getSendPath());
+        allFields[Columns.ARCHIVEPATH.ordinal()].setValue(getArchivePath());
+        allFields[Columns.WORKPATH.ordinal()].setValue(getWorkPath());
+        allFields[Columns.RPRETASKS.ordinal()].setValue(rule.getXMLRPreTasks());
+        allFields[Columns.RPOSTTASKS.ordinal()].setValue(rule.getXMLRPostTasks());
+        allFields[Columns.RERRORTASKS.ordinal()].setValue(rule.getXMLRErrorTasks());
+        allFields[Columns.SPRETASKS.ordinal()].setValue(rule.getXMLSPreTasks());
+        allFields[Columns.SPOSTTASKS.ordinal()].setValue(rule.getXMLSPostTasks());
+        allFields[Columns.SERRORTASKS.ordinal()].setValue(rule.getXMLSErrorTasks());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(rule.getUpdatedInfo());
         allFields[Columns.IDRULE.ordinal()].setValue(getIdRule());
     }
 
     @Override
     protected void setFromArray() throws WaarpDatabaseSqlException {
-        ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
-        setMode((Integer) allFields[Columns.MODETRANS.ordinal()].getValue());
-        recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
-        sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
-        archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
-                .getValue();
-        workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
-        rpreTasks = (String) allFields[Columns.RPRETASKS.ordinal()].getValue();
-        rpostTasks = (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue();
-        rerrorTasks = (String) allFields[Columns.RERRORTASKS.ordinal()]
-                .getValue();
-        spreTasks = (String) allFields[Columns.SPRETASKS.ordinal()].getValue();
-        spostTasks = (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue();
-        serrorTasks = (String) allFields[Columns.SERRORTASKS.ordinal()]
-                .getValue();
-        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
-                .getValue();
-        setIdRule((String) allFields[Columns.IDRULE.ordinal()].getValue());
-        getIdsRule(ids);
-        setRpreTasksArray(getTasksRule(rpreTasks));
-        setRpostTasksArray(getTasksRule(rpostTasks));
-        setRerrorTasksArray(getTasksRule(rerrorTasks));
-        setSpreTasksArray(getTasksRule(spreTasks));
-        setSpostTasksArray(getTasksRule(spostTasks));
-        setSerrorTasksArray(getTasksRule(serrorTasks));
+        rule.setHostids(Arrays.asList(getIdsRule(
+                (String) allFields[Columns.HOSTIDS.ordinal()].getValue())));
+        rule.setMode((Integer) allFields[Columns.MODETRANS.ordinal()].getValue());
+        rule.setRecvPath((String) allFields[Columns.RECVPATH.ordinal()].getValue());
+        rule.setSendPath((String) allFields[Columns.SENDPATH.ordinal()].getValue());
+        rule.setArchivePath((String) allFields[Columns.ARCHIVEPATH.ordinal()].getValue());
+        rule.setWorkPath((String) allFields[Columns.WORKPATH.ordinal()].getValue());
+        rule.setRPreTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.RPRETASKS.ordinal()].getValue())));
+        rule.setRPostTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue())));
+        rule.setRErrorTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.RERRORTASKS.ordinal()].getValue())));
+        rule.setSPreTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.SPRETASKS.ordinal()].getValue())));
+        rule.setSPostTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue())));
+        rule.setSErrorTasks(fromLegacyTasks(getTasksRule(
+                (String) allFields[Columns.SERRORTASKS.ordinal()].getValue())));
+        rule.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.valueOf(
+                (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue()));
+        rule.setName((String) allFields[Columns.IDRULE.ordinal()].getValue());
         checkPath();
     }
 
     protected void setFromArrayClone(DbRule source) throws WaarpDatabaseSqlException {
-        ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
-        setMode((Integer) allFields[Columns.MODETRANS.ordinal()].getValue());
-        recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
-        sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
-        archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
-                .getValue();
-        workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
-        rpreTasks = (String) allFields[Columns.RPRETASKS.ordinal()].getValue();
-        rpostTasks = (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue();
-        rerrorTasks = (String) allFields[Columns.RERRORTASKS.ordinal()]
-                .getValue();
-        spreTasks = (String) allFields[Columns.SPRETASKS.ordinal()].getValue();
-        spostTasks = (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue();
-        serrorTasks = (String) allFields[Columns.SERRORTASKS.ordinal()]
-                .getValue();
-        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
-                .getValue();
-        setIdRule((String) allFields[Columns.IDRULE.ordinal()].getValue());
-        if (source.ids == null) {
-            // No ids so setting to the default!
-            ids = null;
-            setIdsArray(null);
-        } else {
-            ids = source.ids;
-            setIdsArray(source.getIdsArray());
-        }
-        setRpreTasksArray(source.getRpreTasksArray());
-        setRpostTasksArray(source.getRpostTasksArray());
-        setRerrorTasksArray(source.getRerrorTasksArray());
-        setSpreTasksArray(source.getSpreTasksArray());
-        setSpostTasksArray(source.getSpostTasksArray());
-        setSerrorTasksArray(source.getSerrorTasksArray());
+        rule.setMode((Integer) allFields[Columns.MODETRANS.ordinal()].getValue());
+        rule.setRecvPath((String) allFields[Columns.RECVPATH.ordinal()].getValue());
+        rule.setSendPath((String) allFields[Columns.SENDPATH.ordinal()].getValue());
+        rule.setArchivePath((String) allFields[Columns.ARCHIVEPATH.ordinal()].getValue());
+        rule.setWorkPath((String) allFields[Columns.WORKPATH.ordinal()].getValue());
+        rule.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.valueOf(
+                (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue()));
+        rule.setName((String) allFields[Columns.IDRULE.ordinal()].getValue());
+
+        rule.setHostids(source.rule.getHostids());
+
+        rule.setRPreTasks(source.rule.getRPreTasks());
+        rule.setRPostTasks(source.rule.getRPostTasks());
+        rule.setRErrorTasks(source.rule.getRErrorTasks());
+        rule.setSPreTasks(source.rule.getSPreTasks());
+        rule.setSPostTasks(source.rule.getSPostTasks());
+        rule.setSErrorTasks(source.rule.getSErrorTasks());
         checkPath();
     }
 
@@ -553,40 +390,19 @@ public class DbRule extends AbstractDbData {
      * @param spostTasks
      * @param serrorTasks
      */
-    public DbRule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
+    public DbRule(String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
             String rpreTasks, String rpostTasks, String rerrorTasks,
             String spreTasks, String spostTasks, String serrorTasks) {
-        super(dbSession);
-        this.setIdRule(idRule);
-        this.ids = ids;
-        this.setMode(mode);
-        this.recvPath = recvPath;
-        this.sendPath = sendPath;
-        this.archivePath = archivePath;
-        this.workPath = workPath;
-        this.rpreTasks = rpreTasks;
-        this.rpostTasks = rpostTasks;
-        this.rerrorTasks = rerrorTasks;
-        this.spreTasks = spreTasks;
-        this.spostTasks = spostTasks;
-        this.serrorTasks = serrorTasks;
-        getIdsRule(this.ids);
-        setRpreTasksArray(getTasksRule(this.rpreTasks));
-        setRpostTasksArray(getTasksRule(this.rpostTasks));
-        setRerrorTasksArray(getTasksRule(this.rerrorTasks));
-        setSpreTasksArray(getTasksRule(this.spreTasks));
-        setSpostTasksArray(getTasksRule(this.spostTasks));
-        setSerrorTasksArray(getTasksRule(this.serrorTasks));
-        // and reverse
-        this.rpreTasks = setTasksRule(getRpreTasksArray());
-        this.rpostTasks = setTasksRule(getRpostTasksArray());
-        this.rerrorTasks = setTasksRule(getRerrorTasksArray());
-        this.spreTasks = setTasksRule(getSpreTasksArray());
-        this.spostTasks = setTasksRule(getSpostTasksArray());
-        this.serrorTasks = setTasksRule(getSerrorTasksArray());
-        setToArray();
-        isSaved = false;
+        super(null);
+        rule = new Rule(idRule, mode, Arrays.asList(getIdsRule(ids)),
+            recvPath, sendPath, archivePath, workPath,
+            fromLegacyTasks(getTasksRule(rpreTasks)),
+            fromLegacyTasks(getTasksRule(rpostTasks)),
+            fromLegacyTasks(getTasksRule(rerrorTasks)),
+            fromLegacyTasks(getTasksRule(spreTasks)),
+            fromLegacyTasks(getTasksRule(spostTasks)),
+            fromLegacyTasks(getTasksRule(serrorTasks)));
     }
 
     /**
@@ -594,11 +410,24 @@ public class DbRule extends AbstractDbData {
      * @param idRule
      * @throws WaarpDatabaseException
      */
-    public DbRule(DbSession dbSession, String idRule) throws WaarpDatabaseException {
-        super(dbSession);
-        this.setIdRule(idRule);
-        // load from DB
-        select();
+    public DbRule(String idRule) throws WaarpDatabaseException {
+        super(null);
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            rule = ruleAccess.select(idRule);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
+        }
+    }
+
+    public DbRule(Rule rule) {
+        super(null);
+        rule = rule;
     }
 
     /**
@@ -618,34 +447,20 @@ public class DbRule extends AbstractDbData {
      * @param sposttasksArray
      * @param serrortasksArray
      */
-    public DbRule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
+    public DbRule(String idrule, String[] idsArrayRef, int mode,
             String recvpath, String sendpath, String archivepath,
             String workpath,
             String[][] rpretasksArray, String[][] rposttasksArray, String[][] rerrortasksArray,
             String[][] spretasksArray, String[][] sposttasksArray, String[][] serrortasksArray) {
-        super(dbSession);
-        setIdRule(idrule);
-        setIdsArray(idsArrayRef);
-        this.setMode(mode);
-        recvPath = recvpath;
-        sendPath = sendpath;
-        archivePath = archivepath;
-        workPath = workpath;
-        setRpreTasksArray(rpretasksArray);
-        setRpostTasksArray(rposttasksArray);
-        setRerrorTasksArray(rerrortasksArray);
-        setSpreTasksArray(spretasksArray);
-        setSpostTasksArray(sposttasksArray);
-        setSerrorTasksArray(serrortasksArray);
-        ids = setIdsRule(idsArrayRef);
-        rpreTasks = setTasksRule(rpretasksArray);
-        rpostTasks = setTasksRule(rposttasksArray);
-        rerrorTasks = setTasksRule(rerrortasksArray);
-        spreTasks = setTasksRule(spretasksArray);
-        spostTasks = setTasksRule(sposttasksArray);
-        serrorTasks = setTasksRule(serrortasksArray);
-        setToArray();
-        isSaved = false;
+        super(null);
+        rule = new Rule(idrule, mode, Arrays.asList(idsArrayRef),
+                recvpath, sendpath, archivepath, workpath,
+                fromLegacyTasks(rpretasksArray),
+                fromLegacyTasks(rposttasksArray),
+                fromLegacyTasks(rerrortasksArray),
+                fromLegacyTasks(spretasksArray),
+                fromLegacyTasks(sposttasksArray),
+                fromLegacyTasks(serrortasksArray));
     }
 
     /**
@@ -655,8 +470,9 @@ public class DbRule extends AbstractDbData {
      * @param source
      * @throws WaarpDatabaseSqlException
      */
-    public DbRule(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
-        super(dbSession);
+    public DbRule(ObjectNode source) throws WaarpDatabaseSqlException {
+        super(null);
+        rule = new Rule();
         setFromJson(source, false);
         if (getIdRule() == null || getIdRule().isEmpty()) {
             throw new WaarpDatabaseSqlException("Not enough argument to create the object");
@@ -666,22 +482,6 @@ public class DbRule extends AbstractDbData {
     @Override
     public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
         super.setFromJson(node, ignorePrimaryKey);
-        getIdsRule(this.ids);
-        setRpreTasksArray(getTasksRule(this.rpreTasks));
-        setRpostTasksArray(getTasksRule(this.rpostTasks));
-        setRerrorTasksArray(getTasksRule(this.rerrorTasks));
-        setSpreTasksArray(getTasksRule(this.spreTasks));
-        setSpostTasksArray(getTasksRule(this.spostTasks));
-        setSerrorTasksArray(getTasksRule(this.serrorTasks));
-        // and reverse
-        this.rpreTasks = setTasksRule(getRpreTasksArray());
-        this.rpostTasks = setTasksRule(getRpostTasksArray());
-        this.rerrorTasks = setTasksRule(getRerrorTasksArray());
-        this.spreTasks = setTasksRule(getSpreTasksArray());
-        this.spostTasks = setTasksRule(getSpostTasksArray());
-        this.serrorTasks = setTasksRule(getSerrorTasksArray());
-        setToArray();
-        isSaved = false;
     }
 
     /**
@@ -691,164 +491,147 @@ public class DbRule extends AbstractDbData {
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
      */
-    public static DbRule[] deleteAll(DbSession dbSession) throws WaarpDatabaseException {
-        DbRule[] result = getAllRules(dbSession);
-        dbR66RuleHashMap.clear();
-        if (dbSession == null) {
-            return result;
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+    public static DbRule[] deleteAll() throws WaarpDatabaseException {
+        RuleDAO ruleAccess = null;
+        List<Rule> rules = null;
         try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table);
-            preparedStatement.executeUpdate();
-            return result;
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            rules = ruleAccess.getAll();
+            ruleAccess.deleteAll();
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
+        DbRule[] res = new DbRule[rules.size()];
+        int i = 0;
+        for (Rule rule : rules) {
+            res[i] = new DbRule(rule);
+            i++;
+        }
+        return res;
     }
 
     @Override
     public void delete() throws WaarpDatabaseException {
-        dbR66RuleHashMap.remove(this.getIdRule());
-        if (dbSession == null) {
-            isSaved = false;
-            return;
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            ruleAccess.delete(rule);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
-        super.delete();
     }
 
     @Override
     public void insert() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            ruleAccess.insert(rule);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
-        dbR66RuleHashMap.put(this.getIdRule(), this);
-        if (dbSession == null) {
-            isSaved = true;
-            return;
-        }
-        super.insert();
     }
 
     @Override
     public boolean exist() throws WaarpDatabaseException {
-        boolean result = dbR66RuleHashMap.containsKey(getIdRule());
-        if (result) {
-            return result;
-        }
-        if (dbSession == null) {
-            if (!result) {
-                isSaved = false;
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            return  ruleAccess.exist(rule.getName());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
             }
-            return result;
         }
-        return super.exist();
     }
 
     @Override
     public void select() throws WaarpDatabaseException {
-        DbRule rule = dbR66RuleHashMap.get(this.getIdRule());
-        if (rule != null) {
-            // copy info
-            for (int i = 0; i < allFields.length; i++) {
-                allFields[i].setValue(rule.allFields[i].getValue());
-            }
-            setFromArrayClone(rule);
-            if (recvPath == null || recvPath.trim().isEmpty()) {
-                recvPath = "";
-            }
-            if (sendPath == null || sendPath.trim().isEmpty()) {
-                sendPath = "";
-            }
-            if (archivePath == null || archivePath.trim().isEmpty()) {
-                archivePath = "";
-            }
-            if (workPath == null || workPath.trim().isEmpty()) {
-                workPath = "";
-            }
-            isSaved = true;
-            return;
-        }
-        if (dbSession == null) {
-            if (rule == null) {
-                throw new WaarpDatabaseNoDataException("No row found");
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            rule = ruleAccess.select(rule.getName());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
             }
         }
-        super.select();
-        if (recvPath == null || recvPath.trim().isEmpty()) {
-            recvPath = "";
-        }
-        if (sendPath == null || sendPath.trim().isEmpty()) {
-            sendPath = "";
-        }
-        if (archivePath == null || archivePath.trim().isEmpty()) {
-            archivePath = "";
-        }
-        if (workPath == null || workPath.trim().isEmpty()) {
-            workPath = "";
-        }
-        setFromArray();
-        dbR66RuleHashMap.put(this.getIdRule(), this);
     }
 
     @Override
     public void update() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
+        RuleDAO ruleAccess = null;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            ruleAccess.update(rule);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
-        dbR66RuleHashMap.put(this.getIdRule(), this);
-        if (dbSession == null) {
-            isSaved = true;
-            return;
-        }
-        super.update();
     }
 
     /**
      * Private constructor for Commander only
      */
-    private DbRule(DbSession session) {
-        super(session);
+    private DbRule() {
+        super(null);
+        rule = new Rule();
     }
 
     /**
      * Get All DbRule from database or from internal hashMap in case of no database support
-     * 
+     *
      * @param dbSession
      *            may be null
      * @return the array of DbRule
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-    public static DbRule[] getAllRules(DbSession dbSession)
-            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbRule[] result = new DbRule[0];
-        if (!dbR66RuleHashMap.isEmpty()) {
-            return dbR66RuleHashMap.values().toArray(result);
-        }
-        if (dbSession == null) {
-            return result;
-        }
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table;
-        ArrayList<DbRule> dbArrayList = new ArrayList<DbRule>();
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+    public static DbRule[] getAllRules()
+            throws WaarpDatabaseNoConnectionException {
+        RuleDAO ruleAccess = null;
+        List<Rule> rules = null;
         try {
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbRule dbrule = getFromStatement(preparedStatement);
-                dbArrayList.add(dbrule);
-            }
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            rules = ruleAccess.getAll();
+        } catch (DAOException e) {
+            throw new WaarpDatabaseNoConnectionException(e);
         } finally {
-            preparedStatement.realClose();
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
-        return dbArrayList.toArray(result);
+        DbRule[] res = new DbRule[rules.size()];
+        int i = 0;
+        for (Rule rule : rules) {
+            res[i] = new DbRule(rule);
+            i++;
+        }
+        return res;
     }
 
     /**
      * For instance from Commander when getting updated information
-     * 
+     *
      * @param preparedStatement
      * @return the next updated DbRule
      * @throws WaarpDatabaseNoConnectionException
@@ -856,7 +639,7 @@ public class DbRule extends AbstractDbData {
      */
     public static DbRule getFromStatement(DbPreparedStatement preparedStatement)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbRule dbRule = new DbRule(preparedStatement.getDbSession());
+        DbRule dbRule = new DbRule();
         dbRule.getValues(preparedStatement, dbRule.allFields);
         dbRule.setFromArray();
         dbRule.isSaved = true;
@@ -871,23 +654,31 @@ public class DbRule extends AbstractDbData {
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
+    public static DbRule[] getUpdatedPrepareStament()
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table +
-                " WHERE " + Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
-        DbPreparedStatement prep = new DbPreparedStatement(session, request);
-        return prep;
+        List<Filter> filters = new ArrayList<Filter>(1);
+        filters.add(new Filter(DBRuleDAO.UPDATED_INFO_FIELD, "=",
+                org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(UpdatedInfo.TOSUBMIT).ordinal()));
+        RuleDAO ruleAccess = null;
+        List<Rule> rules;
+        try {
+            ruleAccess = DAOFactory.getInstance().getRuleDAO();
+            rules = ruleAccess.find(filters);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseNoConnectionException(e);
+        }
+        DbRule[] res = new DbRule[rules.size()];
+        int i = 0;
+        for (Rule rule : rules) {
+            res[i] = new DbRule(rule);
+            i++;
+        }
+        return res;
     }
 
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
-        if (updatedInfo != info.ordinal()) {
-            updatedInfo = info.ordinal();
-            allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-            isSaved = false;
-        }
+        rule.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(info));
     }
 
     /**
@@ -897,31 +688,25 @@ public class DbRule extends AbstractDbData {
      * @param idsref
      * @return True if ok, else False (default values).
      */
-    private boolean getIdsRule(String idsref) {
+    private String[] getIdsRule(String idsref) {
         if (idsref == null) {
             // No ids so setting to the default!
-            ids = null;
-            setIdsArray(null);
-            return false;
+            return new String[0];
         }
-        ids = idsref;
         StringReader reader = new StringReader(idsref);
         Document document = null;
         try {
             document = new SAXReader().read(reader);
+            XmlValue[] values = XmlUtil.read(document,
+                    RuleFileBasedConfiguration.hostsDecls);
+            return RuleFileBasedConfiguration.getHostIds(values[0]);
         } catch (DocumentException e) {
             logger.warn("Unable to read the ids for Rule: " + idsref, e);
             // No ids so setting to the default!
-            ids = null;
-            setIdsArray(null);
+            return new String[0];
+        } finally {
             reader.close();
-            return false;
         }
-        XmlValue[] values = XmlUtil.read(document,
-                RuleFileBasedConfiguration.hostsDecls);
-        setIdsArray(RuleFileBasedConfiguration.getHostIds(values[0]));
-        reader.close();
-        return true;
     }
 
     /**
@@ -1013,8 +798,8 @@ public class DbRule extends AbstractDbData {
      */
     public String setRecvPath(String filename)
             throws OpenR66ProtocolSystemException {
-        if (recvPath != null && !recvPath.isEmpty()) {
-            return recvPath + DirInterface.SEPARATOR + filename;
+        if (rule.getRecvPath() != null && !rule.getRecvPath().isEmpty()) {
+            return rule.getRecvPath() + DirInterface.SEPARATOR + filename;
         }
         return Configuration.configuration.getInPath() + DirInterface.SEPARATOR + filename;
     }
@@ -1028,10 +813,10 @@ public class DbRule extends AbstractDbData {
      */
     public String setSendPath(String filename)
             throws OpenR66ProtocolSystemException {
-        if (sendPath != null) {
+        if (rule.getSendPath() != null) {
             File file = new File(filename);
             String basename = file.getName();
-            return sendPath + DirInterface.SEPARATOR + basename;
+            return rule.getSendPath() + DirInterface.SEPARATOR + basename;
         }
         return Configuration.configuration.getOutPath() + DirInterface.SEPARATOR + filename;
     }
@@ -1045,8 +830,8 @@ public class DbRule extends AbstractDbData {
      */
     public String setArchivePath(String filename)
             throws OpenR66ProtocolSystemException {
-        if (archivePath != null) {
-            return archivePath + DirInterface.SEPARATOR + filename;
+        if (rule.getArchivePath() != null) {
+            return rule.getArchivePath() + DirInterface.SEPARATOR + filename;
         }
         return Configuration.configuration.getArchivePath() + DirInterface.SEPARATOR + filename;
     }
@@ -1060,8 +845,8 @@ public class DbRule extends AbstractDbData {
      */
     public String setWorkingPath(String filename)
             throws OpenR66ProtocolSystemException {
-        if (workPath != null) {
-            return workPath + DirInterface.SEPARATOR + filename +
+        if (rule.getWorkPath() != null) {
+            return rule.getWorkPath() + DirInterface.SEPARATOR + filename +
                     Configuration.EXT_R66;
         }
         return Configuration.configuration.getWorkingPath() + DirInterface.SEPARATOR + filename;
@@ -1109,14 +894,16 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public String toString() {
-        return "Rule Name:" + getIdRule() + " IDS:" + ids + " MODETRANS: " +
-                RequestPacket.TRANSFERMODE.values()[getMode()].toString() +
-                " RECV:" + getRecvPath() + " SEND:" + getSendPath() + " ARCHIVE:" +
-                getArchivePath() + " WORK:" + getWorkPath() +
-                " RPRET:{" + rpreTasks.replace('\n', ' ') + "} RPOST:{" + rpostTasks.replace('\n', ' ') + "} RERROR:{"
-                + rerrorTasks.replace('\n', ' ') +
-                "} SPRET:{" + spreTasks.replace('\n', ' ') + "} SPOST:{" + spostTasks.replace('\n', ' ') + "} SERROR:{"
-                + serrorTasks.replace('\n', ' ') + "}";
+        return "Rule Name:" + getIdRule() + " IDS:" + rule.getXMLHostids()
+                + " MODETRANS: " + RequestPacket.TRANSFERMODE.values()[getMode()].toString()
+                + " RECV:" + getRecvPath() + " SEND:" + getSendPath()
+                + " ARCHIVE:" + getArchivePath() + " WORK:" + getWorkPath()
+                + " RPRET:{" + rule.getXMLRPreTasks().replace('\n', ' ')
+                + "} RPOST:{" + rule.getXMLRPostTasks().replace('\n', ' ')
+                + "} RERROR:{" + rule.getXMLRErrorTasks().replace('\n', ' ')
+                + "} SPRET:{" + rule.getXMLSPreTasks().replace('\n', ' ')
+                + "} SPOST:{" + rule.getXMLSPostTasks().replace('\n', ' ')
+                + "} SERROR:{" + rule.getXMLSErrorTasks().replace('\n', ' ') + "}";
     }
 
     /**
@@ -1129,22 +916,22 @@ public class DbRule extends AbstractDbData {
         if (isSender) {
             switch (step) {
                 case PRETASK:
-                    return "S:{" + spreTasks.replace('\n', ' ') + "}";
+                    return "S:{" + rule.getXMLRPreTasks().replace('\n', ' ') + "}";
                 case POSTTASK:
-                    return "S:{" + spostTasks.replace('\n', ' ') + "}";
+                    return "S:{" + rule.getXMLRPostTasks().replace('\n', ' ') + "}";
                 case ERRORTASK:
-                    return "S:{" + serrorTasks.replace('\n', ' ') + "}";
+                    return "S:{" + rule.getXMLRErrorTasks().replace('\n', ' ') + "}";
                 default:
                     return "S:{no task}";
             }
         } else {
             switch (step) {
                 case PRETASK:
-                    return "R:{" + rpreTasks.replace('\n', ' ') + "}";
+                    return "R:{" + rule.getXMLSPreTasks().replace('\n', ' ') + "}";
                 case POSTTASK:
-                    return "R:{" + rpostTasks.replace('\n', ' ') + "}";
+                    return "R:{" + rule.getXMLSPostTasks().replace('\n', ' ') + "}";
                 case ERRORTASK:
-                    return "R:{" + rerrorTasks.replace('\n', ' ') + "}";
+                    return "R:{" + rule.getXMLSErrorTasks().replace('\n', ' ') + "}";
                 default:
                     return "R:{no task}";
             }
@@ -1236,37 +1023,37 @@ public class DbRule extends AbstractDbData {
     }
     private ObjectNode getInternalJson() {
         ObjectNode node = getJson();
-        if (ids == null) {
+        if (rule.getHostids().size() == 0) {
             node.put(Columns.HOSTIDS.name(), "");
         }
-        if (recvPath == null) {
+        if (rule.getRecvPath() == null) {
             node.put(Columns.RECVPATH.name(), "");
         }
-        if (sendPath == null) {
+        if (rule.getSendPath() == null) {
             node.put(Columns.SENDPATH.name(), "");
         }
-        if (archivePath == null) {
+        if (rule.getArchivePath() == null) {
             node.put(Columns.ARCHIVEPATH.name(), "");
         }
-        if (workPath == null) {
+        if (rule.getWorkPath() == null) {
             node.put(Columns.WORKPATH.name(), "");
         }
-        if (rpreTasks == null) {
+        if (rule.getRPreTasks().size() == 0) {
             node.put(Columns.RPRETASKS.name(), "");
         }
-        if (rpostTasks == null) {
+        if (rule.getRPostTasks().size() == 0) {
             node.put(Columns.RPOSTTASKS.name(), "");
         }
-        if (rerrorTasks == null) {
+        if (rule.getRErrorTasks().size() == 0) {
             node.put(Columns.RERRORTASKS.name(), "");
         }
-        if (spreTasks == null) {
+        if (rule.getSPreTasks().size() == 0) {
             node.put(Columns.SPRETASKS.name(), "");
         }
-        if (spostTasks == null) {
+        if (rule.getSPostTasks().size() == 0) {
             node.put(Columns.SPOSTTASKS.name(), "");
         }
-        if (serrorTasks == null) {
+        if (rule.getSErrorTasks().size() == 0) {
             node.put(Columns.SERRORTASKS.name(), "");
         }
         return node;
@@ -1287,7 +1074,8 @@ public class DbRule extends AbstractDbData {
     public String toSpecializedHtml(R66Session session, String body) {
         StringBuilder builder = new StringBuilder(body);
         WaarpStringUtils.replace(builder, "XXXRULEXXX", getIdRule());
-        WaarpStringUtils.replace(builder, "XXXIDSXXX", ids == null ? "" : ids);
+        WaarpStringUtils.replace(builder, "XXXIDSXXX",
+                rule.getXMLHostids() == null ? "" : rule.getXMLHostids());
         if (getMode() == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
             WaarpStringUtils.replace(builder, "XXXRECVXXX", "checked");
         } else if (getMode() == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
@@ -1305,16 +1093,16 @@ public class DbRule extends AbstractDbData {
         } else if (getMode() == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
             WaarpStringUtils.replace(builder, "XXXSENDMTXXX", "checked");
         }
-        WaarpStringUtils.replace(builder, "XXXRPXXX", recvPath == null ? "" : recvPath);
-        WaarpStringUtils.replace(builder, "XXXSPXXX", sendPath == null ? "" : sendPath);
-        WaarpStringUtils.replace(builder, "XXXAPXXX", archivePath == null ? "" : archivePath);
-        WaarpStringUtils.replace(builder, "XXXWPXXX", workPath == null ? "" : workPath);
-        WaarpStringUtils.replace(builder, "XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
-        WaarpStringUtils.replace(builder, "XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
-        WaarpStringUtils.replace(builder, "XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
-        WaarpStringUtils.replace(builder, "XXXSPTXXX", spreTasks == null ? "" : spreTasks);
-        WaarpStringUtils.replace(builder, "XXXSSTXXX", spostTasks == null ? "" : spostTasks);
-        WaarpStringUtils.replace(builder, "XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
+        WaarpStringUtils.replace(builder, "XXXRPXXX", rule.getRecvPath() == null ? "" : rule.getRecvPath());
+        WaarpStringUtils.replace(builder, "XXXSPXXX", rule.getSendPath() == null ? "" : rule.getSendPath());
+        WaarpStringUtils.replace(builder, "XXXAPXXX", rule.getArchivePath() == null ? "" : rule.getArchivePath());
+        WaarpStringUtils.replace(builder, "XXXWPXXX", rule.getWorkPath() == null ? "" : rule.getWorkPath());
+        WaarpStringUtils.replace(builder, "XXXRPTXXX", rule.getXMLRPreTasks() == null ? "" : rule.getXMLRPreTasks());
+        WaarpStringUtils.replace(builder, "XXXRSTXXX", rule.getXMLRPostTasks() == null ? "" : rule.getXMLRPostTasks());
+        WaarpStringUtils.replace(builder, "XXXRETXXX", rule.getXMLRErrorTasks() == null ? "" : rule.getXMLRErrorTasks());
+        WaarpStringUtils.replace(builder, "XXXSPTXXX", rule.getXMLSPreTasks() == null ? "" : rule.getXMLSPreTasks());
+        WaarpStringUtils.replace(builder, "XXXSSTXXX", rule.getXMLSPostTasks() == null ? "" : rule.getXMLSPostTasks());
+        WaarpStringUtils.replace(builder, "XXXSETXXX", rule.getXMLSErrorTasks()  == null ? "" : rule.getXMLSErrorTasks());
         return builder.toString();
     }
 
@@ -1322,64 +1110,64 @@ public class DbRule extends AbstractDbData {
      * @return the recvPath
      */
     public String getRecvPath() {
-        if (recvPath == null || recvPath.trim().isEmpty())
+        if (getRuleRecvPath() == null || getRuleRecvPath().trim().isEmpty())
             return Configuration.configuration.getInPath();
-        return recvPath;
+        return getRuleRecvPath();
     }
 
     /**
      * @return the sendPath
      */
     public String getSendPath() {
-        if (sendPath == null || sendPath.trim().isEmpty())
+        if (getRuleSendPath() == null || getRuleSendPath().trim().isEmpty())
             return Configuration.configuration.getOutPath();
-        return sendPath;
+        return getRuleSendPath();
     }
 
     /**
      * @return the archivePath
      */
     public String getArchivePath() {
-        if (archivePath == null || archivePath.trim().isEmpty())
+        if (getRuleArchivePath() == null || getRuleArchivePath().trim().isEmpty())
             return Configuration.configuration.getArchivePath();
-        return archivePath;
+        return getRuleArchivePath();
     }
 
     /**
      * @return the workPath
      */
     public String getWorkPath() {
-        if (workPath == null || workPath.trim().isEmpty())
+        if (getRuleWorkPath() == null || getRuleWorkPath().trim().isEmpty())
             return Configuration.configuration.getWorkingPath();
-        return workPath;
+        return getRuleWorkPath();
     }
 
     /**
      * @return the Rule recvPath
      */
     public String getRuleRecvPath() {
-        return recvPath;
+        return rule.getRecvPath();
     }
 
     /**
      * @return the Rule sendPath
      */
     public String getRuleSendPath() {
-        return sendPath;
+        return rule.getSendPath();
     }
 
     /**
      * @return the Rule archivePath
      */
     public String getRuleArchivePath() {
-        return archivePath;
+        return rule.getArchivePath();
     }
 
     /**
      * @return the Rule workPath
      */
     public String getRuleWorkPath() {
-        return workPath;
+        return rule.getWorkPath();
     }
 
     /**
@@ -1387,7 +1175,7 @@ public class DbRule extends AbstractDbData {
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {
-        DbRule item = new DbRule(null);
+        DbRule item = new DbRule();
         return item.allFields;
     }
 
@@ -1395,125 +1183,151 @@ public class DbRule extends AbstractDbData {
      * @return the idRule
      */
     public String getIdRule() {
-        return idRule;
+        return rule.getName();
     }
 
     /**
      * @param idRule the idRule to set
      */
     private void setIdRule(String idRule) {
-        this.idRule = idRule;
+        rule.setName(idRule);
     }
 
     /**
      * @return the mode
      */
     public int getMode() {
-        return mode;
+        return rule.getMode();
     }
 
     /**
      * @param mode the mode to set
      */
     private void setMode(int mode) {
-        this.mode = mode;
+        rule.setMode(mode);
     }
 
     /**
      * @return the idsArray
      */
     public String[] getIdsArray() {
-        return idsArray;
+        return (String[])rule.getHostids().toArray();
     }
 
     /**
      * @param idsArray the idsArray to set
      */
     private void setIdsArray(String[] idsArray) {
-        this.idsArray = idsArray;
+        rule.setHostids(Arrays.asList(idsArray));
     }
 
     /**
      * @return the rpreTasksArray
      */
     public String[][] getRpreTasksArray() {
-        return rpreTasksArray;
+        return toLegacyTasks(rule.getRPreTasks());
     }
 
     /**
      * @param rpreTasksArray the rpreTasksArray to set
      */
     private void setRpreTasksArray(String[][] rpreTasksArray) {
-        this.rpreTasksArray = rpreTasksArray;
+        rule.setRPreTasks(fromLegacyTasks(rpreTasksArray));
     }
 
     /**
      * @return the rpostTasksArray
      */
     public String[][] getRpostTasksArray() {
-        return rpostTasksArray;
+        return toLegacyTasks(rule.getRPostTasks());
     }
 
     /**
      * @param rpostTasksArray the rpostTasksArray to set
      */
     private void setRpostTasksArray(String[][] rpostTasksArray) {
-        this.rpostTasksArray = rpostTasksArray;
+        rule.setRPostTasks(fromLegacyTasks(rpostTasksArray));
     }
 
     /**
      * @return the rerrorTasksArray
      */
     public String[][] getRerrorTasksArray() {
-        return rerrorTasksArray;
+        return toLegacyTasks(rule.getRErrorTasks());
     }
 
     /**
      * @param rerrorTasksArray the rerrorTasksArray to set
      */
     private void setRerrorTasksArray(String[][] rerrorTasksArray) {
-        this.rerrorTasksArray = rerrorTasksArray;
+        rule.setRErrorTasks(fromLegacyTasks(rerrorTasksArray));
     }
 
     /**
      * @return the spreTasksArray
      */
     public String[][] getSpreTasksArray() {
-        return spreTasksArray;
+        return toLegacyTasks(rule.getSPreTasks());
     }
 
     /**
      * @param spreTasksArray the spreTasksArray to set
      */
     private void setSpreTasksArray(String[][] spreTasksArray) {
-        this.spreTasksArray = spreTasksArray;
+        rule.setSPreTasks(fromLegacyTasks(spreTasksArray));
     }
 
     /**
      * @return the spostTasksArray
      */
     public String[][] getSpostTasksArray() {
-        return spostTasksArray;
+        return toLegacyTasks(rule.getSPostTasks());
     }
 
     /**
      * @param spostTasksArray the spostTasksArray to set
      */
     private void setSpostTasksArray(String[][] spostTasksArray) {
-        this.spostTasksArray = spostTasksArray;
+        rule.setSPostTasks(fromLegacyTasks(spostTasksArray));
     }
 
     /**
      * @return the serrorTasksArray
      */
     public String[][] getSerrorTasksArray() {
-        return serrorTasksArray;
+        return toLegacyTasks(rule.getSErrorTasks());
     }
 
     /**
      * @param serrorTasksArray the serrorTasksArray to set
      */
     private void setSerrorTasksArray(String[][] serrorTasksArray) {
-        this.serrorTasksArray = serrorTasksArray;
+        rule.setSErrorTasks(fromLegacyTasks(serrorTasksArray));
+    }
+
+
+
+    private List<RuleTask> fromLegacyTasks(String[][] tasks) {
+        int size = tasks.length;
+        List<RuleTask> res = new ArrayList<RuleTask>(size);
+        for (int i = 0; i < size; i++) {
+            res.add(new RuleTask(tasks[i][0], tasks[i][1],
+                    Integer.getInteger(tasks[i][2])));
+        }
+        return res;
+    }
+
+    private String[][] toLegacyTasks(List<RuleTask> tasks) {
+        int size = tasks.size();
+        String[][] res = new String[size][];
+        int i = 0;
+        for (RuleTask task : tasks) {
+            res[i] = new String[3];
+            res[i][0] = task.getType();
+            res[i][1] = task.getPath();
+            res[i][2] = String.valueOf(task.getDelay());
+            i++;
+        }
+        return  res;
     }
 }

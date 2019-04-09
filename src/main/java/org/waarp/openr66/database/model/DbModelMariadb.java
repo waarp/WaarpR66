@@ -92,7 +92,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
         } finally {
             request.close();
         }
-        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(
                 Configuration.configuration.getHOST_ID(), 0, 0, 0);
         try {
             if (!multipleMonitor.exist())
@@ -279,7 +279,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
             request.close();
         }
 
-        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+        DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
             R66Versions.V2_4_25.getVersion());
     }
 
@@ -482,7 +482,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
                 request.close();
             }
         }
-        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+        DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                 R66Versions.V2_4_25.getVersion());
         return true;
     }
@@ -499,7 +499,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
                         " where " + DbHostConfiguration.Columns.HOSTID + " = '" + Configuration.configuration.getHOST_ID()
                         + "'");
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_13.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -516,7 +516,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
                 request.select("select " + DbTaskRunner.Columns.TRANSFERINFO.name() + " from " + DbTaskRunner.table +
                         " where " + DbTaskRunner.Columns.SPECIALID + " = " + DbConstant.ILLEGALVALUE);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_17.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -533,7 +533,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
                 request.select("select " + DbHostAuth.Columns.ISACTIVE.name() + " from " + DbHostAuth.table +
                         " where " + DbHostAuth.Columns.PORT + " = " + 0);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_23.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -547,7 +547,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
         if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
             try {
                 if (upgradeDb(session, version)) {
-                    DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                    DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                             R66Versions.V2_4_25.getVersion());
                 } else {
                     return true;

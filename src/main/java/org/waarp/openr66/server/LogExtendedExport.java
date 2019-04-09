@@ -403,7 +403,7 @@ public class LogExtendedExport implements Runnable {
         DbHostAuth dbhost = null;
         if (stohost != null) {
             try {
-                dbhost = new DbHostAuth(DbConstant.admin.getSession(), stohost);
+                dbhost = new DbHostAuth(stohost);
             } catch (WaarpDatabaseException e) {
                 logger.error("Wrong initialization");
                 if (DbConstant.admin != null && DbConstant.admin.isActive()) {

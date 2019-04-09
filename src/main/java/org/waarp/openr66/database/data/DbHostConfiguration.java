@@ -19,6 +19,7 @@ package org.waarp.openr66.database.data;
 
 import java.io.StringReader;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +48,12 @@ import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
-import org.waarp.openr66.commander.CommanderNoDb;
+import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.database.DBBusinessDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.utils.Version;
@@ -77,8 +83,12 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     public static final int[] dbTypes = {
-            Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-            Types.INTEGER, Types.NVARCHAR };
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.LONGVARCHAR,
+            Types.INTEGER,
+            Types.NVARCHAR };
 
     public static final String table = " HOSTCONFIG ";
 
@@ -88,18 +98,8 @@ public class DbHostConfiguration extends AbstractDbData {
     private static final ConcurrentHashMap<String, DbHostConfiguration> dbR66HostConfigurationHashMap =
             new ConcurrentHashMap<String, DbHostConfiguration>();
 
-    private String hostid;
+    private Business business;
 
-    private String business;
-
-    private String roles;
-
-    private String aliases;
-
-    private String others;
-
-    private int updatedInfo = UpdatedInfo.UNKNOWN
-            .ordinal();
 
     public static final String XML_ALIASES = "aliases";
 
@@ -141,30 +141,33 @@ public class DbHostConfiguration extends AbstractDbData {
      * Check version in protocol
      */
     public static final String XML_BUSINESSID = "businessid";
-    private static final XmlDecl[] businessDecl = { new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_BUSINESS + "/"
-            + XML_BUSINESSID, true) };
+    private static final XmlDecl[] businessDecl = {
+            new XmlDecl(XML_BUSINESS, XmlType.STRING,
+                    XML_BUSINESS + "/" + XML_BUSINESSID, true)};
+
     /**
      * Structure of the Configuration file
-     * 
      */
     public static final XmlDecl[] configRoleDecls = {
             // roles
             new XmlDecl(XmlType.STRING, XML_ROLEID),
             new XmlDecl(XmlType.STRING, XML_ROLESET)
     };
-    private static final XmlDecl[] roleDecl = { new XmlDecl(XML_ROLES, XmlType.XVAL, XML_ROLES + "/"
-            + XML_ROLE, configRoleDecls, true) };
+    private static final XmlDecl[] roleDecl = {
+            new XmlDecl(XML_ROLES, XmlType.XVAL,
+                    XML_ROLES + "/" + XML_ROLE, configRoleDecls, true)};
     /**
      * Structure of the Configuration file
-     * 
      */
     public static final XmlDecl[] configAliasDecls = {
             // alias
             new XmlDecl(XmlType.STRING, XML_REALID),
             new XmlDecl(XmlType.STRING, XML_ALIASID)
     };
-    private static final XmlDecl[] aliasDecl = { new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ALIASES + "/"
-            + XML_ALIAS, configAliasDecls, true) };
+
+    private static final XmlDecl[] aliasDecl = {
+            new XmlDecl(XML_ALIASES, XmlType.XVAL,
+                    XML_ALIASES + "/" + XML_ALIAS, configAliasDecls, true)};
 
     public static enum OtherFields {
         root, version, seeallid
@@ -173,68 +176,33 @@ public class DbHostConfiguration extends AbstractDbData {
     // ALL TABLE SHOULD IMPLEMENT THIS
     public static final int NBPRKEY = 1;
 
-    protected static final String selectAllFields = Columns.BUSINESS
-            .name()
-            +
-            ","
-            +
-            Columns.ROLES
-                    .name()
-            +
-            ","
-            +
-            Columns.ALIASES
-                    .name()
-            +
-            ","
-            +
-            Columns.OTHERS
-                    .name()
-            +
-            ","
-            + Columns.UPDATEDINFO
-                    .name()
-            + ","
-            + Columns.HOSTID
-                    .name();
+    protected static final String selectAllFields =
+        Columns.BUSINESS.name() + ","
+        + Columns.ROLES.name() + ","
+        + Columns.ALIASES.name() + ","
+        + Columns.OTHERS.name() + ","
+        + Columns.UPDATEDINFO.name() + ","
+        + Columns.HOSTID.name();
 
-    protected static final String updateAllFields = Columns.BUSINESS
-            .name()
-            +
-            "=?,"
-            +
-            Columns.ROLES
-                    .name()
-            +
-            "=?,"
-            +
-            Columns.ALIASES
-                    .name()
-            +
-            "=?,"
-            +
-            Columns.OTHERS
-                    .name()
-            +
-            "=?,"
-            +
-            Columns.UPDATEDINFO
-                    .name()
-            +
-            "=?";
+    protected static final String updateAllFields =
+        Columns.BUSINESS.name() + "=?,"
+        + Columns.ROLES.name() + "=?,"
+        + Columns.ALIASES.name() + "=?,"
+        + Columns.OTHERS.name() + "=?,"
+        + Columns.UPDATEDINFO.name() + "=?";
 
     protected static final String insertAllValues = " (?,?,?,?,?,?) ";
 
     @Override
     protected void initObject() {
-        primaryKey = new DbValue[] { new DbValue(hostid, Columns.HOSTID
-                .name()) };
+        primaryKey = new DbValue[] {
+                new DbValue(business.getHostid(), Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
-                new DbValue(business, Columns.BUSINESS.name(), true),
-                new DbValue(roles, Columns.ROLES.name(), true),
-                new DbValue(aliases, Columns.ALIASES.name(), true),
-                new DbValue(others, Columns.OTHERS.name(), true),
-                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+                new DbValue(business.getBusiness(), Columns.BUSINESS.name(), true),
+                new DbValue(business.getRoles(), Columns.ROLES.name(), true),
+                new DbValue(business.getAliases(), Columns.ALIASES.name(), true),
+                new DbValue(business.getOthers(), Columns.OTHERS.name(), true),
+                new DbValue(business.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], primaryKey[0] };
@@ -262,62 +230,59 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     protected void setToArray() {
-        allFields[Columns.HOSTID.ordinal()].setValue(hostid);
-        if (business == null) {
-            business = "";
+        allFields[Columns.HOSTID.ordinal()].setValue(business.getHostid());
+        if (business.getBusiness() == null) {
+            business.setBusiness("");
         } else {
             int len;
             do {
-                len = business.length();
-                business = business.replaceAll("\\s+", " ");
-            } while (len != business.length());
+                len = business.getBusiness().length();
+                business.setBusiness(business.getBusiness().replaceAll("\\s+", " "));
+            } while (len != business.getBusiness().length());
         }
-        allFields[Columns.BUSINESS.ordinal()].setValue(business);
-        if (roles == null) {
-            roles = "";
+        allFields[Columns.BUSINESS.ordinal()].setValue(business.getBusiness());
+        if (business.getRoles() == null) {
+            business.setRoles("");
         } else {
             int len;
             do {
-                len = roles.length();
-                roles = roles.replaceAll("\\s+", " ");
-            } while (len != roles.length());
+                len = business.getRoles().length();
+                business.setRoles(business.getRoles().replaceAll("\\s+", " "));
+            } while (len != business.getRoles().length());
         }
-        allFields[Columns.ROLES.ordinal()]
-                .setValue(roles);
-        if (aliases == null) {
-            aliases = "";
+        allFields[Columns.ROLES.ordinal()].setValue(business.getRoles());
+        if (business.getAliases() == null) {
+            business.setAliases("");
         } else {
             int len;
             do {
-                len = aliases.length();
-                aliases = aliases.replaceAll("\\s+", " ");
-            } while (len != aliases.length());
+                len = business.getAliases().length();
+                business.setAliases(business.getAliases().replaceAll("\\s+", " "));
+            } while (len != business.getAliases().length());
         }
-        allFields[Columns.ALIASES.ordinal()]
-                .setValue(aliases);
-        if (others == null) {
-            others = "";
+        allFields[Columns.ALIASES.ordinal()].setValue(business.getAliases());
+        if (business.getOthers()== null) {
+            business.setOthers("");
         } else {
             int len;
             do {
-                len = others.length();
-                others = others.replaceAll("\\s+", " ");
-            } while (len != others.length());
+                len = business.getOthers().length();
+                business.setOthers(business.getOthers().replaceAll("\\s+", " "));
+            } while (len != business.getOthers().length());
         }
-        allFields[Columns.OTHERS.ordinal()]
-                .setValue(others);
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.OTHERS.ordinal()].setValue(business.getOthers());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(business.getUpdatedInfo());
     }
 
     @Override
     protected void setFromArray() throws WaarpDatabaseSqlException {
-        hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
-        business = (String) allFields[Columns.BUSINESS.ordinal()].getValue();
-        roles = (String) allFields[Columns.ROLES.ordinal()].getValue();
-        aliases = (String) allFields[Columns.ALIASES.ordinal()].getValue();
-        others = (String) allFields[Columns.OTHERS.ordinal()].getValue();
-        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
-                .getValue();
+        business.setHostid((String) allFields[Columns.HOSTID.ordinal()].getValue());
+        business.setBusiness((String) allFields[Columns.BUSINESS.ordinal()].getValue());
+        business.setRoles((String) allFields[Columns.ROLES.ordinal()].getValue());
+        business.setAliases((String) allFields[Columns.ALIASES.ordinal()].getValue());
+        business.setOthers((String) allFields[Columns.OTHERS.ordinal()].getValue());
+        business.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.valueOf(
+                (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue()));
     }
 
     @Override
@@ -327,31 +292,26 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     protected void setPrimaryKey() {
-        primaryKey[0].setValue(hostid);
+        primaryKey[0].setValue(business.getHostid());
     }
 
     /**
      * @param dbSession
      * @param hostid
-     * @param business
-     *            Business configuration
-     * @param roles
-     *            Roles configuration
-     * @param aliases
-     *            Aliases configuration
-     * @param others
-     *            Other configuration
+     * @param business Business configuration
+     * @param roles Roles configuration
+     * @param aliases Aliases configuration
+     * @param others Other configuration
      */
-    public DbHostConfiguration(DbSession dbSession, String hostid, String business, String roles, String aliases,
+    public DbHostConfiguration(String hostid, String business, String roles, String aliases,
             String others) {
-        super(dbSession);
-        this.hostid = hostid;
+        super(null);
+        this.business = new Business(hostid, business, roles, aliases, others);
+    }
+
+    public DbHostConfiguration(Business business) {
+        super(null);
         this.business = business;
-        this.roles = roles;
-        this.aliases = aliases;
-        this.others = others;
-        setToArray();
-        isSaved = false;
     }
 
     /**
@@ -361,10 +321,11 @@ public class DbHostConfiguration extends AbstractDbData {
      * @param source
      * @throws WaarpDatabaseSqlException
      */
-    public DbHostConfiguration(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
-        super(dbSession);
+    public DbHostConfiguration(ObjectNode source) throws WaarpDatabaseSqlException {
+        super(null);
+        this.business = new Business();
         setFromJson(source, false);
-        if (hostid == null || hostid.isEmpty()) {
+        if (business.getHostid() == null || business.getHostid().isEmpty()) {
             throw new WaarpDatabaseSqlException("Not enough argument to create the object");
         }
         setToArray();
@@ -376,41 +337,48 @@ public class DbHostConfiguration extends AbstractDbData {
      * @param hostid
      * @throws WaarpDatabaseException
      */
-    public DbHostConfiguration(DbSession dbSession, String hostid) throws WaarpDatabaseException {
-        super(dbSession);
-        this.hostid = hostid;
-        // load from DB
-        select();
+    public DbHostConfiguration(String hostid) throws WaarpDatabaseException {
+        super(null);
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            this.business = businessAccess.select(hostid);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
+            }
+        }
     }
 
     /**
      * @return the hostid
      */
     public String getHostid() {
-        return hostid;
+        return business.getHostid();
     }
 
     /**
      * @return the business
      */
     public String getBusiness() {
-        return business;
+        return business.getBusiness();
     }
 
     /**
-     * @param business
-     *            the business to set
+     * @param business the business to set
      */
     public void setBusiness(String business) {
-        this.business = business == null ? "" : business;
+       this.business.setBusiness(business == null ? "" : business);
         int len;
         do {
-            len = this.business.length();
-            this.business = this.business.replaceAll("\\s+", " ");
-        } while (len != this.business.length());
+            len = this.business.getBusiness().length();
+            this.business.setBusiness(this.business.getBusiness().replaceAll("\\s+", " "));
+        } while (len != this.business.getBusiness().length());
         Configuration.configuration.getBusinessWhiteSet().clear();
-        if (!this.business.isEmpty()) {
-            readValuesFromXml(this.business, businessDecl);
+        if (!this.business.getBusiness().isEmpty()) {
+            readValuesFromXml(this.business.getBusiness(), businessDecl);
         }
         allFields[Columns.BUSINESS.ordinal()].setValue(business);
         isSaved = false;
@@ -420,23 +388,22 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return the roles
      */
     public String getRoles() {
-        return roles;
+        return business.getRoles();
     }
 
     /**
-     * @param roles
-     *            the roles to set
+     * @param roles the roles to set
      */
     public void setRoles(String roles) {
-        this.roles = roles == null ? "" : roles;
+        business.setRoles(roles == null ? "" : roles);
         int len;
         do {
-            len = this.roles.length();
-            this.roles = this.roles.replaceAll("\\s+", " ");
-        } while (len != this.roles.length());
+            len = this.getRoles().length();
+            business.setRoles(this.business.getRoles().replaceAll("\\s+", " "));
+        } while (len != this.business.getRoles().length());
         Configuration.configuration.getRoles().clear();
-        if (!this.roles.isEmpty()) {
-            readValuesFromXml(this.roles, roleDecl);
+        if (!this.business.getRoles().isEmpty()) {
+            readValuesFromXml(this.business.getRoles(), roleDecl);
         }
         allFields[Columns.ROLES.ordinal()].setValue(roles);
         isSaved = false;
@@ -446,7 +413,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return the aliases
      */
     public String getAliases() {
-        return aliases;
+        return business.getAliases();
     }
 
     /**
@@ -454,16 +421,16 @@ public class DbHostConfiguration extends AbstractDbData {
      *            the aliases to set
      */
     public void setAliases(String aliases) {
-        this.aliases = aliases == null ? "" : aliases;
+        this.business.setAliases(aliases == null ? "" : aliases);
         int len;
         do {
-            len = this.aliases.length();
-            this.aliases = this.aliases.replaceAll("\\s+", " ");
-        } while (len != this.aliases.length());
+            len = this.business.getAliases().length();
+            this.business.setAliases(this.business.getAliases().replaceAll("\\s+", " "));
+        } while (len != this.business.getAliases().length());
         Configuration.configuration.getAliases().clear();
         Configuration.configuration.getReverseAliases().clear();
-        if (!this.aliases.isEmpty()) {
-            readValuesFromXml(this.aliases, aliasDecl);
+        if (!this.business.getAliases().isEmpty()) {
+            readValuesFromXml(this.business.getAliases(), aliasDecl);
         }
         allFields[Columns.ALIASES.ordinal()].setValue(aliases);
         isSaved = false;
@@ -565,7 +532,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return the others
      */
     public String getOthers() {
-        return others;
+        return business.getOthers();
     }
 
     /**
@@ -573,12 +540,12 @@ public class DbHostConfiguration extends AbstractDbData {
      *            the others to set
      */
     public void setOthers(String others) {
-        this.others = others == null ? "" : others;
+        this.business.setOthers(others == null ? "" : others);
         int len;
         do {
-            len = this.others.length();
-            this.others = this.others.replaceAll("\\s+", " ");
-        } while (len != this.others.length());
+            len = this.business.getOthers().length();
+            this.business.setOthers(this.business.getOthers().replaceAll("\\s+", " "));
+        } while (len != this.business.getOthers().length());
         allFields[Columns.OTHERS.ordinal()].setValue(others);
         isSaved = false;
     }
@@ -588,10 +555,10 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return the element for the content of the other part
      */
     public Element getOtherElement() {
-        if (others != null && !others.isEmpty()) {
+        if (business.getOthers() != null && !business.getOthers().isEmpty()) {
             Document document;
             try {
-                document = DocumentHelper.parseText(others);
+                document = DocumentHelper.parseText(business.getOthers());
             } catch (DocumentException e) {
                 return DocumentHelper.createElement(OtherFields.root.name());
             }
@@ -612,78 +579,85 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     public void delete() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            dbR66HostConfigurationHashMap.remove(this.hostid);
-            isSaved = false;
-            return;
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            businessAccess.delete(business);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
+            }
         }
-        super.delete();
     }
 
     @Override
     public void insert() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
-        }
-        if (dbSession == null) {
-            dbR66HostConfigurationHashMap.put(this.hostid, this);
-            isSaved = true;
-            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                CommanderNoDb.todoList.add(this);
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            businessAccess.insert(business);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
             }
-            return;
         }
-        super.insert();
     }
 
     @Override
     public boolean exist() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            return dbR66HostConfigurationHashMap.containsKey(hostid);
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            return businessAccess.exist(business.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
+            }
         }
-        return super.exist();
     }
 
     @Override
     public void select() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            DbHostConfiguration conf = dbR66HostConfigurationHashMap.get(this.hostid);
-            if (conf == null) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            } else {
-                // copy info
-                for (int i = 0; i < allFields.length; i++) {
-                    allFields[i].setValue(conf.allFields[i].getValue());
-                }
-                setFromArray();
-                isSaved = true;
-                return;
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            this.business = businessAccess.select(business.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
             }
         }
-        super.select();
     }
 
     @Override
     public void update() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
-        }
-        if (dbSession == null) {
-            dbR66HostConfigurationHashMap.put(this.hostid, this);
-            isSaved = true;
-            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                CommanderNoDb.todoList.add(this);
+        BusinessDAO businessAccess = null;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            businessAccess.update(business);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
             }
-            return;
         }
-        super.update();
     }
 
     /**
      * Private constructor for Commander only
      */
-    private DbHostConfiguration(DbSession session) {
-        super(session);
+    private DbHostConfiguration() {
+        super(null);
+        this.business = new Business();
     }
 
     /**
@@ -696,7 +670,7 @@ public class DbHostConfiguration extends AbstractDbData {
      */
     public static DbHostConfiguration getFromStatement(DbPreparedStatement preparedStatement)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbHostConfiguration dbConfiguration = new DbHostConfiguration(preparedStatement.getDbSession());
+        DbHostConfiguration dbConfiguration = new DbHostConfiguration();
         dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
         dbConfiguration.setFromArray();
         dbConfiguration.isSaved = true;
@@ -709,16 +683,33 @@ public class DbHostConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
+    public static DbHostConfiguration[] getUpdatedPrepareStament()
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table +
-                " WHERE " + Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal() +
-                " AND " + Columns.HOSTID.name() + " = '" + Configuration.configuration.getHOST_ID()
-                + "'";
-        DbPreparedStatement prep = new DbPreparedStatement(session, request);
-        return prep;
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new Filter(DBBusinessDAO.HOSTID_FIELD, "=",
+                Configuration.configuration.getHOST_ID()));
+        filters.add(new Filter(DBBusinessDAO.UPDATED_INFO_FIELD, "=",
+                UpdatedInfo.TOSUBMIT.ordinal()));
+
+        BusinessDAO businessAccess  = null;
+        List<Business> businesses;
+        try {
+            businessAccess = DAOFactory.getInstance().getBusinessDAO();
+            businesses = businessAccess.find(filters);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseNoConnectionException(e);
+        } finally {
+            if (businessAccess != null) {
+                businessAccess.close();
+            }
+        }
+        DbHostConfiguration[] res = new DbHostConfiguration[businesses.size()];
+        int i = 0;
+        for (Business business: businesses) {
+            res[i] = new DbHostConfiguration(business);
+            i++;
+        }
+        return res;
     }
 
     /**
@@ -734,7 +725,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
-            String hostid, String business, String role, String alias, String other)
+              String hostid, String business, String role, String alias, String other)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
@@ -782,11 +773,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
-        if (updatedInfo != info.ordinal()) {
-            updatedInfo = info.ordinal();
-            allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-            isSaved = false;
-        }
+        business.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(info));
     }
 
     /**
@@ -801,7 +788,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return True if this Configuration refers to the current host
      */
     public boolean isOwnConfiguration() {
-        return this.hostid.equals(Configuration.configuration.getHOST_ID());
+        return this.business.getHostid().equals(Configuration.configuration.getHOST_ID());
     }
 
     /**
@@ -1151,10 +1138,10 @@ public class DbHostConfiguration extends AbstractDbData {
      * @param hostid
      * @return the version of the database from HostConfiguration table
      */
-    public static String getVersionDb(DbSession dbSession, String hostid) {
+    public static String getVersionDb(String hostid) {
         DbHostConfiguration hostConfiguration;
         try {
-            hostConfiguration = new DbHostConfiguration(dbSession, hostid);
+            hostConfiguration = new DbHostConfiguration(hostid);
         } catch (WaarpDatabaseException e) {
             // ignore and return
             return "1.1.0";
@@ -1192,12 +1179,12 @@ public class DbHostConfiguration extends AbstractDbData {
      * @param hostid
      * @param version
      */
-    public static void updateVersionDb(DbSession dbSession, String hostid, String version) {
+    public static void updateVersionDb(String hostid, String version) {
         DbHostConfiguration hostConfiguration;
         try {
-            hostConfiguration = new DbHostConfiguration(dbSession, hostid);
+            hostConfiguration = new DbHostConfiguration(hostid);
         } catch (WaarpDatabaseNoDataException e) {
-            hostConfiguration = new DbHostConfiguration(dbSession, hostid, "", "", "", "");
+            hostConfiguration = new DbHostConfiguration(hostid, "", "", "", "");
             try {
                 hostConfiguration.insert();
             } catch (WaarpDatabaseException e1) {
@@ -1237,7 +1224,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {
-        DbHostConfiguration item = new DbHostConfiguration(null);
+        DbHostConfiguration item = new DbHostConfiguration();
         return item.allFields;
     }
 }

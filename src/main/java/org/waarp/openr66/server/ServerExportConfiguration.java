@@ -19,6 +19,7 @@ package org.waarp.openr66.server;
 
 import java.io.File;
 
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpLogger;
@@ -89,12 +90,7 @@ public class ServerExportConfiguration {
                     + "_Runners.run.xml";
             try {
                 DbTaskRunner.writeXMLWriter(filename);
-            } catch (WaarpDatabaseNoConnectionException e1) {
-                logger.error("Error", e1);
-                DbConstant.admin.close();
-                ChannelUtils.stopLogger();
-                System.exit(2);
-            } catch (WaarpDatabaseSqlException e1) {
+            } catch (WaarpDatabaseException e1) {
                 logger.error("Error", e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();

@@ -687,7 +687,7 @@ public class Configuration {
             WaarpDatabaseSqlException, ServerException {
         setServer(true);
         if (isBlacklistBadAuthent()) {
-            setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts(DbConstant.admin.getSession()));
+            setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts());
         }
         getShutdownConfiguration().timeout = getTIMEOUTCON();
         if (getTimeLimitCache() < getTIMEOUTCON() * 10) {
@@ -1268,7 +1268,7 @@ public class Configuration {
      * @throws WaarpDatabaseException
      */
     public String getHostId(DbSession dbSession, String remoteHost) throws WaarpDatabaseException {
-        DbHostAuth hostAuth = new DbHostAuth(dbSession, remoteHost);
+        DbHostAuth hostAuth = new DbHostAuth(remoteHost);
         try {
             return Configuration.configuration.getHostId(hostAuth.isSsl());
         } catch (OpenR66ProtocolNoSslException e) {

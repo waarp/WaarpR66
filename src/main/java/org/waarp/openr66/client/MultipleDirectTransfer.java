@@ -145,7 +145,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
         // first check if filenames contains wildcards
         DbRule dbrule = null;
         try {
-            dbrule = new DbRule(DbConstant.admin.getSession(), rulename);
+            dbrule = new DbRule(rulename);
         } catch (WaarpDatabaseException e1) {
             logger.error(Messages.getString("Transfer.18"), e1); //$NON-NLS-1$
             this.future.setFailure(e1);

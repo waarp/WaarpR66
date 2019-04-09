@@ -13,6 +13,12 @@ public class MultipleMonitor {
 
     private int countRule;
 
+    /**
+     * Empty constructor for compatibility issues
+     */
+    @Deprecated
+    public MultipleMonitor() {}
+
     public MultipleMonitor(String hostid, int countConfig, int countHost,
             int countRule) {
         this.hostid = hostid;

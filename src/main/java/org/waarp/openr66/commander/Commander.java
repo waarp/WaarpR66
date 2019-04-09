@@ -1,22 +1,23 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.openr66.commander;
 
+import oracle.jdbc.driver.DBConversion;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -26,6 +27,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.openr66.dao.database.DBHostDAO;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostAuth;
@@ -39,9 +41,9 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 /**
  * Commander is responsible to read from database updated data from time to time in order to achieve
  * new runner or new configuration updates.
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class Commander implements CommanderInterface {
     /**
@@ -54,15 +56,10 @@ public class Commander implements CommanderInterface {
 
     private InternalRunner internalRunner = null;
     private DbPreparedStatement preparedStatementLock = null;
-    private DbPreparedStatement preparedStatementConfig = null;
-    private DbPreparedStatement preparedStatementHostConfig = null;
-    private DbPreparedStatement preparedStatementHost = null;
-    private DbPreparedStatement preparedStatementRule = null;
-    private DbPreparedStatement preparedStatementRunner = null;
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -74,7 +71,7 @@ public class Commander implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @param fromStartup
      *            True if call from startup of the server
@@ -100,22 +97,8 @@ public class Commander implements CommanderInterface {
             } else {
                 preparedStatementLock = null;
             }
-            preparedStatementConfig =
-                    DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.getSession());
-            preparedStatementHostConfig =
-                    DbHostConfiguration.getUpdatedPrepareStament(DbConstant.admin.getSession());
-            preparedStatementHost =
-                    DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.getSession());
-            preparedStatementRule =
-                    DbRule.getUpdatedPrepareStament(DbConstant.admin.getSession());
-
-
-            preparedStatementRunner =
-                    DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.getSession(),
-                            UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
-
             // Clean tasks (CompleteOK and ALLDONE => DONE)
-            DbTaskRunner.changeFinishedToDone(DbConstant.admin.getSession());
+            DbTaskRunner.changeFinishedToDone();
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {
@@ -123,40 +106,10 @@ public class Commander implements CommanderInterface {
                 if (preparedStatementLock != null) {
                     preparedStatementLock.realClose();
                 }
-                if (preparedStatementConfig != null) {
-                    preparedStatementConfig.realClose();
-                }
-                if (preparedStatementHostConfig != null) {
-                    preparedStatementHostConfig.realClose();
-                }
-                if (preparedStatementHost != null) {
-                    preparedStatementHost.realClose();
-                }
-                if (preparedStatementRule != null) {
-                    preparedStatementRule.realClose();
-                }
-                if (preparedStatementRunner != null) {
-                    preparedStatementRunner.realClose();
-                }
             } else {
                 if (preparedStatementLock != null) {
                     DbConstant.noCommitAdmin.getSession()
                             .addLongTermPreparedStatement(preparedStatementLock);
-                }
-                if (preparedStatementConfig != null) {
-                    DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementConfig);
-                }
-                if (preparedStatementHostConfig != null) {
-                    DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementHostConfig);
-                }
-                if (preparedStatementHost != null) {
-                    DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementHost);
-                }
-                if (preparedStatementRule != null) {
-                    DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementRule);
-                }
-                if (preparedStatementRunner != null) {
-                    DbConstant.admin.getSession().addLongTermPreparedStatement(preparedStatementRunner);
                 }
             }
         }
@@ -176,26 +129,6 @@ public class Commander implements CommanderInterface {
             DbConstant.noCommitAdmin.getSession()
                     .removeLongTermPreparedStatements(preparedStatementLock);
             // DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
-        }
-        if (preparedStatementConfig != null) {
-            preparedStatementConfig.realClose();
-            DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementConfig);
-        }
-        if (preparedStatementHostConfig != null) {
-            preparedStatementHostConfig.realClose();
-            DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementHostConfig);
-        }
-        if (preparedStatementHost != null) {
-            preparedStatementHost.realClose();
-            DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementHost);
-        }
-        if (preparedStatementRule != null) {
-            preparedStatementRule.realClose();
-            DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementRule);
-        }
-        if (preparedStatementRunner != null) {
-            preparedStatementRunner.realClose();
-            DbConstant.admin.getSession().removeLongTermPreparedStatements(preparedStatementRunner);
         }
         // DbConstant.admin.session.removeLongTermPreparedStatements();
     }
@@ -234,11 +167,11 @@ public class Commander implements CommanderInterface {
             logger.debug("Before " + multipleMonitor);
             // First check Configuration
             try {
-                preparedStatementConfig.executeQuery();
-                while (preparedStatementConfig.getNext()) {
+                DbConfiguration[] configurations = DbConfiguration.getUpdatedPrepareStament();
+                int i = 0;
+                while (i < configurations.length) {
                     // should be only one...
-                    DbConfiguration configuration = DbConfiguration
-                            .getFromStatement(preparedStatementConfig);
+                    DbConfiguration configuration = configurations[i];
                     if (configuration.isOwnConfiguration()) {
                         configuration.updateConfiguration();
                     }
@@ -257,8 +190,8 @@ public class Commander implements CommanderInterface {
                         configuration.update();
                     }
                     configuration = null;
+                    i++;
                 }
-                preparedStatementConfig.close();
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
@@ -280,16 +213,14 @@ public class Commander implements CommanderInterface {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
-            } finally {
-                preparedStatementConfig.close();
             }
             // check HostConfiguration
             try {
-                preparedStatementHostConfig.executeQuery();
-                while (preparedStatementHostConfig.getNext()) {
+                DbHostConfiguration[] configurations = DbHostConfiguration.getUpdatedPrepareStament();
+                int i = 0;
+                while (i < configurations.length) {
                     // should be only one...
-                    DbHostConfiguration configuration = DbHostConfiguration
-                            .getFromStatement(preparedStatementHostConfig);
+                    DbHostConfiguration configuration = configurations[i];
                     if (configuration.isOwnConfiguration()) {
                         configuration.updateConfiguration();
                     }
@@ -309,7 +240,6 @@ public class Commander implements CommanderInterface {
                     }
                     configuration = null;
                 }
-                preparedStatementHostConfig.close();
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
                     DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
@@ -331,17 +261,16 @@ public class Commander implements CommanderInterface {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 // XXX no return since table might not be initialized return;
-            } finally {
-                preparedStatementHostConfig.close();
             }
             // Check HostAuthent
             try {
-                preparedStatementHost.executeQuery();
+                DbHostAuth[] auths = DbHostAuth.getUpdatedPreparedStatement();
+                int i = 0;
                 boolean mm = false;
                 boolean lastUpdate = false;
-                while (preparedStatementHost.getNext()) {
+                while (i < auths.length) {
                     // Maybe multiple
-                    DbHostAuth hostAuth = DbHostAuth.getFromStatement(preparedStatementHost);
+                    DbHostAuth hostAuth = auths[i];
                     if (multipleMonitor != null) {
                         if (!mm) {
                             // not already set from a previous hostAuth
@@ -365,6 +294,7 @@ public class Commander implements CommanderInterface {
                         hostAuth.update();
                     }
                     hostAuth = null;
+                    i++;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
@@ -387,23 +317,23 @@ public class Commander implements CommanderInterface {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
-            } finally {
-                preparedStatementHost.close();
             }
+
             // Check Rules
             try {
-                preparedStatementRule.executeQuery();
+                DbRule[] rules = DbRule.getUpdatedPrepareStament();
+                int i = 0;
                 boolean mm = false;
                 boolean lastUpdate = false;
-                while (preparedStatementRule.getNext()) {
-                    DbRule rule = DbRule.getFromStatement(preparedStatementRule);
+                while (i < rules.length) {
+                    DbRule rule = rules[i];
                     if (multipleMonitor != null) {
                         if (!mm) {
                             // not already set from a previous hostAuth
                             mm = true;
                             lastUpdate = multipleMonitor.checkUpdateRule();
                         } // else already set so no action on multipleMonitor
-                          // Update the Rules in HA mode
+                        // Update the Rules in HA mode
                         if (lastUpdate) {
                             rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                             rule.update();
@@ -419,6 +349,7 @@ public class Commander implements CommanderInterface {
                         rule.update();
                     }
                     rule = null;
+                    i++;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
@@ -448,8 +379,6 @@ public class Commander implements CommanderInterface {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
-            } finally {
-                preparedStatementRule.close();
             }
             if (R66ShutdownHook.isShutdownStarting()) {
                 // no more task to submit
@@ -459,26 +388,17 @@ public class Commander implements CommanderInterface {
             // Lauch Transfer ready to be submited
             logger.debug("start runner");
             try {
-                DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
                 // No specific HA mode since the other servers will wait for the commit on Lock
-                preparedStatementRunner.executeQuery();
-                while (preparedStatementRunner.getNext()) {
+                DbTaskRunner[] tasks = DbTaskRunner.getSelectFromInfoPrepareStatement(
+                        UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
+                int i = 0;
+                while (i < tasks.length) {
                     if (R66ShutdownHook.isShutdownStarting()) {
                         logger.info("Will not start transfers, server is in shutdown.");
                         return;
                     }
-                    DbTaskRunner taskRunner = null;
-                    try {
-                        taskRunner = DbTaskRunner
-                                .getFromStatement(preparedStatementRunner);
-                    } catch (WaarpDatabaseSqlException e) {
-                        // ignore and continue if NoData
-                        if (e.getCause() instanceof WaarpDatabaseNoDataException) {
-                            logger.warn("DbTaskRunner cannot be loaded: " + e.getMessage());
-                            continue;
-                        }
-                        throw e;
-                    }
+                    DbTaskRunner taskRunner = tasks[i];
+
                     logger.debug("get a task: {}", taskRunner);
                     // Launch if possible this task
                     String key = taskRunner.getRequested() + " " + taskRunner.getRequester() +
@@ -493,16 +413,9 @@ public class Commander implements CommanderInterface {
                         taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
                         try {
                             taskRunner.update();
-                        } catch (WaarpDatabaseException e) {
-                            if (e instanceof WaarpDatabaseNoDataException) {
-                                logger.warn("Update failed, no transfer found");
-                                continue;
-                            } else {
-                                logger.error("Database Error: Cannot execute Commander", e);
-                                DbConstant.admin.getDbModel().validConnection(
-                                        DbConstant.admin.getSession());
-                                return;
-                            }
+                        } catch (WaarpDatabaseNoDataException e) {
+                            logger.warn("Update failed, no transfer found");
+                            continue;
                         }
                         continue;
                     }
@@ -522,6 +435,13 @@ public class Commander implements CommanderInterface {
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
                 preparedStatementRunner.close();

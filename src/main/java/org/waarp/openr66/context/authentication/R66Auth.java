@@ -222,7 +222,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     public static DbHostAuth getServerAuth(DbSession dbSession, String server) {
         DbHostAuth auth = null;
         try {
-            auth = new DbHostAuth(dbSession, server);
+            auth = new DbHostAuth(server);
         } catch (WaarpDatabaseException e) {
             logger.warn("Cannot find the authentication {}", server);
             return null;
@@ -240,12 +240,11 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         this.isIdentified = true;
         DbHostAuth auth = null;
         try {
-            auth = new DbHostAuth(DbConstant.admin.getSession(),
-                    hostid);
+            auth = new DbHostAuth(hostid);
         } catch (WaarpDatabaseException e1) {
         }
         if (auth == null) {
-            auth = new DbHostAuth(DbConstant.admin.getSession(), hostid, "127.0.0.1", 6666, isSSL, null, true, false);
+            auth = new DbHostAuth(hostid, "127.0.0.1", 6666, isSSL, null, true, false);
         }
         role.clear();
         currentAuth = auth;

@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +23,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBMultipleMonitorDAO.class);
 
-    protected static final String TABLE = "MULTIPLEMONITOR";
+    protected static final String TABLE = "multiplemonitor";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String COUNT_CONFIG_FIELD = "countconfig";

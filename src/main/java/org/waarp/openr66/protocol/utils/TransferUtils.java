@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -49,9 +49,9 @@ import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 
 /**
  * Utility class for transfers
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class TransferUtils {
     /**
@@ -62,7 +62,7 @@ public class TransferUtils {
 
     /**
      * Try to restart one Transfer Runner Task
-     * 
+     *
      * @param taskRunner
      * @return the associated Result
      * @throws WaarpDatabaseException
@@ -162,13 +162,13 @@ public class TransferUtils {
 
     /**
      * Finalize a local task since only Post action has to be done
-     * 
+     *
      * @param taskRunner
      * @param localChannelReference
      * @throws OpenR66RunnerErrorException
      */
     public static void finalizeTaskWithNoSession(DbTaskRunner taskRunner,
-            LocalChannelReference localChannelReference)
+                                                 LocalChannelReference localChannelReference)
             throws OpenR66RunnerErrorException {
         R66Session session = new R66Session();
         session.setStatus(50);
@@ -229,7 +229,7 @@ public class TransferUtils {
 
     @SuppressWarnings("unchecked")
     private static void stopOneTransfer(DbTaskRunner taskRunner,
-            Object map, R66Session session, String body) {
+                                        Object map, R66Session session, String body) {
         LocalChannelReference lcr =
                 Configuration.configuration.getLocalTransaction().
                         getFromRequest(taskRunner.getKey());
@@ -281,7 +281,7 @@ public class TransferUtils {
 
     /**
      * Stop all selected transfers
-     * 
+     *
      * @param dbSession
      * @param limit
      * @param builder
@@ -299,17 +299,17 @@ public class TransferUtils {
      * @return the associated StringBuilder if the one given as parameter is not null
      */
     public static void stopSelectedTransfers(DbSession dbSession, int limit,
-            Object map, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error) {
+                                             Object map, R66Session session, String body,
+                                             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+                                             String req, boolean pending, boolean transfer, boolean error) {
         stopSelectedTransfers(dbSession, limit, map, session, body, startid, stopid, tstart, tstop,
                 rule, req, pending, transfer, error, null);
     }
 
     public static void stopSelectedTransfers(DbSession dbSession, int limit,
-            Object map, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error, String host) {
+                                             Object map, R66Session session, String body,
+                                             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+                                             String req, boolean pending, boolean transfer, boolean error, String host) {
         if (dbSession == null || dbSession.isDisActive()) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {
@@ -347,7 +347,7 @@ public class TransferUtils {
 
     /**
      * Method to delete the temporary file
-     * 
+     *
      * @param taskRunner
      * @param builder
      * @param session
@@ -403,7 +403,7 @@ public class TransferUtils {
 
     /**
      * Clean all selected transfers
-     * 
+     *
      * @param dbSession
      * @param limit
      * @param builder
@@ -421,17 +421,17 @@ public class TransferUtils {
      * @return the associated StringBuilder if the one given as parameter is not null
      */
     public static void cleanSelectedTransfers(DbSession dbSession, int limit,
-            Object map, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error) {
+                                              Object map, R66Session session, String body,
+                                              String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+                                              String req, boolean pending, boolean transfer, boolean error) {
         cleanSelectedTransfers(dbSession, limit, map, session, body, startid, stopid, tstart, tstop,
                 rule, req, pending, transfer, error, null);
     }
 
     public static void cleanSelectedTransfers(DbSession dbSession, int limit,
-            Object map, R66Session session, String body,
-            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
-            String req, boolean pending, boolean transfer, boolean error, String host) {
+                                              Object map, R66Session session, String body,
+                                              String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+                                              String req, boolean pending, boolean transfer, boolean error, String host) {
         if (dbSession == null || dbSession.isDisActive()) {
             // do it without DB
             if (ClientRunner.activeRunners != null) {

@@ -125,7 +125,7 @@ public abstract class AbstractTransfer implements Runnable {
     protected DbTaskRunner initRequest() {
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.getSession(), rulename);
+            rule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -140,8 +140,7 @@ public abstract class AbstractTransfer implements Runnable {
         DbTaskRunner taskRunner = null;
         if (id != DbConstant.ILLEGALVALUE) {
             try {
-                taskRunner = new DbTaskRunner(DbConstant.admin.getSession(), id,
-                        remoteHost);
+                taskRunner = new DbTaskRunner(id, remoteHost);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -187,8 +186,8 @@ public abstract class AbstractTransfer implements Runnable {
             boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
             try {
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isRetrieve, request,
-                                remoteHost, startTime);
+                        new DbTaskRunner(rule, isRetrieve, request, remoteHost,
+                                startTime);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -308,8 +307,7 @@ public abstract class AbstractTransfer implements Runnable {
             return true;
         } else if (idt != DbConstant.ILLEGALVALUE && rhost != null) {
             try {
-                DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.getSession(), idt,
-                        rhost);
+                DbTaskRunner runner = new DbTaskRunner(idt, rhost);
                 rule = runner.getRuleId();
                 localFilename = runner.getOriginalFilename();
                 return true;

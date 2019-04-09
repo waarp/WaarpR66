@@ -236,7 +236,7 @@ public class RequestTransfer implements Runnable {
         }
         DbTaskRunner runner = null;
         try {
-            runner = new DbTaskRunner(DbConstant.admin.getSession(), null, null,
+            runner = new DbTaskRunner(null, null,
                     specialId, requester, requested);
             logger.info("Found previous Runner: " + runner.toString());
         } catch (WaarpDatabaseException e) {

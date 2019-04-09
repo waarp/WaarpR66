@@ -91,7 +91,6 @@ public class Transfer {
 
     private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
 
-
     /**
      * Full Constructor to create Transfer from the database
      * @param id
@@ -226,11 +225,10 @@ public class Transfer {
     }
 
     /**
-     * Empty constructor for deserializers
+     * Empty constructor for compatibility issues
      */
-    public Transfer() {
-
-    }
+    @Deprecated
+    public Transfer() {}
 
     public long getId() {
         return this.id;

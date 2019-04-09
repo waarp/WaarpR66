@@ -6,12 +6,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -19,16 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -45,7 +34,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBRuleDAO.class);
 
-    protected static final String TABLE = "RULES";
+    protected static final String TABLE = "rules";
 
     public static final String ID_FIELD = "idrule";
     public static final String HOSTIDS_FIELD = "hostids";
@@ -256,7 +245,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             rule.getXMLSPreTasks(),
             rule.getXMLSPostTasks(),
             rule.getXMLSErrorTasks(),
-            rule.getUpdatedInfo()
+            rule.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -287,7 +276,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             rule.getXMLSPreTasks(),
             rule.getXMLSPostTasks(),
             rule.getXMLSErrorTasks(),
-            rule.getUpdatedInfo(),
+            rule.getUpdatedInfo().ordinal(),
             rule.getName()
         };
 
@@ -319,7 +308,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
                 retrieveTasks(set.getString(S_PRE_TASKS_FIELD)),
                 retrieveTasks(set.getString(S_POST_TASKS_FIELD)),
                 retrieveTasks(set.getString(S_ERROR_TASKS_FIELD)),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 
     private List<String> retrieveHostids(String xml) throws DAOException {

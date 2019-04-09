@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.waarp.common.database.DbPreparedStatement;
@@ -30,7 +31,6 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.json.JsonHandler;
@@ -39,6 +39,12 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.HostDAO;
+import org.waarp.openr66.dao.database.DBHostDAO;
+import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
@@ -62,12 +68,30 @@ public class DbHostAuth extends AbstractDbData {
             .getLogger(DbHostAuth.class);
 
     public static enum Columns {
-        ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, ISACTIVE, ISPROXIFIED, UPDATEDINFO, HOSTID
+        ADDRESS,
+        PORT,
+        ISSSL,
+        HOSTKEY,
+        ADMINROLE,
+        ISCLIENT,
+        ISACTIVE,
+        ISPROXIFIED,
+        UPDATEDINFO,
+        HOSTID
     }
 
     public static final int[] dbTypes = {
-            Types.VARCHAR, Types.INTEGER, Types.BIT,
-            Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.NVARCHAR };
+            Types.VARCHAR,
+            Types.INTEGER,
+            Types.BIT,
+            Types.VARBINARY,
+            Types.BIT,
+            Types.BIT,
+            Types.BIT,
+            Types.BIT,
+            Types.INTEGER,
+            Types.NVARCHAR
+    };
 
     public static final String table = " HOSTS ";
 
@@ -77,116 +101,51 @@ public class DbHostAuth extends AbstractDbData {
     private static final ConcurrentHashMap<String, DbHostAuth> dbR66HostAuthHashMap =
             new ConcurrentHashMap<String, DbHostAuth>();
 
-    private String hostid;
-
-    private String address;
-
-    private int port;
-
-    private boolean isSsl;
-
-    private byte[] hostkey;
-
-    private boolean adminrole;
-
-    private boolean isClient;
-
-    private boolean isActive = true;
-
-    private boolean isProxified = false;
-
-    private int updatedInfo = UpdatedInfo.UNKNOWN
-            .ordinal();
+    private Host host;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     public static final int NBPRKEY = 1;
 
-    protected static final String selectAllFields = Columns.ADDRESS
-            .name()
-            + ","
-            +
-            Columns.PORT
-                    .name()
-            + ","
-            + Columns.ISSSL
-                    .name()
-            + ","
-            +
-            Columns.HOSTKEY
-                    .name()
-            + ","
-            +
-            Columns.ADMINROLE
-                    .name()
-            + ","
-            + Columns.ISCLIENT
-                    .name()
-            + ","
-            + Columns.ISACTIVE
-                    .name()
-            + ","
-            + Columns.ISPROXIFIED
-                    .name()
-            + ","
-            +
-            Columns.UPDATEDINFO
-                    .name()
-            + ","
-            +
-            Columns.HOSTID
-                    .name();
+    protected static final String selectAllFields =
+        Columns.ADDRESS.name() + ","
+        + Columns.PORT.name() + ","
+        + Columns.ISSSL.name() + ","
+        + Columns.HOSTKEY.name() + ","
+        + Columns.ADMINROLE.name() + ","
+        + Columns.ISCLIENT.name() + ","
+        + Columns.ISACTIVE.name() + ","
+        + Columns.ISPROXIFIED.name() + ","
+        + Columns.UPDATEDINFO.name() + ","
+        + Columns.HOSTID.name();
 
     protected static final String updateAllFields =
-            Columns.ADDRESS
-                    .name()
-                    + "=?,"
-                    + Columns.PORT
-                            .name()
-                    +
-                    "=?,"
-                    + Columns.ISSSL
-                            .name()
-                    + "=?,"
-                    + Columns.HOSTKEY
-                            .name()
-                    +
-                    "=?,"
-                    + Columns.ADMINROLE
-                            .name()
-                    + "=?,"
-                    +
-                    Columns.ISCLIENT
-                            .name()
-                    + "=?,"
-                    +
-                    Columns.ISACTIVE
-                            .name()
-                    + "=?,"
-                    +
-                    Columns.ISPROXIFIED
-                            .name()
-                    + "=?,"
-                    +
-                    Columns.UPDATEDINFO
-                            .name()
-                    + "=?";
+        Columns.ADDRESS.name() + "=?,"
+        + Columns.PORT.name() + "=?,"
+        + Columns.ISSSL.name() + "=?,"
+        + Columns.HOSTKEY.name() + "=?,"
+        + Columns.ADMINROLE.name() + "=?,"
+        + Columns.ISCLIENT.name() + "=?,"
+        + Columns.ISACTIVE.name() + "=?,"
+        + Columns.ISPROXIFIED.name() + "=?,"
+        + Columns.UPDATEDINFO.name() + "=?";
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void initObject() {
-        primaryKey = new DbValue[] { new DbValue(hostid, Columns.HOSTID
+        primaryKey = new DbValue[] { new DbValue(host.getHostid(), Columns.HOSTID
                 .name()) };
         otherFields = new DbValue[] {
-                new DbValue(address, Columns.ADDRESS.name()),
-                new DbValue(port, Columns.PORT.name()),
-                new DbValue(isSsl, Columns.ISSSL.name()),
-                new DbValue(hostkey, Columns.HOSTKEY.name()),
-                new DbValue(adminrole, Columns.ADMINROLE.name()),
-                new DbValue(isClient, Columns.ISCLIENT.name()),
-                new DbValue(isActive, Columns.ISACTIVE.name()),
-                new DbValue(isProxified, Columns.ISPROXIFIED.name()),
-                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+                new DbValue(host.getAddress(), Columns.ADDRESS.name()),
+                new DbValue(host.getPort(), Columns.PORT.name()),
+                new DbValue(host.isSSL(), Columns.ISSSL.name()),
+                new DbValue(host.getHostkey(), Columns.HOSTKEY.name()),
+                new DbValue(host.isAdmin(), Columns.ADMINROLE.name()),
+                new DbValue(host.isClient(), Columns.ISCLIENT.name()),
+                new DbValue(host.isActive(), Columns.ISACTIVE.name()),
+                new DbValue(host.isProxified(), Columns.ISPROXIFIED.name()),
+                new DbValue(host.getUpdatedInfo().ordinal(),
+                        Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2],
                 otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
@@ -215,31 +174,31 @@ public class DbHostAuth extends AbstractDbData {
 
     @Override
     protected void setToArray() {
-        allFields[Columns.ADDRESS.ordinal()].setValue(address);
-        allFields[Columns.PORT.ordinal()].setValue(port);
-        allFields[Columns.ISSSL.ordinal()].setValue(isSsl);
-        allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
-        allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
-        allFields[Columns.ISCLIENT.ordinal()].setValue(isClient);
-        allFields[Columns.ISACTIVE.ordinal()].setValue(isActive);
-        allFields[Columns.ISPROXIFIED.ordinal()].setValue(isProxified);
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-        allFields[Columns.HOSTID.ordinal()].setValue(hostid);
+        allFields[Columns.ADDRESS.ordinal()].setValue(host.getAddress());
+        allFields[Columns.PORT.ordinal()].setValue(host.getPort());
+        allFields[Columns.ISSSL.ordinal()].setValue(host.isSSL());
+        allFields[Columns.HOSTKEY.ordinal()].setValue(host.getHostkey());
+        allFields[Columns.ADMINROLE.ordinal()].setValue(host.isAdmin());
+        allFields[Columns.ISCLIENT.ordinal()].setValue(host.isClient());
+        allFields[Columns.ISACTIVE.ordinal()].setValue(host.isActive());
+        allFields[Columns.ISPROXIFIED.ordinal()].setValue(host.isProxified());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(host.getUpdatedInfo());
+        allFields[Columns.HOSTID.ordinal()].setValue(host.getHostid());
     }
 
     @Override
     protected void setFromArray() throws WaarpDatabaseSqlException {
-        address = (String) allFields[Columns.ADDRESS.ordinal()].getValue();
-        port = (Integer) allFields[Columns.PORT.ordinal()].getValue();
-        isSsl = (Boolean) allFields[Columns.ISSSL.ordinal()].getValue();
-        hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
-        adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
-        isClient = (Boolean) allFields[Columns.ISCLIENT.ordinal()].getValue();
-        isActive = (Boolean) allFields[Columns.ISACTIVE.ordinal()].getValue();
-        isProxified = (Boolean) allFields[Columns.ISPROXIFIED.ordinal()].getValue();
-        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
-                .getValue();
-        hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
+        host.setAddress((String) allFields[Columns.ADDRESS.ordinal()].getValue());
+        host.setPort((Integer) allFields[Columns.PORT.ordinal()].getValue());
+        host.setSSL((Boolean) allFields[Columns.ISSSL.ordinal()].getValue());
+        host.setHostkey((byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue());
+        host.setAdmin((Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue());
+        host.setClient((Boolean) allFields[Columns.ISCLIENT.ordinal()].getValue());
+        host.setActive((Boolean) allFields[Columns.ISACTIVE.ordinal()].getValue());
+        host.setProxified((Boolean) allFields[Columns.ISPROXIFIED.ordinal()].getValue());
+        host.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.valueOf(
+                (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue()));
+        host.setHostid((String) allFields[Columns.HOSTID.ordinal()].getValue());
     }
 
     @Override
@@ -249,9 +208,8 @@ public class DbHostAuth extends AbstractDbData {
 
     @Override
     protected void setPrimaryKey() {
-        primaryKey[0].setValue(hostid);
+        primaryKey[0].setValue(host.getHostid());
     }
-
     /**
      * @param dbSession
      * @param hostid
@@ -262,60 +220,60 @@ public class DbHostAuth extends AbstractDbData {
      * @param adminrole
      * @param isClient
      */
-    public DbHostAuth(DbSession dbSession, String hostid, String address, int port,
+    public DbHostAuth(String hostid, String address, int port,
             boolean isSSL, byte[] hostkey, boolean adminrole, boolean isClient) {
-        super(dbSession);
-        this.hostid = hostid;
-        this.address = address;
-        this.port = port;
-        this.isSsl = isSSL;
-        if (hostkey == null) {
-            this.hostkey = null;
-        } else {
+        super(null);
+        this.host = new Host(hostid, address, port, hostkey, isSSL, isClient,
+                false, adminrole);
+        if (hostkey != null) {
             try {
                 // Save as crypted with the local Key and HEX
-                this.hostkey = Configuration.configuration.getCryptoKey().cryptToHex(hostkey)
-                        .getBytes(WaarpStringUtils.UTF8);
+                host.setHostkey(Configuration.configuration.getCryptoKey().cryptToHex(hostkey)
+                        .getBytes(WaarpStringUtils.UTF8));
             } catch (Exception e) {
-                this.hostkey = new byte[0];
+                logger.warn("Error while cyphering hostkey", e);
+                host.setHostkey(new byte[0]);
             }
         }
-        this.adminrole = adminrole;
-        this.isClient = isClient;
-        if (this.port < 0) {
-            this.isClient = true;
-            this.address = DEFAULT_CLIENT_ADDRESS;
+        if (port < 0) {
+            host.setClient(true);
+            host.setAddress(DEFAULT_CLIENT_ADDRESS);
         }
         setToArray();
         isSaved = false;
     }
 
-    public DbHostAuth(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
-        super(dbSession);
+    private DbHostAuth(Host host) {
+        super(null);
+        this.host = host;
+    }
+
+    public DbHostAuth(ObjectNode source) throws WaarpDatabaseSqlException {
+        super(null);
+        this.host = new Host();
         setFromJson(source, false);
-        setToArray();
-        isSaved = false;
     }
 
     @Override
     public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
         super.setFromJson(node, ignorePrimaryKey);
-        if (hostkey == null || hostkey.length == 0 || address == null || address.isEmpty() || hostid == null
-                || hostid.isEmpty()) {
+        if (host.getHostkey() == null || host.getHostkey() .length == 0 ||
+                host.getAddress() == null || host.getAddress().isEmpty() ||
+                host.getHostid()== null || host.getHostid().isEmpty()) {
             throw new WaarpDatabaseSqlException("Not enough argument to create the object");
         }
-        if (hostkey != null) {
+        if (host.getHostkey() != null) {
             try {
                 // Save as crypted with the local Key and Base64
-                this.hostkey = Configuration.configuration.getCryptoKey().cryptToHex(hostkey)
-                        .getBytes(WaarpStringUtils.UTF8);
+                host.setHostkey(Configuration.configuration.getCryptoKey()
+                        .cryptToHex(host.getHostkey()).getBytes(WaarpStringUtils.UTF8));
             } catch (Exception e) {
-                this.hostkey = new byte[0];
+                host.setHostkey(new byte[0]);
             }
         }
-        if (this.port < 0) {
-            this.isClient = true;
-            this.address = DEFAULT_CLIENT_ADDRESS;
+        if (host.getPort() < 0) {
+            host.setClient(true);
+            host.setAddress(DEFAULT_CLIENT_ADDRESS);
         }
     }
 
@@ -324,17 +282,22 @@ public class DbHostAuth extends AbstractDbData {
      * @param hostid
      * @throws WaarpDatabaseException
      */
-    public DbHostAuth(DbSession dbSession, String hostid) throws WaarpDatabaseException {
-        super(dbSession);
+    public DbHostAuth(String hostid) throws WaarpDatabaseException {
+        super(null);
         if (hostid == null) {
             throw new WaarpDatabaseException("No host id passed");
         }
-        this.hostid = hostid;
-        if (Configuration.configuration.getAliases().containsKey(hostid)) {
-            this.hostid = Configuration.configuration.getAliases().get(hostid);
+        HostDAO hostAccess = null;
+        try {
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            host = hostAccess.select(hostid);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
+        } finally {
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
-        // load from DB
-        select();
     }
 
     /**
@@ -344,162 +307,108 @@ public class DbHostAuth extends AbstractDbData {
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
      */
-    public static DbHostAuth[] deleteAll(DbSession dbSession) throws WaarpDatabaseException {
-        DbHostAuth[] result = getAllHosts(dbSession);
-        if (dbSession == null) {
-            dbR66HostAuthHashMap.clear();
-            return result;
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+    public static DbHostAuth[] deleteAll() throws WaarpDatabaseException {
+        HostDAO hostAccess = null;
+        List<DbHostAuth> res = new ArrayList<DbHostAuth>();
+        List<Host> hosts = null;
         try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table);
-            preparedStatement.executeUpdate();
-            return result;
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hosts = hostAccess.getAll();
+            hostAccess.deleteAll();
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
+        for (Host host : hosts) {
+            res.add(new DbHostAuth(host));
+        }
+        return (DbHostAuth[]) res.toArray();
     }
 
     @Override
     public void delete() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            dbR66HostAuthHashMap.remove(this.hostid);
-            isSaved = false;
-            return;
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+        HostDAO hostAccess = null;
         try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            }
-            isSaved = false;
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hostAccess.delete(host);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
     }
 
     @Override
     public void insert() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
-        }
-        if (dbSession == null) {
-            dbR66HostAuthHashMap.put(this.hostid, this);
-            isSaved = true;
-            return;
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+        HostDAO hostAccess = null;
         try {
-            preparedStatement.createPrepareStatement("INSERT INTO " + table +
-                    " (" + selectAllFields + ") VALUES " + insertAllValues);
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hostAccess.insert(host);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
     }
 
     @Override
     public boolean exist() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            return dbR66HostAuthHashMap.containsKey(hostid);
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+        HostDAO hostAccess = null;
         try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey[0].getColumn() + " FROM " + table + " WHERE " +
-                    getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            return preparedStatement.getNext();
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            return hostAccess.exist(host.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
     }
 
     @Override
     public void select() throws WaarpDatabaseException {
-        if (dbSession == null) {
-            DbHostAuth host = dbR66HostAuthHashMap.get(this.hostid);
-            if (host == null) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            } else {
-                // copy info
-                for (int i = 0; i < allFields.length; i++) {
-                    allFields[i].setValue(host.allFields[i].getValue());
-                }
-                setFromArray();
-                isSaved = true;
-                return;
-            }
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+        HostDAO hostAccess = null;
         try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    selectAllFields + " FROM " + table + " WHERE " +
-                    getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                getValues(preparedStatement, allFields);
-                setFromArray();
-                isSaved = true;
-            } else {
-                throw new WaarpDatabaseNoDataException("No row found");
-            }
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            host = hostAccess.select(host.getHostid());
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
     }
 
     @Override
     public void update() throws WaarpDatabaseException {
-        if (isSaved) {
-            return;
-        }
-        if (dbSession == null) {
-            dbR66HostAuthHashMap.put(this.hostid, this);
-            isSaved = true;
-            return;
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
+        HostDAO hostAccess = null;
         try {
-            preparedStatement.createPrepareStatement("UPDATE " + table +
-                    " SET " + updateAllFields + " WHERE " +
-                    getWherePrimaryKey());
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new WaarpDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hostAccess.update(host);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
     }
 
     /**
      * Private constructor for Commander only
      */
-    private DbHostAuth(DbSession session) {
-        super(session);
+    private DbHostAuth() {
+        super(null);
+        this.host = new Host();
     }
 
     /**
@@ -511,32 +420,30 @@ public class DbHostAuth extends AbstractDbData {
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-    public static DbHostAuth[] getAllHosts(DbSession dbSession)
-            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        if (dbSession == null) {
-            DbHostAuth[] result = new DbHostAuth[0];
-            return dbR66HostAuthHashMap.values().toArray(result);
-        }
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table;
-        ArrayList<DbHostAuth> dbArrayList = new ArrayList<DbHostAuth>();
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+    public static DbHostAuth[] getAllHosts()
+            throws WaarpDatabaseNoConnectionException {
+        HostDAO hostAccess = null;
+        List<DbHostAuth> res = new ArrayList<DbHostAuth>();
+        List<Host> hosts = null;
         try {
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbHostAuth hostAuth = getFromStatement(preparedStatement);
-                dbArrayList.add(hostAuth);
-            }
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hosts = hostAccess.getAll();
+        } catch (DAOException e) {
+            throw new WaarpDatabaseNoConnectionException(e);
         } finally {
-            preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
-        DbHostAuth[] result = new DbHostAuth[0];
-        return dbArrayList.toArray(result);
+        for (Host host : hosts) {
+            res.add(new DbHostAuth(host));
+        }
+        return (DbHostAuth[]) res.toArray();
     }
 
     /**
      * For instance from Commander when getting updated information
-     * 
+     *
      * @param preparedStatement
      * @return the next updated DbHostAuth
      * @throws WaarpDatabaseNoConnectionException
@@ -544,31 +451,37 @@ public class DbHostAuth extends AbstractDbData {
      */
     public static DbHostAuth getFromStatement(DbPreparedStatement preparedStatement)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        DbHostAuth dbHostAuth = new DbHostAuth(preparedStatement.getDbSession());
+        DbHostAuth dbHostAuth = new DbHostAuth();
         dbHostAuth.getValues(preparedStatement, dbHostAuth.allFields);
         dbHostAuth.setFromArray();
         dbHostAuth.isSaved = true;
         return dbHostAuth;
     }
 
-    /**
-     * 
-     * @return the DbPreparedStatement for getting Updated Object
-     * @throws WaarpDatabaseNoConnectionException
-     * @throws WaarpDatabaseSqlException
-     */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
-            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table +
-                " WHERE " + Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
-        DbPreparedStatement prep = new DbPreparedStatement(session, request);
-        return prep;
+    public static DbHostAuth[] getUpdatedPreparedStatement()
+            throws WaarpDatabaseNoConnectionException {
+        List<Filter> filters = new ArrayList<Filter>(1);
+        filters.add(new Filter(DBHostDAO.UPDATED_INFO_FIELD, "=",
+                org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(UpdatedInfo.TOSUBMIT).ordinal()));
+        HostDAO hostAccess = null;
+        List<Host> hosts;
+        try {
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            hosts = hostAccess.find(filters);
+        } catch (DAOException e) {
+            throw new WaarpDatabaseNoConnectionException(e);
+        }
+        DbHostAuth[] res = new DbHostAuth[hosts.size()];
+        int i = 0;
+        for (Host host : hosts) {
+            res[i] = new DbHostAuth(host);
+            i++;
+        }
+        return res;
     }
 
     /**
-     * 
+     *
      * @param session
      * @param host
      * @param addr
@@ -579,7 +492,7 @@ public class DbHostAuth extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
-            String host, String addr, boolean ssl, boolean active)
+                String host, String addr, boolean ssl, boolean active)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table + " WHERE ";
@@ -615,7 +528,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param host
      * @param addr
@@ -624,7 +537,7 @@ public class DbHostAuth extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
-            String host, String addr)
+                                                              String host, String addr)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
@@ -652,48 +565,35 @@ public class DbHostAuth extends AbstractDbData {
 
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
-        if (updatedInfo != info.ordinal()) {
-            updatedInfo = info.ordinal();
-            allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-            isSaved = false;
-        }
+        host.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(info));
     }
 
     /**
      * @return the isActive
      */
     public boolean isActive() {
-        return isActive;
+        return host.isActive();
     }
 
     /**
-     * @param isActive
-     *            the isActive to set
+     * @param isActive the isActive to set
      */
     public void setActive(boolean isActive) {
-        this.isActive = isActive;
-        allFields[Columns.ISACTIVE.ordinal()].setValue(this.isActive);
-        isSaved = false;
+        host.setActive(isActive);
     }
 
     /**
      * @return the isProxified
      */
     public boolean isProxified() {
-        return isProxified;
+        return host.isProxified();
     }
 
     /**
-     * @param isProxified
-     *            the isProxified to set
+     * @param isProxified the isProxified to set
      */
     public void setProxified(boolean isProxified) {
-        this.isProxified = isProxified;
-        allFields[Columns.ISPROXIFIED.ordinal()].setValue(this.isProxified);
-        isSaved = false;
-        if (this.isProxified) {
-            Configuration.configuration.setBlacklistBadAuthent(false);
-        }
+        host.setProxified(isProxified);
     }
 
     /**
@@ -704,16 +604,16 @@ public class DbHostAuth extends AbstractDbData {
      */
     public boolean isKeyValid(byte[] newkey) {
         // It is valid to not have a key
-        if (this.hostkey == null) {
+        // Check before if any key is passed or if account is active
+        if (host.getHostkey() == null) {
             return true;
         }
-        // Check before if any key is passed or if account is active
-        if (newkey == null || !isActive) {
+        if (newkey == null || !isActive()) {
             return false;
         }
         try {
             return FilesystemBasedDigest.equalPasswd(
-                    Configuration.configuration.getCryptoKey().decryptHexInBytes(this.hostkey),
+                    Configuration.configuration.getCryptoKey().decryptHexInBytes(host.getHostkey()),
                     newkey);
         } catch (Exception e) {
             logger.debug("Error while checking key", e);
@@ -725,12 +625,13 @@ public class DbHostAuth extends AbstractDbData {
      * @return the hostkey
      */
     public byte[] getHostkey() {
-        if (hostkey == null) {
+        if (host.getHostkey() == null) {
             return null;
         }
         try {
-            return Configuration.configuration.getCryptoKey().decryptHexInBytes(hostkey);
+            return Configuration.configuration.getCryptoKey().decryptHexInBytes(host.getHostkey());
         } catch (Exception e) {
+            logger.debug("Error while checking key", e);
             return new byte[0];
         }
     }
@@ -739,7 +640,7 @@ public class DbHostAuth extends AbstractDbData {
      * @return the adminrole
      */
     public boolean isAdminrole() {
-        return adminrole;
+        return host.isAdmin();
     }
 
     /**
@@ -748,7 +649,7 @@ public class DbHostAuth extends AbstractDbData {
      * @return True if the address is a client address (0.0.0.0) or isClient
      */
     public boolean isClient() {
-        return isClient || isNoAddress();
+        return host.isClient() || isNoAddress();
     }
 
     /**
@@ -757,7 +658,8 @@ public class DbHostAuth extends AbstractDbData {
      * @return True if the address is a client address (0.0.0.0) or if the port is < 0
      */
     public boolean isNoAddress() {
-        return (this.address.equals(DEFAULT_CLIENT_ADDRESS) || this.port < 0);
+        return (host.getAddress().equals(DEFAULT_CLIENT_ADDRESS)
+                || host.getPort() < 0);
     }
 
     /**
@@ -770,7 +672,7 @@ public class DbHostAuth extends AbstractDbData {
         if (isNoAddress()) {
             throw new IllegalArgumentException("Not a server");
         }
-        return new InetSocketAddress(this.address, this.port);
+        return new InetSocketAddress(host.getAddress(), host.getPort());
     }
 
     /**
@@ -778,28 +680,28 @@ public class DbHostAuth extends AbstractDbData {
      * @return True if this Host ref is with SSL support
      */
     public boolean isSsl() {
-        return this.isSsl;
+        return host.isSSL();
     }
 
     /**
      * @return the hostid
      */
     public String getHostid() {
-        return hostid;
+        return host.getHostid();
     }
 
     /**
      * @return the address
      */
     public String getAddress() {
-        return address;
+        return host.getAddress();
     }
 
     /**
      * @return the port
      */
     public int getPort() {
-        return port;
+        return host.getPort();
     }
 
     private static String getVersion(String host) {
@@ -839,11 +741,13 @@ public class DbHostAuth extends AbstractDbData {
     @Override
     public String toString() {
         //System.err.println(hostid+" Version: "+Configuration.configuration.versions.get(hostid)+":"+Configuration.configuration.versions.containsKey(hostid));
-        return "HostAuth: " + hostid + " address: " + address + ":" + port + " isSSL: " + isSsl +
-                " admin: " + adminrole + " isClient: " + isClient + " isActive: " + isActive
-                + " isProxified: " + isProxified + " ("
-                + (hostkey != null ? hostkey.length : 0) + ") Version: "
-                + getVersion(hostid);
+        return "HostAuth: " + getHostid()
+                + " address: " + getAddress() + ":" + getPort()
+                + " isSSL: " + isSsl() + " admin: " + isAdminrole()
+                + " isClient: " + isClient() + " isActive: " + isActive()
+                + " isProxified: " + isProxified() + " ("
+                + (host.getHostkey() != null ? host.getHostkey().length : 0)
+                + ") Version: " + getVersion(getHostid());
     }
 
     /**
@@ -877,11 +781,12 @@ public class DbHostAuth extends AbstractDbData {
         }
         return JsonHandler.writeAsString(arrayNode);
     }
+
     private ObjectNode getInternalJson() {
         ObjectNode node = getJson();
         try {
             node.put(Columns.HOSTKEY.name(), Configuration.configuration.getCryptoKey().decryptHexInString(
-                    new String(hostkey, WaarpStringUtils.UTF8)));
+                    new String(getHostkey(), WaarpStringUtils.UTF8)));
         } catch (Exception e1) {
             node.put(Columns.HOSTKEY.name(), "");
         }
@@ -891,10 +796,13 @@ public class DbHostAuth extends AbstractDbData {
         } catch (Exception e) {
             nb = -1;
         }
-        node.put("Connection", nb); 
-        node.put("Version", getVersion(hostid).replace("\"", "").replace(",", ", "));
+        node.put("Connection", nb);
+        node.put("Version", getVersion(getHostid())
+                .replace("\"", "")
+                .replace(",", ", "));
         return node;
     }
+
     /**
      * 
      * @return the Json string for this
@@ -912,26 +820,27 @@ public class DbHostAuth extends AbstractDbData {
      */
     public String toSpecializedHtml(R66Session session, String body, boolean crypted) {
         StringBuilder builder = new StringBuilder(body);
-        WaarpStringUtils.replace(builder, "XXXHOSTXXX", hostid);
-        WaarpStringUtils.replace(builder, "XXXADDRXXX", address);
-        WaarpStringUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
+        WaarpStringUtils.replace(builder, "XXXHOSTXXX", getHostid());
+        WaarpStringUtils.replace(builder, "XXXADDRXXX", getAddress());
+        WaarpStringUtils.replace(builder, "XXXPORTXXX", Integer.toString(getPort()));
         if (crypted) {
-            WaarpStringUtils.replace(builder, "XXXKEYXXX", new String(hostkey, WaarpStringUtils.UTF8));
+            WaarpStringUtils.replace(builder, "XXXKEYXXX", new String(getHostkey(), WaarpStringUtils.UTF8));
         } else {
             try {
                 WaarpStringUtils.replace(builder, "XXXKEYXXX",
                         Configuration.configuration.getCryptoKey().decryptHexInString(new String(
-                                this.hostkey, WaarpStringUtils.UTF8)));
+                                this.getHostkey(), WaarpStringUtils.UTF8)));
             } catch (Exception e) {
                 WaarpStringUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
             }
         }
-        WaarpStringUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked" : "");
-        WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
-        WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
-        WaarpStringUtils.replace(builder, "XXXISAXXX", isActive ? "checked" : "");
-        WaarpStringUtils.replace(builder, "XXXISPXXX", isProxified ? "checked" : "");
-        WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
+        WaarpStringUtils.replace(builder, "XXXSSLXXX", isSsl() ? "checked" : "");
+        WaarpStringUtils.replace(builder, "XXXADMXXX", isAdminrole() ? "checked" : "");
+        WaarpStringUtils.replace(builder, "XXXISCXXX", isClient() ? "checked" : "");
+        WaarpStringUtils.replace(builder, "XXXISAXXX", isActive() ? "checked" : "");
+        WaarpStringUtils.replace(builder, "XXXISPXXX", isProxified() ? "checked" : "");
+        WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(getHostid())
+                .replace(",", ", "));
         int nb = 0;
         try {
             nb = NetworkTransaction.nbAttachedConnection(getSocketAddress(), getHostid());
@@ -948,35 +857,22 @@ public class DbHostAuth extends AbstractDbData {
      * @param session
      * @return True if any of the server has the isProxified property
      */
-    public static boolean hasProxifiedHosts(DbSession session) {
-        if (session == null) {
-            for (DbHostAuth host : dbR66HostAuthHashMap.values()) {
-                if (host.isProxified) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        DbPreparedStatement preparedStatement = null;
-        int val = 0;
+    public static boolean hasProxifiedHosts() {
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new Filter(DBHostDAO.IS_PROXIFIED_FIELD, "=", true));
+
+        HostDAO hostAccess = null;
         try {
-            preparedStatement = new DbPreparedStatement(session,
-                    "SELECT count(*) FROM " + table + " WHERE " + Columns.ISPROXIFIED + " = " + true);
-            preparedStatement.executeQuery();
-            preparedStatement.getNext();
-            val = preparedStatement.getResultSet().getInt(1);
-        } catch (WaarpDatabaseNoConnectionException e) {
-            return false;
-        } catch (WaarpDatabaseSqlException e) {
-            return false;
-        } catch (SQLException e) {
+            hostAccess = DAOFactory.getInstance().getHostDAO();
+            return hostAccess.find(filters).size() > 0;
+        } catch (DAOException e) {
+            logger.error("DAO Access error", e);
             return false;
         } finally {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
+            if (hostAccess != null) {
+                hostAccess.close();
             }
         }
-        return val > 0;
     }
 
     /**
@@ -984,7 +880,7 @@ public class DbHostAuth extends AbstractDbData {
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {
-        DbHostAuth item = new DbHostAuth(null);
+        DbHostAuth item = new DbHostAuth();
         return item.allFields;
     }
 }

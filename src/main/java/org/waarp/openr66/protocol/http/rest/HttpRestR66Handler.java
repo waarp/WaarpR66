@@ -268,7 +268,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
             }
             DbHostAuth host;
             try {
-                host = new DbHostAuth(DbConstant.admin.getSession(), user);
+                host = new DbHostAuth(user);
                 key = new String(host.getHostkey(), WaarpStringUtils.UTF8);
             } catch (WaarpDatabaseException e) {
                 // might be global Admin

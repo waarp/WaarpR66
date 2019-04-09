@@ -255,8 +255,7 @@ public class AuthenticationFileBasedConfiguration {
             if (value != null && (!value.isEmpty())) {
                 isProxified = value.getBoolean();
             }
-            DbHostAuth auth = new DbHostAuth(DbConstant.admin.getSession(),
-                    refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
+            DbHostAuth auth = new DbHostAuth(refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
             auth.setActive(isActive);
             auth.setProxified(isProxified);
             try {
@@ -303,7 +302,7 @@ public class AuthenticationFileBasedConfiguration {
             WaarpDatabaseSqlException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
-        DbHostAuth[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.getSession());
+        DbHostAuth[] hosts = DbHostAuth.getAllHosts();
         logger.debug("Will write DbHostAuth: " + hosts.length + " in " + filename);
         for (DbHostAuth auth : hosts) {
             logger.debug("Will write DbHostAuth: " + auth.getHostid());

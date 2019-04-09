@@ -341,7 +341,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
         if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
             DbHostConfiguration dbhc;
             try {
-                dbhc = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
+                dbhc = new DbHostConfiguration(Configuration.configuration.getHOST_ID());
             } catch (WaarpDatabaseException e) {
                 return null;
             }
@@ -629,7 +629,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 }
                 DbTaskRunner taskRunner = null;
                 try {
-                    taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
+                    taskRunner = new DbTaskRunner(authentHttp, null,
                             lspecid, reqr, reqd);
                 } catch (WaarpDatabaseException e) {
                 }
@@ -697,7 +697,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 DbTaskRunner taskRunner;
                 String comment = "";
                 try {
-                    taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
+                    taskRunner = new DbTaskRunner(authentHttp, null,
                             lspecid, reqr, reqd);
                     LocalChannelReference lcr =
                             Configuration.configuration.getLocalTransaction().
@@ -773,7 +773,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
         boolean isexported = true;
         // clean a bit the database before exporting
         try {
-            DbTaskRunner.changeFinishedToDone(dbSession);
+            DbTaskRunner.changeFinishedToDone();
         } catch (WaarpDatabaseNoConnectionException e2) {
             // should not be
         }
@@ -926,7 +926,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                     head = setDbHostAuthJsonData(head, errorText, null, null, ssl, true);
                     return head.replace(XXXRESULTXXX, errorText).replace(XXXDATAJSONXXX, "[]");
                 }
-                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                DbHostAuth dbhost = new DbHostAuth(host, addr, iport,
                         ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
                 dbhost.setActive(isactive);
                 dbhost.setProxified(isproxified);
@@ -976,7 +976,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                     head = setDbHostAuthJsonData(head, errorText, host, addr, ssl, isactive);
                     return head.replace(XXXRESULTXXX, errorText).replace(XXXDATAJSONXXX, "[]");
                 }
-                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                DbHostAuth dbhost = new DbHostAuth(host, addr, iport,
                         ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
                 dbhost.setActive(isactive);
                 dbhost.setProxified(isproxified);
@@ -1006,7 +1006,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 }
                 DbHostAuth dbhost;
                 try {
-                    dbhost = new DbHostAuth(dbSession, host);
+                    dbhost = new DbHostAuth(host);
                 } catch (WaarpDatabaseException e) {
                     errorText = Messages.getString("HttpSslHandler.17") + e.getMessage() + "</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false, true);
@@ -1041,7 +1041,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 }
                 DbHostAuth dbhost;
                 try {
-                    dbhost = new DbHostAuth(dbSession, host);
+                    dbhost = new DbHostAuth(host);
                 } catch (WaarpDatabaseException e) {
                     errorText = Messages.getString("HttpSslHandler.17") + e.getMessage() + "</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false, true);
@@ -1068,7 +1068,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 }
                 DbHostAuth dbhost;
                 try {
-                    dbhost = new DbHostAuth(dbSession, host);
+                    dbhost = new DbHostAuth(host);
                 } catch (WaarpDatabaseException e) {
                     errorText = Messages.getString("HttpSslHandler.24") + e.getMessage() + "</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false, true);
@@ -1261,7 +1261,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 logger.debug("Recv UpdOrInsert: " + rule + ":" + hostids + ":" + tmode.ordinal() + ":" +
                         recvp + ":" + sendp + ":" + archp + ":" + workp + ":" + rpre + ":" + rpost + ":" + rerr + ":"
                         + spre + ":" + spost + ":" + serr);
-                DbRule dbrule = new DbRule(dbSession, rule, hostids, tmode.ordinal(),
+                DbRule dbrule = new DbRule(rule, hostids, tmode.ordinal(),
                         recvp, sendp, archp, workp, rpre, rpost, rerr, spre, spost, serr);
                 try {
                     if ("Create".equalsIgnoreCase(parm)) {
@@ -1412,7 +1412,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 }
                 DbRule dbrule;
                 try {
-                    dbrule = new DbRule(dbSession, rule);
+                    dbrule = new DbRule(rule);
                 } catch (WaarpDatabaseException e) {
                     errorText = Messages.getString("HttpSslHandler.30") + e.getMessage() //$NON-NLS-1$
                             + "</b></center></p>";
@@ -1534,9 +1534,9 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
         getParams();
         DbHostConfiguration config = null;
         try {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
+            config = new DbHostConfiguration(Configuration.configuration.getHOST_ID());
         } catch (WaarpDatabaseException e2) {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID(), "", "", "", "");
+            config = new DbHostConfiguration(Configuration.configuration.getHOST_ID(), "", "", "", "");
             try {
                 config.insert();
             } catch (WaarpDatabaseException e) {
@@ -1653,12 +1653,11 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
     private void fillHostIds(StringBuilder builder) {
         ArrayList<String> hostsList = new ArrayList<String>();
         try {
-            DbHostAuth [] hosts = DbHostAuth.getAllHosts(dbSession);
+            DbHostAuth [] hosts = DbHostAuth.getAllHosts();
             for (DbHostAuth dbHostAuth : hosts) {
                 hostsList.add(dbHostAuth.getHostid());
             }
         } catch (WaarpDatabaseNoConnectionException e1) {
-        } catch (WaarpDatabaseSqlException e1) {
         }
         StringBuilder hostsBuilder = new StringBuilder();
         for (String string : hostsList) {
@@ -1674,9 +1673,9 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
         getParams();
         DbHostConfiguration config = null;
         try {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID());
+            config = new DbHostConfiguration(Configuration.configuration.getHOST_ID());
         } catch (WaarpDatabaseException e2) {
-            config = new DbHostConfiguration(dbSession, Configuration.configuration.getHOST_ID(), "", "", "", "");
+            config = new DbHostConfiguration(Configuration.configuration.getHOST_ID(), "", "", "", "");
             try {
                 config.insert();
             } catch (WaarpDatabaseException e) {
@@ -1925,9 +1924,6 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
             if (lsession != null) {
                 lsession.setStatus(75);
                 lsession.clear();
-            }
-            if (ldbsession != null) {
-                ldbsession.forceDisconnect();
                 DbAdmin.decHttpSession();
             }
         }
