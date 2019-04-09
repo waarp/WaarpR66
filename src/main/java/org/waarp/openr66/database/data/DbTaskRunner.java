@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -87,9 +87,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbTaskRunner extends AbstractDbData {
     public static final String JSON_ORIGINALSIZE = "ORIGINALSIZE";
@@ -112,7 +112,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Create the LRU cache
-     * 
+     *
      * @param limit
      *            limit of number of entries in the cache
      * @param ttl
@@ -128,7 +128,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To enable clear of oldest entries in the cache
-     * 
+     *
      * @return the number of elements removed
      */
     public static int clearCache() {
@@ -137,7 +137,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To update the TTL for the cache (to 10xTIMEOUT)
-     * 
+     *
      * @param ttl
      */
     public static void updateLruCacheTimeout(long ttl) {
@@ -470,7 +470,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return The Where condition on Primary Key
      */
     protected String getWherePrimaryKey() {
@@ -491,13 +491,13 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param requestPacket
      * @return The associated requested Host Id
      */
     public static String getRequested(R66Session session,
-            RequestPacket requestPacket) {
+                                      RequestPacket requestPacket) {
         if (requestPacket.isToValidate()) {
             // the request is initiated and sent by the requester
             try {
@@ -513,13 +513,13 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param requestPacket
      * @return The associated requester Host Id
      */
     public static String getRequester(R66Session session,
-            RequestPacket requestPacket) {
+                                      RequestPacket requestPacket) {
         if (requestPacket.isToValidate()) {
             return session.getAuth().getUser();
         } else {
@@ -557,7 +557,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Constructor for submission (no transfer session), from database. It is created, so with a new
      * specialId if necessary
-     * 
+     *
      * @param dbSession
      * @param rule
      * @param isSender
@@ -567,7 +567,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, DbRule rule, boolean isSender,
-            RequestPacket requestPacket, String requested, Timestamp startTime)
+                        RequestPacket requestPacket, String requested, Timestamp startTime)
             throws WaarpDatabaseException {
         super(dbSession);
         this.session = null;
@@ -619,7 +619,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Constructor from a request with a valid Special Id to be inserted into database
-     * 
+     *
      * @param dbSession
      * @param session
      * @param rule
@@ -628,7 +628,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-            boolean isSender, RequestPacket requestPacket)
+                        boolean isSender, RequestPacket requestPacket)
             throws WaarpDatabaseException {
         super(dbSession);
         this.session = session;
@@ -672,7 +672,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Constructor from a request with a valid Special Id so loaded from database
-     * 
+     *
      * @param dbSession
      * @param session
      * @param rule
@@ -682,7 +682,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-            long id, String requester, String requested)
+                        long id, String requester, String requested)
             throws WaarpDatabaseException {
         super(dbSession);
         this.session = session;
@@ -712,7 +712,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Minimal constructor from database
-     * 
+     *
      * @param dbSession
      * @param id
      * @param requester
@@ -736,7 +736,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Minimal constructor from database
-     * 
+     *
      * @param dbSession
      * @param id
      * @param requester
@@ -764,7 +764,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To create a new DbTaskRunner (specialId could be invalid) without making any entry in the database
-     * 
+     *
      * @param dbSession
      * @param source
      * @throws WaarpDatabaseException
@@ -919,9 +919,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Constructor to initiate a request with a valid previous Special Id so loaded from database.
-     * 
+     *
      * This object cannot be used except to retrieve information.
-     * 
+     *
      * @param dbSession
      * @param id
      * @param requested
@@ -945,7 +945,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the condition to limit access to the row concerned by the Host
      */
     private static String getLimitWhereCondition() {
@@ -980,7 +980,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To allow to remove specifically one SpecialId from MemoryHashmap
-     * 
+     *
      * @param specialId
      */
     public static final void removeNoDbSpecialId(long specialId) {
@@ -989,7 +989,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To update the usage TTL of the associated object
-     * 
+     *
      * @param specialId
      */
     public static final void updateUsed(long specialId) {
@@ -1066,7 +1066,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * As insert but with the ability to change the SpecialId
-     * 
+     *
      * @throws WaarpDatabaseException
      */
     public void create() throws WaarpDatabaseException {
@@ -1177,7 +1177,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Shall be called to ensure that item is really available in database
-     * 
+     *
      * @return True iff the element exists in a database (and reloaded then from Database)
      * @throws WaarpDatabaseException
      */
@@ -1333,7 +1333,7 @@ public class DbTaskRunner extends AbstractDbData {
         } else {
             if (globalstep != TASKSTEP.TRANSFERTASK.ordinal() ||
                     (globalstep == TASKSTEP.TRANSFERTASK.ordinal() &&
-                    (rank % 100 == 0))) {
+                            (rank % 100 == 0))) {
                 if (Configuration.configuration.getR66Mib() != null) {
                     Configuration.configuration.getR66Mib().notifyTask(
                             "Task is currently " + UpdatedInfo.values()[updatedInfo].name(), this);
@@ -1354,7 +1354,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Update Runner using special PreparedStatement
-     * 
+     *
      * @throws WaarpDatabaseException
      */
     protected void optimizedUpdate() throws WaarpDatabaseException {
@@ -1389,7 +1389,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Special method used to force insert in case of SelfSubmit
-     * 
+     *
      * @throws WaarpDatabaseException
      */
     public boolean specialSubmit() throws WaarpDatabaseException {
@@ -1413,7 +1413,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Partial set from another runner (infostatus, rank, status, step, stop, filename,
      * globallastep, globalstep, isFileMoved)
-     * 
+     *
      * @param runner
      */
     public void setFrom(DbTaskRunner runner) {
@@ -1440,7 +1440,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Private constructor for Commander only
-     * 
+     *
      * @param dbSession
      */
     private DbTaskRunner(DbSession dbSession) {
@@ -1451,7 +1451,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set a localChannelReference
-     * 
+     *
      * @param localChannelReference
      */
     public void setLocalChannelReference(LocalChannelReference localChannelReference) {
@@ -1467,7 +1467,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * For instance from Commander when getting updated information
-     * 
+     *
      * @param preparedStatement
      * @return the next updated DbTaskRunner
      * @throws WaarpDatabaseNoConnectionException
@@ -1495,7 +1495,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * For REST interface, to prevent DbRule issue
-     * 
+     *
      * @param preparedStatement
      * @return the next updated DbTaskRunner
      * @throws WaarpDatabaseNoConnectionException
@@ -1558,7 +1558,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getStepPrepareStatement(DbSession session,
-            TASKSTEP globalstep, int limit) throws WaarpDatabaseNoConnectionException,
+                                                              TASKSTEP globalstep, int limit) throws WaarpDatabaseNoConnectionException,
             WaarpDatabaseSqlException {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (globalstep != null) {
@@ -1580,7 +1580,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param preparedStatement
      * @param srcrequest
      * @param limit
@@ -1766,7 +1766,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param limit
      * @param orderBySpecialId
@@ -1797,7 +1797,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param limit
      * @param orderBySpecialId
@@ -1851,7 +1851,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param info
      * @param orderByStart
@@ -1862,7 +1862,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getSelectFromInfoPrepareStatement(DbSession session,
-            UpdatedInfo info, boolean orderByStart, int limit)
+                                                                        UpdatedInfo info, boolean orderByStart, int limit)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         String request = "SELECT " + selectAllFields +
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
@@ -1878,7 +1878,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @return the DbPreparedStatement for getting Updated Object
      * @throws WaarpDatabaseNoConnectionException
@@ -1896,14 +1896,14 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param pstt
      * @param info
      * @param time
      * @return the number of elements (COUNT) from the statement
      */
     public static long getResultCountPrepareStatement(DbPreparedStatement pstt, UpdatedInfo info,
-            long time) {
+                                                      long time) {
         long result = 0;
         try {
             finishSelectOrCountPrepareStatement(pstt, time);
@@ -1929,7 +1929,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getCountStepPrepareStatement(DbSession session,
-            TASKSTEP globalstep) throws WaarpDatabaseNoConnectionException,
+                                                                   TASKSTEP globalstep) throws WaarpDatabaseNoConnectionException,
             WaarpDatabaseSqlException {
         String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
         if (globalstep != null) {
@@ -1963,14 +1963,14 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param pstt
      * @param error
      * @param time
      * @return the number of elements (COUNT) from the statement
      */
     public static long getResultCountPrepareStatement(DbPreparedStatement pstt, ErrorCode error,
-            long time) {
+                                                      long time) {
         long result = 0;
         try {
             finishSelectOrCountPrepareStatement(pstt, time);
@@ -1990,7 +1990,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Only running transfers
-     * 
+     *
      * @param session
      * @param status
      * @return the DbPreparedStatement for getting Runner according to status ordered by start
@@ -2016,7 +2016,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Running or not transfers are concerned
-     * 
+     *
      * @param session
      * @param in
      *            True for Incoming, False for Outgoing
@@ -2054,7 +2054,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Running or not transfers are concerned
-     * 
+     *
      * @param session
      * @param in
      *            True for Incoming, False for Outgoing
@@ -2095,7 +2095,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param pstt
      * @return the number of elements (COUNT) from the statement
      */
@@ -2117,7 +2117,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the current time in the given updatedPreparedStatement
-     * 
+     *
      * @param pstt
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -2129,7 +2129,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the current time in the given updatedPreparedStatement
-     * 
+     *
      * @param pstt
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -2146,7 +2146,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param start
      * @param stop
@@ -2155,7 +2155,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static DbPreparedStatement getLogPrepareStatement(DbSession session,
-            Timestamp start, Timestamp stop)
+                                                             Timestamp start, Timestamp stop)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
@@ -2203,7 +2203,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * purge in same interval all runners with globallaststep as ALLDONETASK or UpdatedInfo as Done
-     * 
+     *
      * @param session
      * @param start
      * @param stop
@@ -2212,7 +2212,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public static int purgeLogPrepareStatement(DbSession session,
-            Timestamp start, Timestamp stop)
+                                               Timestamp start, Timestamp stop)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table + " WHERE (" +
@@ -2261,7 +2261,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param startid
      * @param stopid
@@ -2325,7 +2325,7 @@ public class DbTaskRunner extends AbstractDbData {
      * Change RUNNING, INTERRUPTED to TOSUBMIT TaskRunner from database. This method is to be used
      * when the commander is starting the very first time, in order to be ready to rerun tasks that
      * are pending.
-     * 
+     *
      * @param session
      * @throws WaarpDatabaseNoConnectionException
      */
@@ -2359,7 +2359,7 @@ public class DbTaskRunner extends AbstractDbData {
      * Change CompleteOk+ALLDONETASK to Updated = DONE TaskRunner from database. This method is a
      * clean function to be used for instance before log export or at the very beginning of the
      * commander.
-     * 
+     *
      * @param session
      * @throws WaarpDatabaseNoConnectionException
      */
@@ -2395,7 +2395,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Reset the runner (ready to be run again)
-     * 
+     *
      * @return True if OK, False if already finished
      */
     public boolean reset() {
@@ -2462,7 +2462,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Make this Runner ready for restart
-     * 
+     *
      * @param submit
      *            True to resubmit this task, else False to keep it as running (only reset)
      * @return True if OK or False if Already finished or if submitted and the request is a
@@ -2502,7 +2502,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Stop or Cancel a Runner from database point of view
-     * 
+     *
      * @param code
      * @return True if correctly stopped or canceled
      */
@@ -2536,7 +2536,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the ErrorCode for the InfoStatus
-     * 
+     *
      * @param code
      */
     public void setErrorExecutionStatus(ErrorCode code) {
@@ -2548,7 +2548,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return The current UpdatedInfo value
      */
     public UpdatedInfo getUpdatedInfo() {
@@ -2556,7 +2556,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the error code associated with the Updated Info
      */
     public ErrorCode getErrorInfo() {
@@ -2586,7 +2586,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To set the rank at startup of the request if the request specify a specific rank
-     * 
+     *
      * @param rank
      *            the rank to set
      */
@@ -2647,7 +2647,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Change the status from Task Execution
-     * 
+     *
      * @param status
      */
     public void setExecutionStatus(ErrorCode status) {
@@ -2706,7 +2706,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the Map<String, Object> for the content of the transferInformation
      */
     public Map<String, Object> getTransferMap() {
@@ -2714,7 +2714,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param map
      *            the Map to set as XML string to transferInformation
      */
@@ -2723,7 +2723,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param size the new size value to set in TransferMap
      */
     private void setOriginalSizeTransferMap(long size) {
@@ -2732,7 +2732,7 @@ public class DbTaskRunner extends AbstractDbData {
         setTransferMap(map);
     }
     /**
-     * 
+     *
      * @return the size set in TransferMap
      */
     private long getOriginalSizeTransferMap() {
@@ -2748,7 +2748,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
     /**
      * Set a new File information for this transfer
-     * 
+     *
      * @param newFileInformation
      */
     public void setFileInformation(String newFileInformation) {
@@ -2814,7 +2814,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this runner is ready for transfer or post operation
      */
     public boolean ready() {
@@ -2822,7 +2822,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the runner is currently in transfer
      */
     public boolean isInTransfer() {
@@ -2830,7 +2830,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this runner is finished, either in success or in error
      */
     public boolean isFinished() {
@@ -2838,7 +2838,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this runner is in error and no more running
      */
     public boolean isInError() {
@@ -2846,7 +2846,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the runner is finished in success
      */
     public boolean isAllDone() {
@@ -2855,7 +2855,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To be called before executing Pre execution
-     * 
+     *
      * @return True if the task is going to run PRE task from the first action
      */
     public boolean isPreTaskStarting() {
@@ -2868,7 +2868,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the Initial Task step (before Pre task)
-     * 
+     *
      */
     public void setInitialTask() {
         globalstep = TASKSTEP.NOTASK.ordinal();
@@ -2886,7 +2886,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set Pre Task step
-     * 
+     *
      */
     public void setPreTask() {
         globalstep = TASKSTEP.PRETASK.ordinal();
@@ -2908,7 +2908,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set Transfer rank
-     * 
+     *
      * @param rank
      */
     public void setTransferTask(int rank) {
@@ -2928,7 +2928,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the status of the transfer
-     * 
+     *
      * @param code
      *            TransferOk if success
      * @return the current rank of transfer
@@ -2956,7 +2956,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the transfer is valid to continue
      */
     public boolean continueTransfer() {
@@ -2965,7 +2965,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the Post Task step
-     * 
+     *
      */
     public void setPostTask() {
         globalstep = TASKSTEP.POSTTASK.ordinal();
@@ -2986,7 +2986,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the Error Task step
-     * 
+     *
      * @param localChannelReference
      *            (to get session)
      */
@@ -3027,7 +3027,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Run the task from the given task information (from rule)
-     * 
+     *
      * @param tasks
      * @return The future of the operation (in success or not)
      * @throws OpenR66RunnerEndTasksException
@@ -3039,7 +3039,7 @@ public class DbTaskRunner extends AbstractDbData {
                 + (session == null ? "norunner" : (this.session.getRunner() == null)) + ":"
                 + this.toLogRunStep() + ":" + step + ":" + (tasks == null ? "null" : tasks.length)
                 + " Sender: " + this.isSender + " " + this.rule.printTasks(isSender,
-                        TASKSTEP.values()[globalstep]));
+                TASKSTEP.values()[globalstep]));
         if (tasks == null) {
             throw new OpenR66RunnerEndTasksException("No tasks!");
         }
@@ -3079,7 +3079,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param task
      * @param tempSession
      * @return the corresponding AbstractTask
@@ -3099,7 +3099,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the future of the task run
      * @throws OpenR66RunnerEndTasksException
      * @throws OpenR66RunnerErrorException
@@ -3121,7 +3121,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
                 + this.rule.printTasks(isSender,
-                        TASKSTEP.values()[globalstep]));
+                TASKSTEP.values()[globalstep]));
         switch (TASKSTEP.values()[globalstep]) {
             case PRETASK:
                 try {
@@ -3169,14 +3169,14 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Run all task from current status (globalstep and step)
-     * 
+     *
      * @throws OpenR66RunnerErrorException
      */
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
         logger.debug(this.toLogRunStep() + " Status: " + status + " Sender: " + this.isSender
                 + " " + this.rule.printTasks(isSender,
-                        TASKSTEP.values()[globalstep]));
+                TASKSTEP.values()[globalstep]));
         if (status != ErrorCode.Running) {
             throw new OpenR66RunnerErrorException(
                     "Current global STEP not ready to run: " + this.toString());
@@ -3232,7 +3232,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Once the transfer is over, finalize the Runner by running the error or post operation
      * according to the status.
-     * 
+     *
      * @param localChannelReference
      * @param file
      * @param finalValue
@@ -3241,7 +3241,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66ProtocolSystemException
      */
     public void finalizeTransfer(LocalChannelReference localChannelReference, R66File file,
-            R66Result finalValue, boolean status)
+                                 R66Result finalValue, boolean status)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
         logger.debug("status: " + status + ":" + finalValue);
 
@@ -3270,7 +3270,7 @@ public class DbTaskRunner extends AbstractDbData {
                 if (!isRecvThrough()) {
                     if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
                             (this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
-                            poststep == 0)) {
+                                    poststep == 0)) {
                         // Result file moves
                         String finalpath = R66Dir.getFinalUniqueFilename(file);
                         logger.debug("Will move file {}", finalpath);
@@ -3416,14 +3416,14 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Finalize a transfer in error
-     * 
+     *
      * @param finalValue
      * @param file
      * @param localChannelReference
      * @throws OpenR66RunnerErrorException
      */
     private void errorTransfer(R66Result finalValue, R66File file,
-            LocalChannelReference localChannelReference) throws OpenR66RunnerErrorException {
+                               LocalChannelReference localChannelReference) throws OpenR66RunnerErrorException {
         // error or not ?
         ErrorCode runnerStatus = this.getErrorInfo();
         if (finalValue.getException() != null) {
@@ -3506,7 +3506,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Increment the rank of the transfer
-     * 
+     *
      * @throws OpenR66ProtocolPacketException
      */
     public void incrementRank() throws OpenR66ProtocolPacketException {
@@ -3529,7 +3529,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * This method is to be called each time an operation is happening on Runner
-     * 
+     *
      * @throws OpenR66RunnerErrorException
      */
     public void saveStatus() throws OpenR66RunnerErrorException {
@@ -3543,7 +3543,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * This method is to be called each time an operation is happening on Runner and it is forced
      * (for SelfRequest handling)
-     * 
+     *
      * @return True if saved
      * @throws OpenR66RunnerErrorException
      */
@@ -3640,7 +3640,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the header for a table of runners in Html format
      */
     public static String headerHtml() {
@@ -3872,7 +3872,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the current host is the requested host (to prevent request to itself)
      */
     public boolean isSelfRequested() {
@@ -3886,7 +3886,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this is a self request and current action is on Requested
      */
     public boolean shallIgnoreSave() {
@@ -3894,7 +3894,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the request is a self request (same host on both side)
      */
     public boolean isSelfRequest() {
@@ -3905,7 +3905,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the requested HostId
      */
     public String getRequested() {
@@ -3913,7 +3913,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the requester HostId
      */
     public String getRequester() {
@@ -3944,7 +3944,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the associated request
      */
     public RequestPacket getRequest() {
@@ -3961,7 +3961,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Used internally
-     * 
+     *
      * @return a Key representing the primary key as a unique string
      */
     public String getKey() {
@@ -3970,7 +3970,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Construct a new Element with value
-     * 
+     *
      * @param name
      * @param value
      * @return the new Element
@@ -3985,7 +3985,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Need to call 'setToArray' before
-     * 
+     *
      * @param runner
      * @return The Element representing the given Runner
      * @throws WaarpDatabaseSqlException
@@ -4007,7 +4007,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Set the given runner from the root element of the runner itself (XMLRUNNER but not
      * XMLRUNNERS). Need to call 'setFromArray' after.
-     * 
+     *
      * @param runner
      * @param root
      * @throws WaarpDatabaseSqlException
@@ -4030,7 +4030,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Write the selected TaskRunners from PrepareStatement to a XMLWriter
-     * 
+     *
      * @param preparedStatement
      *            ready to be executed
      * @param xmlWriter
@@ -4068,7 +4068,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Write selected TaskRunners to a Json String
-     * 
+     *
      * @param preparedStatement
      * @return the associated Json String
      * @throws WaarpDatabaseNoConnectionException
@@ -4108,7 +4108,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Write selected TaskRunners to an XML file using an XMLWriter
-     * 
+     *
      * @param preparedStatement
      * @param filename
      * @return the NbAndSpecialId for the number of transfer and higher rank found
@@ -4117,7 +4117,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66ProtocolBusinessException
      */
     public static NbAndSpecialId writeXMLWriter(DbPreparedStatement preparedStatement,
-            String filename)
+                                                String filename)
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
             OpenR66ProtocolBusinessException {
         NbAndSpecialId nbAndSpecialId = null;
@@ -4185,7 +4185,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Write all TaskRunners to an XML file using an XMLWriter
-     * 
+     *
      * @param filename
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -4210,7 +4210,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the backend XML filename for the current TaskRunner in NoDb Client mode
      */
     public String backendXmlFilename() {
@@ -4222,7 +4222,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the runner as XML
      * @throws OpenR66ProtocolBusinessException
      */
@@ -4251,7 +4251,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the Json string for this
      */
     public String getJsonAsString() {
@@ -4267,7 +4267,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {
@@ -4278,7 +4278,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Set the given runner from the root element of the runner itself (XMLRUNNER but not
      * XMLRUNNERS). Need to call 'setFromArray' after.
-     * 
+     *
      * @param runner
      * @param root
      */
@@ -4303,7 +4303,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Reload a to submitted runner from a remote partner's log (so reversing isSender should be true)
-     * 
+     *
      * @param xml
      * @param reverse
      * @return the TaskRunner from the XML source element
@@ -4343,7 +4343,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Method to write the current DbTaskRunner for NoDb client instead of updating DB. 'setToArray'
      * must be called priorly to be able to store the values.
-     * 
+     *
      * @throws OpenR66ProtocolBusinessException
      */
     public void writeXmlWorkNoDb() throws OpenR66ProtocolBusinessException {
@@ -4425,7 +4425,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Method to load a previous existing DbTaskRunner for NoDb client from File instead of from DB.
      * 'setFromArray' must be called after.
-     * 
+     *
      * @throws OpenR66ProtocolBusinessException
      */
     public void loadXmlWorkNoDb() throws OpenR66ProtocolBusinessException {
@@ -4453,7 +4453,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Special function for save or update for Log Import
-     * 
+     *
      * @throws WaarpDatabaseException
      */
     private final void insertOrUpdateForLogsImport() throws WaarpDatabaseException {
@@ -4469,7 +4469,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Method to load several DbTaskRunner from File logs.
-     * 
+     *
      * @param logsFile
      *            File containing logs from export function
      * @throws OpenR66ProtocolBusinessException
@@ -4511,7 +4511,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if the backend XML for NoDb client is available for this TaskRunner
      */
     public boolean existXmlWorkNoDb() {
@@ -4530,7 +4530,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Utility for "self request" mode only
-     * 
+     *
      * @param sender
      */
     public void setSender(boolean sender) {
@@ -4539,7 +4539,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Helper
-     * 
+     *
      * @param request
      * @return isSender according to request
      */
@@ -4552,7 +4552,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Utility for "self request"
-     * 
+     *
      * @param requestToValidate
      */
     public void setSenderByRequestToValidate(boolean requestToValidate) {
@@ -4588,7 +4588,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the full path for the current file
      * @throws CommandAbstractException
      */

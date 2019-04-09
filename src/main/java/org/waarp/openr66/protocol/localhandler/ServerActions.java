@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,6 +56,8 @@ import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
 import org.waarp.openr66.context.task.ExecJavaTask;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
+import org.waarp.openr66.dao.Filter;
+import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
@@ -1796,6 +1799,30 @@ public class ServerActions extends ConnectionActions {
                 Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                 "_runners.xml";
         NbAndSpecialId nb = null;
+
+        ArrayList<Filter> filters = new ArrayList<Filter>();
+        if (start != null) {
+            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, ">=", start));
+        }
+        if (stop != null) {
+            filters.add(new Filter(DBTransferDAO.TRANSFER_STOP_FIELD, "<=", stop));
+        }
+        if (stop != null) {
+            filters.add(new Filter(DBTransferDAO.TRANSFER_STOP_FIELD, "<=", stop));
+        }
+        if (startid != null) {
+            filters.add(new Filter(DBTransferDAO.ID_FIELD, ">=", startid));
+        }
+        if (stopid != null) {
+            filters.add(new Filter(DBTransferDAO.ID_FIELD, "<=", stopid));
+        }
+        if (rule != null) {
+            filters.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", rule));
+        }
+        if (request != null) {
+            filters.add(new Filter(DBTransferDAO.REQUESTED_FIELD, "=", request));
+        }
+
         try {
             getValid =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
@@ -1929,7 +1956,7 @@ public class ServerActions extends ConnectionActions {
         if (lcr == null) {
             // Transfer is not running
             transfer.setUpdatedInfo(
-                    AbstractDbData.UpdatedInfo.INERROR.ordinal());
+                    org.waarp.openr66.pojo.UpdatedInfo.INERROR);
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());
@@ -1962,7 +1989,7 @@ public class ServerActions extends ConnectionActions {
         if (lcr == null) {
             // Transfer is not running
             transfer.setUpdatedInfo(
-                    AbstractDbData.UpdatedInfo.INERROR.ordinal());
+                    org.waarp.openr66.pojo.UpdatedInfo.INERROR);
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());

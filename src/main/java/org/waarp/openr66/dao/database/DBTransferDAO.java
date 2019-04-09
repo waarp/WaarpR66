@@ -30,28 +30,28 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     protected static final String TABLE = "runner";
 
     // Field name
-    protected static final String ID_FIELD = "specialid";
-    protected static final String GLOBAL_STEP_FIELD = "globalstep";
-    protected static final String GLOBAL_LAST_STEP_FIELD = "globallaststep";
-    protected static final String STEP_FIELD = "step";
-    protected static final String RANK_FIELD = "rank";
-    protected static final String STEP_STATUS_FIELD = "stepstatus";
-    protected static final String RETRIEVE_MODE_FIELD = "retrievemode";
-    protected static final String FILENAME_FIELD = "filename";
-    protected static final String IS_MOVED_FIELD = "ismoved";
-    protected static final String ID_RULE_FIELD = "idrule";
-    protected static final String BLOCK_SIZE_FIELD = "blocksz";
-    protected static final String ORIGINAL_NAME_FIELD = "originalname";
-    protected static final String FILE_INFO_FIELD = "fileinfo";
-    protected static final String TRANSFER_INFO_FIELD = "transferinfo";
-    protected static final String TRANSFER_MODE_FIELD = "modetrans";
-    protected static final String TRANSFER_START_FIELD = "starttrans";
-    protected static final String TRANSFER_STOP_FIELD = "stoptrans";
-    protected static final String INFO_STATUS_FIELD = "infostatus";
-    protected static final String OWNER_REQUEST_FIELD = "ownerreq";
-    protected static final String REQUESTED_FIELD = "requested";
-    protected static final String REQUESTER_FIELD = "requester";
-    protected static final String UPDATED_INFO_FIELD = "updatedInfo";
+    public static final String ID_FIELD = "specialid";
+    public static final String GLOBAL_STEP_FIELD = "globalstep";
+    public static final String GLOBAL_LAST_STEP_FIELD = "globallaststep";
+    public static final String STEP_FIELD = "step";
+    public static final String RANK_FIELD = "rank";
+    public static final String STEP_STATUS_FIELD = "stepstatus";
+    public static final String RETRIEVE_MODE_FIELD = "retrievemode";
+    public static final String FILENAME_FIELD = "filename";
+    public static final String IS_MOVED_FIELD = "ismoved";
+    public static final String ID_RULE_FIELD = "idrule";
+    public static final String BLOCK_SIZE_FIELD = "blocksz";
+    public static final String ORIGINAL_NAME_FIELD = "originalname";
+    public static final String FILE_INFO_FIELD = "fileinfo";
+    public static final String TRANSFER_INFO_FIELD = "transferinfo";
+    public static final String TRANSFER_MODE_FIELD = "modetrans";
+    public static final String TRANSFER_START_FIELD = "starttrans";
+    public static final String TRANSFER_STOP_FIELD = "stoptrans";
+    public static final String INFO_STATUS_FIELD = "infostatus";
+    public static final String OWNER_REQUEST_FIELD = "ownerreq";
+    public static final String REQUESTED_FIELD = "requested";
+    public static final String REQUESTER_FIELD = "requester";
+    public static final String UPDATED_INFO_FIELD = "updatedInfo";
 
     // Next ID request
     protected static String SQL_GET_ID = "SELECT NEXT VALUE FOR runseq";

@@ -108,6 +108,8 @@ public class Commander implements CommanderInterface {
                     DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.getSession());
             preparedStatementRule =
                     DbRule.getUpdatedPrepareStament(DbConstant.admin.getSession());
+
+
             preparedStatementRunner =
                     DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.getSession(),
                             UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
@@ -453,15 +455,16 @@ public class Commander implements CommanderInterface {
                 // no more task to submit
                 return;
             }
+
+            // Lauch Transfer ready to be submited
             logger.debug("start runner");
-            // Check TaskRunner
             try {
                 DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
                 // No specific HA mode since the other servers will wait for the commit on Lock
                 preparedStatementRunner.executeQuery();
                 while (preparedStatementRunner.getNext()) {
                     if (R66ShutdownHook.isShutdownStarting()) {
-                        // no more task to submit
+                        logger.info("Will not start transfers, server is in shutdown.");
                         return;
                     }
                     DbTaskRunner taskRunner = null;
@@ -488,7 +491,19 @@ public class Commander implements CommanderInterface {
                     if (taskRunner.isSelfRequested()) {
                         // cannot schedule a request where the host is the requested host
                         taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-                        taskRunner.update();
+                        try {
+                            taskRunner.update();
+                        } catch (WaarpDatabaseException e) {
+                            if (e instanceof WaarpDatabaseNoDataException) {
+                                logger.warn("Update failed, no transfer found");
+                                continue;
+                            } else {
+                                logger.error("Database Error: Cannot execute Commander", e);
+                                DbConstant.admin.getDbModel().validConnection(
+                                        DbConstant.admin.getSession());
+                                return;
+                            }
+                        }
                         continue;
                     }
                     internalRunner.submitTaskRunner(taskRunner);
@@ -507,13 +522,6 @@ public class Commander implements CommanderInterface {
                 } catch (WaarpDatabaseNoConnectionException e1) {
                 }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
-                return;
-            } catch (WaarpDatabaseException e) {
-                try {
-                    DbConstant.admin.getDbModel().validConnection(DbConstant.admin.getSession());
-                } catch (WaarpDatabaseNoConnectionException e1) {
-                }
-                logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
                 preparedStatementRunner.close();

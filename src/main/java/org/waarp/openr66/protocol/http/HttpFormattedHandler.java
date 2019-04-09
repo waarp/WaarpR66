@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -74,9 +74,9 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
  * Handler for HTTP information support
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     /**
@@ -100,7 +100,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
         /**
          * Constructor for a unique file
-         * 
+         *
          * @param uniquefile
          */
         private REQUEST(String uniquefile) {
@@ -119,7 +119,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
         /**
          * Reader for a unique file
-         * 
+         *
          * @return the content of the unique file
          */
         public String readFileUnique(HttpFormattedHandler handler) {
@@ -386,7 +386,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * Add all runners from preparedStatement for type
-     * 
+     *
      * @param preparedStatement
      * @param type
      * @param nb
@@ -394,7 +394,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * @throws WaarpDatabaseSqlException
      */
     private void addRunners(DbPreparedStatement preparedStatement, String type,
-            int nb) throws WaarpDatabaseNoConnectionException,
+                            int nb) throws WaarpDatabaseNoConnectionException,
             WaarpDatabaseSqlException {
         try {
             preparedStatement.executeQuery();
@@ -433,7 +433,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * print all active transfers
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -478,7 +478,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * print all transfers in error
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -511,7 +511,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * Print all done transfers
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -535,7 +535,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * Print all nb last transfers
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -559,7 +559,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * print only status
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -624,7 +624,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * print only status
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -635,7 +635,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * print only status
-     * 
+     *
      * @param ctx
      * @param nb
      */
@@ -687,7 +687,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * Write the response
-     * 
+     *
      * @param ctx
      */
     private void writeResponse(ChannelHandlerContext ctx) {
@@ -761,7 +761,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
     /**
      * Send an error and close
-     * 
+     *
      * @param ctx
      * @param status
      */
