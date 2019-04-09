@@ -5,7 +5,10 @@ import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Transfer data object
@@ -27,18 +30,26 @@ public class Transfer {
             }
         }
 
-        private TASKSTEP(final int task) {
+        TASKSTEP(final int task) {
             taskNo = task;
         }
 
         public static TASKSTEP valueOf(int taskStep) {
             return map.get(taskStep);
         }
+
+        public DbTaskRunner.TASKSTEP toLegacy() {
+            return DbTaskRunner.TASKSTEP.valueOf(this.name());
+        }
     }
 
     private long id = DbConstant.ILLEGALVALUE;
 
-    private boolean retrieveMode;
+    /**
+     * True if requester is the sender of the file (SEND MODE)
+     * False if requested is the sender of the file (RETRIEVE MODE)
+     */
+    private boolean retrieveMode = false;
 
     private String rule = "";
 
@@ -46,15 +57,15 @@ public class Transfer {
 
     private String filename = "";
 
-    private String originalName;
+    private String originalName = "";
 
-    private String fileInfo;
+    private String fileInfo = "";
 
     private boolean isFileMoved = false;
 
     private int blockSize;
 
-    private String ownerRequest;
+    private String ownerRequest = Configuration.configuration.getHOST_ID();
 
     private String requester = "";
 
@@ -68,9 +79,9 @@ public class Transfer {
 
     private int step = -1;
 
-    private String stepStatus = "";
+    private ErrorCode stepStatus = ErrorCode.Unknown;
 
-    private String infoStatus = "";
+    private ErrorCode infoStatus = ErrorCode.Unknown;
 
     private int rank = 0;
 
@@ -78,16 +89,41 @@ public class Transfer {
 
     private Timestamp stop = new Timestamp(0);
 
-    private int updatedInfo = 0;
+    private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
 
 
+    /**
+     * Full Constructor to create Transfer from the database
+     * @param id
+     * @param rule
+     * @param mode
+     * @param filename
+     * @param originalName
+     * @param fileInfo
+     * @param isFileMoved
+     * @param blockSize
+     * @param retrieveMode
+     * @param ownerReq
+     * @param requester
+     * @param requested
+     * @param transferInfo
+     * @param globalStep
+     * @param lastGlobalStep
+     * @param step
+     * @param stepStatus
+     * @param infoStatus
+     * @param rank
+     * @param start
+     * @param stop
+     * @param updatedInfo
+     */
     public Transfer(long id, String rule, int mode, String filename,
             String originalName, String fileInfo, boolean isFileMoved,
             int blockSize, boolean retrieveMode, String ownerReq, String requester,
             String requested, String transferInfo,TASKSTEP globalStep,
-            TASKSTEP lastGlobalStep, int step, String stepStatus, 
-            String infoStatus, int rank, Timestamp start, Timestamp stop,
-            int updatedInfo) {
+            TASKSTEP lastGlobalStep, int step, ErrorCode stepStatus,
+            ErrorCode infoStatus, int rank, Timestamp start, Timestamp stop,
+            UpdatedInfo updatedInfo) {
         this (id, rule, mode, filename, originalName, fileInfo, isFileMoved,
                 blockSize, retrieveMode, ownerReq, requester, requested, transferInfo,
                 globalStep, lastGlobalStep, step, stepStatus, infoStatus, rank,
@@ -95,12 +131,36 @@ public class Transfer {
         this.updatedInfo = updatedInfo;
     }
 
+    /**
+     * Constructor to create Transfer from remote requests
+     * @param id
+     * @param rule
+     * @param mode
+     * @param filename
+     * @param originalName
+     * @param fileInfo
+     * @param isFileMoved
+     * @param blockSize
+     * @param retrieveMode
+     * @param ownerReq
+     * @param requester
+     * @param requested
+     * @param transferInfo
+     * @param globalStep
+     * @param lastGlobalStep
+     * @param step
+     * @param stepStatus
+     * @param infoStatus
+     * @param rank
+     * @param start
+     * @param stop
+     */
     public Transfer(long id, String rule, int mode, String filename,
             String originalName, String fileInfo, boolean isFileMoved,
             int blockSize, boolean retrieveMode, String ownerReq, String requester,
             String requested, String transferInfo,TASKSTEP globalStep,
-            TASKSTEP lastGlobalStep, int step, String stepStatus, 
-            String infoStatus, int rank, Timestamp start, Timestamp stop) {
+            TASKSTEP lastGlobalStep, int step, ErrorCode stepStatus,
+            ErrorCode infoStatus, int rank, Timestamp start, Timestamp stop) {
         this.id = id;
         this.rule = rule;
         this.transferMode = mode;
@@ -124,13 +184,52 @@ public class Transfer {
         this.stop = stop;
     }
 
+    /**
+     * Constructor to create transfer locally with delayed start time
+     *
+     *
+     * @param rule
+     * @param retrieveMode
+     * @param file
+     * @param fileInfo
+     * @param blockSize
+     */
+    public Transfer(String remote, String rule, int ruleMode, boolean retrieveMode, String file,
+                    String fileInfo, int blockSize, Timestamp start) {
+        // TODO get this Hostid
+        this.ownerRequest = "me";
+        this.requester = "me";
+        this.requester = remote;
+        this.rule = rule;
+        this.transferMode = ruleMode;
+        this.retrieveMode = retrieveMode;
+        this.filename = file;
+        this.originalName = file;
+        this.fileInfo = fileInfo;
+        this.blockSize = blockSize;
+        this.start = start;
+    }
 
-    public Transfer(String rule, int rulemode, boolean retrieveMode, String file,
+    /**
+     * Constructor to create transfer locally
+     *
+     * @param rule
+     * @param retrieveMode
+     * @param file
+     * @param fileInfo
+     * @param blockSize
+     */
+    public Transfer(String remote, String rule, int ruleMode, boolean retrieveMode, String file,
             String fileInfo, int blockSize) {
-        this(DbConstant.ILLEGALVALUE, rule, rulemode, file, file, fileInfo,
-                false, blockSize, retrieveMode, "", "", "", "", TASKSTEP.NOTASK, 
-                TASKSTEP.NOTASK, -1, "", "", 0, 
-                new Timestamp(new Date().getTime()), null);
+        this (remote, rule, ruleMode, retrieveMode, file, fileInfo, blockSize,
+                new Timestamp(new Date().getTime()));
+    }
+
+    /**
+     * Empty constructor for deserializers
+     */
+    public Transfer() {
+
     }
 
     public long getId() {
@@ -260,19 +359,19 @@ public class Transfer {
         this.step = step;
     }
 
-    public String getStepStatus() {
+    public ErrorCode getStepStatus() {
         return this.stepStatus;
     }
 
-    public void setStepStatus(String stepStatus) {
+    public void setStepStatus(ErrorCode stepStatus) {
         this.stepStatus = stepStatus;
     }
 
-    public String getInfoStatus() {
+    public ErrorCode getInfoStatus() {
         return this.infoStatus;
     }
 
-    public void setInfoStatus(String infoStatus) {
+    public void setInfoStatus(ErrorCode infoStatus) {
         this.infoStatus = infoStatus;
     }
 
@@ -300,11 +399,11 @@ public class Transfer {
         this.stop = stop;
     }
 
-    public int getUpdatedInfo() {
+    public UpdatedInfo getUpdatedInfo() {
         return this.updatedInfo;
     }
 
-    public void setUpdatedInfo(int info) {
+    public void setUpdatedInfo(UpdatedInfo info) {
         this.updatedInfo = info;
     }
 }
