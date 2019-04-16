@@ -27,21 +27,15 @@ import org.waarp.gateway.kernel.rest.RestConfiguration.CRUD;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.AbstractRestDbHandler;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.Path;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.HEAD;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
+import static javax.ws.rs.HttpMethod.*;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT_LANGUAGE;
 
 
@@ -143,42 +137,4 @@ public final class RestUtils {
         }
     }
 
-    /**
-     * Transforms a Java array into a String where each element is separated by
-     * a single space.
-     *
-     * @param array The array to transform.
-     * @return  The transformed String representing the array elements.
-     */
-    public static String arrayToSpaceString(Object[] array) {
-        StringBuilder list = new StringBuilder();
-        for(Object object : array) {
-            list.append(object.toString()).append(" ");
-        }
-        return list.toString().trim();
-    }
-
-    /**
-     * Update the fields of {@code oldObject} with the values present in
-     * {@code newObject} and return the result. All values missing from
-     * {@code newObject} will be left unchanged.
-     *
-     * @param oldObject The old database object to update.
-     * @param newObject The new partial object replacing the old one.
-     * @param <T>   The type of the database object.
-     * @return      The updated object.
-     */
-    public static <T> T updateRestObject(T oldObject, T newObject) {
-        try {
-            for (Field field : oldObject.getClass().getFields()) {
-                Object newValue = field.get(newObject);
-                if (newValue != null) {
-                    field.set(oldObject, newValue);
-                }
-            }
-            return oldObject;
-        } catch (IllegalAccessException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
 }

@@ -21,13 +21,16 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestRule;
+import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,27 +40,14 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.WILDCARD;
 import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
 import static org.waarp.common.role.RoleDefault.ROLE.RULE;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.RULE_ID_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.URI_ID;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.FIELD_NOT_ALLOWED;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getMethodList;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.updateRestObject;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on a
@@ -89,13 +79,15 @@ public class RuleIdHandler extends AbstractRestDbHandler {
         RuleDAO ruleDAO = null;
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
-            if (ruleDAO.exist(id)) {
-                RestRule restRule = new RestRule(ruleDAO.select(id));
-                String responseBody = objectToJson(restRule);
-                responder.sendJson(OK, responseBody);
-            } else {
+            Rule rule = ruleDAO.select(id);
+
+            if (rule == null) {
                 responder.sendStatus(NOT_FOUND);
+                return;
             }
+            ObjectNode responseObject = RuleConverter.ruleToNode(rule);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(OK, responseText);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -123,26 +115,21 @@ public class RuleIdHandler extends AbstractRestDbHandler {
         RuleDAO ruleDAO = null;
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
-            if (!ruleDAO.exist(id)) {
-                responder.sendStatus(NOT_FOUND);
-            }
+            Rule oldRule = ruleDAO.select(id);
 
-            Locale lang = getRequestLocale(request);
-            RestRule partialRule =
-                    requestToObject(request, RestRule.class, false);
-            if (partialRule.ruleID != null && !partialRule.ruleID.equals(id)) {
-                responder.sendJson(BAD_REQUEST,
-                        FIELD_NOT_ALLOWED("ruleID").serialize(lang));
+            if (oldRule == null) {
+                responder.sendStatus(NOT_FOUND);
                 return;
             }
 
-            RestRule oldRule = new RestRule(ruleDAO.select(id));
-            RestRule newRule = updateRestObject(oldRule, partialRule);
+            ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+            Rule newRule = RuleConverter.nodeToUpdatedRule(requestObject, oldRule);
 
-            ruleDAO.update(newRule.toRule());
-            String responseBody = objectToJson(newRule);
-            responder.sendJson(ACCEPTED, responseBody);
+            ruleDAO.update(newRule);
 
+            ObjectNode responseObject = RuleConverter.ruleToNode(newRule);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(CREATED, responseText);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -170,11 +157,12 @@ public class RuleIdHandler extends AbstractRestDbHandler {
         RuleDAO ruleDAO = null;
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
-            if (ruleDAO.exist(id)) {
-                ruleDAO.delete(ruleDAO.select(id));
-                responder.sendStatus(NO_CONTENT);
-            } else {
+            Rule rule = ruleDAO.select(id);
+            if (rule == null) {
                 responder.sendStatus(NOT_FOUND);
+            } else {
+                ruleDAO.delete(rule);
+                responder.sendStatus(NO_CONTENT);
             }
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -201,7 +189,7 @@ public class RuleIdHandler extends AbstractRestDbHandler {
     public void options(HttpRequest request, HttpResponder responder,
                         @PathParam(URI_ID) String id) {
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = getMethodList(this.getClass(), this.crud);
+        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
         headers.add(ALLOW, allow);
         responder.sendStatus(OK, headers);
     }

@@ -21,20 +21,21 @@
 
 package org.waarp.openr66.protocol.http.restv2.errors;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
-
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
 
 /**
  * This class represents an instance of HTTP error encountered  during
  * the processing of a request.
  * To create a new error, use the predefined methods that corresponds to
- * the desired error in the {@link ErrorFactory} class.
+ * the desired error in the {@link Errors} class.
  * To objectToJson a {@code Error} object as a JSON String to be sent back,
  * use the {@code objectToJson} method with the desired {@code Error}
  * object and {@link Locale}. To objectToJson an entire list of errors, use
@@ -55,7 +56,7 @@ public class Error {
      * Creates an object representing the response message to a request which
      * produced an error 401 - Bad Request.
      *
-     * @param msgKey The name of the property in the "restmessages" {@link
+     * @param msgKey The name of the property in the {@code restmessages} {@link
      *               ResourceBundle}
      *               corresponding to the error message.
      * @param args The arguments of the error message (typically parameter
@@ -85,11 +86,11 @@ public class Error {
      * @param lang  The language of the error message.
      * @return      The serialized error object.
      */
-    private HashMap<String, Object> makeNode(Locale lang) {
+    private ObjectNode makeNode(Locale lang) {
         ResourceBundle bundle = ResourceBundle.getBundle("restmessages", lang);
         String message = String.format(lang, bundle.getString(msgKey), (Object[]) args);
 
-        HashMap<String, Object> response = new HashMap<String, Object>();
+        ObjectNode response = new ObjectNode(JsonNodeFactory.instance);
         response.put("message", message);
         response.put("errorCode", code);
         return response;
@@ -102,14 +103,13 @@ public class Error {
      * @return The serialized list of errors.
      */
     public static String serializeErrors(List<Error> errors, Locale lang) {
-        List<HashMap<String, Object>> serializedErrors =
-                new ArrayList<HashMap<String, Object>>();
+        ArrayNode errorsArray = new ArrayNode(JsonNodeFactory.instance);
         for (Error error : errors) {
-            serializedErrors.add(error.makeNode(lang));
+            errorsArray.add(error.makeNode(lang));
         }
-        Map.Entry<String, List<HashMap<String, Object>>> response =
-                new HashMap.SimpleEntry<String, List<HashMap<String, Object>>>("errors", serializedErrors);
+        ObjectNode response = new ObjectNode(JsonNodeFactory.instance);
+        response.putArray("errors").addAll(errorsArray);
 
-        return objectToJson(response);
+        return JsonUtils.nodeToString(response);
     }
 }

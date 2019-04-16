@@ -17,11 +17,6 @@
  */
 package org.waarp.openr66.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -48,6 +43,11 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.utils.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Rule File Based Configuration
  * 
@@ -61,22 +61,22 @@ public class RuleFileBasedConfiguration {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(RuleFileBasedConfiguration.class);
 
-    private static final String MULTIPLEROOT = "rules";
-    private static final String ROOT = "rule";
-    private static final String XIDRULE = "idrule";
+    public static final String MULTIPLEROOT = "rules";
+    public static final String ROOT = "rule";
+    public static final String XIDRULE = "idrule";
     public static final String XHOSTIDS = "hostids";
     public static final String XHOSTID = "hostid";
-    private static final String XMODE = "mode";
-    private static final String XRECVPATH = "recvpath";
-    private static final String XSENDPATH = "sendpath";
-    private static final String XARCHIVEPATH = "archivepath";
-    private static final String XWORKPATH = "workpath";
-    private static final String XRPRETASKS = "rpretasks";
-    private static final String XRPOSTTASKS = "rposttasks";
-    private static final String XRERRORTASKS = "rerrortasks";
-    private static final String XSPRETASKS = "spretasks";
-    private static final String XSPOSTTASKS = "sposttasks";
-    private static final String XSERRORTASKS = "serrortasks";
+    public static final String XMODE = "mode";
+    public static final String XRECVPATH = "recvpath";
+    public static final String XSENDPATH = "sendpath";
+    public static final String XARCHIVEPATH = "archivepath";
+    public static final String XWORKPATH = "workpath";
+    public static final String XRPRETASKS = "rpretasks";
+    public static final String XRPOSTTASKS = "rposttasks";
+    public static final String XRERRORTASKS = "rerrortasks";
+    public static final String XSPRETASKS = "spretasks";
+    public static final String XSPOSTTASKS = "sposttasks";
+    public static final String XSERRORTASKS = "serrortasks";
     public static final String XTASKS = "tasks";
     public static final String XTASK = "task";
 

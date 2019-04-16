@@ -1,28 +1,47 @@
 package org.waarp.openr66.pojo;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
+import static org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration.*;
+
 /**
  * Host data object
  */
+@XmlType(name = XML_AUTHENTIFICATION_ENTRY)
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Host {
     private static final String DEFAULT_CLIENT_ADDRESS = "0.0.0.0";
     private static final int DEFAULT_CLIENT_PORT = 0;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_HOSTID)
     private String hostid;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ADDRESS)
     private String address;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_PORT)
     private int port;
 
+    @XmlTransient
     private byte[] hostkey;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ISSSL)
     private boolean ssl;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ISCLIENT)
     private boolean client;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ISPROXIFIED)
     private boolean proxified = false;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ADMIN)
     private boolean admin = true;
 
+    @XmlElement(name = XML_AUTHENTIFICATION_ISACTIVE)
     private boolean active = true;
 
     private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
@@ -32,17 +51,17 @@ public class Host {
      */
     @Deprecated
     public Host() {}
-    
+
     public Host(String hostid, String address, int port, byte[] hostkey,
-        boolean ssl, boolean client, boolean proxified, boolean admin, 
+        boolean ssl, boolean client, boolean proxified, boolean admin,
         boolean active, UpdatedInfo updatedInfo) {
-        this(hostid, address, port, hostkey, ssl, 
+        this(hostid, address, port, hostkey, ssl,
                 client, proxified, admin, active);
         this.updatedInfo = updatedInfo;
     }
 
     public Host(String hostid, String address, int port, byte[] hostkey,
-            boolean ssl, boolean client, boolean proxified, boolean admin, 
+            boolean ssl, boolean client, boolean proxified, boolean admin,
             boolean active) {
         this.hostid = hostid;
         this.hostkey = hostkey;
@@ -63,8 +82,8 @@ public class Host {
     }
 
     public Host(String hostid, String address, int port, byte[] hostkey,
-            boolean ssl, boolean client, boolean proxified, boolean admin) { 
-        this(hostid, address, port, hostkey, ssl, 
+            boolean ssl, boolean client, boolean proxified, boolean admin) {
+        this(hostid, address, port, hostkey, ssl,
                 client, proxified, admin, true);
     }
 
@@ -99,6 +118,15 @@ public class Host {
 
     public byte[] getHostkey() {
         return this.hostkey;
+    }
+
+    @XmlElement(name = XML_AUTHENTIFICATION_KEY)
+    public String getKey() {
+        return new String(this.hostkey);
+    }
+
+    public void setKey(String key) {
+        this.hostkey = key.getBytes();
     }
 
     public void setHostkey(byte[] hostkey) {

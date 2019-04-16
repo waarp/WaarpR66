@@ -25,39 +25,24 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.glassfish.jersey.message.internal.MediaTypes;
-import org.waarp.openr66.protocol.http.restv2.data.Bounds;
-import org.waarp.openr66.protocol.http.restv2.data.ConsistencyCheck;
-import org.waarp.openr66.protocol.http.restv2.data.Required;
-import org.waarp.openr66.protocol.http.restv2.errors.BadRequestException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.Errors;
 
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotSupportedException;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.DUPLICATE_KEY;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_FIELD_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.MALFORMED_JSON;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.MISSING_BODY;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.MISSING_FIELD;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.UNKNOWN_FIELD;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.UTF8_CHARSET;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MALFORMED_JSON;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MISSING_BODY;
 
 /** A series of utility methods for serializing and deserializing JSON. */
 public final class JsonUtils {
@@ -74,228 +59,62 @@ public final class JsonUtils {
         MAPPER = new ObjectMapper();
         MAPPER.enable(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY);
         MAPPER.enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS);
-        MAPPER.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
         MAPPER.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
         MAPPER.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
         MAPPER.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        MAPPER.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
         MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
         MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
-        MAPPER.disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
+        MAPPER.enable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
+        MAPPER.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
     }
 
-    /**
-     * This method transforms a request body in JSON format into an object of
-     * the class passed as argument. If the {@code initializeFields} argument
-     * is true the object missing fields will be initialized with the value
-     * specified in their attached {@link DefaultValue} annotation.
-     *
-     * @param request The http request whose body has to be deserialized.
-     * @param c       The class of the object that will be created from the JSON
-     *                object.
-     * @param initializeFields Specifies if missing fields should be initialized.
-     * @param <T>     The generic type of the output object.
-     * @return The Java object representing the source JSON object.
-     *
-     */
-    public static <T> T requestToObject(HttpRequest request, Class<T> c,
-                                        boolean initializeFields) {
+    public static String nodeToString(ObjectNode object) {
+        try {
+            return MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    public static ObjectNode deserializeRequest(HttpRequest request) {
+        if (!(request instanceof FullHttpRequest)) {
+            throw new UserErrorException(MISSING_BODY());
+        }
 
         try {
-            if (request instanceof FullHttpRequest) {
-                String body = ((FullHttpRequest) request).content().toString(
-                        Charset.forName("UTF-8"));
+            String body = ((FullHttpRequest) request).content()
+                    .toString(UTF8_CHARSET);
 
-                T bodyObject = MAPPER.readValue(body, c);
+            JsonNode node = MAPPER.readTree(body);
 
-                if (initializeFields) {
-                    checkEntry(bodyObject, true);
-                    return fillEmptyFields(bodyObject);
-                } else {
-                    checkEntry(bodyObject, false);
-                    return bodyObject;
-                }
+            if (node.isObject()) {
+                return (ObjectNode) node;
             } else {
-                throw new BadRequestException(MISSING_BODY());
-            }
-        } catch (JsonMappingException e) {
-            String field = "";
-            try {
-                JsonParser parser = (JsonParser) e.getProcessor();
-                field = parser.getCurrentName();
-
-                if (e.getPath().isEmpty()) {
-                    if (field == null) {
-                        throw new BadRequestException(MISSING_BODY());
-                    } else {
-                        throw new BadRequestException(DUPLICATE_KEY(field));
-                    }
-                }
-
-                c.getField(field);
-                String val = parser.getText();
-                throw new BadRequestException(ILLEGAL_FIELD_VALUE(field, val));
-            } catch (NoSuchFieldException nsf) {
-                throw new BadRequestException(UNKNOWN_FIELD(field));
-            } catch (IOException ex) {
-                throw new InternalServerErrorException(ex);
+                throw new UserErrorException(MALFORMED_JSON(0, 0,
+                        "The root JSON element is not an object"));
             }
         } catch (JsonParseException e) {
             String contentType = request.headers().get(CONTENT_TYPE);
             if (contentType == null || contentType.isEmpty()) {
-                throw new NotSupportedException(MediaTypes.convertToString(
-                        Collections.singleton(APPLICATION_JSON_TYPE)));
+                throw new NotSupportedException(APPLICATION_JSON);
             } else {
-                throw new BadRequestException(MALFORMED_JSON(e.getOriginalMessage()));
+                throw new UserErrorException(MALFORMED_JSON(e.getLocation().getLineNr(),
+                        e.getLocation().getColumnNr(), e.getOriginalMessage()));
+            }
+        } catch (JsonMappingException e) {
+            JsonParser parser = (JsonParser) e.getProcessor();
+            try {
+                String field = parser.getCurrentName();
+                if (field == null) {
+                    throw new UserErrorException(Errors.MISSING_BODY());
+                } else {
+                    throw new UserErrorException(Errors.DUPLICATE_KEY(field));
+                }
+            } catch (IOException ex) {
+                throw new InternalServerErrorException(e);
             }
         } catch (IOException e) {
             throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Transforms a Java Object into it's equivalent JSON object in a String.
-     *
-     * @param object The Object to convert to JSON.
-     * @return The rule as a JSON String.
-     */
-    public static String objectToJson(Object object) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            throw new InternalServerErrorException(e);
-
-        }
-    }
-
-    /**
-     * Initializes all empty (i.e. {@code null}) fields of the given object with
-     * their default values. The default values are extracted from the
-     * {@link DefaultValue} annotation attached to the field.
-     *
-     * The field's value will be instantiated with the {@code valueOf} method
-     * of its class, or with a {@link String} constructor.
-     * If neither exist, or if an exception is thrown while calling them, an
-     * {@link InternalServerErrorException} will be thrown, containing the
-     * underlying exception.
-     *
-     * If the field is an array, the value given in the annotation is ignored,
-     * and the field is always initialized as an empty array.
-     *
-     * @param object The object to initialize.
-     * @param <T>    The type of the given object.
-     * @return The object with all its fields initialized.
-     */
-    private static <T> T fillEmptyFields(T object) {
-
-        try {
-            for (Field field : object.getClass().getFields()) {
-                if (field.get(object) == null) {
-                    if (field.isAnnotationPresent(DefaultValue.class)) {
-                        String defaultValue = field.getAnnotation(DefaultValue.class).value();
-                        Class<?> clazz = field.getType();
-
-                        if (clazz.isArray()) {
-                            field.set(object, Array.newInstance(clazz.getComponentType(), 0));
-                            continue;
-                        }
-
-                        try {
-                            Method valueOf = clazz.getMethod("valueOf", String.class);
-                            Object value = valueOf.invoke(null, defaultValue);
-
-                            field.set(object, value);
-                        } catch (NoSuchMethodException e) {
-                            try {
-                                Constructor stringConst = clazz.getConstructor(String.class);
-                                Object value = stringConst.newInstance(defaultValue);
-
-                                field.set(object, value);
-                            } catch (NoSuchMethodException ex) {
-                                throw new InternalServerErrorException("Cannot " +
-                                        "instantiate an object of class '" +
-                                        clazz.getName() + "' from a String.");
-                            }
-                        }
-                    }
-                }
-            }
-            return object;
-        } catch (IllegalAccessException e) {
-            throw new InternalServerErrorException(e);
-        } catch (InstantiationException e) {
-            throw new InternalServerErrorException(e);
-        } catch (InvocationTargetException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Checks if the value entered is within the bounds defined in the {@link Bounds}
-     * annotation attached to the field.
-     *
-     * @param value     The value to check.
-     * @param bounds    The 'Or' annotation containing the bounds to check.
-     * @return  'true' if the value is within the bounds, 'false' if not.
-     */
-    private static boolean checkBounds(long value, Bounds bounds) {
-        return value >= bounds.min() && value <= bounds.max();
-    }
-
-    /**
-     * Checks if the entry fields have all been initialized and have correct
-     * values, then returns the entry. If the {@code checkRequired} parameter is
-     * true, all required fields with a {@code null} value will produce an error.
-     *
-     * @param entry         The entry to check.
-     * @param checkRequired Specifies whether or not required fields should be
-     *                      checked.
-     */
-    private static void checkEntry(Object entry, boolean checkRequired) {
-
-        List<Error> errors = new ArrayList<Error>();
-        for (Field field : entry.getClass().getFields()) {
-            Class clazz = field.getType();
-            Object val;
-            try {
-                val = field.get(entry);
-            } catch (IllegalAccessException e) {
-                throw new InternalServerErrorException(e);
-            }
-
-            if (val == null) {
-                if (checkRequired && field.isAnnotationPresent(Required.class)) {
-                    errors.add(MISSING_FIELD(field.getName()));
-                }
-            }
-            else {
-                if (field.isAnnotationPresent(Bounds.class)) {
-                    if (val.getClass() == Integer.class) {
-                        long num = (Integer) val;
-                        if (!checkBounds(num, field.getAnnotation(Bounds.class))) {
-                            errors.add(ILLEGAL_FIELD_VALUE(field.getName(), val.toString()));
-                        }
-                    }
-                    else if (val.getClass() == Long.class) {
-                        long num = (Long) val;
-                        if (!checkBounds(num, field.getAnnotation(Bounds.class))) {
-                            errors.add(ILLEGAL_FIELD_VALUE(field.getName(), val.toString()));
-                        }
-                    }
-                } else if (!clazz.isEnum()) {
-                    if (clazz.isArray()) {
-                        for (Object obj : (Object[]) val) {
-                            checkEntry(obj, checkRequired);
-                        }
-                    } else if (clazz.isAnnotationPresent(ConsistencyCheck.class)) {
-                        checkEntry(val, checkRequired);
-                    }
-                }
-            }
-        }
-        if(!errors.isEmpty()) {
-            throw new BadRequestException(errors);
         }
     }
 }

@@ -28,7 +28,7 @@ import java.util.List;
  * all the errors found as a list of {@link Error} objects.
  * Typically, these errors will be sent back as a '400 - Bad Request' HTTP response.
  */
-public class BadRequestException extends RuntimeException {
+public class UserErrorException extends RuntimeException {
 
     /**
      * The list of all {@link Error} errors found in the request.
@@ -39,7 +39,7 @@ public class BadRequestException extends RuntimeException {
      * Initializes an exception with a single error.
      * @param error The error to add.
      */
-    public BadRequestException(Error error) {
+    public UserErrorException(Error error) {
         this.errors = new ArrayList<Error>();
         errors.add(error);
     }
@@ -48,7 +48,7 @@ public class BadRequestException extends RuntimeException {
      * Initializes an exception with a list of errors.
      * @param errors The errors to add.
      */
-    public BadRequestException(List<Error> errors) {
+    public UserErrorException(List<Error> errors) {
         this.errors = errors;
     }
 }

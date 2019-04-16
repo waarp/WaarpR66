@@ -47,7 +47,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_SIGNATURE;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.UTF8_CHARSET;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.REQUEST_NOT_SIGNED;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.REQUEST_NOT_SIGNED;
 
 /**
  * When a request is made to the REST API, and if the request signature checking

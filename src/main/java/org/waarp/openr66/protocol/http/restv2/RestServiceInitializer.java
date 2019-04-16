@@ -196,7 +196,7 @@ public final class RestServiceInitializer {
         } catch (Throwable t) {
             logger.error(t);
             throw new ExceptionInInitializerError(
-                    "FATAL ERROR : Failed to initialize RESTv2 service");
+                    "FATAL ERROR_TASK : Failed to initialize RESTv2 service");
         }
     }
 

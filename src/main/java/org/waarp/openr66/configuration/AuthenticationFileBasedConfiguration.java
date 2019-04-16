@@ -1,26 +1,21 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.openr66.configuration;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -43,6 +38,11 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Authentication from File support
  * 
@@ -59,15 +59,15 @@ public class AuthenticationFileBasedConfiguration {
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ROOT = "authent";
+    public static final String XML_AUTHENTIFICATION_ROOT = "authent";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ENTRY = "entry";
+    public static final String XML_AUTHENTIFICATION_ENTRY = "entry";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_BASED = "/"
+    public static final String XML_AUTHENTIFICATION_BASED = "/"
             +
             XML_AUTHENTIFICATION_ROOT
             + "/"
@@ -76,47 +76,47 @@ public class AuthenticationFileBasedConfiguration {
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
+    public static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
 
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_KEYFILE = "keyfile";
+    public static final String XML_AUTHENTIFICATION_KEYFILE = "keyfile";
 
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_KEY = "key";
+    public static final String XML_AUTHENTIFICATION_KEY = "key";
 
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ADMIN = "admin";
+    public static final String XML_AUTHENTIFICATION_ADMIN = "admin";
 
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ADDRESS = "address";
+    public static final String XML_AUTHENTIFICATION_ADDRESS = "address";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_PORT = "port";
+    public static final String XML_AUTHENTIFICATION_PORT = "port";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ISSSL = "isssl";
+    public static final String XML_AUTHENTIFICATION_ISSSL = "isssl";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ISCLIENT = "isclient";
+    public static final String XML_AUTHENTIFICATION_ISCLIENT = "isclient";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ISACTIVE = "isactive";
+    public static final String XML_AUTHENTIFICATION_ISACTIVE = "isactive";
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_ISPROXIFIED = "isproxified";
+    public static final String XML_AUTHENTIFICATION_ISPROXIFIED = "isproxified";
 
     /**
      * Structure of the Configuration file

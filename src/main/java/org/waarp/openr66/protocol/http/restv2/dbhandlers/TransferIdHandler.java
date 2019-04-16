@@ -21,6 +21,7 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -37,7 +38,6 @@ import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.http.restv2.RestConstants;
 import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
@@ -55,16 +55,9 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.database.data.AbstractDbData.UpdatedInfo.TOSUBMIT;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.common.role.RoleDefault.ROLE.SYSTEM;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.TRANSFER_ID_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.URI_ID;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.UTF8_CHARSET;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getMethodList;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
+import static org.waarp.openr66.pojo.UpdatedInfo.TOSUBMIT;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on
@@ -179,15 +172,17 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             if (!transferDAO.exist(transID)) {
                 responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             } else {
-                Transfer trans = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, requested);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
-                actions.stopTransfer(trans);
-                trans.setUpdatedInfo(TOSUBMIT.ordinal());
-                trans.setGlobalStep(trans.getLastGlobalStep());
-                transferDAO.update(trans);
-                String responseBody = objectToJson(new RestTransfer(trans));
-                responder.sendJson(OK, responseBody);
+                actions.stopTransfer(transfer);
+                transfer.setUpdatedInfo(TOSUBMIT);
+                transfer.setGlobalStep(transfer.getLastGlobalStep());
+                transferDAO.update(transfer);
+
+                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                String responseText = JsonUtils.nodeToString(response);
+                responder.sendJson(OK, responseText);
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
@@ -239,13 +234,15 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             if (!transferDAO.exist(transID)) {
                 responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             } else {
-                Transfer trans = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, requested);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
-                actions.stopTransfer(trans);
-                transferDAO.update(trans);
-                String responseBody = objectToJson(new RestTransfer(trans));
-                responder.sendJson(OK, responseBody);
+                actions.stopTransfer(transfer);
+                transferDAO.update(transfer);
+
+                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                String responseText = JsonUtils.nodeToString(response);
+                responder.sendJson(OK, responseText);
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
@@ -296,12 +293,14 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             if (!transferDAO.exist(transID)) {
                 responder.sendStatus(HttpResponseStatus.NOT_FOUND);
             } else {
-                Transfer trans = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, requested);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
-                actions.cancelTransfer(trans);
-                transferDAO.update(trans);
-                String responseBody = objectToJson(new RestTransfer(trans));
+                actions.cancelTransfer(transfer);
+                transferDAO.update(transfer);
+
+                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                String responseBody = JsonUtils.nodeToString(response);
                 responder.sendJson(OK, responseBody);
             }
         } catch (NumberFormatException e) {
@@ -332,7 +331,7 @@ public class TransferIdHandler extends AbstractRestDbHandler {
     public void options(HttpRequest request, HttpResponder responder,
                         @PathParam(URI_ID) String uri) {
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = getMethodList(this.getClass(), this.crud);
+        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
         headers.add(ALLOW, allow);
         responder.sendStatus(OK, headers);
     }

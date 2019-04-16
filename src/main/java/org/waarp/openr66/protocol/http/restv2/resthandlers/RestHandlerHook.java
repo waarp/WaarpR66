@@ -28,25 +28,23 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.joda.time.DateTime;
-import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.Base64;
-import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestServiceInitializer;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
+import org.waarp.openr66.protocol.http.restv2.converters.HostConfigConverter;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.AbstractRestDbHandler;
+import org.waarp.openr66.protocol.http.restv2.dbhandlers.RequiredRole;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -76,7 +74,6 @@ import static org.waarp.openr66.protocol.configuration.Configuration.configurati
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_TIMESTAMP;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_USER;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
 
 /**
  * This class defines hooks called before and after the corresponding
@@ -133,24 +130,16 @@ public class RestHandlerHook implements HandlerHook {
             }
 
             return true;
-        } catch (Reply530Exception e) {
-            logger.info("RESTv2 Authentication failure -> " + e.message);
+        } catch (NotAllowedException e) {
+            logger.info(e.getMessage());
             DefaultHttpHeaders headers = new DefaultHttpHeaders();
             headers.add(WWW_AUTHENTICATE, "Basic, HMAC");
             responder.sendStatus(UNAUTHORIZED, headers);
-        } catch (IOException e) {
-            logger.info("RESTv2 Authentication failure -> " + e.getMessage());
-            DefaultHttpHeaders headers = new DefaultHttpHeaders();
-            headers.add(WWW_AUTHENTICATE, "Basic, HMAC");
-            responder.sendStatus(UNAUTHORIZED, headers);
-        } catch (DAOException e) {
+        } catch (InternalServerErrorException e) {
             logger.error(e);
             responder.sendStatus(INTERNAL_SERVER_ERROR);
-        } catch (CryptoException e) {
-            logger.error(e.getMessage(), e.getCause());
-            responder.sendStatus(INTERNAL_SERVER_ERROR);
-        } catch (JAXBException e) {
-            logger.error(e);
+        } catch (Throwable t) {
+            logger.error("RESTv2 Unexpected exception caught ->", t);
             responder.sendStatus(INTERNAL_SERVER_ERROR);
         }
         return false;
@@ -259,27 +248,19 @@ public class RestHandlerHook implements HandlerHook {
     /**
      * Checks if the user making the request does exist. If the user does exist,
      * this method returns the user's name and password, otherwise throws a
-     * {@link Reply530Exception}.
+     * {@link NotAllowedException}.
      *
      * @param request  The request currently being processed.
      * @return Returns {@code null} if the user cannot be authenticated.
      *         Otherwise, returns a pair composed of the username and password.
-     * @throws IOException  Thrown if the authentication credentials are
-     *                      missing or invalid.
-     * @throws DAOException Thrown if the authentication database cannot be
-     *                      contacted.
-     * @throws CryptoException   Thrown if an error occurred during the password
-     *                           hash verification.
-     * @throws Reply530Exception Thrown if the user has been authenticated, but
-     *                           has insufficient rights.
      */
     private String checkCredentials(HttpRequest request)
-            throws Reply530Exception, IOException, CryptoException, DAOException {
+            throws CryptoException {
 
         String authorization = request.headers().get(AUTHORIZATION);
 
         if (authorization == null) {
-            throw new IOException("Missing header for authentication.");
+            throw new NotAllowedException("Missing header for authentication.");
         }
 
         Pattern basicPattern = Pattern.compile("(Basic) (\\w+=*)");
@@ -287,10 +268,15 @@ public class RestHandlerHook implements HandlerHook {
 
         if (basicMatcher.find()) {
 
-            String[] credentials = new String(
-                    Base64.decode(basicMatcher.group(2))).split(":", 2);
+            String[] credentials;
+            try {
+                credentials = new String(
+                        Base64.decode(basicMatcher.group(2))).split(":", 2);
+            } catch (IOException e) {
+                throw new InternalServerErrorException(e);
+            }
             if (credentials.length != 2) {
-                throw new IOException("Invalid header for Basic authentication.");
+                throw new NotAllowedException("Invalid header for Basic authentication.");
             }
             String user = credentials[0];
             String pswd = credentials[1];
@@ -300,9 +286,11 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 hostDAO = DAO_FACTORY.getHostDAO();
                 if (!hostDAO.exist(user)) {
-                    throw new Reply530Exception("User does not exist.");
+                    throw new NotAllowedException("User does not exist.");
                 }
                 host = hostDAO.select(user);
+            } catch (DAOException e) {
+                throw new InternalServerErrorException(e);
             } finally {
                 if (hostDAO != null) {
                     hostDAO.close();
@@ -317,7 +305,7 @@ public class RestHandlerHook implements HandlerHook {
                         "An error occurred when encrypting the password", e);
             }
             if (!Arrays.equals(host.getHostkey(), key.getBytes())) {
-                throw new Reply530Exception("Invalid password.");
+                throw new NotAllowedException("Invalid password.");
             }
 
             return user;
@@ -336,11 +324,11 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 requestDate = DateTime.parse(authDate);
             } catch (IllegalArgumentException e) {
-                throw new IOException("Invalid authentication timestamp.");
+                throw new NotAllowedException("Invalid authentication timestamp.");
             }
             DateTime limitTime = requestDate.plus(this.delay);
             if (DateTime.now().isAfter(limitTime)) {
-                throw new Reply530Exception("Authentication expired.");
+                throw new NotAllowedException("Authentication expired.");
             }
 
             HostDAO hostDAO = null;
@@ -348,9 +336,11 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 hostDAO = DAO_FACTORY.getHostDAO();
                 if (!hostDAO.exist(authUser)) {
-                    throw new Reply530Exception("User does not exist.");
+                    throw new NotAllowedException("User does not exist.");
                 }
                 host = hostDAO.select(authUser);
+            } catch (DAOException e) {
+                throw new InternalServerErrorException(e);
             } finally {
                 if (hostDAO != null) {
                     hostDAO.close();
@@ -373,13 +363,13 @@ public class RestHandlerHook implements HandlerHook {
             }
 
             if (Arrays.equals(key.getBytes(), authKey.getBytes())) {
-                throw new Reply530Exception("Invalid password.");
+                throw new NotAllowedException("Invalid password.");
             }
 
             return authUser;
         }
 
-        throw new IOException("Missing credentials.");
+        throw new NotAllowedException("Missing credentials.");
     }
 
     /**
@@ -390,13 +380,8 @@ public class RestHandlerHook implements HandlerHook {
      * @param method  The method called by the request.
      * @return Returns {@code true} if the user is authorized to make the request,
      *         {@code false} otherwise.
-     * @throws DAOException Thrown if the authentication database cannot be
-     *                      contacted.
-     * @throws JAXBException Thrown if an error occurred during the roles XML
-     *                       deserialization.
      */
-    private boolean checkAuthorization(String user, Method method)
-            throws DAOException, JAXBException {
+    private boolean checkAuthorization(String user, Method method) {
 
         ROLE requiredRole = NOACCESS;
         if (method.isAnnotationPresent(RequiredRole.class)) {
@@ -412,23 +397,11 @@ public class RestHandlerHook implements HandlerHook {
             return true;
         }
 
-        BusinessDAO businessDAO = null;
-        Business business;
-        try {
-            businessDAO = DAO_FACTORY.getBusinessDAO();
-            business = businessDAO.select(HOST_ID);
-        } finally {
-            if (businessDAO != null) {
-                businessDAO.close();
-            }
-        }
-        RestHostConfig.Role[] roles = RestHostConfig.Role.toRoleArray(business.getRoles());
-        for (RestHostConfig.Role role : roles) {
-            if (role.hostName.equals(user)) {
-                for (ROLE roleType : role.roleTypes) {
-                    if (requiredRole.isContained(roleType.getAsByte())) {
-                        return true;
-                    }
+        List<ROLE> roles = HostConfigConverter.getRoles(user);
+        if (roles != null) {
+            for (ROLE roleType : roles) {
+                if (requiredRole.isContained(roleType.getAsByte())) {
+                    return true;
                 }
             }
         }

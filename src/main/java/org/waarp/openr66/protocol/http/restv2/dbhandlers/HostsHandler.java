@@ -21,15 +21,21 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestHost;
+import org.waarp.openr66.pojo.Host;
+import org.waarp.openr66.protocol.http.restv2.converters.HostConverter;
+import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
 import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -41,36 +47,20 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static java.util.Collections.sort;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.HOST;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.openr66.dao.database.DBHostDAO.ADDRESS_FIELD;
-import static org.waarp.openr66.dao.database.DBHostDAO.IS_ACTIVE_FIELD;
-import static org.waarp.openr66.dao.database.DBHostDAO.IS_SSL_FIELD;
+import static javax.ws.rs.core.MediaType.*;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
+import static org.waarp.openr66.dao.database.DBHostDAO.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOSTS_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.data.RestHost.Order;
-import static org.waarp.openr66.protocol.http.restv2.errors.Error.serializeErrors;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ALREADY_EXISTING;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_PARAMETER_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getMethodList;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.stringToBoolean;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on
@@ -121,26 +111,23 @@ public class HostsHandler extends AbstractRestDbHandler {
                                         String limit_str,
                             @QueryParam(Params.offset) @DefaultValue("0")
                                         String offset_str,
-                            @QueryParam(Params.order) @DefaultValue("ascHostID")
+                            @QueryParam(Params.order) @DefaultValue("ascId")
                                         String order_str,
-                            @QueryParam(Params.address) @DefaultValue("")
-                                        String address,
-                            @QueryParam(Params.isSSL) @DefaultValue("")
-                                        String isSSL_str,
-                            @QueryParam(Params.isActive) @DefaultValue("")
-                                        String isActive_str) {
+                            @QueryParam(Params.address) String address,
+                            @QueryParam(Params.isSSL) String isSSL_str,
+                            @QueryParam(Params.isActive) String isActive_str) {
 
         List<Error> errors = new ArrayList<Error>();
 
         int limit = 20, offset = 0;
-        Order order = Order.ascHostID;
+        HostConverter.Order order = HostConverter.Order.ascId;
         try {
             limit = Integer.parseInt(limit_str);
         } catch(NumberFormatException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(Params.limit, limit_str));
         }
         try {
-            order = Order.valueOf(order_str);
+            order = HostConverter.Order.valueOf(order_str);
         } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(Params.order, order_str));
         }
@@ -159,28 +146,28 @@ public class HostsHandler extends AbstractRestDbHandler {
         boolean isSSL = false, isActive = false;
         if (isSSL_str != null) {
             try {
-                isSSL = stringToBoolean(isSSL_str);
+                isSSL = RestUtils.stringToBoolean(isSSL_str);
             } catch (ParseException e) {
                 errors.add(ILLEGAL_PARAMETER_VALUE(Params.isSSL, isSSL_str));
             }
         }
         if (isActive_str != null) {
             try {
-                isActive = stringToBoolean(isActive_str);
+                isActive = RestUtils.stringToBoolean(isActive_str);
             } catch (ParseException e) {
                 errors.add(ILLEGAL_PARAMETER_VALUE(Params.isActive, isActive_str));
             }
         }
 
         if(!errors.isEmpty()) {
-            Locale lang = getRequestLocale(request);
-            responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
+            Locale lang = RestUtils.getRequestLocale(request);
+            responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
             return;
         }
 
 
         List<Filter> filters = new ArrayList<Filter>();
-        if (!address.isEmpty()) {
+        if (address != null) {
             filters.add(new Filter(ADDRESS_FIELD, "=", address));
         }
         if (isSSL_str != null) {
@@ -189,15 +176,11 @@ public class HostsHandler extends AbstractRestDbHandler {
         if (isActive_str != null) {
             filters.add(new Filter(IS_ACTIVE_FIELD, "=", isActive));
         }
-        List<RestHost> answers;
+        List<Host> hosts;
         HostDAO hostDAO = null;
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
-            if (filters.isEmpty()) {
-                answers = RestHost.toRestList(hostDAO.getAll());
-            } else {
-                answers = RestHost.toRestList(hostDAO.find(filters));
-            }
+            hosts = hostDAO.find(filters);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -205,17 +188,21 @@ public class HostsHandler extends AbstractRestDbHandler {
                 hostDAO.close();
             }
         }
-        int nbResults = answers.size();
-        HashMap<String, Object> responseBody = new HashMap<String, Object>();
-        responseBody.put("totalResults", nbResults);
 
-        sort(answers, order.comparator);
-        List<RestHost> orderedAnswers = new ArrayList<RestHost>();
-        for (int i = offset; i < offset + limit && i < answers.size(); i++) {
-            orderedAnswers.add(answers.get(i));
+        int totalResults = hosts.size();
+        sort(hosts, order.comparator);
+
+        ArrayNode results = new ArrayNode(JsonNodeFactory.instance);
+        for (int i = offset; i < offset + limit && i < hosts.size(); i++) {
+            results.add(HostConverter.hostToNode(hosts.get(i)));
         }
-        responseBody.put("results", orderedAnswers);
-        responder.sendJson(OK, objectToJson(responseBody));
+
+        ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
+        responseObject.put("totalResults", totalResults);
+        responseObject.set("results", results);
+
+        String responseText = JsonUtils.nodeToString(responseObject);
+        responder.sendJson(OK, responseText);
     }
 
     /**
@@ -230,25 +217,18 @@ public class HostsHandler extends AbstractRestDbHandler {
     @RequiredRole(HOST)
     public void addHost(HttpRequest request, HttpResponder responder) {
 
-        RestHost restHost = requestToObject(request, RestHost.class, true);
+        ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+        Host host = HostConverter.nodeToNewHost(requestObject);
 
         HostDAO hostDAO = null;
         try {
-            restHost.encryptPassword();
             hostDAO = DAO_FACTORY.getHostDAO();
 
-            if (!hostDAO.exist(restHost.hostID)) {
-                hostDAO.insert(restHost.toHost());
-                String responseBody = objectToJson(restHost);
-                DefaultHttpHeaders headers = new DefaultHttpHeaders();
-                headers.add(CONTENT_TYPE, APPLICATION_JSON);
-                headers.add("host-uri", HOSTS_HANDLER_URI + restHost.hostID);
-                responder.sendString(CREATED, responseBody, headers);
-            } else {
-                Error error = ALREADY_EXISTING(restHost.hostID);
-                Locale lang = getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, error.serialize(lang));
+            if (!hostDAO.exist(host.getHostid())) {
+                throw new UserErrorException(ALREADY_EXISTING(host.getHostid()));
             }
+
+            hostDAO.insert(host);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -256,6 +236,15 @@ public class HostsHandler extends AbstractRestDbHandler {
                 hostDAO.close();
             }
         }
+
+        ObjectNode responseObject = HostConverter.hostToNode(host);
+        String responseText = JsonUtils.nodeToString(responseObject);
+
+        DefaultHttpHeaders headers = new DefaultHttpHeaders();
+        headers.add(CONTENT_TYPE, APPLICATION_JSON);
+        headers.add("host-uri", HOSTS_HANDLER_URI + host.getHostid());
+
+        responder.sendString(CREATED, responseText, headers);
     }
 
     /**
@@ -271,7 +260,7 @@ public class HostsHandler extends AbstractRestDbHandler {
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder) {
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = getMethodList(this.getClass(), this.crud);
+        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
         headers.add(ALLOW, allow);
         responder.sendStatus(OK, headers);
     }

@@ -1,18 +1,27 @@
 package org.waarp.openr66.pojo;
 
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Map;
-import java.util.HashMap;
-
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.waarp.openr66.dao.database.DBTransferDAO.*;
+
 /**
  * Transfer data object
  */
+@XmlType(name = DbTaskRunner.XMLRUNNER)
+@XmlAccessorType(XmlAccessType.NONE)
 public class Transfer {
 
     public enum TASKSTEP {
@@ -21,7 +30,7 @@ public class Transfer {
 
         private int taskNo;
 
-        private static Map<Integer, TASKSTEP> map 
+        private static Map<Integer, TASKSTEP> map
             = new HashMap<Integer, TASKSTEP>();
 
         static {
@@ -43,53 +52,93 @@ public class Transfer {
         }
     }
 
+    @XmlElement(name = ID_FIELD)
     private long id = DbConstant.ILLEGALVALUE;
 
     /**
      * True if requester is the sender of the file (SEND MODE)
      * False if requested is the sender of the file (RETRIEVE MODE)
      */
+    @XmlElement(name = RETRIEVE_MODE_FIELD)
     private boolean retrieveMode = false;
 
+    @XmlElement(name = ID_RULE_FIELD)
     private String rule = "";
 
+    @XmlElement(name = TRANSFER_MODE_FIELD)
     private int transferMode = 1;
 
+    @XmlElement(name = FILENAME_FIELD)
     private String filename = "";
 
+    @XmlElement(name = ORIGINAL_NAME_FIELD)
     private String originalName = "";
 
+    @XmlElement(name = FILE_INFO_FIELD)
     private String fileInfo = "";
 
+    @XmlElement(name = IS_MOVED_FIELD)
     private boolean isFileMoved = false;
 
+    @XmlElement(name = BLOCK_SIZE_FIELD)
     private int blockSize;
 
+    @XmlElement(name = OWNER_REQUEST_FIELD)
     private String ownerRequest = Configuration.configuration.getHOST_ID();
 
+    @XmlElement(name = REQUESTER_FIELD)
     private String requester = "";
 
+    @XmlElement(name = REQUESTED_FIELD)
     private String requested = "";
 
+    @XmlTransient
     private String transferInfo = "";
 
+    @XmlElement(name = GLOBAL_STEP_FIELD)
     private TASKSTEP globalStep = TASKSTEP.NOTASK;
 
+    @XmlElement(name = GLOBAL_LAST_STEP_FIELD)
     private TASKSTEP lastGlobalStep = TASKSTEP.NOTASK;
 
+    @XmlElement(name = STEP_FIELD)
     private int step = -1;
 
+    @XmlElement(name = STEP_STATUS_FIELD)
     private ErrorCode stepStatus = ErrorCode.Unknown;
 
+    @XmlElement(name = INFO_STATUS_FIELD)
     private ErrorCode infoStatus = ErrorCode.Unknown;
 
+    @XmlElement(name = RANK_FIELD)
     private int rank = 0;
 
+    @XmlTransient
     private Timestamp start = new Timestamp(0);
 
+    @XmlTransient
     private Timestamp stop = new Timestamp(0);
 
+    @XmlTransient
     private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
+
+    @XmlElement(name = TRANSFER_START_FIELD)
+    public long getXmlStart() {
+        return start.getTime();
+    }
+
+    public void setXmlStart(long xml) {
+        start = new Timestamp(xml);
+    }
+
+    @XmlElement(name = TRANSFER_STOP_FIELD)
+    public long getXmlStop() {
+        return stop.getTime();
+    }
+
+    public void setXmlStop(long xml) {
+        stop = new Timestamp(xml);
+    }
 
     /**
      * Full Constructor to create Transfer from the database

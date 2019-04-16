@@ -21,22 +21,22 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.joda.time.DateTime;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.HostDAO;
-import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.pojo.Host;
-import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
-import org.waarp.openr66.protocol.http.restv2.data.RestTransferInitializer;
+import org.waarp.openr66.protocol.http.restv2.converters.RestTransferUtils;
 import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -48,40 +48,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.common.role.RoleDefault.ROLE.TRANSFER;
-import static org.waarp.openr66.dao.database.DBTransferDAO.FILENAME_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.ID_RULE_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.REQUESTED_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.TRANSFER_START_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.UPDATED_INFO_FIELD;
+import static javax.ws.rs.core.MediaType.*;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
+import static org.waarp.openr66.dao.database.DBTransferDAO.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.TRANSFERS_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.data.RestTransfer.Order;
-import static org.waarp.openr66.protocol.http.restv2.data.RestTransfer.Order.ascTransferID;
-import static org.waarp.openr66.protocol.http.restv2.errors.Error.serializeErrors;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_PARAMETER_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.RULE_NOT_ALLOWED;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.UNKNOWN_HOST;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.UNKNOWN_RULE;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getMethodList;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on
@@ -139,7 +116,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
                                            String limit_str,
                                @QueryParam(Params.offset) @DefaultValue("0")
                                            String offset_str,
-                               @QueryParam(Params.order) @DefaultValue("ascTransferID")
+                               @QueryParam(Params.order) @DefaultValue("ascId")
                                            String order_str,
                                @QueryParam(Params.ruleID) @DefaultValue("")
                                            String ruleID,
@@ -168,9 +145,9 @@ public class TransfersHandler extends AbstractRestDbHandler {
         } catch (NumberFormatException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(Params.offset, offset_str));
         }
-        Order order = ascTransferID;
+        RestTransferUtils.Order order = RestTransferUtils.Order.ascId;
         try {
-            order = Order.valueOf(order_str);
+            order = RestTransferUtils.Order.valueOf(order_str);
         } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(Params.order, order_str));
         }
@@ -203,24 +180,25 @@ public class TransfersHandler extends AbstractRestDbHandler {
         }
         if (!status_str.isEmpty()) {
             try {
-                int statusNbr = RestTransfer.Status.valueOf(status_str).toUpdatedInfo();
-                filters.add(new Filter(UPDATED_INFO_FIELD, "=", statusNbr));
+                int status_nbr = AbstractDbData.UpdatedInfo.valueOf(status_str).ordinal();
+                filters.add(new Filter(UPDATED_INFO_FIELD, "=", status_nbr));
             } catch (IllegalArgumentException e) {
                 errors.add(ILLEGAL_PARAMETER_VALUE(Params.status, status_str));
             }
         }
 
         if(!errors.isEmpty()) {
-            Locale lang = getRequestLocale(request);
-            responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
+            Locale lang = RestUtils.getRequestLocale(request);
+            responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
             return;
         }
 
         TransferDAO transferDAO = null;
-        List<RestTransfer> resultsList;
+        List<Transfer> transferList;
         try {
             transferDAO = DAO_FACTORY.getTransferDAO();
-            resultsList = RestTransfer.toRestList(transferDAO.find(filters));
+            transferList = transferDAO.find(filters, order.column, order.ascend,
+                    limit, offset);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -229,19 +207,14 @@ public class TransfersHandler extends AbstractRestDbHandler {
             }
         }
 
-        Integer nbResults = resultsList.size();
-
-        Collections.sort(resultsList, order.comparator);
-        List<RestTransfer> orderedResults = new ArrayList<RestTransfer>();
-        for (int i = offset; i < offset + limit && i < resultsList.size(); i++) {
-            orderedResults.add(resultsList.get(i));
+        ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
+        ArrayNode resultList = responseObject.putArray("results");
+        for (Transfer transfer : transferList) {
+            resultList.add(RestTransferUtils.transferToNode(transfer));
         }
-
-        HashMap<String, Object> jsonObject = new HashMap<String, Object>();
-        jsonObject.put("results", orderedResults);
-        jsonObject.put("totalResults", nbResults);
-        String responseBody = objectToJson(jsonObject);
-        responder.sendJson(OK, responseBody);
+        responseObject.put("totalResults", transferList.size());
+        String responseText = JsonUtils.nodeToString(responseObject);
+        responder.sendJson(OK, responseText);
     }
 
     /**
@@ -257,58 +230,13 @@ public class TransfersHandler extends AbstractRestDbHandler {
     @RequiredRole(TRANSFER)
     public void createTransfer(HttpRequest request, HttpResponder responder) {
 
-        RestTransferInitializer init =
-                requestToObject(request, RestTransferInitializer.class, true);
-
-        // Transfer information checks
-        RuleDAO ruleDAO = null;
-        HostDAO hostDAO = null;
-        List<Error> errors = new ArrayList<Error>();
-        try {
-            ruleDAO = DAO_FACTORY.getRuleDAO();
-            hostDAO = DAO_FACTORY.getHostDAO();
-            Host partner = hostDAO.select(init.requested);
-            Rule rule = ruleDAO.select(init.ruleID);
-
-            // Check if requested host exists
-            if (partner == null) {
-                errors.add(UNKNOWN_HOST(init.requested));
-            }
-
-            // Check if rule exists
-            if (rule == null) {
-                errors.add(UNKNOWN_RULE(init.ruleID));
-            }
-
-            // Check if both hosts are allowed to use the rule
-            String requester = HOST_ID;
-            if (rule != null && !rule.getHostids().contains(requester)) {
-                errors.add(RULE_NOT_ALLOWED(requester, init.ruleID));
-            }
-            if (rule != null && !rule.getHostids().contains(init.requested)) {
-                errors.add(RULE_NOT_ALLOWED(init.requested, init.ruleID));
-            }
-
-        } catch (DAOException e) {
-            throw new InternalServerErrorException(e);
-        } finally {
-            if (ruleDAO != null) { ruleDAO.close(); }
-            if (hostDAO != null) { hostDAO.close(); }
-
-            if (!errors.isEmpty()) {
-                Locale lang = getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
-                return;
-            }
-        }
-        // end checks
-
-        Transfer trans = init.toTransfer();
+        ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+        Transfer transfer = RestTransferUtils.nodeToNewTransfer(requestObject);
 
         TransferDAO transferDAO = null;
         try {
             transferDAO = DAO_FACTORY.getTransferDAO();
-            transferDAO.insert(trans);
+            transferDAO.insert(transfer);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -316,13 +244,15 @@ public class TransfersHandler extends AbstractRestDbHandler {
                 transferDAO.close();
             }
         }
-        String responseBody = objectToJson(new RestTransfer(trans));
+
+        ObjectNode responseObject = RestTransferUtils.transferToNode(transfer);
+        String responseText = JsonUtils.nodeToString(responseObject);
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
-        headers.add("transfer-uri", TRANSFERS_HANDLER_URI + trans.getId() +
-                "_" + trans.getRequested());
-        responder.sendString(CREATED, responseBody, headers);
+        headers.add("transfer-uri", TRANSFERS_HANDLER_URI + transfer.getId() +
+                "_" + transfer.getRequested());
 
+        responder.sendString(CREATED, responseText, headers);
     }
 
     /**
@@ -338,7 +268,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder) {
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = getMethodList(this.getClass(), this.crud);
+        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
         headers.add(ALLOW, allow);
         responder.sendStatus(OK, headers);
     }

@@ -29,7 +29,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.testcontainers.shaded.org.apache.commons.codec.language.bm.Lang;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
-import org.waarp.openr66.protocol.http.restv2.errors.BadRequestException;
+import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotSupportedException;
@@ -45,7 +45,7 @@ import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestL
 /** Handles unknown exceptions that occur during the processing of an HTTP request. */
 public class RestExceptionHandler extends ExceptionHandler {
 
-    public static final WaarpLogger logger =
+    private static final WaarpLogger logger =
             WaarpLoggerFactory.getLogger(RestExceptionHandler.class);
 
     /**
@@ -57,9 +57,9 @@ public class RestExceptionHandler extends ExceptionHandler {
      */
     @Override
     public void handle(Throwable t, HttpRequest request, HttpResponder responder) {
-        if (t instanceof BadRequestException) {
-            BadRequestException badRequest =
-                    (BadRequestException) t;
+        if (t instanceof UserErrorException) {
+            UserErrorException badRequest =
+                    (UserErrorException) t;
             try {
                 Locale lang = getRequestLocale(request);
                 responder.sendJson(BAD_REQUEST, serializeErrors(badRequest.errors, lang));

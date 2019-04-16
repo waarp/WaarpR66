@@ -85,13 +85,13 @@ public final class RestConstants {
     public static final String CONFIG_HANDLER_URI = VERSION_PREFIX + "hostconfig/";
 
     /** The name of this R66 server instance. */
-    public static String HOST_ID = Configuration.configuration.getHOST_ID();
+    public static final String SERVER_NAME = Configuration.configuration.getHOST_ID();
 
     /** The DAO_FACTORY to generate connections to the underlying database. */
     public static final DAOFactory DAO_FACTORY;
 
     /** The UTF-8 {@link java.nio.charset.Charset} constant. */
-    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");;
+    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
     static {
         DAOFactory.initialize(ConnectionFactory.getInstance());

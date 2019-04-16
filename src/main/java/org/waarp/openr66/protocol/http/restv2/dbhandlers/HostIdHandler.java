@@ -21,14 +21,15 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Host;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestHost;
+import org.waarp.openr66.protocol.http.restv2.converters.HostConverter;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
 import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
@@ -39,9 +40,7 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
@@ -55,10 +54,6 @@ import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID_HANDLER_URI;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.URI_ID;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.FIELD_NOT_ALLOWED;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on a
@@ -93,11 +88,11 @@ public class HostIdHandler extends AbstractRestDbHandler {
             Host host = hostDAO.select(id);
             if (host == null) {
                 responder.sendStatus(NOT_FOUND);
-            } else {
-                RestHost restHost = new RestHost(host);
-                String responseBody = objectToJson(restHost);
-                responder.sendJson(OK, responseBody);
+                return;
             }
+            ObjectNode responseObject = HostConverter.hostToNode(host);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(OK, responseText);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -126,32 +121,21 @@ public class HostIdHandler extends AbstractRestDbHandler {
         HostDAO hostDAO = null;
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
+            Host oldHost = hostDAO.select(id);
 
-            if (!hostDAO.exist(id)) {
+            if (oldHost == null) {
                 responder.sendStatus(NOT_FOUND);
                 return;
             }
 
-            RestHost partialHost =
-                    requestToObject(request, RestHost.class, false);
-            Locale lang = getRequestLocale(request);
+            ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+            Host newHost = HostConverter.nodeToUpdatedHost(requestObject, oldHost);
 
-            // check that the user didn't change the hostID, hostIDs cannot be changed
-            if (partialHost.hostID != null && !id.equals(partialHost.hostID)) {
-                responder.sendJson(BAD_REQUEST,
-                        FIELD_NOT_ALLOWED("hostID").serialize(lang));
-                return;
-            }
-            if (partialHost.hostKey != null && !partialHost.hostKey.isEmpty()) {
-                partialHost.encryptPassword();
-            }
+            hostDAO.update(newHost);
 
-            RestHost oldHost = new RestHost(hostDAO.select(id));
-            RestHost newHost = RestUtils.updateRestObject(oldHost, partialHost);
-
-            hostDAO.update(newHost.toHost());
-            String responseBody = objectToJson(newHost);
-            responder.sendJson(CREATED, responseBody);
+            ObjectNode responseObject = HostConverter.hostToNode(newHost);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(CREATED, responseText);
 
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -180,11 +164,12 @@ public class HostIdHandler extends AbstractRestDbHandler {
         HostDAO hostDAO = null;
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
-            if(hostDAO.exist(id)) {
-                hostDAO.delete(hostDAO.select(id));
-                responder.sendStatus(NO_CONTENT);
-            } else {
+            Host host = hostDAO.select(id);
+            if (host == null) {
                 responder.sendStatus(NOT_FOUND);
+            } else {
+                hostDAO.delete(host);
+                responder.sendStatus(NO_CONTENT);
             }
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);

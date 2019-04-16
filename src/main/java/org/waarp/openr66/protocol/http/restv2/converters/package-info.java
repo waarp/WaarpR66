@@ -19,21 +19,4 @@
  *
  */
 
-package org.waarp.openr66.protocol.http.restv2.data;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/**
- * Specifies that all fields marked with this annotation (most notably those of
- * type String) should not be empty or {@code null}. After deserialization
- * of an object, compliance to this annotation should always be checked.
- * Failure in doing so could lead to the presence of illegal values in the
- * server database.
- */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Required {
-}
+package org.waarp.openr66.protocol.http.restv2.converters;

@@ -21,14 +21,16 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestLimit;
+import org.waarp.openr66.pojo.Limit;
+import org.waarp.openr66.protocol.http.restv2.converters.LimitsConverter;
 import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
 import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
@@ -41,24 +43,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.LIMIT;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.LIMITS_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ALREADY_EXISTING;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operation on the
@@ -87,10 +78,12 @@ public class LimitsHandler extends AbstractRestDbHandler {
         LimitDAO limitDAO = null;
         try {
             limitDAO = DAO_FACTORY.getLimitDAO();
-            if (limitDAO.exist(HOST_ID)) {
-                RestLimit restLimit = new RestLimit(limitDAO.select(HOST_ID));
-                String responseBody = objectToJson(restLimit);
-                responder.sendJson(OK, responseBody);
+            if (limitDAO.exist(SERVER_NAME)) {
+                Limit limits = limitDAO.select(SERVER_NAME);
+                ObjectNode responseObject = LimitsConverter.limitToNode(limits);
+                String responseText = JsonUtils.nodeToString(responseObject);
+
+                responder.sendJson(OK, responseText);
             } else {
                 responder.sendStatus(NOT_FOUND);
             }
@@ -117,23 +110,25 @@ public class LimitsHandler extends AbstractRestDbHandler {
     @RequiredRole(READONLY)
     public void initializeLimits(HttpRequest request, HttpResponder responder) {
 
-        RestLimit restLimit =
-                requestToObject(request, RestLimit.class, true);
         LimitDAO limitDAO = null;
         try {
             limitDAO = DAO_FACTORY.getLimitDAO();
 
-            if (!limitDAO.exist(HOST_ID)) {
-                limitDAO.insert(restLimit.toLimit());
-                configuration.changeNetworkLimit(
-                        restLimit.downGlobalLimit, restLimit.upGlobalLimit,
-                        restLimit.downSessionLimit, restLimit.upSessionLimit,
-                        restLimit.delayLimit);
-                String responseBody = objectToJson(restLimit);
-                responder.sendJson(CREATED, responseBody);
+            if (!limitDAO.exist(SERVER_NAME)) {
+                ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+                Limit limits = LimitsConverter.nodeToNewLimit(requestObject);
+                limitDAO.insert(limits);
+
+                configuration.changeNetworkLimit(limits.getReadGlobalLimit(),
+                        limits.getWriteGlobalLimit(), limits.getReadSessionLimit(),
+                        limits.getWriteSessionLimit(), limits.getDelayLimit());
+
+                ObjectNode responseObject = LimitsConverter.limitToNode(limits);
+                String responseText = JsonUtils.nodeToString(responseObject);
+                responder.sendJson(CREATED, responseText);
             } else {
-                Error error = ALREADY_EXISTING(HOST_ID);
-                Locale lang = getRequestLocale(request);
+                Error error = ALREADY_EXISTING(SERVER_NAME);
+                Locale lang = RestUtils.getRequestLocale(request);
                 responder.sendJson(BAD_REQUEST, error.serialize(lang));
             }
         } catch (DAOException e) {
@@ -162,25 +157,25 @@ public class LimitsHandler extends AbstractRestDbHandler {
         try {
             limitDAO = DAO_FACTORY.getLimitDAO();
 
-            if (!limitDAO.exist(HOST_ID)) {
+            if (!limitDAO.exist(SERVER_NAME)) {
                 responder.sendStatus(NOT_FOUND);
                 return;
             }
 
-            RestLimit partialLimits =
-                    requestToObject(request, RestLimit.class, false);
+            ObjectNode requestObject = JsonUtils.deserializeRequest(request);
 
-            RestLimit oldLimits = new RestLimit(limitDAO.select(HOST_ID));
-            RestLimit newLimits = RestUtils.updateRestObject(oldLimits, partialLimits);
+            Limit oldLimits = limitDAO.select(SERVER_NAME);
+            Limit newLimits = LimitsConverter.nodeToUpdatedLimit(requestObject, oldLimits);
 
-            limitDAO.update(newLimits.toLimit());
+            limitDAO.update(newLimits);
 
-            configuration.changeNetworkLimit(
-                    newLimits.downGlobalLimit, newLimits.upGlobalLimit,
-                    newLimits.downSessionLimit, newLimits.upSessionLimit,
-                    newLimits.delayLimit);
-            String responseBody = objectToJson(newLimits);
-            responder.sendJson(CREATED, responseBody);
+            configuration.changeNetworkLimit(newLimits.getReadGlobalLimit(),
+                    newLimits.getWriteGlobalLimit(), newLimits.getReadSessionLimit(),
+                    newLimits.getWriteSessionLimit(), newLimits.getDelayLimit());
+
+            ObjectNode responseObject = LimitsConverter.limitToNode(newLimits);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(CREATED, responseText);
 
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -207,8 +202,8 @@ public class LimitsHandler extends AbstractRestDbHandler {
         try {
             limitDAO = DAO_FACTORY.getLimitDAO();
 
-            if (limitDAO.exist(HOST_ID)) {
-                limitDAO.delete(limitDAO.select(HOST_ID));
+            if (limitDAO.exist(SERVER_NAME)) {
+                limitDAO.delete(limitDAO.select(SERVER_NAME));
                 configuration.changeNetworkLimit(0, 0, 0, 0, 0);
                 responder.sendStatus(NO_CONTENT);
             } else {

@@ -21,11 +21,15 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
@@ -34,12 +38,19 @@ import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.pojo.Host;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestHost;
-import org.waarp.openr66.protocol.http.restv2.data.RestRule;
-import org.waarp.openr66.protocol.http.restv2.data.RestTransfer;
-import org.waarp.openr66.protocol.http.restv2.data.ServerStatus;
+import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.pojo.Transfer;
+import org.waarp.openr66.pojo.UpdatedInfo;
+import org.waarp.openr66.protocol.http.restv2.converters.ServerStatusMaker;
+import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Hosts;
+import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Rules;
+import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Transfers;
+import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
 import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.Errors;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.XmlUtils;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
@@ -60,47 +71,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.netty.handler.codec.http.HttpMethod.DELETE;
-import static io.netty.handler.codec.http.HttpMethod.GET;
-import static io.netty.handler.codec.http.HttpMethod.OPTIONS;
-import static io.netty.handler.codec.http.HttpMethod.POST;
-import static io.netty.handler.codec.http.HttpMethod.PUT;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_IMPLEMENTED;
-import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpMethod.*;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static java.lang.Boolean.TRUE;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.CONFIGADMIN;
-import static org.waarp.common.role.RoleDefault.ROLE.FULLADMIN;
-import static org.waarp.common.role.RoleDefault.ROLE.LOGCONTROL;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.gateway.kernel.rest.RestConfiguration.CRUD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.ID_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.ID_RULE_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.REQUESTER_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.TRANSFER_START_FIELD;
-import static org.waarp.openr66.dao.database.DBTransferDAO.UPDATED_INFO_FIELD;
+import static org.waarp.openr66.dao.database.DBTransferDAO.*;
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
-import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.Business;
-import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.Config;
-import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.Information;
-import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.Log;
-import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.Server;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.SERVER_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.errors.Error.serializeErrors;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_PARAMETER_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.stringToBoolean;
-import static org.waarp.openr66.protocol.http.restv2.utils.XmlUtils.loadObjectFromXmlFile;
-import static org.waarp.openr66.protocol.http.restv2.utils.XmlUtils.loadXmlFileToString;
-import static org.waarp.openr66.protocol.http.restv2.utils.XmlUtils.saveObjectToXmlFile;
-import static org.waarp.openr66.protocol.http.restv2.utils.XmlUtils.saveStringToXmlFile;
+import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
+import static org.waarp.openr66.protocol.http.restv2.dbhandlers.ServerHandler.EntryPoints.*;
+import static org.waarp.openr66.protocol.http.restv2.dbhandlers.ServerHandler.Params.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all system commands
@@ -114,47 +98,55 @@ public class ServerHandler extends AbstractRestDbHandler {
      *  Stores the names of all the sub directories of the {@link ServerHandler}
      *  handler as defined in the REST API specification.
      */
-    private static final class EntryPoints {
-        static final String STATUS_URI = "status";
-        static final String DEACTIVATE_URI = "deactivate";
-        static final String SHUTDOWN_URI = "shutdown";
-        static final String RESTART_URI = "restart";
-        static final String LOGS_URI = "logs";
-        static final String CONFIG_URI = "config";
-        static final String BUSINESS_URI = "business";
+    @SuppressWarnings("unused")
+    public static final class EntryPoints {
+        public static final String STATUS_URI = "status";
+        public static final String DEACTIVATE_URI = "deactivate";
+        public static final String SHUTDOWN_URI = "shutdown";
+        public static final String RESTART_URI = "restart";
+        public static final String LOGS_URI = "logs";
+        public static final String CONFIG_URI = "config";
+        public static final String BUSINESS_URI = "business";
     }
 
-    private static final class Params {
-        static final class GetLogs {
-            static final String purge = "purge";
-            static final String clean = "clean";
-            static final String status = "status";
-            static final String rule = "rule";
-            static final String start = "start";
-            static final String stop = "stop";
-            static final String startID = "startID";
-            static final String stopID = "stopID";
-            static final String requester = "requester";
-        }
-        static final class GetConfig {
-            static final String host = "host";
-            static final String rule = "rule";
-            static final String business = "business";
-            static final String alias = "alias";
-            static final String role = "role";
-        }
-        static final class SetConfig {
-            static final String purgeHost = "purgeHost";
-            static final String purgeRule = "purgeRule";
-            static final String purgeBusiness = "purgeBusiness";
-            static final String purgeAlias = "purgeAlias";
-            static final String purgeRole = "purgeRole";
-            static final String hostFile = "hostFile";
-            static final String ruleFile = "ruleFile";
-            static final String businessFile = "businessFile";
-            static final String aliasFile = "aliasFile";
-            static final String roleFile = "roleFile";
-        }
+    /**
+     * Stores the names of all query parameters for all entry points handled
+     * by this {@link ServerHandler} as defined in the REST API specification.
+     */
+    @SuppressWarnings("unused")
+    public static final class Params {
+        //Server status
+        public static final String PERIOD = "period";
+
+        //Log export
+        public static final String PURGE = "purge";
+        public static final String CLEAN = "clean";
+        public static final String STATUS = "status";
+        public static final String RULE_NAME = "ruleName";
+        public static final String START = "start";
+        public static final String STOP = "stop";
+        public static final String START_ID = "startID";
+        public static final String STOP_ID = "stopID";
+        public static final String REQUESTED = "requester";
+
+        //Config export
+        public static final String EXPORT_HOSTS = "exportHosts";
+        public static final String EXPORT_RULES = "exportRules";
+        public static final String EXPORT_BUSINESS = "exportBusiness";
+        public static final String EXPORT_ALIASES = "exportAliases";
+        public static final String EXPORT_ROLES = "exportRoles";
+
+        //Config import
+        public static final String PURGE_HOST = "purgeHosts";
+        public static final String PURGE_RULE = "purgeRules";
+        public static final String PURGE_BUSINESS = "purgeBusiness";
+        public static final String PURGE_ALIASES = "purgeAliases";
+        public static final String PURGE_ROLES = "purgeRoles";
+        public static final String HOST_FILE = "hostsFile";
+        public static final String RULE_FILE = "rulesFile";
+        public static final String BUSINESS_FILE = "businessFile";
+        public static final String ALIAS_FILE = "aliasesFile";
+        public static final String ROLE_FILE = "rolesFile";
     }
 
     /** Stores the path to the archive directory. */
@@ -168,7 +160,7 @@ public class ServerHandler extends AbstractRestDbHandler {
             configuration.getConfigPath();
 
     /**
-     * Stores a {@link Map} associating each subpath of the handler to their
+     * Stores a {@link Map} associating each sub-path of the handler to their
      * respective CRUD configuration.
      */
     private final Map<String, Byte> serverCRUD = new HashMap<String, Byte>();
@@ -180,13 +172,13 @@ public class ServerHandler extends AbstractRestDbHandler {
      */
     public ServerHandler(byte[] crud) {
         super((byte) 0);
-        serverCRUD.put(EntryPoints.STATUS_URI, crud[Information.ordinal()]);
-        serverCRUD.put(EntryPoints.DEACTIVATE_URI, crud[Server.ordinal()]);
-        serverCRUD.put(EntryPoints.SHUTDOWN_URI, crud[Server.ordinal()]);
-        serverCRUD.put(EntryPoints.RESTART_URI, crud[Server.ordinal()]);
-        serverCRUD.put(EntryPoints.LOGS_URI, crud[Log.ordinal()]);
-        serverCRUD.put(EntryPoints.CONFIG_URI, crud[Config.ordinal()]);
-        serverCRUD.put(EntryPoints.BUSINESS_URI, crud[Business.ordinal()]);
+        serverCRUD.put(STATUS_URI, crud[Information.ordinal()]);
+        serverCRUD.put(DEACTIVATE_URI, crud[Server.ordinal()]);
+        serverCRUD.put(SHUTDOWN_URI, crud[Server.ordinal()]);
+        serverCRUD.put(RESTART_URI, crud[Server.ordinal()]);
+        serverCRUD.put(LOGS_URI, crud[Log.ordinal()]);
+        serverCRUD.put(CONFIG_URI, crud[Config.ordinal()]);
+        serverCRUD.put(BUSINESS_URI, crud[Business.ordinal()]);
     }
 
     /**
@@ -231,14 +223,23 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param responder The {@link HttpResponder} which sends the reply to
      *                  the request.
      */
-    @Path(EntryPoints.STATUS_URI)
+    @Path(STATUS_URI)
     @GET
     @Consumes(WILDCARD)
     @RequiredRole(READONLY)
-    public void getStatus(HttpRequest request, HttpResponder responder) {
-        ServerStatus status = new ServerStatus();
-        String jsonString = objectToJson(status);
-        responder.sendJson(OK, jsonString);
+    public void getStatus(HttpRequest request, HttpResponder responder,
+                          @QueryParam(PERIOD) @DefaultValue("P1DT0H0M0S")
+                                  String period_str) {
+        try {
+            long seconds = Period.parse(period_str).toStandardSeconds().getSeconds();
+            ObjectNode status = ServerStatusMaker.exportAsJson(seconds);
+            String responseText = JsonUtils.nodeToString(status);
+            responder.sendJson(OK, responseText);
+        } catch (IllegalArgumentException e) {
+            throw new UserErrorException(Errors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
+        } catch (UnsupportedOperationException e) {
+            throw new UserErrorException(Errors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
+        }
     }
 
     /**
@@ -248,7 +249,7 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param responder The {@link HttpResponder} which sends the reply to
      *                  the request.
      */
-    @Path(EntryPoints.DEACTIVATE_URI)
+    @Path(DEACTIVATE_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(FULLADMIN)
@@ -256,7 +257,7 @@ public class ServerHandler extends AbstractRestDbHandler {
         HostDAO hostDAO = null;
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
-            Host host = hostDAO.select(HOST_ID);
+            Host host = hostDAO.select(SERVER_NAME);
             host.setActive(!host.isActive());
             hostDAO.update(host);
 
@@ -279,7 +280,7 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param responder The {@link HttpResponder} which sends the reply to
      *                  the request.
      */
-    @Path(EntryPoints.SHUTDOWN_URI)
+    @Path(SHUTDOWN_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(FULLADMIN)
@@ -296,7 +297,7 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param responder The {@link HttpResponder} which sends the reply to
      *                  the request.
      */
-    @Path(EntryPoints.RESTART_URI)
+    @Path(RESTART_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(FULLADMIN)
@@ -327,47 +328,38 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param startID    HTTP query parameter, lower bound for the transfer's ID.
      * @param stopID     HTTP query parameter, upper bound for the transfer's ID.
      */
-    @Path(EntryPoints.LOGS_URI)
+    @Path(LOGS_URI)
     @GET
     @Consumes(APPLICATION_FORM_URLENCODED)
     @RequiredRole(LOGCONTROL)
     public void getLogs(HttpRequest request, HttpResponder responder,
-                        @QueryParam(Params.GetLogs.purge)
-                            @DefaultValue("false") String purge_str,
-                        @QueryParam(Params.GetLogs.clean)
-                            @DefaultValue("false") String clean_str,
-                        @QueryParam(Params.GetLogs.status)
-                                    List<String> status_str,
-                        @QueryParam(Params.GetLogs.rule)
-                            @DefaultValue("") String rule,
-                        @QueryParam(Params.GetLogs.start)
-                            @DefaultValue("") String start,
-                        @QueryParam(Params.GetLogs.stop)
-                            @DefaultValue("") String stop,
-                        @QueryParam(Params.GetLogs.startID)
-                            @DefaultValue("") String startID,
-                        @QueryParam(Params.GetLogs.stopID)
-                            @DefaultValue("") String stopID,
-                        @QueryParam(Params.GetLogs.requester)
-                            @DefaultValue("") String requester) {
+                        @QueryParam(PURGE) @DefaultValue("false") String purge_str,
+                        @QueryParam(CLEAN) @DefaultValue("false") String clean_str,
+                        @QueryParam(STATUS) @DefaultValue("") String status_str,
+                        @QueryParam(RULE_NAME) @DefaultValue("") String rule,
+                        @QueryParam(START) @DefaultValue("") String start,
+                        @QueryParam(STOP) @DefaultValue("") String stop,
+                        @QueryParam(START_ID) @DefaultValue("") String startID,
+                        @QueryParam(STOP_ID) @DefaultValue("") String stopID,
+                        @QueryParam(REQUESTED) @DefaultValue("") String requester) {
 
         List<Error> errors = new ArrayList<Error>();
-        Locale lang = getRequestLocale(request);
+        Locale lang = RestUtils.getRequestLocale(request);
         List<Filter> filters = new ArrayList<Filter>();
-        String filePath = ARCH_PATH + File.separator + HOST_ID +
-                "_export_" + DateTime.now().toString() + ".log";
+        String filePath = ARCH_PATH + File.separator + SERVER_NAME +
+                "_export_" + DateTime.now().toString() + ".xml";
 
 
         Boolean purge = false, clean = false;
         try {
-            purge = stringToBoolean(purge_str);
+            purge = RestUtils.stringToBoolean(purge_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.purge, purge_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(PURGE, purge_str));
         }
         try {
-            clean = stringToBoolean(clean_str);
+            clean = RestUtils.stringToBoolean(clean_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.clean, clean_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(CLEAN, clean_str));
         }
 
         if (!start.isEmpty()) {
@@ -375,7 +367,7 @@ public class ServerHandler extends AbstractRestDbHandler {
                 DateTime lowerDate = DateTime.parse(start);
                 filters.add(new Filter(TRANSFER_START_FIELD, ">=", lowerDate));
             } catch(IllegalArgumentException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.start, start));
+                errors.add(ILLEGAL_PARAMETER_VALUE(START, start));
             }
         }
         if (!stop.isEmpty()) {
@@ -383,7 +375,7 @@ public class ServerHandler extends AbstractRestDbHandler {
                 DateTime upperDate = DateTime.parse(stop);
                 filters.add(new Filter(TRANSFER_START_FIELD, "<=", upperDate));
             } catch(IllegalArgumentException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.stop, stop));
+                errors.add(ILLEGAL_PARAMETER_VALUE(STOP, stop));
             }
         }
         if (!startID.isEmpty()) {
@@ -391,7 +383,7 @@ public class ServerHandler extends AbstractRestDbHandler {
                 Long lowerID = Long.parseLong(startID);
                 filters.add(new Filter(ID_FIELD, ">=", lowerID));
             } catch (NumberFormatException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.startID, startID));
+                errors.add(ILLEGAL_PARAMETER_VALUE(START_ID, startID));
             }
         }
         if (!stopID.isEmpty()) {
@@ -399,20 +391,18 @@ public class ServerHandler extends AbstractRestDbHandler {
                 Long upperID = Long.parseLong(stopID);
                 filters.add(new Filter(ID_FIELD, "<=", upperID));
             } catch (NumberFormatException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.stopID, stopID));
+                errors.add(ILLEGAL_PARAMETER_VALUE(STOP_ID, stopID));
             }
         }
         if (!rule.isEmpty()) {
             filters.add(new Filter(ID_RULE_FIELD, "=", rule));
         }
         if (!status_str.isEmpty()) {
-            for (String s : status_str) {
-                try {
-                    RestTransfer.Status status = RestTransfer.Status.valueOf(s);
-                    filters.add(new Filter(UPDATED_INFO_FIELD, "=", status.toUpdatedInfo()));
-                } catch (IllegalArgumentException e) {
-                    errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetLogs.status, s));
-                }
+            try {
+                UpdatedInfo status = UpdatedInfo.valueOf(status_str);
+                filters.add(new Filter(UPDATED_INFO_FIELD, "=", status.ordinal()));
+            } catch (IllegalArgumentException e) {
+                errors.add(ILLEGAL_PARAMETER_VALUE(STATUS, status_str));
             }
         }
 
@@ -422,17 +412,16 @@ public class ServerHandler extends AbstractRestDbHandler {
 
         if (!errors.isEmpty()) {
 
-            responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
+            responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
             return;
         }
         TransferDAO transferDAO = null;
         try {
             transferDAO = DAO_FACTORY.getTransferDAO();
-            RestTransfer.RestTransferList transfers = new RestTransfer.RestTransferList();
-            transfers.transfers = RestTransfer.toRestList(transferDAO.find(filters));
+            Transfers transfers = new Transfers(transferDAO.find(filters));
             int exported = transfers.transfers.size();
 
-            saveObjectToXmlFile(transfers, filePath);
+            XmlUtils.saveObject(transfers, filePath);
             int purged = 0;
             if (purge) {
                 for (RestTransfer transfer : transfers.transfers) {
@@ -440,13 +429,24 @@ public class ServerHandler extends AbstractRestDbHandler {
                     ++purged;
                 }
             }
+            // Update all UpdatedInfo to DONE
+            // where GlobalLastStep = ALLDONETASK and status = CompleteOk
+            if (clean) {
+                for (Transfer transfer : transfers.transfers) {
+                    if (transfer.getGlobalStep() == Transfer.TASKSTEP.ALLDONETASK &&
+                            transfer.getInfoStatus() == ErrorCode.CompleteOk) {
+                        transfer.setUpdatedInfo(UpdatedInfo.DONE);
+                        transferDAO.update(transfer);
+                    }
+                }
+            }
 
-            HashMap<String, Object> jsonObject = new HashMap<String, Object>();
-            jsonObject.put("filePath", filePath);
-            jsonObject.put("exported", exported);
-            jsonObject.put("purged", purged);
-            String jsonBody = objectToJson(jsonObject);
-            responder.sendJson(OK, jsonBody);
+            ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
+            responseObject.put("filePath", filePath);
+            responseObject.put("exported", exported);
+            responseObject.put("purged", purged);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(OK, responseText);
 
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -476,20 +476,20 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param role_str     HTTP query parameter, states whether to export
      *                     the host's permission database or not.
      */
-    @Path(EntryPoints.CONFIG_URI)
+    @Path(CONFIG_URI)
     @GET
     @Consumes(APPLICATION_FORM_URLENCODED)
     @RequiredRole(CONFIGADMIN)
     public void getConfig(HttpRequest request, HttpResponder responder,
-                          @QueryParam(Params.GetConfig.host)
+                          @QueryParam(EXPORT_HOSTS)
                               @DefaultValue("false") String host_str,
-                          @QueryParam(Params.GetConfig.rule)
+                          @QueryParam(EXPORT_RULES)
                               @DefaultValue("false") String rule_str,
-                          @QueryParam(Params.GetConfig.business)
+                          @QueryParam(EXPORT_BUSINESS)
                               @DefaultValue("false") String business_str,
-                          @QueryParam(Params.GetConfig.alias)
+                          @QueryParam(EXPORT_ALIASES)
                               @DefaultValue("false") String alias_str,
-                          @QueryParam(Params.GetConfig.role)
+                          @QueryParam(EXPORT_ROLES)
                               @DefaultValue("false") String role_str) {
 
         List<Error> errors = new ArrayList<Error>();
@@ -497,47 +497,49 @@ public class ServerHandler extends AbstractRestDbHandler {
         boolean host = false, rule = false, business = false, alias = false, role = false;
 
         try {
-            host = stringToBoolean(host_str);
+            host = RestUtils.stringToBoolean(host_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.host, host_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_HOSTS, host_str));
         }
         try {
-            rule = stringToBoolean(rule_str);
+            rule = RestUtils.stringToBoolean(rule_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.rule, rule_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_RULES, rule_str));
         }
         try {
-            business = stringToBoolean(business_str);
+            business = RestUtils.stringToBoolean(business_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.business, business_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_BUSINESS, business_str));
         }
         try {
-            alias = stringToBoolean(alias_str);
+            alias = RestUtils.stringToBoolean(alias_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.alias, alias_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ALIASES, alias_str));
         }
         try {
-            role = stringToBoolean(role_str);
+            role = RestUtils.stringToBoolean(role_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.role, role_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ROLES, role_str));
         }
         if (!errors.isEmpty()) {
-            Locale lang = getRequestLocale(request);
-            String response = serializeErrors(errors, lang);
+            Locale lang = RestUtils.getRequestLocale(request);
+            String response = Error.serializeErrors(errors, lang);
             responder.sendJson(BAD_REQUEST, response);
             return;
         }
 
-        String hostsFilePath = CONFIGS_PATH + File.separator + HOST_ID +
+        String hostsFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
                 "_hosts.xml";
-        String rulesFilePath = CONFIGS_PATH + File.separator + HOST_ID +
+        String rulesFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
                 "_rules.xml";
-        String aliasFilePath = CONFIGS_PATH + File.separator + HOST_ID +
+        String businessFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
+                "_business.xml";
+        String aliasFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
                 "_aliases.xml";
-        String rolesFilePath = CONFIGS_PATH + File.separator + HOST_ID +
+        String rolesFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
                 "_roles.xml";
 
-        HashMap<String, String> jsonObject = new HashMap<String, String>();
+        ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
 
         HostDAO hostDAO = null;
         RuleDAO ruleDAO = null;
@@ -545,40 +547,43 @@ public class ServerHandler extends AbstractRestDbHandler {
         try {
             if (host) {
                 hostDAO = DAO_FACTORY.getHostDAO();
-                RestHost.RestHostList hostList = new RestHost.RestHostList();
-                hostList.hosts = RestHost.toRestList(hostDAO.getAll());
+                List<Host> hostList = hostDAO.getAll();
 
-                saveObjectToXmlFile(hostList, hostsFilePath);
-                jsonObject.put("fileHost", hostsFilePath);
+                Hosts hosts = new Hosts(hostList);
+
+                XmlUtils.saveObject(hosts, hostsFilePath);
+                responseObject.put("fileHost", hostsFilePath);
             }
             if (rule) {
                 ruleDAO = DAO_FACTORY.getRuleDAO();
-                RestRule.RestRuleList ruleList = new RestRule.RestRuleList();
-                ruleList.rules = RestRule.toRestList(ruleDAO.getAll());
+                Rules rules = new Rules(ruleDAO.getAll());
 
-                saveObjectToXmlFile(ruleList, rulesFilePath);
-                jsonObject.put("fileRule", rulesFilePath);
-            }
-            if (business) {
-                //TODO : collect host's business and export to XML file
+                XmlUtils.saveObject(rules, rulesFilePath);
+                responseObject.put("fileRule", rulesFilePath);
             }
             businessDAO = DAO_FACTORY.getBusinessDAO();
+            Business businessEntry = businessDAO.select(SERVER_NAME);
+            if (business) {
+                String businessXML = businessEntry.getBusiness();
+
+                XmlUtils.saveXML(businessXML, businessFilePath);
+                responseObject.put("fileBusiness", businessFilePath);
+            }
             if (alias) {
-                Business businessEntry = businessDAO.select(HOST_ID);
                 String aliasXML = businessEntry.getAliases();
 
-                saveStringToXmlFile(aliasXML, aliasFilePath);
-                jsonObject.put("fileAlias", aliasFilePath);
+                XmlUtils.saveXML(aliasXML, aliasFilePath);
+                responseObject.put("fileAlias", aliasFilePath);
             }
             if (role) {
-                Business businessEntry = businessDAO.select(HOST_ID);
                 String rolesXML = businessEntry.getRoles();
 
-                saveStringToXmlFile(rolesXML, rolesFilePath);
-                jsonObject.put("fileRoles", rolesFilePath);
+                XmlUtils.saveXML(rolesXML, rolesFilePath);
+                responseObject.put("fileRoles", rolesFilePath);
             }
 
-            responder.sendJson(OK, objectToJson(jsonObject));
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(OK, responseText);
 
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -618,65 +623,65 @@ public class ServerHandler extends AbstractRestDbHandler {
      * @param roleFile          HTTP query parameter, path to the XML file
      *                          containing the role database to import.
      */
-    @Path(EntryPoints.CONFIG_URI)
+    @Path(CONFIG_URI)
     @PUT
     @Consumes(APPLICATION_FORM_URLENCODED)
     @RequiredRole(CONFIGADMIN)
     public void setConfig(HttpRequest request, HttpResponder responder,
-                          @QueryParam(Params.SetConfig.purgeHost)
+                          @QueryParam(PURGE_HOST)
                               @DefaultValue("false") String purgeHost_str,
-                          @QueryParam(Params.SetConfig.purgeRule)
+                          @QueryParam(PURGE_RULE)
                               @DefaultValue("false") String purgeRule_str,
-                          @QueryParam(Params.SetConfig.purgeBusiness)
+                          @QueryParam(PURGE_BUSINESS)
                               @DefaultValue("false") String purgeBusiness_str,
-                          @QueryParam(Params.SetConfig.purgeAlias)
+                          @QueryParam(PURGE_ALIASES)
                               @DefaultValue("false") String purgeAlias_str,
-                          @QueryParam(Params.SetConfig.purgeRole)
+                          @QueryParam(PURGE_ROLES)
                               @DefaultValue("false") String purgeRole_str,
-                          @QueryParam(Params.SetConfig.hostFile)
+                          @QueryParam(HOST_FILE)
                               @DefaultValue("") String hostFile,
-                          @QueryParam(Params.SetConfig.ruleFile)
+                          @QueryParam(RULE_FILE)
                               @DefaultValue("") String ruleFile,
-                          @QueryParam(Params.SetConfig.businessFile)
+                          @QueryParam(BUSINESS_FILE)
                               @DefaultValue("") String businessFile,
-                          @QueryParam(Params.SetConfig.aliasFile)
+                          @QueryParam(ALIAS_FILE)
                               @DefaultValue("") String aliasFile,
-                          @QueryParam(Params.SetConfig.roleFile)
+                          @QueryParam(ROLE_FILE)
                               @DefaultValue("") String roleFile) {
 
         List<Error> errors = new ArrayList<Error>();
-        Locale lang = getRequestLocale(request);
+        Locale lang = RestUtils.getRequestLocale(request);
 
         boolean purgeHost = false, purgeRule = false, purgeBusiness =false,
                 purgeAlias = false, purgeRole = false;
 
         try {
-            purgeHost = stringToBoolean(purgeHost_str);
+            purgeHost = RestUtils.stringToBoolean(purgeHost_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.host, purgeHost_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_HOSTS, purgeHost_str));
         }
         try {
-            purgeRule = stringToBoolean(purgeRule_str);
+            purgeRule = RestUtils.stringToBoolean(purgeRule_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.rule, purgeRule_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_RULES, purgeRule_str));
         }
         try {
-            purgeBusiness = stringToBoolean(purgeBusiness_str);
+            purgeBusiness = RestUtils.stringToBoolean(purgeBusiness_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.business, purgeBusiness_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_BUSINESS, purgeBusiness_str));
         }
         try {
-            purgeAlias = stringToBoolean(purgeAlias_str);
+            purgeAlias = RestUtils.stringToBoolean(purgeAlias_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.alias, purgeAlias_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ALIASES, purgeAlias_str));
         }
         try {
-            purgeRole = stringToBoolean(purgeRole_str);
+            purgeRole = RestUtils.stringToBoolean(purgeRole_str);
         } catch (ParseException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.GetConfig.role, purgeRole_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ROLES, purgeRole_str));
         }
         if (!errors.isEmpty()) {
-            String response = serializeErrors(errors, lang);
+            String response = Error.serializeErrors(errors, lang);
             responder.sendJson(BAD_REQUEST, response);
             return;
         }
@@ -685,77 +690,78 @@ public class ServerHandler extends AbstractRestDbHandler {
         RuleDAO ruleDAO = null;
         BusinessDAO businessDAO = null;
 
-        HashMap<String, String> jsonObject = new HashMap<String, String>();
+        ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
 
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
-            RestHost.RestHostList hosts = loadObjectFromXmlFile(hostFile,
-                    RestHost.RestHostList.class);
+            Hosts hosts = XmlUtils.loadObject(hostFile, Hosts.class);
 
             // if a purge is requested, we can add the new entries without
             // checking with 'exist' to gain performance
             if (purgeHost) {
                 hostDAO.deleteAll();
-                for (RestHost host : hosts.hosts) {
-                    hostDAO.insert(host.toHost());
+                for (Host host : hosts.hosts) {
+                    hostDAO.insert(host);
                 }
             } else {
-                for (RestHost host : hosts.hosts) {
-                    if (hostDAO.exist(host.hostID)) {
-                        hostDAO.update(host.toHost());
+                for (Host host : hosts.hosts) {
+                    if (hostDAO.exist(host.getHostid())) {
+                        hostDAO.update(host);
                     } else {
-                        hostDAO.insert(host.toHost());
+                        hostDAO.insert(host);
                     }
                 }
             }
-            jsonObject.put("purgedHost", TRUE.toString());
+            responseObject.put("purgedHost", TRUE.toString());
 
             ruleDAO = DAO_FACTORY.getRuleDAO();
-            RestRule.RestRuleList rules = loadObjectFromXmlFile(
-                    ruleFile, RestRule.RestRuleList.class);
+
+            Rules rules = XmlUtils.loadObject(ruleFile, Rules.class);
+
             if (purgeRule) {
                 ruleDAO.deleteAll();
-                for (RestRule rule : rules.rules) {
-                    ruleDAO.insert(rule.toRule());
+                for (Rule rule : rules.rules) {
+                    ruleDAO.insert(rule);
                 }
             } else {
-                for (RestRule rule : rules.rules) {
-                    if (ruleDAO.exist(rule.ruleID)) {
-                        ruleDAO.update(rule.toRule());
+                for (Rule rule : rules.rules) {
+                    if (ruleDAO.exist(rule.getName())) {
+                        ruleDAO.update(rule);
                     } else {
-                        ruleDAO.insert(rule.toRule());
+                        ruleDAO.insert(rule);
                     }
                 }
             }
-            jsonObject.put("purgedRule", TRUE.toString());
+
+            responseObject.put("purgedRule", TRUE.toString());
 
             businessDAO = DAO_FACTORY.getBusinessDAO();
             if (purgeBusiness) {
-                Business business = businessDAO.select(HOST_ID);
+                Business business = businessDAO.select(SERVER_NAME);
 
-                String new_business = loadXmlFileToString(businessFile);
+                String new_business = XmlUtils.loadXML(businessFile);
                 business.setBusiness(new_business);
                 businessDAO.update(business);
-                jsonObject.put("purgedBusiness", TRUE.toString());
+                responseObject.put("purgedBusiness", TRUE.toString());
             }
             if (purgeAlias) {
-                Business business = businessDAO.select(HOST_ID);
-                business.setAliases(loadXmlFileToString(aliasFile));
+                Business business = businessDAO.select(SERVER_NAME);
+                business.setAliases(XmlUtils.loadXML(aliasFile));
                 businessDAO.update(business);
-                jsonObject.put("purgedAlias", TRUE.toString());
+                responseObject.put("purgedAlias", TRUE.toString());
             }
             if (purgeRole) {
-                Business business = businessDAO.select(HOST_ID);
-                business.setRoles(loadXmlFileToString(roleFile));
+                Business business = businessDAO.select(SERVER_NAME);
+                business.setRoles(XmlUtils.loadXML(roleFile));
                 businessDAO.update(business);
-                jsonObject.put("purgedRoles", TRUE.toString());
+                responseObject.put("purgedRoles", TRUE.toString());
             }
 
             if (errors.isEmpty()) {
-                responder.sendJson(OK, objectToJson(jsonObject));
+                responder.sendJson(OK, JsonUtils.nodeToString(responseObject));
             }
             else {
-                responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
+                responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
             }
 
         } catch (DAOException e) {
@@ -765,20 +771,5 @@ public class ServerHandler extends AbstractRestDbHandler {
             if (ruleDAO != null) { ruleDAO.close(); }
             if (businessDAO != null) { businessDAO.close(); }
         }
-    }
-
-    /**
-     * Execute a host's business.
-     *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     */
-    @Path(EntryPoints.BUSINESS_URI)
-    @GET
-    @Consumes(WILDCARD)
-    @RequiredRole(NOACCESS)
-    public void getBusiness(HttpRequest request, HttpResponder responder) {
-        responder.sendStatus(NOT_IMPLEMENTED);
     }
 }

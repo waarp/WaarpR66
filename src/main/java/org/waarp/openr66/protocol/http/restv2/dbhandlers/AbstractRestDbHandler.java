@@ -57,7 +57,7 @@ import static io.netty.handler.codec.http.HttpMethod.PUT;
  * These methods should also be annotated with the {@link javax.ws.rs.Consumes}
  * annotation to indicate the expected content type of the request.
  * Finally, each method should also be annotated with the
- * {@link org.waarp.openr66.protocol.http.restv2.data.RequiredRole} annotation
+ * {@link RequiredRole} annotation
  * to make the method only accessible to users with the specified
  * {@link org.waarp.common.role.RoleDefault.ROLE} or higher.
  */

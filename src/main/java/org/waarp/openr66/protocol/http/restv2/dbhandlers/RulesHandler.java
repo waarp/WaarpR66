@@ -21,15 +21,20 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestRule;
+import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.ModeTrans;
+import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.Order;
 import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -41,33 +46,25 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.common.role.RoleDefault.ROLE.RULE;
+import static javax.ws.rs.core.MediaType.*;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.openr66.dao.database.DBRuleDAO.MODE_TRANS_FIELD;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.RULES_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.data.RestRule.Order;
-import static org.waarp.openr66.protocol.http.restv2.data.RestRule.Order.ascRuleID;
-import static org.waarp.openr66.protocol.http.restv2.errors.Error.serializeErrors;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ALREADY_EXISTING;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ILLEGAL_PARAMETER_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
+import static org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.Order.ascName;
+import static org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.nodeToNewRule;
+import static org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.ruleToNode;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.deserializeRequest;
+import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.nodeToString;
 import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getMethodList;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on the
@@ -110,7 +107,7 @@ public class RulesHandler extends AbstractRestDbHandler {
                                         String limit_str,
                             @QueryParam(Params.offset) @DefaultValue("0")
                                         String offset_str,
-                            @QueryParam(Params.order) @DefaultValue("+id")
+                            @QueryParam(Params.order) @DefaultValue("ascName")
                                         String order_str,
                             @QueryParam(Params.modeTrans) @DefaultValue("")
                                         String modeTrans_str) {
@@ -118,75 +115,69 @@ public class RulesHandler extends AbstractRestDbHandler {
         List<Error> errors = new ArrayList<Error>();
 
         int limit = 20, offset = 0;
-        Order order = ascRuleID;
-        RestRule.ModeTrans modeTrans = null;
+        Order order = ascName;
+        ModeTrans modeTrans = null;
         try {
             limit = Integer.parseInt(limit_str);
-            order = Order.fromString(order_str);
+            order = Order.valueOf(order_str);
         } catch(NumberFormatException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("limit", limit_str));
-        } catch (InstantiationException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("order", order_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.limit, limit_str));
+        } catch (IllegalArgumentException e) {
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.order, order_str));
         }
         try {
             offset = Integer.parseInt(offset_str);
             if (!modeTrans_str.isEmpty()) {
-                modeTrans = RestRule.ModeTrans.valueOf(modeTrans_str);
+                modeTrans = ModeTrans.valueOf(modeTrans_str);
             }
         } catch(NumberFormatException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("offset", offset_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.offset, offset_str));
         } catch (IllegalArgumentException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("modeTrans", e.getMessage()));
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.modeTrans, e.getMessage()));
         }
 
-        if (limit < 0) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("limit", limit_str));
+        if (limit <= 0) {
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.limit, limit_str));
         } else if (offset < 0) {
-            errors.add(ILLEGAL_PARAMETER_VALUE("offset", offset_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(Params.offset, offset_str));
         }
 
-        if(errors.isEmpty()) {
-            RuleDAO ruleDAO = null;
-            try {
-                ruleDAO = DAO_FACTORY.getRuleDAO();
-                List<Filter> filters = new ArrayList<Filter>();
-                if (modeTrans != null) {
-                    filters.add(new Filter(MODE_TRANS_FIELD, "=",
-                            Integer.toString(modeTrans.ordinal())));
-                }
-                List<RestRule> answers;
-                if (filters.isEmpty()) {
-                    answers = RestRule.toRestList(ruleDAO.getAll());
-                } else {
-                    answers = RestRule.toRestList(ruleDAO.find(filters));
-                }
+        if (!errors.isEmpty()) {
+            throw new UserErrorException(errors);
+        }
 
-                Integer nbResults = answers.size();
-                Collections.sort(answers, order.comparator);
+        List<Filter> filters = new ArrayList<Filter>();
+        if (modeTrans != null) {
+            filters.add(new Filter(MODE_TRANS_FIELD, "=",
+                    Integer.toString(modeTrans.ordinal())));
+        }
 
-                List<RestRule> orderedAnswers = new ArrayList<RestRule>();
-                for (int i = offset; i < offset + limit && i < answers.size(); i++) {
-                    orderedAnswers.add(answers.get(i));
-                }
-
-                HashMap<String, Object> jsonObject = new HashMap<String, Object>();
-                jsonObject.put("results", orderedAnswers);
-                jsonObject.put("totalResults", nbResults);
-                String responseBody = objectToJson(jsonObject);
-                responder.sendJson(OK, responseBody);
-
-            } catch (DAOException e) {
-                throw new InternalServerErrorException(e);
-            } finally {
-                if (ruleDAO != null) {
-                    ruleDAO.close();
-                }
+        List<Rule> rules;
+        RuleDAO ruleDAO = null;
+        try {
+            ruleDAO = DAO_FACTORY.getRuleDAO();
+            rules = ruleDAO.find(filters);
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (ruleDAO != null) {
+                ruleDAO.close();
             }
         }
-        else {
-            Locale lang = getRequestLocale(request);
-            responder.sendJson(BAD_REQUEST, serializeErrors(errors, lang));
+
+        int totalResults = rules.size();
+        Collections.sort(rules, order.comparator);
+
+        ArrayNode results = new ArrayNode(JsonNodeFactory.instance);
+        for (int i = offset; i < offset + limit && i < rules.size(); i++) {
+            results.add(ruleToNode(rules.get(i)));
         }
+
+        ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
+        responseObject.put("totalResults", totalResults);
+        responseObject.set("results", results);
+        String responseText = nodeToString(responseObject);
+        responder.sendJson(OK, responseText);
     }
 
     /**
@@ -202,24 +193,18 @@ public class RulesHandler extends AbstractRestDbHandler {
     @RequiredRole(RULE)
     public void addRule(HttpRequest request, HttpResponder responder) {
 
-        RestRule restRule = requestToObject(request, RestRule.class, true);
+        ObjectNode requestObject = deserializeRequest(request);
+        Rule rule = nodeToNewRule(requestObject);
 
         RuleDAO ruleDAO = null;
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
 
-            if (!ruleDAO.exist(restRule.ruleID)) {
-                ruleDAO.insert(restRule.toRule());
-                String responseBody = objectToJson(restRule);
-                DefaultHttpHeaders headers = new DefaultHttpHeaders();
-                headers.add(CONTENT_TYPE, APPLICATION_JSON);
-                headers.add("rule-uri", RULES_HANDLER_URI + restRule.ruleID);
-                responder.sendString(CREATED, responseBody, headers);
-            } else {
-                Error error = ALREADY_EXISTING(restRule.ruleID);
-                Locale lang = getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, error.serialize(lang));
+            if (ruleDAO.exist(rule.getName())) {
+                throw new UserErrorException(ALREADY_EXISTING(rule.getName()));
             }
+
+            ruleDAO.insert(rule);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -228,6 +213,14 @@ public class RulesHandler extends AbstractRestDbHandler {
             }
         }
 
+        ObjectNode responseObject = ruleToNode(rule);
+        String responseText = nodeToString(responseObject);
+
+        DefaultHttpHeaders headers = new DefaultHttpHeaders();
+        headers.add(CONTENT_TYPE, APPLICATION_JSON);
+        headers.add("ruleURI", RULES_HANDLER_URI + rule.getName());
+
+        responder.sendString(CREATED, responseText, headers);
     }
 
     /**

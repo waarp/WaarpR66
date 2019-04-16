@@ -21,14 +21,15 @@
 
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
-import org.waarp.openr66.protocol.http.restv2.data.RestHostConfig;
+import org.waarp.openr66.protocol.http.restv2.converters.HostConfigConverter;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
 import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
@@ -41,25 +42,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.CONFIGADMIN;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.CONFIG_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID;
-import static org.waarp.openr66.protocol.http.restv2.errors.ErrorFactory.ALREADY_EXISTING;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.objectToJson;
-import static org.waarp.openr66.protocol.http.restv2.utils.JsonUtils.requestToObject;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
+import static javax.ws.rs.core.MediaType.*;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
 
 /**
  * This is the {@link AbstractRestDbHandler} handling all operations on the
@@ -87,11 +75,11 @@ public class HostConfigHandler extends AbstractRestDbHandler {
         BusinessDAO businessDAO = null;
         try {
             businessDAO = DAO_FACTORY.getBusinessDAO();
-            Business business = businessDAO.select(HOST_ID);
+            Business business = businessDAO.select(SERVER_NAME);
             if (business != null) {
-                RestHostConfig config = new RestHostConfig(business);
-                String responseBody = objectToJson(config);
-                responder.sendJson(OK, responseBody);
+                ObjectNode responseObject = HostConfigConverter.businessToNode(business);
+                String responseText = JsonUtils.nodeToString(responseObject);
+                responder.sendJson(OK, responseText);
             } else {
                 responder.sendStatus(NOT_FOUND);
             }
@@ -119,18 +107,19 @@ public class HostConfigHandler extends AbstractRestDbHandler {
 
         BusinessDAO businessDAO = null;
         try {
-            RestHostConfig config =
-                    requestToObject(request, RestHostConfig.class, true);
-
             businessDAO = DAO_FACTORY.getBusinessDAO();
 
-            if (!businessDAO.exist(HOST_ID)) {
-                businessDAO.insert(config.toBusiness());
-                String responseBody = objectToJson(config);
-                responder.sendJson(CREATED, responseBody);
+            if (!businessDAO.exist(SERVER_NAME)) {
+                ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+                Business config = HostConfigConverter.nodeToNewBusiness(requestObject);
+                businessDAO.insert(config);
+
+                ObjectNode responseObject = HostConfigConverter.businessToNode(config);
+                String responseText = JsonUtils.nodeToString(responseObject);
+                responder.sendJson(CREATED, responseText);
             } else {
-                Locale lang = getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, ALREADY_EXISTING(HOST_ID).serialize(lang));
+                Locale lang = RestUtils.getRequestLocale(request);
+                responder.sendJson(BAD_REQUEST, ALREADY_EXISTING(SERVER_NAME).serialize(lang));
             }
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -158,22 +147,18 @@ public class HostConfigHandler extends AbstractRestDbHandler {
         try {
             businessDAO = DAO_FACTORY.getBusinessDAO();
 
-            if (!businessDAO.exist(HOST_ID)) {
+            if (!businessDAO.exist(SERVER_NAME)) {
                 responder.sendStatus(NOT_FOUND);
             }
 
-            RestHostConfig partialConfig =
-                    requestToObject(request, RestHostConfig.class, false);
-            RestHostConfig oldConfig =
-                    new RestHostConfig(businessDAO.select(HOST_ID));
-            RestHostConfig newConfig =
-                    RestUtils.updateRestObject(oldConfig, partialConfig);
+            ObjectNode requestObject = JsonUtils.deserializeRequest(request);
+            Business oldConfig = businessDAO.select(SERVER_NAME);
+            Business newConfig = HostConfigConverter.nodeToUpdatedBusiness(requestObject, oldConfig);
+            businessDAO.update(newConfig);
 
-
-            businessDAO.update(newConfig.toBusiness());
-            String responseBody = objectToJson(newConfig);
-            responder.sendJson(CREATED, responseBody);
-
+            ObjectNode responseObject = HostConfigConverter.businessToNode(newConfig);
+            String responseText = JsonUtils.nodeToString(responseObject);
+            responder.sendJson(CREATED, responseText);
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
         } finally {
@@ -198,8 +183,8 @@ public class HostConfigHandler extends AbstractRestDbHandler {
         BusinessDAO businessDAO = null;
         try {
             businessDAO = DAO_FACTORY.getBusinessDAO();
-            if (businessDAO.exist(HOST_ID)) {
-                businessDAO.delete(businessDAO.select(HOST_ID));
+            if (businessDAO.exist(SERVER_NAME)) {
+                businessDAO.delete(businessDAO.select(SERVER_NAME));
                 responder.sendStatus(NO_CONTENT);
             } else {
                 responder.sendStatus(NOT_FOUND);

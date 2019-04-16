@@ -4,10 +4,10 @@ package org.waarp.openr66.protocol.http.restv2.errors;
  * Factory class used to create instances of {@link Error} representing
  * input errors in an HTTP request made to the REST API.
  */
-public final class ErrorFactory {
+public final class Errors {
 
     /** Prevent the default constructor from being called. */
-    private ErrorFactory() throws InstantiationException {
+    private Errors() throws InstantiationException {
         throw new InstantiationException(this.getClass().getName() +
                 " cannot be instantiated.");
     }
@@ -23,13 +23,12 @@ public final class ErrorFactory {
     }
 
     /**
-     * Creates an error saying that the request is missing a body when one was
-     * required.
+     * Creates an error saying that the request content is not a valid JSON object.
      *
      * @return  The corresponding new Error object.
      */
-    public static Error MALFORMED_JSON(String cause) {
-        String[] args = {cause};
+    public static Error MALFORMED_JSON(int line, int column, String cause) {
+        String[] args = {Integer.toString(line), Integer.toString(column), cause};
         return new Error("BadRequest.MalformedJSON", args, 2);
     }
 
@@ -53,7 +52,7 @@ public final class ErrorFactory {
      * @return  The corresponding new Error object.
      */
     public static Error ILLEGAL_PARAMETER_VALUE(String parameter, String value) {
-        String[] args = {parameter, value};
+        String[] args = {value, parameter};
         return new Error("BadRequest.IllegalParameterValue", args, 4);
     }
 
@@ -91,7 +90,7 @@ public final class ErrorFactory {
      * @return  The corresponding new Error object.
      */
     public static Error ILLEGAL_FIELD_VALUE(String field, String value) {
-        String[] args = {field, value};
+        String[] args = {value, field};
         return new Error("BadRequest.IllegalFieldValue", args, 7);
     }
 
@@ -122,17 +121,6 @@ public final class ErrorFactory {
     }
 
     /**
-     * Creates an error saying that the XML file requested for import is malformed.
-     *
-     * @param path  The incorrect path.
-     * @return  The corresponding new Error object.
-     */
-    public static Error MALFORMED_XML(String path) {
-        String[] args = {path};
-        return new Error("BadRequest.MalformedXML", args, 10);
-    }
-
-    /**
      * Creates an error saying that the transfer rule entered alongside the
      * newly created transfer does not exist.
      *
@@ -141,7 +129,7 @@ public final class ErrorFactory {
      */
     public static Error UNKNOWN_RULE(String rule) {
         String[] args = {rule};
-        return new Error("BadRequest.UnknownRule", args, 11);
+        return new Error("BadRequest.UnknownRule", args, 10);
     }
 
     /**
@@ -153,7 +141,7 @@ public final class ErrorFactory {
      */
     public static Error UNKNOWN_HOST(String host) {
         String[] args = {host};
-        return new Error("BadRequest.UnknownHost", args, 12);
+        return new Error("BadRequest.UnknownHost", args, 11);
     }
 
     /**
@@ -163,7 +151,7 @@ public final class ErrorFactory {
      * @return  The corresponding new Error object.
      */
     public static Error REQUEST_NOT_SIGNED() {
-        return new Error("BadRequest.UnsignedRequest", new String[0], 13);
+        return new Error("BadRequest.UnsignedRequest", new String[0], 12);
     }
 
     /**
@@ -176,7 +164,7 @@ public final class ErrorFactory {
      */
     public static Error RULE_NOT_ALLOWED(String host, String rule) {
         String[] args = {host, rule};
-        return new Error("BadRequest.RuleNotAllowed", args, 14);
+        return new Error("BadRequest.RuleNotAllowed", args, 13);
     }
 
     /**
@@ -188,6 +176,6 @@ public final class ErrorFactory {
      */
     public static Error FIELD_NOT_ALLOWED(String field) {
         String[] args = {field};
-        return new Error("BadRequest.UnauthorizedField", args, 15);
+        return new Error("BadRequest.UnauthorizedField", args, 14);
     }
 }
