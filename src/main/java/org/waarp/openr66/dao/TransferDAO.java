@@ -42,7 +42,8 @@ public interface TransferDAO {
      * @param id special ID of the Transfer object requested
      * @throws DAOException If a data access error occurs
      */
-    Transfer select(long id, String remote) throws DAOException;
+    Transfer select(long id, String requester, String requested)
+            throws DAOException;
 
     /**
      * Verify if a Transfer object with the specified Special ID exists in
@@ -53,7 +54,8 @@ public interface TransferDAO {
      * if no Transfer object correspond to the specified Special ID.
      * @throws DAOException If a data access error occurs
      */
-    boolean exist(long id, String remote) throws DAOException;
+    boolean exist(long id, String requester, String requested)
+            throws DAOException;
 
     /**
      * Insert the specified Transfer object in the persistance layer

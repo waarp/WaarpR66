@@ -18,6 +18,7 @@ import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.pojo.UpdatedInfo;
+import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Implementation of TransferDAO for a standard SQL database
@@ -63,8 +64,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
             + REQUESTED_FIELD + " = ? AND "
             + ID_FIELD + " = ?";
     protected static String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
-    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE
-            + " WHERE " + ID_FIELD + " = ? AND " + REQUESTED_FIELD + " = ?";
+    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE + " WHERE "
+            + OWNER_REQUEST_FIELD + " = ? AND "
+            + REQUESTER_FIELD + " = ? AND "
+            + REQUESTED_FIELD + " = ? AND "
+            + ID_FIELD + " = ?";
     protected static String SQL_GET_ALL = "SELECT * FROM " + TABLE;
     protected static String SQL_INSERT = "INSERT INTO " + TABLE
             + " (" + GLOBAL_STEP_FIELD + ", "
@@ -90,8 +94,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
             + ID_FIELD + ", "
             + UPDATED_INFO_FIELD
             + ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    protected static String SQL_SELECT = "SELECT * FROM " + TABLE
-            + " WHERE " + ID_FIELD + " = ? AND " + REQUESTED_FIELD + " = ?";
+    protected static String SQL_SELECT = "SELECT * FROM " + TABLE + " WHERE "
+            + OWNER_REQUEST_FIELD + " = ? AND "
+            + REQUESTER_FIELD + " = ? AND "
+            + REQUESTED_FIELD + " = ? AND "
+            + ID_FIELD + " = ?";
     protected static String SQL_UPDATE = "UPDATE " + TABLE
             + " SET " + ID_FIELD + " = ?, "
             + GLOBAL_STEP_FIELD + " = ?, "
@@ -264,7 +271,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         StringBuilder query =  new StringBuilder(
                 prepareFindQuery(filters, params));
         // Set ORDER BY
-        query.append("ORDER BY" + column);
+        query.append(" ORDER BY" + column);
         if (!ascend) {
             query.append(" DESC");
         }
@@ -297,7 +304,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         StringBuilder query =  new StringBuilder(
                 prepareFindQuery(filters, params));
         // Set ORDER BY
-        query.append("ORDER BY " + column);
+        query.append(" ORDER BY " + column);
         if (!ascend) {
             query.append(" DESC");
         }
@@ -333,7 +340,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         StringBuilder query =  new StringBuilder(
                 prepareFindQuery(filters, params));
         // Set ORDER BY
-        query.append("ORDER BY " + column);
+        query.append(" ORDER BY " + column);
         if (!ascend) {
             query.append(" DESC");
         }
@@ -365,12 +372,15 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public boolean exist(long id, String requested) throws DAOException {
+    public boolean exist(long id, String requester, String requested)
+            throws DAOException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
-                id,
-                requested
+                Configuration.configuration.getHOST_ID(),
+                requester,
+                requested,
+                id
         };
         try {
             stm = connection.prepareStatement(getExistRequest());
@@ -386,12 +396,15 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public Transfer select(long id, String requested) throws DAOException {
+    public Transfer select(long id, String requester, String requested)
+            throws DAOException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
-                id,
-                requested
+                Configuration.configuration.getHOST_ID(),
+                requester,
+                requested,
+                id
         };
         try {
             stm = connection.prepareStatement(getSelectRequest());
@@ -435,7 +448,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
                 transfer.getLastGlobalStep().ordinal(),
                 transfer.getStep(),
                 transfer.getRank(),
-                transfer.getStepStatus(),
+                transfer.getStepStatus().getCode(),
                 transfer.getRetrieveMode(),
                 transfer.getFilename(),
                 transfer.getIsMoved(),
@@ -447,12 +460,12 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
                 transfer.getTransferMode(),
                 transfer.getStart(),
                 transfer.getStop(),
-                transfer.getInfoStatus(),
+                transfer.getInfoStatus().getCode(),
                 transfer.getOwnerRequest(),
                 transfer.getRequested(),
                 transfer.getRequester(),
                 transfer.getId(),
-                transfer.getUpdatedInfo()
+                transfer.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -477,7 +490,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
                 transfer.getLastGlobalStep().ordinal(),
                 transfer.getStep(),
                 transfer.getRank(),
-                transfer.getStepStatus(),
+                transfer.getStepStatus().getCode(),
                 transfer.getRetrieveMode(),
                 transfer.getFilename(),
                 transfer.getIsMoved(),
@@ -489,11 +502,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
                 transfer.getTransferMode(),
                 transfer.getStart(),
                 transfer.getStop(),
-                transfer.getInfoStatus(),
+                transfer.getInfoStatus().getCode(),
                 transfer.getOwnerRequest(),
                 transfer.getRequested(),
                 transfer.getRequester(),
-                transfer.getUpdatedInfo(),
+                transfer.getUpdatedInfo().ordinal(),
                 transfer.getOwnerRequest(),
                 transfer.getRequester(),
                 transfer.getRequested(),

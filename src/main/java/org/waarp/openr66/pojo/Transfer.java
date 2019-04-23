@@ -194,11 +194,11 @@ public class Transfer {
      * @param fileInfo
      * @param blockSize
      */
-    public Transfer(String remote, String rule, int ruleMode, boolean retrieveMode, String file,
-                    String fileInfo, int blockSize, Timestamp start) {
-        // TODO get this Hostid
-        this.ownerRequest = "me";
-        this.requester = "me";
+    public Transfer(String remote, String rule, int ruleMode,
+                    boolean retrieveMode, String file, String fileInfo,
+                    int blockSize, Timestamp start) {
+        this.ownerRequest = Configuration.configuration.getHOST_ID();
+        this.requester = Configuration.configuration.getHOST_ID();
         this.requester = remote;
         this.rule = rule;
         this.transferMode = ruleMode;

@@ -15,11 +15,13 @@ import org.junit.Before;
 import org.junit.Test;
 import static  org.junit.Assert.*;
 
+import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.pojo.Transfer;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 public abstract class DBTransferDAOIT {
 
@@ -78,8 +80,9 @@ public abstract class DBTransferDAOIT {
         try {
             TransferDAO dao = new DBTransferDAO(getConnection());
             dao.delete(new Transfer(0l, "", 1, "", "", "", false, 0, false, "",
-                        "", "", "", Transfer.TASKSTEP.NOTASK,
-                        Transfer.TASKSTEP.NOTASK, 0, "", "" , 0, null, null));
+                    "", "", "", Transfer.TASKSTEP.NOTASK,
+                    Transfer.TASKSTEP.NOTASK, 0, ErrorCode.Unknown,
+                    ErrorCode.Unknown , 0, null, null));
 
             ResultSet res = con.createStatement()
                 .executeQuery("SELECT * FROM RUNNER where specialid = 0");
@@ -103,8 +106,8 @@ public abstract class DBTransferDAOIT {
     public void testSelect() {
         try {
             TransferDAO dao = new DBTransferDAO(getConnection());
-            Transfer transfer = dao.select(0l);
-            Transfer transfer2 = dao.select(1l);
+            Transfer transfer = dao.select(0l, "server1", "server2");
+            Transfer transfer2 = dao.select(1l, "server1", "server2");
 
             assertEquals(0, transfer.getId());
             assertEquals(null, transfer2);
@@ -117,8 +120,8 @@ public abstract class DBTransferDAOIT {
     public void testExist() {
         try {
             TransferDAO dao = new DBTransferDAO(getConnection());
-            assertEquals(true, dao.exist(0l));
-            assertEquals(false, dao.exist(1));
+            assertEquals(true, dao.exist(0l, "server1", "server2"));
+            assertEquals(false, dao.exist(1l, "server1", "server2"));
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -129,7 +132,8 @@ public abstract class DBTransferDAOIT {
     public void testInsert() {
         try {
             TransferDAO dao = new DBTransferDAO(getConnection());
-            Transfer transfer = new Transfer("rule", 1, false, "file", "info", 3);
+            Transfer transfer = new Transfer("server2", "rule", 1, false,
+                    "file", "info", 3);
             transfer.setStart(new Timestamp(1112242l));
             transfer.setStop(new Timestamp(122l));
             dao.insert(transfer);
@@ -161,10 +165,11 @@ public abstract class DBTransferDAOIT {
         try {
             TransferDAO dao = new DBTransferDAO(getConnection());
             dao.update(new Transfer(0l, "rule", 13, "test", "testOrig",
-                        "testInfo", true, 42, true, "owner", "requester",
-                        "requested", "transferInfo", Transfer.TASKSTEP.ERRORTASK,
-                        Transfer.TASKSTEP.TRANSFERTASK, 27, "ste", "inf",
-                        64, new Timestamp(192l), new Timestamp(1511l), 19000));
+                    "testInfo", true, 42, true, "owner", "requester",
+                    "requested", "transferInfo", Transfer.TASKSTEP.ERRORTASK,
+                    Transfer.TASKSTEP.TRANSFERTASK, 27, ErrorCode.Unknown,
+                    ErrorCode.Unknown, 64, new Timestamp(192l),
+                    new Timestamp(1511l), UpdatedInfo.UNKNOWN));
 
             ResultSet res = con.createStatement()
                 .executeQuery("SELECT * FROM RUNNER WHERE specialid = 0");
@@ -184,12 +189,12 @@ public abstract class DBTransferDAOIT {
             assertEquals(Transfer.TASKSTEP.ERRORTASK.ordinal(), res.getInt("globalstep"));
             assertEquals(Transfer.TASKSTEP.TRANSFERTASK.ordinal(), res.getInt("globallaststep"));
             assertEquals(27, res.getInt("step"));
-            assertEquals("ste", res.getString("stepstatus"));
-            assertEquals("inf", res.getString("infostatus"));
+            assertEquals(ErrorCode.Unknown.code, res.getString("stepstatus"));
+            assertEquals(ErrorCode.Unknown.code, res.getString("infostatus"));
             assertEquals(64, res.getInt("rank"));
             assertEquals(new Timestamp(192l), res.getTimestamp("starttrans"));
             assertEquals(new Timestamp(1511l), res.getTimestamp("stoptrans"));
-            assertEquals(19000, res.getInt("updatedInfo"));
+            assertEquals(UpdatedInfo.UNKNOWN.ordinal(), res.getInt("updatedInfo"));
         } catch (Exception e) {
             fail(e.getMessage());
         }
