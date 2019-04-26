@@ -34,5 +34,6 @@ import static org.waarp.common.role.RoleDefault.ROLE;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiredRole {
+    /** The minimum required role. */
     ROLE value();
 }

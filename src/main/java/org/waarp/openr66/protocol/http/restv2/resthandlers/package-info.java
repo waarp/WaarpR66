@@ -19,6 +19,7 @@
  */
 
 /**
- * General purpose Netty {@link io.netty.channel.ChannelHandler} for the REST API.
+ * This package regroups all the general purpose Netty
+ * {@link io.netty.channel.ChannelHandler ChannelHandlers} of the REST API.
  */
 package org.waarp.openr66.protocol.http.restv2.resthandlers;

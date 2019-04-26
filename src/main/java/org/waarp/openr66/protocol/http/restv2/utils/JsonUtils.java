@@ -26,13 +26,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Errors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotSupportedException;
@@ -41,56 +40,64 @@ import java.io.IOException;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.UTF8_CHARSET;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MALFORMED_JSON;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MISSING_BODY;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.MALFORMED_JSON;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.MISSING_BODY;
+
 
 /** A series of utility methods for serializing and deserializing JSON. */
 public final class JsonUtils {
 
-    /** Prevents the default constructor from being called. */
+    /** Makes the default constructor of this utility class inaccessible. */
     private JsonUtils() throws InstantiationException {
         throw new InstantiationException(this.getClass().getName() +
                 " cannot be instantiated.");
     }
 
-    private static final ObjectMapper MAPPER;
 
-    static {
-        MAPPER = new ObjectMapper();
-        MAPPER.enable(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY);
-        MAPPER.enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS);
-        MAPPER.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-        MAPPER.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
-        MAPPER.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
-        MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
-        MAPPER.enable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
-        MAPPER.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
-    }
+    //######################### PUBLIC METHODS #################################
 
+    /**
+     * Converts an ObjectNode into a String.
+     *
+     * @param object the ObjectNode to convert
+     * @return       the JSON object as a String
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
     public static String nodeToString(ObjectNode object) {
         try {
-            return MAPPER.writeValueAsString(object);
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new InternalServerErrorException(e);
         }
     }
 
+    /**
+     * Deserializes a request's content as an ObjectNode
+     *
+     * @param request the request to deserialize
+     * @return        the deserialized JSON object
+     * @throws RestErrorException    If the content is not a valid JSON object.
+     * @throws NotSupportedException If the content type is not JSON.
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
     public static ObjectNode deserializeRequest(HttpRequest request) {
         if (!(request instanceof FullHttpRequest)) {
-            throw new UserErrorException(MISSING_BODY());
+            throw new RestErrorException(MISSING_BODY());
         }
 
         try {
             String body = ((FullHttpRequest) request).content()
                     .toString(UTF8_CHARSET);
 
-            JsonNode node = MAPPER.readTree(body);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
+            JsonNode node = mapper.readTree(body);
 
             if (node.isObject()) {
                 return (ObjectNode) node;
             } else {
-                throw new UserErrorException(MALFORMED_JSON(0, 0,
+                throw new RestErrorException(MALFORMED_JSON(0, 0,
                         "The root JSON element is not an object"));
             }
         } catch (JsonParseException e) {
@@ -98,7 +105,7 @@ public final class JsonUtils {
             if (contentType == null || contentType.isEmpty()) {
                 throw new NotSupportedException(APPLICATION_JSON);
             } else {
-                throw new UserErrorException(MALFORMED_JSON(e.getLocation().getLineNr(),
+                throw new RestErrorException(MALFORMED_JSON(e.getLocation().getLineNr(),
                         e.getLocation().getColumnNr(), e.getOriginalMessage()));
             }
         } catch (JsonMappingException e) {
@@ -106,9 +113,9 @@ public final class JsonUtils {
             try {
                 String field = parser.getCurrentName();
                 if (field == null) {
-                    throw new UserErrorException(Errors.MISSING_BODY());
+                    throw new RestErrorException(RestErrors.MISSING_BODY());
                 } else {
-                    throw new UserErrorException(Errors.DUPLICATE_KEY(field));
+                    throw new RestErrorException(RestErrors.DUPLICATE_KEY(field));
                 }
             } catch (IOException ex) {
                 throw new InternalServerErrorException(e);

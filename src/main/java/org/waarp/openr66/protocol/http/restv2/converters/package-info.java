@@ -19,4 +19,9 @@
  *
  */
 
+/**
+ * This package regroups the different utility classes used to convert between
+ * database objects and their representations as
+ * {@link com.fasterxml.jackson.databind.node.ObjectNode ObjectNode}.
+ */
 package org.waarp.openr66.protocol.http.restv2.converters;

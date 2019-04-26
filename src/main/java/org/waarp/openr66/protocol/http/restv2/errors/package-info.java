@@ -19,4 +19,9 @@
  *
  */
 
+/**
+ * This package contains the code handling user input errors in the REST API.
+ * It consist of the RestError class, the RestErrors factory class and
+ * the RestErrorException class.
+ */
 package org.waarp.openr66.protocol.http.restv2.errors;

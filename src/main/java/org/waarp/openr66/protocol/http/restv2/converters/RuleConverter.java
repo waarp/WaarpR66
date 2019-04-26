@@ -28,8 +28,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.waarp.openr66.context.task.TaskType;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,42 +37,29 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.FieldNames.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.FIELD_NOT_ALLOWED;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_FIELD_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MISSING_FIELD;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.UNKNOWN_FIELD;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.RuleFields.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.FIELD_NOT_ALLOWED;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ILLEGAL_FIELD_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.MISSING_FIELD;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.UNKNOWN_FIELD;
 
-/** RestTransferUtils rule POJO for Rest HTTP support for R66. */
+
+/**
+ * A collection of utility methods to convert {@link Rule} objects
+ * to their corresponding {@link ObjectNode} and vice-versa.
+ */
 public final class RuleConverter {
 
-    /** Prevents the default constructor from being called. */
+    /** Makes the default constructor of this utility class inaccessible. */
     private RuleConverter() throws InstantiationException {
         throw new InstantiationException(this.getClass().getName() +
                 " cannot be instantiated.");
     }
 
-    @SuppressWarnings("unused")
-    public static final class FieldNames {
-        public static final String RULE_NAME = "name";
-        public static final String HOST_IDS = "hostIds";
-        public static final String MODE_TRANS = "mode";
-        public static final String RECV_PATH = "recvPath";
-        public static final String SEND_PATH = "sendPath";
-        public static final String ARCHIVE_PATH = "archivePath";
-        public static final String WORK_PATH = "workPath";
-        public static final String R_PRE_TASKS = "rPreTasks";
-        public static final String R_POST_TASKS = "rPostTasks";
-        public static final String R_ERROR_TASKS = "sPreTasks";
-        public static final String S_PRE_TASKS = "rPreTasks";
-        public static final String S_POST_TASKS = "rPostTasks";
-        public static final String S_ERROR_TASKS = "sErrorTasks";
-        public static final String TASK_TYPE = "type";
-        public static final String TASK_ARGUMENTS = "arguments";
-        public static final String TASK_DELAY = "delay";
-    }
+    //########################### INNER CLASSES ################################
 
-    /** All the possible ways to order a list of rule objects. */
+
+    /** All the possible ways to sort a list of rule objects. */
     public enum Order {
         /** By ruleID, in ascending order. */
         ascName(new Comparator<Rule>() {
@@ -89,7 +76,7 @@ public final class RuleConverter {
             }
         });
 
-        /** The {@link Comparator} used to sort a list of {@code RestRule}. */
+        /** The {@link Comparator} used to sort a list of {@link Rule}. */
         public final Comparator<Rule> comparator;
 
         Order(Comparator<Rule> comparator) {
@@ -97,18 +84,32 @@ public final class RuleConverter {
         }
     }
 
+    /** The different modes of file transfer. */
     public enum ModeTrans {
+        /** From requester to requested. */
         send(1),
+        /** From requested to requester. */
         receive(2),
+        /** From requester to requested, with MD5 checksum verification. */
         sendMD5(3),
+        /** From requested to requester, with MD5 checksum verification. */
         receiveMD5(4);
 
+        /** The database code of the transfer mode. */
         public final int code;
 
         ModeTrans(int code) {
             this.code = code;
         }
 
+        /**
+         * Returns the ModeTrans value corresponding to the give code.
+         *
+         * @param code the desired code
+         * @return     the corresponding ModeTrans value
+         * @throws IllegalArgumentException if the code does not correspond to
+         *                                  a ModeTrans value
+         */
         public static ModeTrans fromCode(int code) {
             for (ModeTrans mode : values()) {
                 if (mode.code == code) {
@@ -119,7 +120,14 @@ public final class RuleConverter {
         }
     }
 
+    //########################### PUBLIC METHODS ###############################
 
+    /**
+     * Converts the given {@link Rule} object into an {@link ObjectNode}.
+     *
+     * @param rule the host to convert
+     * @return     the converted ObjectNode
+     */
     public static ObjectNode ruleToNode(Rule rule) {
         ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
         node.put(RULE_NAME, rule.getName());
@@ -139,23 +147,177 @@ public final class RuleConverter {
         return node;
     }
 
-    public static Rule nodeToNewRule(ObjectNode object)
-            throws UserErrorException {
-        Rule defaultRule = new Rule(null, -1, new ArrayList<String>(), "", "", "", "",
+    /**
+     * Converts the given {@link ObjectNode} into a {@link Rule} object.
+     *
+     * @param object the ObjectNode to convert
+     * @return       the corresponding Rule object
+     * @throws RestErrorException If the given ObjectNode does not represent
+     *                            a Rule object.
+     */
+    public static Rule nodeToNewRule(ObjectNode object) {
+        Rule emptyRule = new Rule(null, -1, new ArrayList<String>(), "", "", "", "",
                 new ArrayList<RuleTask>(), new ArrayList<RuleTask>(),
                 new ArrayList<RuleTask>(), new ArrayList<RuleTask>(),
                 new ArrayList<RuleTask>(), new ArrayList<RuleTask>());
 
-        return parseNode(object, defaultRule);
+        return nodeToUpdatedRule(object, emptyRule);
     }
 
-    public static Rule nodeToUpdatedRule(ObjectNode object, Rule oldRule)
-            throws UserErrorException {
-        return parseNode(object, oldRule);
+    /**
+     * Returns the given {@link Rule} object updated with the values defined
+     * in the {@link ObjectNode} parameter. All fields missing in the JSON
+     * object will stay unchanged in the updated host entry.
+     *
+     * @param object  the ObjectNode to convert.
+     * @param oldRule the rule entry to update.
+     * @return        the updated host entry
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Rule object
+     */
+    public static Rule nodeToUpdatedRule(ObjectNode object, Rule oldRule) {
+        List<RestError> errors = new ArrayList<RestError>();
+
+        Iterator<Map.Entry<String, JsonNode>> fields = object.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> field = fields.next();
+            String name = field.getKey();
+            JsonNode value = field.getValue();
+
+            if (name.equalsIgnoreCase(RULE_NAME)) {
+                if (value.isTextual()) {
+                    if (oldRule.getName() == null) {
+                        oldRule.setName(value.asText());
+                    } else if (!oldRule.getName().equals(value.asText())) {
+                        errors.add(FIELD_NOT_ALLOWED(RULE_NAME));
+                    }
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(RULE_NAME, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(HOST_IDS)) {
+                if (value.isArray()) {
+                    List<String> hosts = new ArrayList<String>();
+                    Iterator<JsonNode> elements = value.elements();
+                    while (elements.hasNext()) {
+                        JsonNode element = elements.next();
+                        if (element.isTextual()) {
+                            hosts.add(element.asText());
+                        } else {
+                            errors.add(ILLEGAL_FIELD_VALUE(HOST_IDS, value.toString()));
+                        }
+                    }
+                    oldRule.setHostids(hosts);
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(HOST_IDS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(MODE_TRANS)) {
+                if (value.isTextual()) {
+                    try {
+                        ModeTrans modeTrans = ModeTrans.valueOf(value.asText());
+                        oldRule.setMode(modeTrans.code);
+                    } catch (IllegalArgumentException e) {
+                        errors.add(ILLEGAL_FIELD_VALUE(MODE_TRANS, value.toString()));
+                    }
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(MODE_TRANS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(RECV_PATH)) {
+                if (value.isTextual()) {
+                    oldRule.setRecvPath(value.asText());
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(RECV_PATH, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(SEND_PATH)) {
+                if (value.isTextual()) {
+                    oldRule.setSendPath(value.asText());
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(SEND_PATH, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(ARCHIVE_PATH)) {
+                if (value.isTextual()) {
+                    oldRule.setArchivePath(value.asText());
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(ARCHIVE_PATH, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(WORK_PATH)) {
+                if (value.isTextual()) {
+                    oldRule.setWorkPath(value.asText());
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(WORK_PATH, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(R_PRE_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setRPreTasks(parseTasks((ArrayNode) value, R_PRE_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(R_PRE_TASKS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(R_POST_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setRPostTasks(parseTasks((ArrayNode) value, R_POST_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(R_POST_TASKS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(R_ERROR_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setRErrorTasks(parseTasks((ArrayNode) value, R_ERROR_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(R_ERROR_TASKS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(S_PRE_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setSPreTasks(parseTasks((ArrayNode) value, S_PRE_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(S_PRE_TASKS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(S_POST_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setSPostTasks(parseTasks((ArrayNode) value, S_POST_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(S_POST_TASKS, value.toString()));
+                }
+            }
+            else if (name.equalsIgnoreCase(S_ERROR_TASKS)) {
+                if (value.isArray()) {
+                    oldRule.setSErrorTasks(parseTasks((ArrayNode) value, S_ERROR_TASKS));
+                } else {
+                    errors.add(ILLEGAL_FIELD_VALUE(S_ERROR_TASKS, value.toString()));
+                }
+            }
+            else {
+                errors.add(UNKNOWN_FIELD(name));
+            }
+        }
+
+        errors.addAll(checkRequiredFields(oldRule));
+
+        if (errors.isEmpty()) {
+            return oldRule;
+        } else {
+            throw new RestErrorException(errors);
+        }
     }
 
 
 
+    //########################## PRIVATE METHODS ###############################
+
+    /**
+     * Converts the given List of host names into an {@link ArrayNode}.
+     *
+     * @param hostIds the list to convert
+     * @return        the corresponding ArrayNode
+     */
     private static ArrayNode getHostIdsArray(List<String> hostIds) {
         ArrayNode array = new ArrayNode(JsonNodeFactory.instance);
         for (String host : hostIds) {
@@ -164,6 +326,12 @@ public final class RuleConverter {
         return array;
     }
 
+    /**
+     * Converts the given List of {@link RuleTask} into an {@link ArrayNode}.
+     *
+     * @param tasks the list to convert
+     * @return      the corresponding ArrayNode
+     */
     private static ArrayNode getTaskArray(List<RuleTask> tasks) {
         ArrayNode array = new ArrayNode(JsonNodeFactory.instance);
         for (RuleTask task : tasks) {
@@ -176,8 +344,18 @@ public final class RuleConverter {
         return array;
     }
 
-    private static List<Error> checkRequiredFields(Rule rule) {
-        List<Error> errors = new ArrayList<Error>();
+    /**
+     * List all missing required fields.
+     * This method returns a list of {@link RestError} representing all
+     * the errors encountered when checking the given host's required  fields.
+     * If all required fields have indeed been initialized, an empty list
+     * is returned.
+     *
+     * @param rule the host entry to check
+     * @return     the list of encountered errors
+     */
+    private static List<RestError> checkRequiredFields(Rule rule) {
+        List<RestError> errors = new ArrayList<RestError>();
         if (rule.getName() == null || rule.getName().isEmpty()) {
             errors.add(MISSING_FIELD(RULE_NAME));
         }
@@ -187,10 +365,18 @@ public final class RuleConverter {
         return errors;
     }
 
-    private static List<RuleTask> parseTasks(ArrayNode array, String fieldName)
-            throws UserErrorException {
+    /**
+     * Converts the given {@link ArrayNode} into a List of {@link RuleTask}.
+     *
+     * @param array     the ArrayNode to convert
+     * @param fieldName the name of the field containing the ArrayNode
+     * @return          the extracted list of RuleTask
+     * @throws RestErrorException ff the ArrayNode does not represent a list
+     *                            of RuleTask objects
+     */
+    private static List<RuleTask> parseTasks(ArrayNode array, String fieldName) {
         List<RuleTask> result = new ArrayList<RuleTask>();
-        List<Error> errors = new ArrayList<Error>();
+        List<RestError> errors = new ArrayList<RestError>();
 
         Iterator<JsonNode> elements = array.elements();
         while (elements.hasNext()) {
@@ -247,142 +433,9 @@ public final class RuleConverter {
         if (errors.isEmpty()) {
             return result;
         } else {
-            throw new UserErrorException(errors);
+            throw new RestErrorException(errors);
         }
     }
 
 
-    private static Rule parseNode(ObjectNode object, Rule rule)
-            throws UserErrorException {
-        List<Error> errors = new ArrayList<Error>();
-
-        Iterator<Map.Entry<String, JsonNode>> fields = object.fields();
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> field = fields.next();
-            String name = field.getKey();
-            JsonNode value = field.getValue();
-
-            if (name.equalsIgnoreCase(RULE_NAME)) {
-                if (value.isTextual()) {
-                    if (rule.getName() == null) {
-                        rule.setName(value.asText());
-                    } else if (!rule.getName().equals(value.asText())) {
-                        errors.add(FIELD_NOT_ALLOWED(RULE_NAME));
-                    }
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(RULE_NAME, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(HOST_IDS)) {
-                if (value.isArray()) {
-                    List<String> hosts = new ArrayList<String>();
-                    Iterator<JsonNode> elements = value.elements();
-                    while (elements.hasNext()) {
-                        JsonNode element = elements.next();
-                        if (element.isTextual()) {
-                            hosts.add(element.asText());
-                        } else {
-                            errors.add(ILLEGAL_FIELD_VALUE(HOST_IDS, value.toString()));
-                        }
-                    }
-                    rule.setHostids(hosts);
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(HOST_IDS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(MODE_TRANS)) {
-                if (value.isTextual()) {
-                    try {
-                        ModeTrans modeTrans = ModeTrans.valueOf(value.asText());
-                        rule.setMode(modeTrans.code);
-                    } catch (IllegalArgumentException e) {
-                        errors.add(ILLEGAL_FIELD_VALUE(MODE_TRANS, value.toString()));
-                    }
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(MODE_TRANS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(RECV_PATH)) {
-                if (value.isTextual()) {
-                    rule.setRecvPath(value.asText());
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(RECV_PATH, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(SEND_PATH)) {
-                if (value.isTextual()) {
-                    rule.setSendPath(value.asText());
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(SEND_PATH, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(ARCHIVE_PATH)) {
-                if (value.isTextual()) {
-                    rule.setArchivePath(value.asText());
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(ARCHIVE_PATH, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(WORK_PATH)) {
-                if (value.isTextual()) {
-                    rule.setWorkPath(value.asText());
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(WORK_PATH, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(R_PRE_TASKS)) {
-                if (value.isArray()) {
-                    rule.setRPreTasks(parseTasks((ArrayNode) value, R_PRE_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(R_PRE_TASKS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(R_POST_TASKS)) {
-                if (value.isArray()) {
-                    rule.setRPostTasks(parseTasks((ArrayNode) value, R_POST_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(R_POST_TASKS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(R_ERROR_TASKS)) {
-                if (value.isArray()) {
-                    rule.setRErrorTasks(parseTasks((ArrayNode) value, R_ERROR_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(R_ERROR_TASKS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(S_PRE_TASKS)) {
-                if (value.isArray()) {
-                    rule.setSPreTasks(parseTasks((ArrayNode) value, S_PRE_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(S_PRE_TASKS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(S_POST_TASKS)) {
-                if (value.isArray()) {
-                    rule.setSPostTasks(parseTasks((ArrayNode) value, S_POST_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(S_POST_TASKS, value.toString()));
-                }
-            }
-            else if (name.equalsIgnoreCase(S_ERROR_TASKS)) {
-                if (value.isArray()) {
-                    rule.setSErrorTasks(parseTasks((ArrayNode) value, S_ERROR_TASKS));
-                } else {
-                    errors.add(ILLEGAL_FIELD_VALUE(S_ERROR_TASKS, value.toString()));
-                }
-            }
-            else {
-                errors.add(UNKNOWN_FIELD(name));
-            }
-        }
-
-        errors.addAll(checkRequiredFields(rule));
-
-        if (errors.isEmpty()) {
-            return rule;
-        } else {
-            throw new UserErrorException(errors);
-        }
-    }
 }

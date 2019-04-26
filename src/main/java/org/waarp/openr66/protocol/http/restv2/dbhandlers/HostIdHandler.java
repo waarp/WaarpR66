@@ -24,13 +24,14 @@ package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.converters.HostConverter;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,41 +41,56 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.ArrayList;
+import java.util.List;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.WILDCARD;
-import static org.waarp.common.role.RoleDefault.ROLE.HOST;
-import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
-import static org.waarp.common.role.RoleDefault.ROLE.READONLY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.HOST_ID_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.URI_ID;
+import static org.waarp.common.role.RoleDefault.ROLE.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operations on a
- * single entry of the host's partner database.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * the single host REST entry point.
  */
 @Path(HOST_ID_HANDLER_URI)
 public class HostIdHandler extends AbstractRestDbHandler {
 
+    /**
+     * The content of the 'Allow' header sent when an 'OPTIONS' request is made
+     * on the handler.
+     */
+    private static final HttpHeaders OPTIONS_HEADERS;
+
+    static {
+        OPTIONS_HEADERS = new DefaultHttpHeaders();
+        List<HttpMethod> allow = new ArrayList<HttpMethod>();
+        allow.add(HttpMethod.GET);
+        allow.add(HttpMethod.PUT);
+        allow.add(HttpMethod.DELETE);
+        allow.add(HttpMethod.OPTIONS);
+        OPTIONS_HEADERS.add(ALLOW, allow);
+    }
+
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public HostIdHandler(byte crud) {
         super(crud);
     }
+
 
     /**
      * Method called to retrieve a host entry from the database with the id
      * in the request URI.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id  The requested transfer's id, this refers to the {id} parameter
-     *            in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested host's name
      */
     @GET
     @Consumes(WILDCARD)
@@ -106,11 +122,9 @@ public class HostIdHandler extends AbstractRestDbHandler {
      * Method called to update the host entry with the given id. The entry is
      * replaced by the one in the request's body.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested host's name
      */
     @PUT
     @Consumes(APPLICATION_JSON)
@@ -149,11 +163,9 @@ public class HostIdHandler extends AbstractRestDbHandler {
     /**
      * Method called to delete a host entry from the database.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested host's name
      */
     @DELETE
     @Consumes(WILDCARD)
@@ -184,20 +196,15 @@ public class HostIdHandler extends AbstractRestDbHandler {
      * Method called to get a list of all allowed HTTP methods on this entry point.
      * The HTTP methods are sent as an array in the reply's headers.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested host's name
      */
     @OPTIONS
     @Consumes(WILDCARD)
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder,
                         @PathParam(URI_ID) String id) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add(ALLOW, allow);
-        responder.sendStatus(OK, headers);
+        responder.sendStatus(OK, OPTIONS_HEADERS);
     }
 }

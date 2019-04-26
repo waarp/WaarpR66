@@ -19,6 +19,7 @@
  *
  */
 /**
- * WaarpR66 REST HTTP API version 2.
+ * This is the root package of the REST API version 2 code. It contains
+ * the REST service initializer and all the RESTv2 API constants.
  */
 package org.waarp.openr66.protocol.http.restv2;

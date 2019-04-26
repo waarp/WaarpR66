@@ -19,6 +19,8 @@
  *
  */
 /**
- * End point handlers for all REST HTTP methods.
+ * This package contains all the handlers processing the REST requests.
+ * Each handler corresponds to an entry point of the REST API, each handling
+ * different HTTP methods.
  */
 package org.waarp.openr66.protocol.http.restv2.dbhandlers;

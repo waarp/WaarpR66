@@ -24,22 +24,15 @@ package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import org.waarp.common.database.DbSession;
-import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.role.RoleDefault;
-import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
-import org.waarp.openr66.database.DbConstant;
-import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
-import org.waarp.openr66.protocol.http.restv2.RestConstants;
-import org.waarp.openr66.protocol.http.restv2.data.RequiredRole;
+import org.waarp.openr66.protocol.http.restv2.converters.TransferConverter;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
-import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -48,11 +41,15 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.WILDCARD;
 import static org.waarp.common.role.RoleDefault.ROLE.*;
@@ -60,21 +57,17 @@ import static org.waarp.openr66.pojo.UpdatedInfo.TOSUBMIT;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operations on
- * the host's transfer database.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on the
+ * single transfer REST entry point.
  */
 @Path(TRANSFER_ID_HANDLER_URI)
 public class TransferIdHandler extends AbstractRestDbHandler {
 
-    /** The URI sub-path to restart a transfer. */
-    private static final String RESTART_URI = "restart";
-
-    /** The URI sub-path to pause a transfer. */
-    private static final String STOP_URI = "stop";
-
-    /** The URI sub-path to cancel a transfer. */
-    private static final String CANCEL_URI = "cancel";
-
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public TransferIdHandler(byte crud) {
         super(crud);
     }
@@ -84,16 +77,14 @@ public class TransferIdHandler extends AbstractRestDbHandler {
      * given in the request's URI. The requested transfer is sent back in
      * JSON format, unless an unexpected error prevents it or if the request
      * id does not exist.
+     * <p>
+     * **NOTE:** The {@code uri} parameter refers to the concatenation of
+     * the transfer's id, and the name of the host to which the transfer was
+     * requested, separated by an underscore character.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param uri The requested transfer's id and requested host, separated by
-     *            an underscore '_' character.
-     * @throws DAOException Thrown if an error occurred when contacting the
-     *                      database.
-     * @throws JsonProcessingException Thrown if an error occurred during
-     *                                 the JSON serialization.
+     * @param request   the HttpRequest made to the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param uri       the transfer's unique identifier
      */
     @GET
     @Consumes(WILDCARD)
@@ -115,13 +106,14 @@ public class TransferIdHandler extends AbstractRestDbHandler {
         TransferDAO transferDAO = null;
         try {
             long transID = Long.parseLong(id);
-            transferDAO = RestConstants.factory.getTransferDAO();
-            if (!transferDAO.exist(transID)) {
-                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
+            transferDAO = DAO_FACTORY.getTransferDAO();
+            if (!transferDAO.exist(transID, SERVER_NAME, requested, SERVER_NAME)) {
+                responder.sendStatus(NOT_FOUND);
             } else {
-                RestTransfer trans = new RestTransfer(transferDAO.select(transID));
-                String responseBody = RestUtils.serialize(trans);
-                responder.sendJson(HttpResponseStatus.OK, responseBody);
+                Transfer transfer = transferDAO.select(transID, SERVER_NAME, requested, SERVER_NAME);
+                ObjectNode response = TransferConverter.transferToNode(transfer);
+                String responseText = JsonUtils.nodeToString(response);
+                responder.sendJson(OK, responseText);
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
@@ -136,18 +128,16 @@ public class TransferIdHandler extends AbstractRestDbHandler {
 
     /**
      * Method called to restart a paused transfer.
+     * <p>
+     * **NOTE:** The {@code uri} parameter refers to the concatenation of
+     * the transfer's id, and the name of the host to which the transfer was
+     * requested, separated by an underscore character.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param uri The requested transfer's id and requested host, separated by
-     *            an underscore '_' character.
-     * @throws DAOException Thrown if an error occurred when contacting the
-     *                      database.
-     * @throws JsonProcessingException Thrown if an error occurred during
-     *                                 the JSON serialization.
+     * @param request   the HttpRequest made to the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param uri       the transfer's unique identifier
      */
-    @Path(RESTART_URI)
+    @Path(TransferCommandsURI.RESTART_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(SYSTEM)
@@ -168,11 +158,11 @@ public class TransferIdHandler extends AbstractRestDbHandler {
         TransferDAO transferDAO = null;
         try {
             long transID = Long.parseLong(id);
-            transferDAO = RestConstants.factory.getTransferDAO();
-            if (!transferDAO.exist(transID)) {
-                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
+            transferDAO = DAO_FACTORY.getTransferDAO();
+            if (!transferDAO.exist(transID, SERVER_NAME, requested, SERVER_NAME)) {
+                responder.sendStatus(NOT_FOUND);
             } else {
-                Transfer transfer = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, SERVER_NAME, requested, SERVER_NAME);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
                 actions.stopTransfer(transfer);
@@ -180,7 +170,7 @@ public class TransferIdHandler extends AbstractRestDbHandler {
                 transfer.setGlobalStep(transfer.getLastGlobalStep());
                 transferDAO.update(transfer);
 
-                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                ObjectNode response = TransferConverter.transferToNode(transfer);
                 String responseText = JsonUtils.nodeToString(response);
                 responder.sendJson(OK, responseText);
             }
@@ -198,18 +188,16 @@ public class TransferIdHandler extends AbstractRestDbHandler {
 
     /**
      * Method called to pause a staged or running transfer.
+     * <p>
+     * **NOTE:** The {@code uri} parameter refers to the concatenation of
+     * the transfer's id, and the name of the host to which the transfer was
+     * requested, separated by an underscore character.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param uri The requested transfer's id and requested host, separated by
-     *            an underscore '_' character.
-     * @throws DAOException Thrown if an error occurred when contacting the
-     *                      database.
-     * @throws JsonProcessingException Thrown if an error occurred during
-     *                                 the JSON serialization.
+     * @param request   the HttpRequest made to the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param uri       the transfer's unique identifier
      */
-    @Path(STOP_URI)
+    @Path(TransferCommandsURI.STOP_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(SYSTEM)
@@ -230,17 +218,17 @@ public class TransferIdHandler extends AbstractRestDbHandler {
         TransferDAO transferDAO = null;
         try {
             long transID = Long.parseLong(id);
-            transferDAO = RestConstants.factory.getTransferDAO();
-            if (!transferDAO.exist(transID)) {
-                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
+            transferDAO = DAO_FACTORY.getTransferDAO();
+            if (!transferDAO.exist(transID, SERVER_NAME, requested, SERVER_NAME)) {
+                responder.sendStatus(NOT_FOUND);
             } else {
-                Transfer transfer = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, SERVER_NAME, requested, SERVER_NAME);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
                 actions.stopTransfer(transfer);
                 transferDAO.update(transfer);
 
-                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                ObjectNode response = TransferConverter.transferToNode(transfer);
                 String responseText = JsonUtils.nodeToString(response);
                 responder.sendJson(OK, responseText);
             }
@@ -257,18 +245,16 @@ public class TransferIdHandler extends AbstractRestDbHandler {
 
     /**
      * Method called to cancel a staged or running transfer.
+     * <p>
+     * **NOTE:** The {@code uri} parameter refers to the concatenation of
+     * the transfer's id, and the name of the host to which the transfer was
+     * requested, separated by an underscore character.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param uri The requested transfer's id and requested host, separated by
-     *            an underscore '_' character.
-     * @throws DAOException Thrown if an error occurred when contacting the
-     *                      database.
-     * @throws JsonProcessingException Thrown if an error occurred during
-     *                                 the JSON serialization.
+     * @param request   the HttpRequest made to the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param uri       the transfer's unique identifier
      */
-    @Path(CANCEL_URI)
+    @Path(TransferCommandsURI.CANCEL_URI)
     @PUT
     @Consumes(WILDCARD)
     @RequiredRole(SYSTEM)
@@ -289,17 +275,17 @@ public class TransferIdHandler extends AbstractRestDbHandler {
         TransferDAO transferDAO = null;
         try {
             long transID = Long.parseLong(id);
-            transferDAO = RestConstants.factory.getTransferDAO();
-            if (!transferDAO.exist(transID)) {
-                responder.sendStatus(HttpResponseStatus.NOT_FOUND);
+            transferDAO = DAO_FACTORY.getTransferDAO();
+            if (!transferDAO.exist(transID, SERVER_NAME, requested, SERVER_NAME)) {
+                responder.sendStatus(NOT_FOUND);
             } else {
-                Transfer transfer = transferDAO.select(transID, requested);
+                Transfer transfer = transferDAO.select(transID, SERVER_NAME, requested, SERVER_NAME);
                 ServerActions actions = new ServerActions();
                 actions.newSession();
                 actions.cancelTransfer(transfer);
                 transferDAO.update(transfer);
 
-                ObjectNode response = RestTransferUtils.transferToNode(transfer);
+                ObjectNode response = TransferConverter.transferToNode(transfer);
                 String responseBody = JsonUtils.nodeToString(response);
                 responder.sendJson(OK, responseBody);
             }
@@ -318,21 +304,47 @@ public class TransferIdHandler extends AbstractRestDbHandler {
     /**
      * Method called to get a list of all allowed HTTP methods on this entry
      * point. The HTTP methods are sent as an array in the reply's headers.
+     * <p>
+     * **NOTE:** The {@code uri} parameter refers to the concatenation of
+     * the transfer's id, and the name of the host to which the transfer was
+     * requested, separated by an underscore character.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param uri The requested transfer's id and requested host, separated by
-     *            an underscore '_' character.
+     * @param request   the HttpRequest made to the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param uri       the transfer's unique identifier
      */
     @OPTIONS
     @Consumes(WILDCARD)
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder,
                         @PathParam(URI_ID) String uri) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add(ALLOW, allow);
-        responder.sendStatus(OK, headers);
+        HttpHeaders allow = new DefaultHttpHeaders();
+        allow.add(ALLOW, HttpMethod.OPTIONS);
+        responder.sendStatus(OK, allow);
+    }
+
+    @Path("{ep}")
+    @OPTIONS
+    @Consumes(WILDCARD)
+    @RequiredRole(NOACCESS)
+    public void sub_options(HttpRequest request, HttpResponder responder,
+                            @PathParam(URI_ID) String uri, @PathParam("ep") String ep) {
+
+        HttpHeaders allow = new DefaultHttpHeaders();
+        List<HttpMethod> methods = new ArrayList<HttpMethod>();
+
+        if (ep.equals(TransferCommandsURI.RESTART_URI)) {
+            methods.add(HttpMethod.PUT);
+        } else if (ep.equals(TransferCommandsURI.STOP_URI)) {
+            methods.add(HttpMethod.PUT);
+        } else if (ep.equals(TransferCommandsURI.CANCEL_URI)) {
+            methods.add(HttpMethod.PUT);
+        } else {
+            responder.sendStatus(NOT_FOUND);
+            return;
+        }
+        methods.add(HttpMethod.OPTIONS);
+        allow.add(ALLOW, methods);
+        responder.sendStatus(OK, allow);
     }
 }

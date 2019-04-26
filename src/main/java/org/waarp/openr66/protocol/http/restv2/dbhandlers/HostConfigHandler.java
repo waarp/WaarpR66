@@ -24,13 +24,15 @@ package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.converters.HostConfigConverter;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,22 +42,45 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.*;
 import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ALREADY_EXISTING;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operations on the
- * host's configuration.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * the host configuration REST entry point.
  */
 @Path(CONFIG_HANDLER_URI)
 public class HostConfigHandler extends AbstractRestDbHandler {
 
+    /**
+     * The content of the 'Allow' header sent when an 'OPTIONS' request is made
+     * on the handler.
+     */
+    private static final HttpHeaders OPTIONS_HEADERS;
+
+    static {
+        OPTIONS_HEADERS = new DefaultHttpHeaders();
+        List<HttpMethod> allow = new ArrayList<HttpMethod>();
+        allow.add(HttpMethod.GET);
+        allow.add(HttpMethod.POST);
+        allow.add(HttpMethod.PUT);
+        allow.add(HttpMethod.DELETE);
+        allow.add(HttpMethod.OPTIONS);
+        OPTIONS_HEADERS.add(ALLOW, allow);
+    }
+
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public HostConfigHandler(byte crud) {
         super(crud);
     }
@@ -63,9 +88,8 @@ public class HostConfigHandler extends AbstractRestDbHandler {
     /**
      * Method called to retrieve a host's configuration entry in the database.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @GET
     @Consumes(WILDCARD)
@@ -96,9 +120,8 @@ public class HostConfigHandler extends AbstractRestDbHandler {
      * Method called to initialize a host's configuration database entry if none
      * already exists.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @POST
     @Consumes(APPLICATION_FORM_URLENCODED)
@@ -118,8 +141,7 @@ public class HostConfigHandler extends AbstractRestDbHandler {
                 String responseText = JsonUtils.nodeToString(responseObject);
                 responder.sendJson(CREATED, responseText);
             } else {
-                Locale lang = RestUtils.getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, ALREADY_EXISTING(SERVER_NAME).serialize(lang));
+                throw new RestErrorException(ALREADY_EXISTING(SERVER_NAME));
             }
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -133,9 +155,8 @@ public class HostConfigHandler extends AbstractRestDbHandler {
     /**
      * Method called to update a host's configuration in the database if it exists.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @PUT
     @Consumes(APPLICATION_JSON)
@@ -171,9 +192,8 @@ public class HostConfigHandler extends AbstractRestDbHandler {
     /**
      * Method called to delete a host's configuration entry in the database.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @DELETE
     @Consumes(WILDCARD)
@@ -202,18 +222,14 @@ public class HostConfigHandler extends AbstractRestDbHandler {
      * Method called to get a list of all allowed HTTP methods on this entry
      * point. The HTTP methods are sent as an array in the reply's headers.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @OPTIONS
     @Consumes(WILDCARD)
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add(ALLOW, allow);
-        responder.sendStatus(OK, headers);
+        responder.sendStatus(OK, OPTIONS_HEADERS);
     }
 }
 

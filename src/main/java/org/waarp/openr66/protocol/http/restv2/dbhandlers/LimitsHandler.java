@@ -24,14 +24,15 @@ package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Limit;
 import org.waarp.openr66.protocol.http.restv2.converters.LimitsConverter;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,23 +42,47 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.WILDCARD;
 import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ALREADY_EXISTING;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ALREADY_EXISTING;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operation on the
- * host's bandwidth limits.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * the bandwidth limits REST entry point.
  */
 @Path(LIMITS_HANDLER_URI)
 public class LimitsHandler extends AbstractRestDbHandler {
 
+    /**
+     * The content of the 'Allow' header sent when an 'OPTIONS' request is made
+     * on the handler.
+     */
+    private static final HttpHeaders OPTIONS_HEADERS;
+
+    static {
+        OPTIONS_HEADERS = new DefaultHttpHeaders();
+        List<HttpMethod> allow = new ArrayList<HttpMethod>();
+        allow.add(HttpMethod.GET);
+        allow.add(HttpMethod.POST);
+        allow.add(HttpMethod.PUT);
+        allow.add(HttpMethod.DELETE);
+        allow.add(HttpMethod.OPTIONS);
+        OPTIONS_HEADERS.add(ALLOW, allow);
+    }
+
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public LimitsHandler(byte crud) {
         super(crud);
     }
@@ -66,9 +91,8 @@ public class LimitsHandler extends AbstractRestDbHandler {
      * Method called to obtain a description of the host's current bandwidth
      * limits.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @GET
     @Consumes(WILDCARD)
@@ -101,9 +125,8 @@ public class LimitsHandler extends AbstractRestDbHandler {
      * database. If the host already has limits set in its configuration,
      * they will be replaced by these new ones.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @POST
     @Consumes(APPLICATION_JSON)
@@ -127,9 +150,7 @@ public class LimitsHandler extends AbstractRestDbHandler {
                 String responseText = JsonUtils.nodeToString(responseObject);
                 responder.sendJson(CREATED, responseText);
             } else {
-                Error error = ALREADY_EXISTING(SERVER_NAME);
-                Locale lang = RestUtils.getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, error.serialize(lang));
+                throw new RestErrorException(ALREADY_EXISTING(SERVER_NAME));
             }
         } catch (DAOException e) {
             throw new InternalServerErrorException(e);
@@ -144,9 +165,8 @@ public class LimitsHandler extends AbstractRestDbHandler {
      * Method called to update this host's bandwidth limits in the database
      * and configuration.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply
-     *                  to the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @PUT
     @Consumes(APPLICATION_JSON)
@@ -187,12 +207,11 @@ public class LimitsHandler extends AbstractRestDbHandler {
     }
 
     /**
-     * Method called to remove any existing bandwidth limits for this host in
-     * the database. Also removes any limits set in the configuration.
+     * Method called to remove any bandwidth limits in place on this host.
+     * Also removes any limits set in the configuration.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @DELETE
     @Consumes(WILDCARD)
@@ -222,17 +241,13 @@ public class LimitsHandler extends AbstractRestDbHandler {
      * Method called to get a list of all allowed HTTP methods on this entry
      * point. The HTTP methods are sent as an array in the reply's headers.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @OPTIONS
     @Consumes(WILDCARD)
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add("allow", allow);
-        responder.sendStatus(OK, headers);
+        responder.sendStatus(OK, OPTIONS_HEADERS);
     }
 }

@@ -24,6 +24,7 @@ package org.waarp.openr66.protocol.http.restv2.converters;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
@@ -35,7 +36,25 @@ public final class ServerStatusMaker {
     /** Date of the last time the server status was requested. */
     private static volatile DateTime lastRun;
 
-    public static ObjectNode exportAsJson(long seconds) {
+    /** Makes the default constructor of this utility class inaccessible. */
+    private ServerStatusMaker() throws InstantiationException {
+        throw new InstantiationException(this.getClass().getName() +
+                " cannot be instantiated.");
+    }
+
+
+    //########################## PUBLIC METHODS ################################
+
+    /**
+     * Creates an {@link ObjectNode} listing general information about the R66
+     * server. The {@link Period} parameters specifies the time period on which
+     * the information is collected.
+     *
+     * @param period the time period analysed
+     * @return       the server status ObjectNode
+     */
+    public static ObjectNode exportAsJson(Period period) {
+        int seconds = period.toStandardSeconds().getSeconds();
         Monitoring mon = configuration.getMonitoring();
         mon.run(seconds, true);
         ObjectNode server = new ObjectNode(JsonNodeFactory.instance);
@@ -43,7 +62,7 @@ public final class ServerStatusMaker {
         server.put("serverName", SERVER_NAME);
         server.put("date", DateTime.now().toString());
         server.put("lastRun", (lastRun == null) ? null : lastRun.toString());
-        server.put("fromDate", 0);
+        server.put("fromDate", DateTime.now().minus(period).toString());
         server.put("secondsRunning", mon.secondsRunning);
         server.put("networkConnections", mon.nbNetworkConnection);
         server.put("nbThreads", mon.nbThread);
@@ -114,12 +133,5 @@ public final class ServerStatusMaker {
         lastRun = DateTime.now();
 
         return server;
-    }
-
-
-    /** Prevents the default constructor from being called. */
-    private ServerStatusMaker() throws InstantiationException {
-        throw new InstantiationException(this.getClass().getName() +
-                " cannot be instantiated.");
     }
 }

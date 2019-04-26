@@ -26,17 +26,19 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.joda.time.DateTime;
 import org.waarp.common.database.data.AbstractDbData;
+import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Transfer;
-import org.waarp.openr66.protocol.http.restv2.converters.RestTransferUtils;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.converters.TransferConverter;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -49,36 +51,44 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.*;
-import static org.waarp.common.role.RoleDefault.ROLE.*;
 import static org.waarp.openr66.dao.database.DBTransferDAO.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.GetTransfersParams.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.TRANSFERS_HANDLER_URI;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ILLEGAL_PARAMETER_VALUE;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operations on
- * a single entry of the host's transfer database.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * the transfer collection REST entry point.
  */
 @Path(TRANSFERS_HANDLER_URI)
 public class TransfersHandler extends AbstractRestDbHandler {
 
-    private static final class Params {
-        static final String limit ="limit";
-        static final String offset ="offset";
-        static final String order ="order";
-        static final String ruleID ="ruleID";
-        static final String partner ="partner";
-        static final String status ="status";
-        static final String filename ="filename";
-        static final String startTrans ="startTrans";
-        static final String stopTrans ="stopTrans";
+    /**
+     * The content of the 'Allow' header sent when an 'OPTIONS' request is made
+     * on the handler.
+     */
+    private static final io.netty.handler.codec.http.HttpHeaders OPTIONS_HEADERS;
+
+    static {
+        OPTIONS_HEADERS = new DefaultHttpHeaders();
+        List<HttpMethod> allow = new ArrayList<HttpMethod>();
+        allow.add(HttpMethod.GET);
+        allow.add(HttpMethod.POST);
+        allow.add(HttpMethod.OPTIONS);
+        OPTIONS_HEADERS.add(ALLOW, allow);
     }
 
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public TransfersHandler(byte crud) {
         super(crud);
     }
@@ -89,67 +99,60 @@ public class TransfersHandler extends AbstractRestDbHandler {
      * array containing all the requested entries, unless an unexpected error
      * prevents it or if the request is invalid.
      *
-     * @param request    The {@link HttpRequest} made on the resource.
-     * @param responder  The {@link HttpResponder} which sends the reply to
-     *                   the request.
-     * @param limit_str  HTTP query parameter, maximum number of entries allowed
-     *                   in the response.
-     * @param offset_str HTTP query parameter, index of the first accepted entry
-     *                   in the list of all valid answers.
-     * @param order_str  HTTP query parameter, the criteria used to sort the
-     *                   entries and the way of ordering.
-     * @param ruleID     HTTP query parameter, filter transfers that use this rule.
-     * @param partner    HTTP query parameter, filter transfers that have this partner.
-     * @param status_str HTTP query parameter, filter transfers currently in one
-     *                   of these statuses.
-     * @param filename   HTTP query parameter, filter transfers of a particular file.
-     * @param startTrans HTTP query parameter, lower bound for the transfers'
-     *                   starting date (in ISO-8601).
-     * @param stopTrans  HTTP query parameter, upper bound for the transfers'
-     *                   starting date (in ISO-8601).
+     * @param request    the HttpRequest made on the resource
+     * @param responder  the HttpResponder which sends the reply to the request
+     * @param limit_str  maximum number of entries allowed in the response
+     * @param offset_str index of the first accepted entry in the list of all valid answers
+     * @param order_str  the criteria used to sort the entries and the way of ordering
+     * @param ruleID     filter transfers that use this rule
+     * @param partner    filter transfers that have this partner
+     * @param status_str filter transfers currently in one of these statuses
+     * @param filename   filter transfers of a particular file
+     * @param startTrans lower bound for the transfers' starting date
+     * @param stopTrans  upper bound for the transfers' starting date
      */
     @GET
     @Consumes(APPLICATION_FORM_URLENCODED)
-    @RequiredRole(READONLY)
+    @RequiredRole(ROLE.READONLY)
     public void filterTransfer(HttpRequest request, HttpResponder responder,
-                               @QueryParam(Params.limit) @DefaultValue("20")
+                               @QueryParam(LIMIT) @DefaultValue("20")
                                            String limit_str,
-                               @QueryParam(Params.offset) @DefaultValue("0")
+                               @QueryParam(OFFSET) @DefaultValue("0")
                                            String offset_str,
-                               @QueryParam(Params.order) @DefaultValue("ascId")
+                               @QueryParam(ORDER) @DefaultValue("ascId")
                                            String order_str,
-                               @QueryParam(Params.ruleID) @DefaultValue("")
+                               @QueryParam(RULE_ID) @DefaultValue("")
                                            String ruleID,
-                               @QueryParam(Params.partner) @DefaultValue("")
+                               @QueryParam(PARTNER) @DefaultValue("")
                                            String partner,
-                               @QueryParam(Params.status) @DefaultValue("")
+                               @QueryParam(STATUS) @DefaultValue("")
                                            String status_str,
-                               @QueryParam(Params.filename) @DefaultValue("")
+                               @QueryParam(FILENAME) @DefaultValue("")
                                            String filename,
-                               @QueryParam(Params.startTrans) @DefaultValue("")
+                               @QueryParam(START_TRANS) @DefaultValue("")
                                            String startTrans,
-                               @QueryParam(Params.stopTrans) @DefaultValue("")
+                               @QueryParam(STOP_TRANS) @DefaultValue("")
                                            String stopTrans) {
 
-        ArrayList<Error> errors = new ArrayList<Error>();
+        ArrayList<RestError> errors = new ArrayList<RestError>();
 
         int limit = 20;
         try {
             limit = Integer.parseInt(limit_str);
         } catch (NumberFormatException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.limit, limit_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(LIMIT, limit_str));
         }
         int offset = 0;
         try {
             offset = Integer.parseInt(offset_str);
         } catch (NumberFormatException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.offset, offset_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(OFFSET, offset_str));
         }
-        RestTransferUtils.Order order = RestTransferUtils.Order.ascId;
+        TransferConverter.Order order = TransferConverter.Order.ascId;
         try {
-            order = RestTransferUtils.Order.valueOf(order_str);
+            order = TransferConverter.Order.valueOf(order_str);
         } catch (IllegalArgumentException e) {
-            errors.add(ILLEGAL_PARAMETER_VALUE(Params.order, order_str));
+            errors.add(ILLEGAL_PARAMETER_VALUE(ORDER, order_str));
         }
 
         List<Filter> filters = new ArrayList<Filter>();
@@ -158,7 +161,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
                 DateTime start = DateTime.parse(startTrans);
                 filters.add(new Filter(TRANSFER_START_FIELD, ">=", start.getMillis()));
             } catch (IllegalArgumentException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.startTrans, startTrans));
+                errors.add(ILLEGAL_PARAMETER_VALUE(START_TRANS, startTrans));
             }
         }
         if (!stopTrans.isEmpty()) {
@@ -166,7 +169,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
                 DateTime stop = DateTime.parse(stopTrans);
                 filters.add(new Filter(TRANSFER_START_FIELD, "<=", stop.getMillis()));
             } catch (IllegalArgumentException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.stopTrans, stopTrans));
+                errors.add(ILLEGAL_PARAMETER_VALUE(STOP_TRANS, stopTrans));
             }
         }
         if (!ruleID.isEmpty()) {
@@ -183,14 +186,12 @@ public class TransfersHandler extends AbstractRestDbHandler {
                 int status_nbr = AbstractDbData.UpdatedInfo.valueOf(status_str).ordinal();
                 filters.add(new Filter(UPDATED_INFO_FIELD, "=", status_nbr));
             } catch (IllegalArgumentException e) {
-                errors.add(ILLEGAL_PARAMETER_VALUE(Params.status, status_str));
+                errors.add(ILLEGAL_PARAMETER_VALUE(STATUS, status_str));
             }
         }
 
         if(!errors.isEmpty()) {
-            Locale lang = RestUtils.getRequestLocale(request);
-            responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
-            return;
+            throw new RestErrorException(errors);
         }
 
         TransferDAO transferDAO = null;
@@ -210,7 +211,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
         ObjectNode responseObject = new ObjectNode(JsonNodeFactory.instance);
         ArrayNode resultList = responseObject.putArray("results");
         for (Transfer transfer : transferList) {
-            resultList.add(RestTransferUtils.transferToNode(transfer));
+            resultList.add(TransferConverter.transferToNode(transfer));
         }
         responseObject.put("totalResults", transferList.size());
         String responseText = JsonUtils.nodeToString(responseObject);
@@ -222,16 +223,16 @@ public class TransfersHandler extends AbstractRestDbHandler {
      * contain the created entry in JSON format, unless an unexpected error
      * prevents it or if the request is invalid.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @POST
     @Consumes(APPLICATION_JSON)
-    @RequiredRole(TRANSFER)
+    @RequiredRole(ROLE.TRANSFER)
     public void createTransfer(HttpRequest request, HttpResponder responder) {
 
         ObjectNode requestObject = JsonUtils.deserializeRequest(request);
-        Transfer transfer = RestTransferUtils.nodeToNewTransfer(requestObject);
+        Transfer transfer = TransferConverter.nodeToNewTransfer(requestObject);
 
         TransferDAO transferDAO = null;
         try {
@@ -245,7 +246,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
             }
         }
 
-        ObjectNode responseObject = RestTransferUtils.transferToNode(transfer);
+        ObjectNode responseObject = TransferConverter.transferToNode(transfer);
         String responseText = JsonUtils.nodeToString(responseObject);
         DefaultHttpHeaders headers = new DefaultHttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
@@ -259,18 +260,14 @@ public class TransfersHandler extends AbstractRestDbHandler {
      * Method called to get a list of all allowed HTTP methods on this entry
      * point. The HTTP methods are sent as an array in the reply's headers.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply
-     *                  to the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @OPTIONS
     @Consumes(WILDCARD)
-    @RequiredRole(NOACCESS)
+    @RequiredRole(ROLE.NOACCESS)
     public void options(HttpRequest request, HttpResponder responder) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add(ALLOW, allow);
-        responder.sendStatus(OK, headers);
+        responder.sendStatus(OK, OPTIONS_HEADERS);
     }
 }
 

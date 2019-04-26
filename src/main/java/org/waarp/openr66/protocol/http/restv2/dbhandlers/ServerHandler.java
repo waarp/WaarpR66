@@ -25,10 +25,12 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
+import org.waarp.common.role.RoleDefault;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
@@ -42,14 +44,14 @@ import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.pojo.UpdatedInfo;
 import org.waarp.openr66.protocol.http.restv2.converters.ServerStatusMaker;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrors;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Hosts;
 import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Rules;
 import org.waarp.openr66.protocol.http.restv2.utils.XmlSerializable.Transfers;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
-import org.waarp.openr66.protocol.http.restv2.errors.Errors;
-import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 import org.waarp.openr66.protocol.http.restv2.utils.XmlUtils;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
@@ -58,11 +60,12 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import java.io.File;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,9 +74,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.netty.handler.codec.http.HttpMethod.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static java.lang.Boolean.TRUE;
+import static javax.ws.rs.core.HttpHeaders.ALLOW;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.WILDCARD;
 import static org.waarp.common.role.RoleDefault.ROLE.*;
@@ -82,82 +85,30 @@ import static org.waarp.openr66.dao.database.DBTransferDAO.*;
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
 import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
-import static org.waarp.openr66.protocol.http.restv2.dbhandlers.ServerHandler.EntryPoints.*;
-import static org.waarp.openr66.protocol.http.restv2.dbhandlers.ServerHandler.Params.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.ExportConfigParams.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.GetLogsParams.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.GetStatusParams.PERIOD;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.ImportConfigParams.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.ServerCommandsURI.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ILLEGAL_PARAMETER_VALUE;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all system commands
- * sent to the host.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * the server commands REST entry point.
  */
 
 @Path(SERVER_HANDLER_URI)
 public class ServerHandler extends AbstractRestDbHandler {
 
-    /**
-     *  Stores the names of all the sub directories of the {@link ServerHandler}
-     *  handler as defined in the REST API specification.
-     */
-    @SuppressWarnings("unused")
-    public static final class EntryPoints {
-        public static final String STATUS_URI = "status";
-        public static final String DEACTIVATE_URI = "deactivate";
-        public static final String SHUTDOWN_URI = "shutdown";
-        public static final String RESTART_URI = "restart";
-        public static final String LOGS_URI = "logs";
-        public static final String CONFIG_URI = "config";
-        public static final String BUSINESS_URI = "business";
-    }
-
-    /**
-     * Stores the names of all query parameters for all entry points handled
-     * by this {@link ServerHandler} as defined in the REST API specification.
-     */
-    @SuppressWarnings("unused")
-    public static final class Params {
-        //Server status
-        public static final String PERIOD = "period";
-
-        //Log export
-        public static final String PURGE = "purge";
-        public static final String CLEAN = "clean";
-        public static final String STATUS = "status";
-        public static final String RULE_NAME = "ruleName";
-        public static final String START = "start";
-        public static final String STOP = "stop";
-        public static final String START_ID = "startID";
-        public static final String STOP_ID = "stopID";
-        public static final String REQUESTED = "requester";
-
-        //Config export
-        public static final String EXPORT_HOSTS = "exportHosts";
-        public static final String EXPORT_RULES = "exportRules";
-        public static final String EXPORT_BUSINESS = "exportBusiness";
-        public static final String EXPORT_ALIASES = "exportAliases";
-        public static final String EXPORT_ROLES = "exportRoles";
-
-        //Config import
-        public static final String PURGE_HOST = "purgeHosts";
-        public static final String PURGE_RULE = "purgeRules";
-        public static final String PURGE_BUSINESS = "purgeBusiness";
-        public static final String PURGE_ALIASES = "purgeAliases";
-        public static final String PURGE_ROLES = "purgeRoles";
-        public static final String HOST_FILE = "hostsFile";
-        public static final String RULE_FILE = "rulesFile";
-        public static final String BUSINESS_FILE = "businessFile";
-        public static final String ALIAS_FILE = "aliasesFile";
-        public static final String ROLE_FILE = "rolesFile";
-    }
-
     /** Stores the path to the archive directory. */
     private static final String ARCH_PATH =
             configuration.getBaseDirectory() +
-            configuration.getArchivePath();
+                    configuration.getArchivePath();
 
     /** Stores the path to the configuration directory. */
     private static final String CONFIGS_PATH =
             configuration.getBaseDirectory() +
-            configuration.getConfigPath();
+                    configuration.getConfigPath();
 
     /**
      * Stores a {@link Map} associating each sub-path of the handler to their
@@ -178,50 +129,53 @@ public class ServerHandler extends AbstractRestDbHandler {
         serverCRUD.put(RESTART_URI, crud[Server.ordinal()]);
         serverCRUD.put(LOGS_URI, crud[Log.ordinal()]);
         serverCRUD.put(CONFIG_URI, crud[Config.ordinal()]);
-        serverCRUD.put(BUSINESS_URI, crud[Business.ordinal()]);
     }
 
     /**
      * Checks if the request can be made in consideration to the handler's CRUD
      * configuration.
      *
-     * @param request  The {@link HttpRequest} made to the handler.
-     * @return  Returns {@code true} if the request is valid, {@code false}
-     *          if the CRUD configuration does not allow this request.
+     * @param request  the HttpRequest made to the handler
+     * @return         {@code true} if the request is valid, {@code false}
+     *                 if the CRUD configuration does not allow this request
      */
     @Override
     public boolean checkCRUD(HttpRequest request) {
-        Pattern pattern = Pattern.compile(
-                "(" + SERVER_HANDLER_URI + ")([\\w/]+)(\\?.+)?");
+        if (request.method().equals(HttpMethod.OPTIONS)) {
+            return true;
+        }
+
+        Pattern pattern = Pattern.compile("(" + SERVER_HANDLER_URI + ")(\\w+)(\\?.+)?");
         Matcher matcher = pattern.matcher(request.uri());
         HttpMethod method = request.method();
 
-        if (!matcher.find()) { return false; }
-        String subPath = matcher.group(2);
-        Byte crud = serverCRUD.get(subPath);
-        if (crud == null) { return false; }
-        if (method.equals(GET)) {
+        Byte crud;
+        if (!matcher.find()) {
+            crud = 0;
+        } else {
+            String subPath = matcher.group(2);
+            crud = serverCRUD.get(subPath);
+        }
+
+        if (crud == null) {
+            return false;
+        } else if (method.equals(HttpMethod.GET)) {
             return CRUD.READ.isValid(crud);
-        }
-        else if (method.equals(POST)) {
+        } else if (method.equals(HttpMethod.POST)) {
             return CRUD.CREATE.isValid(crud);
-        }
-        else if (method.equals(DELETE)) {
+        } else if (method.equals(HttpMethod.DELETE)) {
             return CRUD.DELETE.isValid(crud);
-        }
-        else if (method.equals(PUT)) {
+        } else if (method.equals(HttpMethod.PUT)) {
             return CRUD.UPDATE.isValid(crud);
-        }
-        else return method.equals(OPTIONS);
+        } else return false;
     }
 
 
     /**
      * Get the general status of the server.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @Path(STATUS_URI)
     @GET
@@ -231,23 +185,42 @@ public class ServerHandler extends AbstractRestDbHandler {
                           @QueryParam(PERIOD) @DefaultValue("P1DT0H0M0S")
                                   String period_str) {
         try {
-            long seconds = Period.parse(period_str).toStandardSeconds().getSeconds();
-            ObjectNode status = ServerStatusMaker.exportAsJson(seconds);
+            Period period = Period.parse(period_str);
+            ObjectNode status = ServerStatusMaker.exportAsJson(period);
             String responseText = JsonUtils.nodeToString(status);
             responder.sendJson(OK, responseText);
         } catch (IllegalArgumentException e) {
-            throw new UserErrorException(Errors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
+            throw new RestErrorException(RestErrors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
         } catch (UnsupportedOperationException e) {
-            throw new UserErrorException(Errors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
+            throw new RestErrorException(RestErrors.ILLEGAL_PARAMETER_VALUE(PERIOD, period_str));
         }
+    }
+
+    /**
+     * Method called to get a list of all allowed HTTP methods on the '/server/status'
+     * entry point. The HTTP methods are sent as an array in the reply's headers.
+     *
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request.
+     */
+    @Path(STATUS_URI)
+    @OPTIONS
+    @Consumes(WILDCARD)
+    @RequiredRole(RoleDefault.ROLE.NOACCESS)
+    public void status_options(HttpRequest request, HttpResponder responder) {
+        HttpHeaders allow = new DefaultHttpHeaders();
+        List<HttpMethod> options = new ArrayList<HttpMethod>();
+        options.add(HttpMethod.GET);
+        options.add(HttpMethod.OPTIONS);
+        allow.add(ALLOW, options);
+        responder.sendStatus(OK, allow);
     }
 
     /**
      * Deactivates the server so that it doesn't accept any new transfer request.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @Path(DEACTIVATE_URI)
     @PUT
@@ -276,9 +249,8 @@ public class ServerHandler extends AbstractRestDbHandler {
     /**
      * Shut down the server.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @Path(SHUTDOWN_URI)
     @PUT
@@ -291,11 +263,30 @@ public class ServerHandler extends AbstractRestDbHandler {
     }
 
     /**
+     * Method called to get a list of all allowed HTTP methods on the '/server/shutdown'
+     * entry point. The HTTP methods are sent as an array in the reply's headers.
+     *
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request.
+     */
+    @Path(SHUTDOWN_URI)
+    @OPTIONS
+    @Consumes(WILDCARD)
+    @RequiredRole(RoleDefault.ROLE.NOACCESS)
+    public void shutdown_options(HttpRequest request, HttpResponder responder) {
+        HttpHeaders allow = new DefaultHttpHeaders();
+        List<HttpMethod> options = new ArrayList<HttpMethod>();
+        options.add(HttpMethod.PUT);
+        options.add(HttpMethod.OPTIONS);
+        allow.add(ALLOW, options);
+        responder.sendStatus(OK, allow);
+    }
+
+    /**
      * Restart the server.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
      */
     @Path(RESTART_URI)
     @PUT
@@ -312,21 +303,16 @@ public class ServerHandler extends AbstractRestDbHandler {
      * Export the server logs to a file. Only the entries that satisfy
      * the desired filters will be exported.
      *
-     * @param request    The {@link HttpRequest} made on the resource.
-     * @param responder  The {@link HttpResponder} which sends the reply to
-     *                   the request.
-     * @param purge_str  HTTP query parameter, states whether to delete exported
-     *                   entries or not.
-     * @param clean_str  HTTP query parameter, states whether to fix the
-     *                   incoherent entries.
-     * @param status_str HTTP query parameter, only transfer in one of these
-     *                   statuses will be exported.
-     * @param rule       HTTP query parameter, only transfer using this rule
-     *                   will be exported.
-     * @param start      HTTP query parameter, lower bound for the date of the transfer.
-     * @param stop       HTTP query parameter, upper bound for the date of the transfer.
-     * @param startID    HTTP query parameter, lower bound for the transfer's ID.
-     * @param stopID     HTTP query parameter, upper bound for the transfer's ID.
+     * @param request    the HttpRequest made on the resource
+     * @param responder  the HttpResponder which sends the reply to the request
+     * @param purge_str  states whether to delete exported entries or not
+     * @param clean_str  states whether to fix the incoherent entries
+     * @param status_str only transfers with this status will be exported
+     * @param rule       only transfers using this rule will be exported
+     * @param start      lower bound for the date of the transfer
+     * @param stop       upper bound for the date of the transfer
+     * @param startID    lower bound for the transfer's ID
+     * @param stopID     upper bound for the transfer's ID
      */
     @Path(LOGS_URI)
     @GET
@@ -343,22 +329,22 @@ public class ServerHandler extends AbstractRestDbHandler {
                         @QueryParam(STOP_ID) @DefaultValue("") String stopID,
                         @QueryParam(REQUESTED) @DefaultValue("") String requester) {
 
-        List<Error> errors = new ArrayList<Error>();
-        Locale lang = RestUtils.getRequestLocale(request);
+        List<RestError> errors = new ArrayList<RestError>();
+        Locale lang = RestUtils.getLocale(request);
         List<Filter> filters = new ArrayList<Filter>();
         String filePath = ARCH_PATH + File.separator + SERVER_NAME +
                 "_export_" + DateTime.now().toString() + ".xml";
 
 
-        Boolean purge = false, clean = false;
+        boolean purge = false, clean = false;
         try {
             purge = RestUtils.stringToBoolean(purge_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(PURGE, purge_str));
         }
         try {
             clean = RestUtils.stringToBoolean(clean_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(CLEAN, clean_str));
         }
 
@@ -411,9 +397,7 @@ public class ServerHandler extends AbstractRestDbHandler {
         }
 
         if (!errors.isEmpty()) {
-
-            responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
-            return;
+            throw new RestErrorException(errors);
         }
         TransferDAO transferDAO = null;
         try {
@@ -424,8 +408,8 @@ public class ServerHandler extends AbstractRestDbHandler {
             XmlUtils.saveObject(transfers, filePath);
             int purged = 0;
             if (purge) {
-                for (RestTransfer transfer : transfers.transfers) {
-                    transferDAO.delete(transferDAO.select(transfer.transferID));
+                for (Transfer transfer : transfers.transfers) {
+                    transferDAO.delete(transfer);
                     ++purged;
                 }
             }
@@ -462,18 +446,17 @@ public class ServerHandler extends AbstractRestDbHandler {
      * depending on the parameters of
      * the request.
      *
-     * @param request      The {@link HttpRequest} made on the resource.
-     * @param responder    The {@link HttpResponder} which sends the reply to
-     *                     the request.
-     * @param host_str     HTTP query parameter, states whether to export
+     * @param request      the HttpRequest made on the resource
+     * @param responder    the HttpResponder which sends the reply to the request
+     * @param host_str     states whether to export
      *                     the host database or not.
-     * @param rule_str     HTTP query parameter, states whether to export
+     * @param rule_str     states whether to export
      *                     the rules database or not.
-     * @param business_str HTTP query parameter, states whether to export
+     * @param business_str states whether to export
      *                     the host's business or not.
-     * @param alias_str    HTTP query parameter, states whether to export
+     * @param alias_str    states whether to export
      *                     the host's aliases or not.
-     * @param role_str     HTTP query parameter, states whether to export
+     * @param role_str     states whether to export
      *                     the host's permission database or not.
      */
     @Path(CONFIG_URI)
@@ -481,51 +464,49 @@ public class ServerHandler extends AbstractRestDbHandler {
     @Consumes(APPLICATION_FORM_URLENCODED)
     @RequiredRole(CONFIGADMIN)
     public void getConfig(HttpRequest request, HttpResponder responder,
-                          @QueryParam(EXPORT_HOSTS)
-                              @DefaultValue("false") String host_str,
-                          @QueryParam(EXPORT_RULES)
-                              @DefaultValue("false") String rule_str,
-                          @QueryParam(EXPORT_BUSINESS)
-                              @DefaultValue("false") String business_str,
-                          @QueryParam(EXPORT_ALIASES)
-                              @DefaultValue("false") String alias_str,
-                          @QueryParam(EXPORT_ROLES)
-                              @DefaultValue("false") String role_str) {
+                          @QueryParam(EXPORT_HOSTS) @DefaultValue("false")
+                                  String host_str,
+                          @QueryParam(EXPORT_RULES) @DefaultValue("false")
+                                  String rule_str,
+                          @QueryParam(EXPORT_BUSINESS) @DefaultValue("false")
+                                  String business_str,
+                          @QueryParam(EXPORT_ALIASES) @DefaultValue("false")
+                                  String alias_str,
+                          @QueryParam(EXPORT_ROLES) @DefaultValue("false")
+                                  String role_str) {
 
-        List<Error> errors = new ArrayList<Error>();
+        List<RestError> errors = new ArrayList<RestError>();
 
-        boolean host = false, rule = false, business = false, alias = false, role = false;
+        boolean host = false, rule = false, business = false, alias = false,
+                role = false;
 
         try {
             host = RestUtils.stringToBoolean(host_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_HOSTS, host_str));
         }
         try {
             rule = RestUtils.stringToBoolean(rule_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_RULES, rule_str));
         }
         try {
             business = RestUtils.stringToBoolean(business_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_BUSINESS, business_str));
         }
         try {
             alias = RestUtils.stringToBoolean(alias_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ALIASES, alias_str));
         }
         try {
             role = RestUtils.stringToBoolean(role_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ROLES, role_str));
         }
         if (!errors.isEmpty()) {
-            Locale lang = RestUtils.getRequestLocale(request);
-            String response = Error.serializeErrors(errors, lang);
-            responder.sendJson(BAD_REQUEST, response);
-            return;
+            throw new RestErrorException(errors);
         }
 
         String hostsFilePath = CONFIGS_PATH + File.separator + SERVER_NAME +
@@ -599,91 +580,78 @@ public class ServerHandler extends AbstractRestDbHandler {
      * given as parameters of the request. These imported values will replace
      * those already present in the database.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param purgeHost_str     HTTP query parameter, states if a new host
-     *                          database should be imported.
-     * @param purgeRule_str     HTTP query parameter, states if a new transfer
-     *                          rule database should be imported.
-     * @param purgeBusiness_str HTTP query parameter, states if a new business
-     *                          database should be imported.
-     * @param purgeAlias_str    HTTP query parameter, states if a new alias
-     *                          database should be imported.
-     * @param purgeRole_str     HTTP query parameter, states if a new role
-     *                          database should be imported.
-     * @param hostFile          HTTP query parameter, path to the XML file
-     *                          containing the host database to import.
-     * @param ruleFile          HTTP query parameter, path to the XML file
-     *                          containing the rule database to import.
-     * @param businessFile           HTTP query parameter, path to the XML file
-     *                          containing the business database to import.
-     * @param aliasFile         HTTP query parameter, path to the XML file
-     *                          containing the alias database to import.
-     * @param roleFile          HTTP query parameter, path to the XML file
-     *                          containing the role database to import.
+     * @param request           the HttpRequest made on the resource
+     * @param responder         the HttpResponder which sends the reply to the request
+     * @param purgeHost_str     states if a new host database should be imported.
+     * @param purgeRule_str     states if a new transfer rule database should be imported
+     * @param purgeBusiness_str states if a new business database should be imported
+     * @param purgeAlias_str    states if a new alias database should be imported
+     * @param purgeRole_str     states if a new role database should be imported
+     * @param hostFile          path to the XML file containing the host database to import
+     * @param ruleFile          path to the XML file containing the rule database to import
+     * @param businessFile      path to the XML file containing the business database to import
+     * @param aliasFile         path to the XML file containing the alias database to import
+     * @param roleFile          path to the XML file containing the role database to import
      */
     @Path(CONFIG_URI)
     @PUT
     @Consumes(APPLICATION_FORM_URLENCODED)
     @RequiredRole(CONFIGADMIN)
     public void setConfig(HttpRequest request, HttpResponder responder,
-                          @QueryParam(PURGE_HOST)
-                              @DefaultValue("false") String purgeHost_str,
-                          @QueryParam(PURGE_RULE)
-                              @DefaultValue("false") String purgeRule_str,
-                          @QueryParam(PURGE_BUSINESS)
-                              @DefaultValue("false") String purgeBusiness_str,
-                          @QueryParam(PURGE_ALIASES)
-                              @DefaultValue("false") String purgeAlias_str,
-                          @QueryParam(PURGE_ROLES)
-                              @DefaultValue("false") String purgeRole_str,
-                          @QueryParam(HOST_FILE)
-                              @DefaultValue("") String hostFile,
-                          @QueryParam(RULE_FILE)
-                              @DefaultValue("") String ruleFile,
-                          @QueryParam(BUSINESS_FILE)
-                              @DefaultValue("") String businessFile,
-                          @QueryParam(ALIAS_FILE)
-                              @DefaultValue("") String aliasFile,
-                          @QueryParam(ROLE_FILE)
-                              @DefaultValue("") String roleFile) {
+                          @QueryParam(PURGE_HOST) @DefaultValue("false")
+                                  String purgeHost_str,
+                          @QueryParam(PURGE_RULE) @DefaultValue("false")
+                                  String purgeRule_str,
+                          @QueryParam(PURGE_BUSINESS) @DefaultValue("false")
+                                  String purgeBusiness_str,
+                          @QueryParam(PURGE_ALIASES) @DefaultValue("false")
+                                  String purgeAlias_str,
+                          @QueryParam(PURGE_ROLES) @DefaultValue("false")
+                                  String purgeRole_str,
+                          @QueryParam(HOST_FILE) @DefaultValue("")
+                                  String hostFile,
+                          @QueryParam(RULE_FILE) @DefaultValue("")
+                                  String ruleFile,
+                          @QueryParam(BUSINESS_FILE) @DefaultValue("")
+                                  String businessFile,
+                          @QueryParam(ALIAS_FILE) @DefaultValue("")
+                                  String aliasFile,
+                          @QueryParam(ROLE_FILE) @DefaultValue("")
+                                  String roleFile) {
 
-        List<Error> errors = new ArrayList<Error>();
-        Locale lang = RestUtils.getRequestLocale(request);
+        List<RestError> errors = new ArrayList<RestError>();
+        Locale lang = RestUtils.getLocale(request);
 
         boolean purgeHost = false, purgeRule = false, purgeBusiness =false,
                 purgeAlias = false, purgeRole = false;
 
         try {
             purgeHost = RestUtils.stringToBoolean(purgeHost_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_HOSTS, purgeHost_str));
         }
         try {
             purgeRule = RestUtils.stringToBoolean(purgeRule_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_RULES, purgeRule_str));
         }
         try {
             purgeBusiness = RestUtils.stringToBoolean(purgeBusiness_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_BUSINESS, purgeBusiness_str));
         }
         try {
             purgeAlias = RestUtils.stringToBoolean(purgeAlias_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ALIASES, purgeAlias_str));
         }
         try {
             purgeRole = RestUtils.stringToBoolean(purgeRole_str);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             errors.add(ILLEGAL_PARAMETER_VALUE(EXPORT_ROLES, purgeRole_str));
         }
         if (!errors.isEmpty()) {
-            String response = Error.serializeErrors(errors, lang);
-            responder.sendJson(BAD_REQUEST, response);
-            return;
+            throw new RestErrorException(errors);
         }
 
         HostDAO hostDAO = null;
@@ -759,9 +727,8 @@ public class ServerHandler extends AbstractRestDbHandler {
 
             if (errors.isEmpty()) {
                 responder.sendJson(OK, JsonUtils.nodeToString(responseObject));
-            }
-            else {
-                responder.sendJson(BAD_REQUEST, Error.serializeErrors(errors, lang));
+            } else {
+                throw new RestErrorException(errors);
             }
 
         } catch (DAOException e) {
@@ -771,5 +738,59 @@ public class ServerHandler extends AbstractRestDbHandler {
             if (ruleDAO != null) { ruleDAO.close(); }
             if (businessDAO != null) { businessDAO.close(); }
         }
+    }
+
+    /**
+     * Method called to get a list of all allowed HTTP methods on the '/server'
+     * entry point. The HTTP methods are sent as an array in the reply's headers.
+     *
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request.
+     */
+    @OPTIONS
+    @Consumes(WILDCARD)
+    @RequiredRole(RoleDefault.ROLE.NOACCESS)
+    public void options(HttpRequest request, HttpResponder responder) {
+        HttpHeaders allow = new DefaultHttpHeaders();
+        allow.add(ALLOW, HttpMethod.OPTIONS);
+        responder.sendStatus(OK, allow);
+    }
+
+    /**
+     * Method called to get a list of all allowed HTTP methods on all sub entry
+     * points of the '/server' entry point. The HTTP methods are sent as an array
+     * in the reply's headers.
+     *
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request.
+     */
+    @Path("{ep}")
+    @OPTIONS
+    @Consumes(WILDCARD)
+    @RequiredRole(RoleDefault.ROLE.NOACCESS)
+    public void command_options(HttpRequest request, HttpResponder responder,
+                                @PathParam("ep") String ep) {
+        HttpHeaders allow = new DefaultHttpHeaders();
+        List<HttpMethod> options = new ArrayList<HttpMethod>();
+
+        if (ep.equals(STATUS_URI)) {
+            options.add(HttpMethod.GET);
+        } else if (ep.equals(DEACTIVATE_URI)) {
+            options.add(HttpMethod.PUT);
+        } else if (ep.equals(SHUTDOWN_URI)) {
+            options.add(HttpMethod.PUT);
+        } else if (ep.equals(RESTART_URI)) {
+            options.add(HttpMethod.PUT);
+        } else if (ep.equals(LOGS_URI)) {
+            options.add(HttpMethod.GET);
+        } else if (ep.equals(CONFIG_URI)) {
+            options.add(HttpMethod.PUT);
+        } else {
+            responder.sendStatus(FOUND);
+            return;
+        }
+        options.add(HttpMethod.OPTIONS);
+        allow.add(ALLOW, options);
+        responder.sendStatus(OK, allow);
     }
 }

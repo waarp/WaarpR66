@@ -26,12 +26,13 @@ import io.cdap.http.NettyHttpService;
 import io.cdap.http.SSLConfig;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import org.joda.time.DateTime;
+import io.netty.handler.codec.http.cors.CorsConfig;
+import io.netty.handler.codec.http.cors.CorsConfigBuilder;
+import io.netty.handler.codec.http.cors.CorsHandler;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.rest.RestConfiguration;
-import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.AbstractRestDbHandler;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.HostConfigHandler;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.HostIdHandler;
@@ -52,6 +53,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+
+import static io.netty.handler.codec.http.HttpHeaderNames.*;
+import static io.netty.handler.codec.http.HttpMethod.*;
+import static org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
  * This class is called to initialize the RESTv2 API.
@@ -75,9 +81,6 @@ public final class RestServiceInitializer {
     public static final Collection<AbstractRestDbHandler> handlers  =
             new ArrayList<AbstractRestDbHandler>();
 
-    /** Stores the date at which the server was started. */
-    public static final DateTime restStartTime = DateTime.now();
-
     /**
      * Fills the list of {@link AbstractRestDbHandler} with all handlers
      * activated in the API configuration.
@@ -85,29 +88,18 @@ public final class RestServiceInitializer {
      * @param config    The REST API configuration object.
      */
     private static void initHandlers(RestConfiguration config) {
-        byte hostsCRUD = config.RESTHANDLERS_CRUD[
-                HttpRestR66Handler.RESTHANDLERS.DbHostAuth.ordinal()];
-        byte rulesCRUD = config.RESTHANDLERS_CRUD[
-                HttpRestR66Handler.RESTHANDLERS.DbRule.ordinal()];
-        byte transferCRUD = config.RESTHANDLERS_CRUD[
-                HttpRestR66Handler.RESTHANDLERS.DbTaskRunner.ordinal()];
-        byte configCRUD = config.RESTHANDLERS_CRUD[
-                HttpRestR66Handler.RESTHANDLERS.DbHostConfiguration.ordinal()];
-        byte limitCRUD = config.RESTHANDLERS_CRUD[
-                HttpRestR66Handler.RESTHANDLERS.Bandwidth.ordinal()];
+        byte hostsCRUD = config.RESTHANDLERS_CRUD[DbHostAuth.ordinal()];
+        byte rulesCRUD = config.RESTHANDLERS_CRUD[DbRule.ordinal()];
+        byte transferCRUD = config.RESTHANDLERS_CRUD[DbTaskRunner.ordinal()];
+        byte configCRUD = config.RESTHANDLERS_CRUD[DbHostConfiguration.ordinal()];
+        byte limitCRUD = config.RESTHANDLERS_CRUD[Bandwidth.ordinal()];
         int serverCRUD =
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Business.ordinal()] +
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Config.ordinal()] +
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Information.ordinal()] +
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Log.ordinal()] +
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Server.ordinal()] +
-                config.RESTHANDLERS_CRUD[
-                        HttpRestR66Handler.RESTHANDLERS.Control.ordinal()];
+                config.RESTHANDLERS_CRUD[Business.ordinal()] +
+                config.RESTHANDLERS_CRUD[Config.ordinal()] +
+                config.RESTHANDLERS_CRUD[Information.ordinal()] +
+                config.RESTHANDLERS_CRUD[Log.ordinal()] +
+                config.RESTHANDLERS_CRUD[Server.ordinal()] +
+                config.RESTHANDLERS_CRUD[Control.ordinal()];
 
         if (hostsCRUD != 0) {
             handlers.add(new HostsHandler(hostsCRUD));
@@ -133,7 +125,25 @@ public final class RestServiceInitializer {
     }
 
     /**
+     * Builds and returns a {@link CorsConfig} to be used by the {@link CorsHandler}
+     * to allow the REST API to support CORS.
+     *
+     * @return The configuration used for dealing with CORS requests.
+     */
+    private static CorsConfig corsConfig() {
+        CorsConfigBuilder builder = CorsConfigBuilder.forAnyOrigin();
+
+        builder.exposeHeaders(ALLOW, "transferURI", "hostURI", "ruleURI");
+        builder.allowedRequestHeaders(AUTHORIZATION, AUTH_USER, AUTH_TIMESTAMP,
+                AUTH_SIGNATURE, CONTENT_TYPE);
+        builder.allowedRequestMethods(GET, POST, PUT, DELETE, OPTIONS);
+        builder.maxAge(600);
+        return builder.build();
+    }
+
+    /**
      * Initializes the RESTv2 service with the given {@link RestConfiguration}.
+     *
      * @param config    The REST API configuration object.
      */
     public static void initRestService(final RestConfiguration config) {
@@ -154,8 +164,10 @@ public final class RestServiceInitializer {
                     public void modify(ChannelPipeline channelPipeline) {
                         channelPipeline.addBefore("router", "aggregator",
                                 new HttpObjectAggregator(Integer.MAX_VALUE));
-                        channelPipeline.addBefore("router", RestVersionHandler.name,
+                        channelPipeline.addBefore("router", RestVersionHandler.HANDLER_NAME,
                                 new RestVersionHandler(config));
+                        channelPipeline.addBefore(RestVersionHandler.HANDLER_NAME, "cors",
+                                new CorsHandler(corsConfig()));
                         if (config.REST_AUTHENTICATED && config.REST_SIGNATURE) {
                             channelPipeline.addAfter("router", "signature",
                                     new RestSignatureHandler(config.hmacSha256));
@@ -200,7 +212,9 @@ public final class RestServiceInitializer {
         }
     }
 
-
+    /**
+     * Stops the REST service.
+     */
     public static void stopRestService() {
         if (restService != null) {
             try {

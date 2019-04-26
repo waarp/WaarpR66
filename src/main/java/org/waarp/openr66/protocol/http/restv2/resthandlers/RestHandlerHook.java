@@ -29,7 +29,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.HmacSha256;
-import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.Base64;
@@ -54,26 +53,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.netty.handler.codec.http.HttpMethod.OPTIONS;
-import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
-import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
-import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
-import static io.netty.handler.codec.http.HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE;
-import static javax.ws.rs.core.HttpHeaders.ACCEPT;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.HttpHeaders.WWW_AUTHENTICATE;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static javax.ws.rs.core.HttpHeaders.*;
 import static javax.ws.rs.core.MediaType.WILDCARD;
 import static org.glassfish.jersey.message.internal.HttpHeaderReader.readAcceptMediaType;
-import static org.glassfish.jersey.message.internal.MediaTypes.WILDCARD_TYPE_SINGLETON_LIST;
-import static org.glassfish.jersey.message.internal.MediaTypes.convertToString;
-import static org.glassfish.jersey.message.internal.MediaTypes.createFrom;
+import static org.glassfish.jersey.message.internal.MediaTypes.*;
 import static org.waarp.common.role.RoleDefault.ROLE;
 import static org.waarp.common.role.RoleDefault.ROLE.NOACCESS;
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_TIMESTAMP;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_USER;
-import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
  * This class defines hooks called before and after the corresponding
@@ -83,23 +71,31 @@ import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
  */
 public class RestHandlerHook implements HandlerHook {
 
+    /** Tells if the REST request authentication is activated. */
     private final boolean authenticated;
+
+    /** Stores the key used for HMAC authentication. */
     private final HmacSha256 hmac;
+
+    /** The time (in ms) for which a HMAC signed request is valid. */
     private final long delay;
+
+    /** The logger for all events. */
     private static final WaarpLogger logger =
             WaarpLoggerFactory.getLogger(RestHandlerHook.class);
 
     /**
      * Hook called before a request handler is called. Checks if the REST method
      * is active in the CRUD configuration, checks the request's content type,
-     * and finally checks the user authentication.
+     * and finally checks the user authentication (if activated).
      *
-     * @param request     The request currently being processed.
-     * @param responder   The responder to which response must be sent if need be.
-     * @param handlerInfo Information about the handler to which the request
-     *                    will be sent.
-     * @return True if the request can be handed to the handler, False if an
-     *         error occurred and a response must be sent immediately.
+     * @param request     the HttpRequest currently being processed
+     * @param responder   the HttpResponder sending the response
+     * @param handlerInfo the information about the handler to which the request
+     *                    will be sent for processing
+     * @return            {@code true} if the request can be handed to the handler,
+     *                    or {@code false} if an error occurred and a response
+     *                    must be sent immediately.
      */
     @Override
     public boolean preCall(HttpRequest request, HttpResponder responder,
@@ -146,20 +142,21 @@ public class RestHandlerHook implements HandlerHook {
     }
 
     /**
-     * Returns the {@code AbstractRestDbHandler} corresponding to the info
-     * given as parameter.
+     * Returns the {@link AbstractRestDbHandler} instance corresponding to
+     * the info given as parameter.
      *
-     * @param handlerInfo   Information about the handler.
-     * @return  The corresponding {@link AbstractRestDbHandler}
+     * @param handlerInfo the information about the handler
+     * @return            the corresponding AbstractRestDbHandler
+     * @throws IllegalArgumentException if the given handler does not exist.
      */
     private AbstractRestDbHandler getHandler(HandlerInfo handlerInfo) {
-        AbstractRestDbHandler handler = null;
         for (AbstractRestDbHandler h : RestServiceInitializer.handlers) {
             if (h.getClass().getName().equals(handlerInfo.getHandlerName())) {
-                handler = h;
+                return h;
             }
         }
-        return handler;
+        throw new IllegalArgumentException("The handler " + handlerInfo.getHandlerName() +
+                " does not exist.");
     }
 
     /**
@@ -167,9 +164,10 @@ public class RestHandlerHook implements HandlerHook {
      * chosen to process the request. This is needed to check for the
      * annotations present on the method.
      *
-     * @param handler       The Handler chosen to process the request.
-     * @param handlerInfo   Information about the handler.
-     * @return      The corresponding {@link Method} object.
+     * @param handler     the handler chosen to process the request
+     * @param handlerInfo the information about the handler
+     * @return            the corresponding Method object
+     * @throws IllegalArgumentException if the given method name does not exist
      */
     private Method getMethod(AbstractRestDbHandler handler,
                              HandlerInfo handlerInfo) {
@@ -183,20 +181,21 @@ public class RestHandlerHook implements HandlerHook {
             }
         }
         if (method == null) {
-            throw new NoSuchMethodError("The handler " + handlerInfo.getHandlerName() +
+            throw new IllegalArgumentException("The handler " + handlerInfo.getHandlerName() +
                     " does not have a method " + handlerInfo.getMethodName());
         }
         return method;
     }
 
     /**
-     * Return a {@link List} of all the {@link MediaType} accepted by the given
-     * method for the HTTP request based on the types indicated by the
-     * {@link Consumes} annotation. If the annotation is absent, the method will
-     * be assumed to accept any type.
+     * Return a List of all the {@link MediaType} accepted by the given
+     * {@link Method}.
+     * This list is based on the types indicated by the method's {@link Consumes}
+     * annotation. If the annotation is absent, the method will be assumed
+     * to accept any type.
      *
-     * @param method The {@link Method} to inspect.
-     * @return  The list of all acceptable {@link MediaType} for the method.
+     * @param method the Method to inspect
+     * @return       the list of all acceptable MediaType
      */
     private List<MediaType> getExpectedMediaTypes(Method method) {
         List<MediaType> consumedTypes = WILDCARD_TYPE_SINGLETON_LIST;
@@ -217,12 +216,12 @@ public class RestHandlerHook implements HandlerHook {
     /**
      * Checks if the content type of the request is compatible with the expected
      * content type of the method called. If no content type header can be
-     * found, the request will be assumed to have the correct content type.
+     * found, the request will be assumed to have a correct content type.
      *
-     * @param request       The HTTP request sent by the user.
-     * @param consumedTypes A list of the acceptable {@link MediaType} for the request.
-     * @return  Returns {@code true} if the request content type is acceptable,
-     *          {@code false} otherwise.
+     * @param request       the HttpRequest sent by the user
+     * @param consumedTypes a list of the acceptable MediaType for the request
+     * @return              {@code true} if the request content type is acceptable,
+     *                      {@code false} otherwise.
      */
     private boolean checkContentType(HttpRequest request, List<MediaType> consumedTypes) {
 
@@ -247,15 +246,15 @@ public class RestHandlerHook implements HandlerHook {
 
     /**
      * Checks if the user making the request does exist. If the user does exist,
-     * this method returns the user's name and password, otherwise throws a
+     * this method returns the user's name, otherwise throws a
      * {@link NotAllowedException}.
      *
-     * @param request  The request currently being processed.
-     * @return Returns {@code null} if the user cannot be authenticated.
-     *         Otherwise, returns a pair composed of the username and password.
+     * @param request the request currently being processed
+     * @return        the user's name
+     * @throws InternalServerErrorException if an unexpected error occurred
+     * @throws NotAllowedException if the user making the request does not exist
      */
-    private String checkCredentials(HttpRequest request)
-            throws CryptoException {
+    private String checkCredentials(HttpRequest request) {
 
         String authorization = request.headers().get(AUTHORIZATION);
 
@@ -301,7 +300,7 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 key = configuration.getCryptoKey().cryptToHex(pswd);
             } catch (Exception e) {
-                throw new CryptoException(
+                throw new InternalServerErrorException(
                         "An error occurred when encrypting the password", e);
             }
             if (!Arrays.equals(host.getHostkey(), key.getBytes())) {
@@ -351,7 +350,7 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 pswd = configuration.getCryptoKey().decryptInString(host.getHostkey());
             } catch (Exception e) {
-                throw new CryptoException(
+                throw new InternalServerErrorException(
                         "An error occurred when decrypting the password", e);
             }
 
@@ -359,7 +358,8 @@ public class RestHandlerHook implements HandlerHook {
             try {
                 key = this.hmac.cryptToHex(authDate + authUser + pswd);
             } catch (Exception e) {
-                throw new CryptoException("An error occurred when hashing the key", e);
+                throw new InternalServerErrorException(
+                        "An error occurred when hashing the key", e);
             }
 
             if (Arrays.equals(key.getBytes(), authKey.getBytes())) {
@@ -376,10 +376,10 @@ public class RestHandlerHook implements HandlerHook {
      * Checks if the user given as argument is authorized to call the given
      * method.
      *
-     * @param user    The hostID of the user making the request.
-     * @param method  The method called by the request.
-     * @return Returns {@code true} if the user is authorized to make the request,
-     *         {@code false} otherwise.
+     * @param user    the name of the user making the request
+     * @param method  the method called by the request
+     * @return        {@code true} if the user is authorized to make the request,
+     *                {@code false} otherwise.
      */
     private boolean checkAuthorization(String user, Method method) {
 
@@ -409,13 +409,13 @@ public class RestHandlerHook implements HandlerHook {
     }
 
     /**
-     * Hook called before a request handler is called.
+     * Hook called after a request handler is called.
      *
-     * @param httpRequest        The request currently being processed.
-     * @param httpResponseStatus The status of the http response generated by
-     *                           the request handler.
-     * @param handlerInfo Information about the handler to which the request
-     *                    was sent.
+     * @param httpRequest        the request currently being processed
+     * @param httpResponseStatus the status of the http response generated by
+     *                           the request handler
+     * @param handlerInfo information about the handler to which the request
+     *                    was sent
      */
     @Override
     public void postCall(HttpRequest httpRequest,
@@ -428,10 +428,9 @@ public class RestHandlerHook implements HandlerHook {
      * Creates a HandlerHook which will check for authentication and signature
      * on incoming request depending on the parameters.
      *
-     * @param authenticated Specifies if the HandlerHook will check that incoming
-     *                      requests are authenticated.
-     * @param hmac          The HMAC key used for hmac authentication.
-     * @param delay         The delay for which a hmac signed request is valid.
+     * @param authenticated specifies if the HandlerHook will check authentication
+     * @param hmac          the key used for HMAC authentication
+     * @param delay         the delay for which a HMAC signed request is valid
      */
     public RestHandlerHook(boolean authenticated, HmacSha256 hmac, long delay) {
         this.authenticated = authenticated;

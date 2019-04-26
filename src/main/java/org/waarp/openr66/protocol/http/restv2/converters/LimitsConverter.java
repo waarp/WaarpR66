@@ -21,39 +21,43 @@
 
 package org.waarp.openr66.protocol.http.restv2.converters;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.waarp.openr66.pojo.Limit;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
-import org.waarp.openr66.protocol.http.restv2.errors.Errors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrors;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.SERVER_NAME;
-import static org.waarp.openr66.protocol.http.restv2.converters.LimitsConverter.FieldNames.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_PARAMETER_VALUE;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.LimitsFields.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.ILLEGAL_PARAMETER_VALUE;
+
 
 /**
- * A collection of utility methods to convert {@link Limit} POJOs
- * to {@link ObjectNode} and vice-versa.
+ * A collection of utility methods to convert {@link Limit} objects
+ * to their corresponding {@link ObjectNode} and vice-versa.
  */
 public final class LimitsConverter {
 
-    @SuppressWarnings("unused")
-    public static final class FieldNames {
-        public static final String WRITE_GLOBAL_LIMIT = "upGlobalLimit";
-        public static final String READ_GLOBAL_LIMIT = "downGlobalLimit";
-        public static final String WRITE_SESSION_LIMIT = "upSessionLimit";
-        public static final String READ_SESSION_LIMIT = "downSessionLimit";
-        public static final String DELAY_LIMIT = "delayLimit";
+    /** Makes the default constructor of this utility class inaccessible. */
+    private LimitsConverter() throws InstantiationException {
+        throw new InstantiationException(this.getClass().getName() +
+                " cannot be instantiated.");
     }
 
+    //########################### PUBLIC METHODS ###############################
 
+    /**
+     * Converts the given {@link Limit} object into an {@link ObjectNode}.
+     *
+     * @param limits the limits object to convert
+     * @return       the converted ObjectNode
+     */
     public static ObjectNode limitToNode(Limit limits) {
         ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
         node.put(READ_GLOBAL_LIMIT, limits.getReadGlobalLimit());
@@ -65,17 +69,32 @@ public final class LimitsConverter {
         return node;
     }
 
+    /**
+     * Converts the given {@link ObjectNode} into a {@link Limit} object.
+     *
+     * @param object the ObjectNode to convert
+     * @return       the corresponding Limit object
+     * @throws RestErrorException if the given ObjectNode does not represent a
+     *                            Limit object
+     */
     public static Limit nodeToNewLimit(ObjectNode object) {
-        Limit defaultLimits = new Limit(SERVER_NAME, 0, 0, 0, 0, 0);
-        return parseNode(object, defaultLimits);
+        Limit emptyLimits = new Limit(SERVER_NAME, 0, 0, 0, 0, 0);
+        return nodeToUpdatedLimit(object, emptyLimits);
     }
 
+    /**
+     * Returns the given {@link Limit} object updated with the values defined
+     * in the {@link ObjectNode} parameter. All fields missing in the JSON
+     * object will stay unchanged in the updated limit object.
+     *
+     * @param object    the ObjectNode to convert
+     * @param oldLimits the Limit object to update
+     * @return          the updated Limit object
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Limit object
+     */
     public static Limit nodeToUpdatedLimit(ObjectNode object, Limit oldLimits) {
-        return parseNode(object, oldLimits);
-    }
-
-    private static Limit parseNode(ObjectNode object, Limit limits) {
-        List<Error> errors = new ArrayList<Error>();
+        List<RestError> errors = new ArrayList<RestError>();
 
         while (object.fields().hasNext()) {
             Map.Entry<String, JsonNode> field = object.fields().next();
@@ -84,55 +103,48 @@ public final class LimitsConverter {
 
             if (name.equalsIgnoreCase(READ_GLOBAL_LIMIT)) {
                 if (value.canConvertToLong() && value.asLong() >= 0) {
-                    limits.setReadGlobalLimit(value.asLong());
+                    oldLimits.setReadGlobalLimit(value.asLong());
                 } else {
                     errors.add(ILLEGAL_PARAMETER_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(WRITE_GLOBAL_LIMIT)) {
                 if (value.canConvertToLong() && value.asLong() >= 0) {
-                    limits.setWriteGlobalLimit(value.asLong());
+                    oldLimits.setWriteGlobalLimit(value.asLong());
                 } else {
                     errors.add(ILLEGAL_PARAMETER_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(READ_SESSION_LIMIT)) {
                 if (value.canConvertToLong() && value.asLong() >= 0) {
-                    limits.setReadSessionLimit(value.asLong());
+                    oldLimits.setReadSessionLimit(value.asLong());
                 } else {
                     errors.add(ILLEGAL_PARAMETER_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(WRITE_SESSION_LIMIT)) {
                 if (value.canConvertToLong() && value.asLong() >= 0) {
-                    limits.setWriteSessionLimit(value.asLong());
+                    oldLimits.setWriteSessionLimit(value.asLong());
                 } else {
                     errors.add(ILLEGAL_PARAMETER_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(DELAY_LIMIT)) {
                 if (value.canConvertToLong() && value.asLong() >= 0) {
-                    limits.setDelayLimit(value.asLong());
+                    oldLimits.setDelayLimit(value.asLong());
                 } else {
                     errors.add(ILLEGAL_PARAMETER_VALUE(name, value.toString()));
                 }
             }
             else {
-                errors.add(Errors.UNKNOWN_FIELD(name));
+                errors.add(RestErrors.UNKNOWN_FIELD(name));
             }
         }
 
         if (errors.isEmpty()) {
-            return limits;
+            return oldLimits;
         } else {
-            throw new UserErrorException(errors);
+            throw new RestErrorException(errors);
         }
-    }
-
-
-    /** Prevents the default constructor from being called. */
-    private LimitsConverter() throws InstantiationException {
-        throw new InstantiationException(this.getClass().getName() +
-                " cannot be instantiated.");
     }
 }

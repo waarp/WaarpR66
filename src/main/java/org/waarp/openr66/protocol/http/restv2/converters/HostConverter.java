@@ -19,16 +19,14 @@
  *
  */
 
-
 package org.waarp.openr66.protocol.http.restv2.converters;
-
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.waarp.openr66.pojo.Host;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 
 import javax.ws.rs.InternalServerErrorException;
 import java.util.ArrayList;
@@ -38,32 +36,25 @@ import java.util.List;
 import java.util.Map;
 
 import static org.waarp.openr66.protocol.configuration.Configuration.configuration;
-import static org.waarp.openr66.protocol.http.restv2.converters.HostConverter.FieldNames.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.FIELD_NOT_ALLOWED;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.ILLEGAL_FIELD_VALUE;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.MISSING_FIELD;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.UNKNOWN_FIELD;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.HostFields.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.*;
+
 
 /**
- * A collection of utility methods to convert {@link Host} POJOs
- * to {@link ObjectNode} and vice-versa.
+ * A collection of utility methods to convert {@link Host} objects
+ * to their corresponding {@link ObjectNode} and vice-versa.
  */
 public final class HostConverter {
 
-    @SuppressWarnings("unused")
-    public static final class FieldNames {
-        public static final String HOST_NAME = "name";
-        public static final String ADDRESS = "address";
-        public static final String PORT = "port";
-        public static final String PASSWORD = "password";
-        public static final String IS_SSL = "isSSL";
-        public static final String IS_CLIENT = "isClient";
-        public static final String IS_ADMIN = "isAdmin";
-        public static final String IS_ACTIVE = "isActive";
-        public static final String IS_PROXY = "isProxy";
+    /** Makes the default constructor of this utility class inaccessible. */
+    private HostConverter() throws InstantiationException {
+        throw new InstantiationException(this.getClass().getName() +
+                " cannot be instantiated.");
     }
 
-    /** Represents all the possible ways to order a list of host objects. */
+    //########################### INNER CLASSES ################################
+
+    /** Represents all the possible ways to sort a list of host objects. */
     public enum Order {
         /** By hostID, in ascending order. */
         ascId(new Comparator<Host>() {
@@ -102,32 +93,14 @@ public final class HostConverter {
         }
     }
 
-    private static byte[] encryptPassword(String password) {
-        try {
-            return configuration.getCryptoKey().cryptToHex(password).getBytes();
-        } catch (Exception e) {
-            throw new InternalServerErrorException("Failed to encrypt the host password", e);
-        }
-    }
+    //########################### PUBLIC METHODS ###############################
 
-    private static List<Error> checkRequiredFields(Host host) {
-        List<Error> errors = new ArrayList<Error>();
-        if (host.getHostid() == null || host.getHostid().isEmpty()) {
-            errors.add(MISSING_FIELD(HOST_NAME));
-        }
-        if (host.getAddress() == null || host.getAddress().isEmpty()) {
-            errors.add(MISSING_FIELD(ADDRESS));
-        }
-        if (host.getPort() == -1) {
-            errors.add(MISSING_FIELD(PORT));
-        }
-        if (host.getHostkey() == null || host.getHostkey().length == 0) {
-            errors.add(MISSING_FIELD(PASSWORD));
-        }
-
-        return errors;
-    }
-
+    /**
+     * Converts the given {@link Host} object into an {@link ObjectNode}.
+     *
+     * @param host the host to convert
+     * @return     the converted ObjectNode
+     */
     public static ObjectNode hostToNode(Host host) {
         ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
         node.put(HOST_NAME, host.getHostid());
@@ -143,22 +116,37 @@ public final class HostConverter {
         return node;
     }
 
-    public static Host nodeToNewHost(ObjectNode object)
-            throws UserErrorException {
-        Host defaultHost = new Host(null, null, -1, null, false, false, false, false, true);
+    /**
+     * Converts the given {@link ObjectNode} into a {@link Host} object.
+     *
+     * @param object the ObjectNode to convert
+     * @return       the corresponding Host object
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Host object
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static Host nodeToNewHost(ObjectNode object) {
+        Host emptyHost = new Host(null, null, -1, null, false, false, false,
+                false, true);
 
-        return parseNode(object, defaultHost);
+        return nodeToUpdatedHost(object, emptyHost);
     }
 
-    public static Host nodeToUpdatedHost(ObjectNode object, Host oldHost)
-            throws UserErrorException {
+    /**
+     * Returns the given {@link Host} object updated with the values defined
+     * in the {@link ObjectNode} parameter. All fields missing in the JSON
+     * object will stay unchanged in the updated host entry.
+     *
+     * @param object  the ObjectNode to convert.
+     * @param oldHost the host entry to update.
+     * @return        the updated host entry
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Host object
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static Host nodeToUpdatedHost(ObjectNode object, Host oldHost) {
 
-        return parseNode(object, oldHost);
-    }
-
-    private static Host parseNode(ObjectNode object, Host host)
-            throws UserErrorException {
-        List<Error> errors = new ArrayList<Error>();
+        List<RestError> errors = new ArrayList<RestError>();
 
         Iterator<Map.Entry<String, JsonNode>> fields = object.fields();
         while (fields.hasNext()) {
@@ -168,9 +156,9 @@ public final class HostConverter {
 
             if (name.equalsIgnoreCase(HOST_NAME)) {
                 if (value.isTextual()) {
-                    if (host.getHostid() == null) {
-                        host.setHostid(value.asText());
-                    } else if (!host.getHostid().equals(value.asText())) {
+                    if (oldHost.getHostid() == null) {
+                        oldHost.setHostid(value.asText());
+                    } else if (!oldHost.getHostid().equals(value.asText())) {
                         errors.add(FIELD_NOT_ALLOWED(HOST_NAME));
                     }
                 } else {
@@ -179,56 +167,56 @@ public final class HostConverter {
             }
             else if (name.equalsIgnoreCase(ADDRESS)) {
                 if (value.isTextual()) {
-                    host.setAddress(value.asText());
+                    oldHost.setAddress(value.asText());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(PORT)) {
                 if (value.canConvertToInt() && value.asInt() >= 0 && value.asInt() < 65536) {
-                    host.setPort(value.asInt());
+                    oldHost.setPort(value.asInt());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(PASSWORD)) {
                 if (value.isTextual()) {
-                    host.setHostkey(encryptPassword(value.asText()));
+                    oldHost.setHostkey(encryptPassword(value.asText()));
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(IS_SSL)) {
                 if (value.isBoolean()) {
-                    host.setSSL(value.asBoolean());
+                    oldHost.setSSL(value.asBoolean());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(IS_CLIENT)) {
                 if (value.isBoolean()) {
-                    host.setClient(value.asBoolean());
+                    oldHost.setClient(value.asBoolean());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(IS_ADMIN)) {
                 if (value.isBoolean()) {
-                    host.setAdmin(value.asBoolean());
+                    oldHost.setAdmin(value.asBoolean());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(IS_ACTIVE)) {
                 if (value.isBoolean()) {
-                    host.setActive(value.asBoolean());
+                    oldHost.setActive(value.asBoolean());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
             }
             else if (name.equalsIgnoreCase(IS_PROXY)) {
                 if (value.isBoolean()) {
-                    host.setProxified(value.asBoolean());
+                    oldHost.setProxified(value.asBoolean());
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
                 }
@@ -238,18 +226,58 @@ public final class HostConverter {
             }
         }
 
-        errors.addAll(checkRequiredFields(host));
+        errors.addAll(checkRequiredFields(oldHost));
 
         if (errors.isEmpty()) {
-            return host;
+            return oldHost;
         } else {
-            throw new UserErrorException(errors);
+            throw new RestErrorException(errors);
         }
     }
 
-    /** Prevents the default constructor from being called. */
-    private HostConverter() throws InstantiationException {
-        throw new InstantiationException(this.getClass().getName() +
-                " cannot be instantiated.");
+    //########################## PRIVATE METHODS ###############################
+
+    /**
+     * Encrypts the given password String using the server's cryptographic key.
+     *
+     * @param password the password to encrypt
+     * @return         the encrypted password
+     * @throws InternalServerErrorException If an error occurred when encrypting
+     *                                      the password.
+     */
+    private static byte[] encryptPassword(String password) {
+        try {
+            return configuration.getCryptoKey().cryptToHex(password).getBytes();
+        } catch (Exception e) {
+            throw new InternalServerErrorException("Failed to encrypt the host password", e);
+        }
+    }
+
+    /**
+     * List all missing required fields.
+     * This method returns a list of {@link RestError} representing all
+     * the errors encountered when checking the given host's required  fields.
+     * If all required fields have indeed been initialized, an empty list
+     * is returned.
+     *
+     * @param host the host entry to check
+     * @return     the list of encountered errors
+     */
+    private static List<RestError> checkRequiredFields(Host host) {
+        List<RestError> errors = new ArrayList<RestError>();
+        if (host.getHostid() == null || host.getHostid().isEmpty()) {
+            errors.add(MISSING_FIELD(HOST_NAME));
+        }
+        if (host.getAddress() == null || host.getAddress().isEmpty()) {
+            errors.add(MISSING_FIELD(ADDRESS));
+        }
+        if (host.getPort() == -1) {
+            errors.add(MISSING_FIELD(PORT));
+        }
+        if (host.getHostkey() == null || host.getHostkey().length == 0) {
+            errors.add(MISSING_FIELD(PASSWORD));
+        }
+
+        return errors;
     }
 }

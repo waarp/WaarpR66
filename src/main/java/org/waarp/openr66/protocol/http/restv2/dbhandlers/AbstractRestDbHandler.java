@@ -25,12 +25,8 @@ import io.cdap.http.AbstractHttpHandler;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 
+import static io.netty.handler.codec.http.HttpMethod.*;
 import static org.waarp.gateway.kernel.rest.RestConfiguration.CRUD;
-import static io.netty.handler.codec.http.HttpMethod.DELETE;
-import static io.netty.handler.codec.http.HttpMethod.GET;
-import static io.netty.handler.codec.http.HttpMethod.OPTIONS;
-import static io.netty.handler.codec.http.HttpMethod.POST;
-import static io.netty.handler.codec.http.HttpMethod.PUT;
 
 /**
  * This abstract class represents a handler for the WaarpR66 REST API. A handler
@@ -68,18 +64,19 @@ public abstract class AbstractRestDbHandler extends AbstractHttpHandler {
 
     /**
      * Initializes the handler with the given CRUD mask.
-     * @param crud The CRUD mask for this handler.
+     *
+     * @param crud the CRUD mask for this handler
      */
     protected AbstractRestDbHandler(byte crud) {
         this.crud = crud;
     }
 
     /**
-     * Checks whether the HTTP request given can be made on the handler in
+     * Checks whether the {@link HttpRequest} given can be made on the handler in
      * accordance with the handler's CRUD configuration.
      *
-     * @param request The HTTP request to check.
-     * @return Returns {@code true} if the request is active, {@code false} otherwise.
+     * @param request the HTTP request to check
+     * @return        {@code true} if the request is active, {@code false} otherwise.
      */
     public boolean checkCRUD(HttpRequest request) {
         HttpMethod method = request.method();

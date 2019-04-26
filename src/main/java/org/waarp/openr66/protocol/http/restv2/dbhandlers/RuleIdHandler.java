@@ -24,13 +24,14 @@ package org.waarp.openr66.protocol.http.restv2.dbhandlers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,6 +41,8 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
@@ -50,12 +53,33 @@ import static org.waarp.common.role.RoleDefault.ROLE.RULE;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.*;
 
 /**
- * This is the {@link AbstractRestDbHandler} handling all operations on a
- * single entry of the host's transfer rule database.
+ * This is the {@link AbstractRestDbHandler} handling all requests made on
+ * a single rule REST entry point.
  */
 @Path(RULE_ID_HANDLER_URI)
 public class RuleIdHandler extends AbstractRestDbHandler {
 
+    /**
+     * The content of the 'Allow' header sent when an 'OPTIONS' request is made
+     * on the handler.
+     */
+    private static final HttpHeaders OPTIONS_HEADERS;
+
+    static {
+        OPTIONS_HEADERS = new DefaultHttpHeaders();
+        List<HttpMethod> allow = new ArrayList<HttpMethod>();
+        allow.add(HttpMethod.GET);
+        allow.add(HttpMethod.PUT);
+        allow.add(HttpMethod.DELETE);
+        allow.add(HttpMethod.OPTIONS);
+        OPTIONS_HEADERS.add(ALLOW, allow);
+    }
+
+    /**
+     * Initializes the handler with the given CRUD mask.
+     *
+     * @param crud the CRUD mask for this handler
+     */
     public RuleIdHandler(byte crud) {
         super(crud);
     }
@@ -64,11 +88,9 @@ public class RuleIdHandler extends AbstractRestDbHandler {
      * Method called to retrieve a transfer rule with the id given in the
      * request URI.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested rule's name
      */
     @GET
     @Consumes(WILDCARD)
@@ -100,11 +122,9 @@ public class RuleIdHandler extends AbstractRestDbHandler {
     /**
      * Method called to update a transfer rule.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested rule's name
      */
     @PUT
     @Consumes(APPLICATION_JSON)
@@ -142,11 +162,9 @@ public class RuleIdHandler extends AbstractRestDbHandler {
     /**
      * Method called to delete a transfer rule from the database.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested rule's name
      */
     @DELETE
     @Consumes(WILDCARD)
@@ -177,20 +195,15 @@ public class RuleIdHandler extends AbstractRestDbHandler {
      * Method called to get a list of all allowed HTTP methods on this entry
      * point. The HTTP methods are sent as an array in the reply's headers.
      *
-     * @param request   The {@link HttpRequest} made on the resource.
-     * @param responder The {@link HttpResponder} which sends the reply to
-     *                  the request.
-     * @param id The requested transfer's id, this refers to the {id} parameter
-     *           in the URI of the request.
+     * @param request   the HttpRequest made on the resource
+     * @param responder the HttpResponder which sends the reply to the request
+     * @param id        the requested rule's name
      */
     @OPTIONS
     @Consumes(WILDCARD)
     @RequiredRole(NOACCESS)
     public void options(HttpRequest request, HttpResponder responder,
                         @PathParam(URI_ID) String id) {
-        DefaultHttpHeaders headers = new DefaultHttpHeaders();
-        String allow = RestUtils.getMethodList(this.getClass(), this.crud);
-        headers.add(ALLOW, allow);
-        responder.sendStatus(OK, headers);
+        responder.sendStatus(OK, OPTIONS_HEADERS);
     }
 }

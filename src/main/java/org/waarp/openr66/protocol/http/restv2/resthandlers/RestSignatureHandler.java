@@ -20,45 +20,31 @@
 
 package org.waarp.openr66.protocol.http.restv2.resthandlers;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.protocol.http.restv2.dbhandlers.AbstractRestDbHandler;
-import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
-
-import javax.ws.rs.InternalServerErrorException;
-import java.util.Locale;
 
 import static io.netty.channel.ChannelFutureListener.CLOSE;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.AUTH_SIGNATURE;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.UTF8_CHARSET;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.REQUEST_NOT_SIGNED;
 
 /**
- * When a request is made to the REST API, and if the request signature checking
- * is activated in the API parameters, then this handler is called after
- * the {@link RestHandlerHook} and before the corresponding
- * {@link AbstractRestDbHandler}
- * to check the validity of the request's signature.
+ * Handler checking the REST request signature when signature checking is
+ * enabled.
  */
 public class RestSignatureHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-    /** The logger for all unexpected errors during the execution. */
+    /** The logger for all events during the execution. */
     private final WaarpLogger logger =
             WaarpLoggerFactory.getLogger(this.getClass());
 
@@ -71,34 +57,6 @@ public class RestSignatureHandler extends SimpleChannelInboundHandler<FullHttpRe
      */
     public RestSignatureHandler(HmacSha256 hmac) {
         this.hmac = hmac;
-    }
-
-    /**
-     * Sends a reply to the request stating that the request was not properly
-     * signed.
-     *
-     * @param ctx       The context of the Netty channel handler.
-     * @param request   The original HTTP request.
-     */
-    private void unsigned(ChannelHandlerContext ctx, FullHttpRequest request) {
-        FullHttpResponse response;
-        try {
-            Locale lang = RestUtils.getRequestLocale(request);
-            byte[] body = REQUEST_NOT_SIGNED().serialize(lang).getBytes();
-            DefaultHttpHeaders headers = new DefaultHttpHeaders();
-            headers.add(CONTENT_TYPE, APPLICATION_JSON);
-            headers.add(CONTENT_LENGTH, body.length);
-            ByteBuf content = Unpooled.wrappedBuffer(body);
-
-            response = new DefaultFullHttpResponse(HTTP_1_1,
-                    BAD_REQUEST, content, headers, EmptyHttpHeaders.INSTANCE);
-
-            logger.info("Unsigned request received.");
-        } catch (InternalServerErrorException e) {
-            logger.error(e);
-            response = new DefaultFullHttpResponse(HTTP_1_1, INTERNAL_SERVER_ERROR);
-        }
-        ctx.channel().writeAndFlush(response).addListener(CLOSE);
     }
 
     /**
@@ -121,6 +79,7 @@ public class RestSignatureHandler extends SimpleChannelInboundHandler<FullHttpRe
             return;
         }
 
+        String authent = request.headers().get(AUTHORIZATION);
         String body = request.content().toString(UTF8_CHARSET);
         String URI = request.uri();
         String method = request.method().toString();
@@ -128,14 +87,15 @@ public class RestSignatureHandler extends SimpleChannelInboundHandler<FullHttpRe
 
         FullHttpResponse response;
 
-        if (sign == null) {
-            unsigned(ctx, request);
+        if (authent == null || sign == null) {
+            response = new DefaultFullHttpResponse(HTTP_1_1, UNAUTHORIZED);
+            ctx.channel().writeAndFlush(response).addListener(CLOSE);
             return;
         }
 
         String computedHash;
         try {
-            computedHash = this.hmac.cryptToHex(body + URI + method);
+            computedHash = this.hmac.cryptToHex(authent + body + URI + method);
         } catch (Exception e) {
             logger.error(e);
             response = new DefaultFullHttpResponse(HTTP_1_1, INTERNAL_SERVER_ERROR);
@@ -144,8 +104,8 @@ public class RestSignatureHandler extends SimpleChannelInboundHandler<FullHttpRe
         }
 
         if (!computedHash.equals(sign)) {
-            unsigned(ctx, request);
-            return;
+            response = new DefaultFullHttpResponse(HTTP_1_1, UNAUTHORIZED);
+            ctx.channel().writeAndFlush(response).addListener(CLOSE);
         }
 
         ctx.fireChannelRead(request.retain());

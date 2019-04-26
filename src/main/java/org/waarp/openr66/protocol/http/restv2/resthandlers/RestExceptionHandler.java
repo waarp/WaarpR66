@@ -25,44 +25,45 @@ import io.cdap.http.ExceptionHandler;
 import io.cdap.http.HttpResponder;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import org.testcontainers.shaded.org.apache.commons.codec.language.bm.Lang;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
+import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
+import org.waarp.openr66.protocol.http.restv2.utils.RestUtils;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotSupportedException;
 import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
-import static io.netty.handler.codec.http.HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
-import static org.waarp.openr66.protocol.http.restv2.errors.Error.serializeErrors;
-import static org.waarp.openr66.protocol.http.restv2.utils.RestUtils.getRequestLocale;
 
-/** Handles unknown exceptions that occur during the processing of an HTTP request. */
+/**
+ * Handles all exceptions thrown by handlers during the processing of
+ * an HTTP request.
+ */
 public class RestExceptionHandler extends ExceptionHandler {
 
+    /** The logger for all events. */
     private static final WaarpLogger logger =
             WaarpLoggerFactory.getLogger(RestExceptionHandler.class);
 
     /**
-     * Called when an  exception is thrown during the program execution.
+     * Method called when an exception is thrown during the processing of
+     * a request.
      *
-     * @param t         The exception thrown during execution.
-     * @param request   The http request that failed.
-     * @param responder The responder for the request.
+     * @param t         the exception thrown during execution
+     * @param request   the HttpRequest that failed
+     * @param responder the HttpResponder for the request
      */
     @Override
     public void handle(Throwable t, HttpRequest request, HttpResponder responder) {
-        if (t instanceof UserErrorException) {
-            UserErrorException badRequest =
-                    (UserErrorException) t;
+        if (t instanceof RestErrorException) {
+            RestErrorException userErrors = (RestErrorException) t;
             try {
-                Locale lang = getRequestLocale(request);
-                responder.sendJson(BAD_REQUEST, serializeErrors(badRequest.errors, lang));
+                Locale lang = RestUtils.getLocale(request);
+                String errorText = JsonUtils.nodeToString(userErrors.makeNode(lang));
+                responder.sendJson(BAD_REQUEST, errorText);
             } catch (InternalServerErrorException e) {
                 logger.error(e);
                 responder.sendStatus(INTERNAL_SERVER_ERROR);

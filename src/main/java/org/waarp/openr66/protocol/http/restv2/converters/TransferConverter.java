@@ -32,9 +32,9 @@ import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.pojo.UpdatedInfo;
 import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.ModeTrans;
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
-import org.waarp.openr66.protocol.http.restv2.errors.Error;
-import org.waarp.openr66.protocol.http.restv2.errors.Errors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestError;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 
 import javax.ws.rs.InternalServerErrorException;
 import java.sql.Timestamp;
@@ -46,14 +46,24 @@ import java.util.Map;
 import static org.waarp.openr66.dao.database.DBTransferDAO.*;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.DAO_FACTORY;
 import static org.waarp.openr66.protocol.http.restv2.RestConstants.SERVER_NAME;
-import static org.waarp.openr66.protocol.http.restv2.converters.RestTransferUtils.FieldNames.*;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.*;
+import static org.waarp.openr66.protocol.http.restv2.RestConstants.TransferFields.*;
+import static org.waarp.openr66.protocol.http.restv2.errors.RestErrors.*;
+
 
 /**
- * A collection of utility methods to convert {@link Transfer} POJOs
- * to {@link ObjectNode} and vice-versa.
+ * A collection of utility methods to convert {@link Transfer} objects
+ * to their corresponding {@link ObjectNode} and vice-versa.
  */
-public final class RestTransferUtils {
+public final class TransferConverter {
+
+    /** Makes the default constructor of this utility class inaccessible. */
+    private TransferConverter() throws InstantiationException {
+        throw new InstantiationException(this.getClass().getName() +
+                " cannot be instantiated.");
+    }
+
+
+    //########################### INNER CLASSES ################################
 
     /** All the possible ways to order a list of transfer objects. */
     public enum Order {
@@ -74,9 +84,10 @@ public final class RestTransferUtils {
         /** By end date, in descending order. */
         descStop(TRANSFER_STOP_FIELD, false);
 
+        /** The name of the database column used for sorting. */
         public final String column;
+        /** If the order is ascending or descending. */
         public final boolean ascend;
-
 
         Order(String column, boolean ascend) {
             this.column = column;
@@ -84,129 +95,53 @@ public final class RestTransferUtils {
         }
     }
 
-    /** The names of the fields of a JSON transfer object. */
-    @SuppressWarnings("unused")
-    public static final class FieldNames {
-        public static final String TRANSFER_ID = "id";
-        public static final String GLOBAL_STEP = "globalStep";
-        public static final String GLOBAL_LAST_STEP = "globalLastStep";
-        public static final String STEP = "step";
-        public static final String RANK = "rank";
-        public static final String UPDATED_INFO = "status";
-        public static final String STEP_STATUS = "stepStatus";
-        public static final String ORIGINAL_FILENAME = "originalFilename";
-        public static final String FILENAME = "filename";
-        public static final String RULE = "ruleName";
-        public static final String BLOCK_SIZE = "blockSize";
-        public static final String FILE_INFO = "fileInfo";
-        public static final String TRANSFER_INFO = "transferInfo";
-        public static final String START = "start";
-        public static final String STOP = "stop";
-        public static final String REQUESTED = "requested";
-        public static final String REQUESTER = "requester";
-        public static final String RETRIEVE = "retrieve";
-        public static final String ERROR_CODE = "errorCode";
-        public static final String ERROR_MESSAGE = "errorMessage";
+
+    //########################## PUBLIC METHODS ################################
+
+    /**
+     * Returns an {@link ObjectNode} representing the {@link Transfer} object
+     * given as parameter.
+     *
+     * @param transfer the Transfer object to serialize
+     * @return         the corresponding ObjectNode
+     */
+    public static ObjectNode transferToNode(Transfer transfer) {
+        ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
+        node.put(TRANSFER_ID, transfer.getId());
+        node.put(GLOBAL_STEP, transfer.getGlobalStep().toString());
+        node.put(GLOBAL_LAST_STEP, transfer.getLastGlobalStep().toString());
+        node.put(STEP, transfer.getStep());
+        node.put(RANK, transfer.getRank());
+        node.put(UPDATED_INFO, transfer.getUpdatedInfo().toString());
+        node.put(STEP_STATUS, transfer.getStepStatus().toString());
+        node.put(ERROR_CODE, transfer.getInfoStatus().code);
+        node.put(ERROR_MESSAGE, transfer.getInfoStatus().getMesg());
+        node.put(ORIGINAL_FILENAME, transfer.getOriginalName());
+        node.put(FILENAME, transfer.getFilename());
+        node.put(RULE, transfer.getRule());
+        node.put(BLOCK_SIZE, transfer.getBlockSize());
+        node.put(FILE_INFO, transfer.getFileInfo());
+        node.put(TRANSFER_INFO, transfer.getTransferInfo());
+        node.put(START, new DateTime(transfer.getStart()).toString());
+        node.put(STOP, new DateTime(transfer.getStop()).toString());
+        node.put(REQUESTED, transfer.getRequested());
+        node.put(REQUESTER, transfer.getRequester());
+        node.put(RETRIEVE, transfer.getRetrieveMode());
+
+        return node;
     }
 
     /**
-     * Tells if the given rule exists in the database.
+     * Initialize a {@link Transfer} object using the values of the given
+     * {@link ObjectNode}.
      *
-     * @param rule The name of the rule.
-     * @return {@code true} if the rule exists, {@code false} otherwise.
+     * @param object the ObjectNode to convert
+     * @return       the new Transfer object
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Transfer object
+     * @throws InternalServerErrorException if an unexpected error occurred
      */
-    private static boolean ruleExists(String rule) {
-        RuleDAO ruleDAO = null;
-        try {
-            ruleDAO = DAO_FACTORY.getRuleDAO();
-            return ruleDAO.exist(rule);
-        } catch (DAOException e) {
-            throw new InternalServerErrorException(e);
-        } finally {
-            if (ruleDAO != null) {
-                ruleDAO.close();
-            }
-        }
-    }
-
-    /**
-     * Tells if the given host exists in the database.
-     *
-     * @param host The name of the host.
-     * @return {@code true} if the host exists, {@code false} otherwise.
-     */
-    private static boolean hostExists(String host) {
-        HostDAO hostDAO = null;
-        try {
-            hostDAO = DAO_FACTORY.getHostDAO();
-            return hostDAO.exist(host);
-        } catch (DAOException e) {
-            throw new InternalServerErrorException(e);
-        } finally {
-            if (hostDAO != null) {
-                hostDAO.close();
-            }
-        }
-    }
-
-    /**
-     * Tells if the given host is allowed to use given rule.
-     *
-     * @param host The name of the host.
-     * @param rule The name of the rule.
-     * @return {@code true} if the host is allowed to use the rule, {@code false}
-     *         otherwise
-     */
-    private static boolean canUseRule(String host, String rule) {
-        RuleDAO ruleDAO = null;
-        try {
-            ruleDAO = DAO_FACTORY.getRuleDAO();
-            List<String> hostIds = ruleDAO.select(rule).getHostids();
-            return !hostIds.isEmpty() && !hostIds.contains(host);
-        } catch (DAOException e) {
-            throw new InternalServerErrorException(e);
-        } finally {
-            if (ruleDAO != null) {
-                ruleDAO.close();
-            }
-        }
-    }
-
-    /**
-     * Returns a list of {@link Error} corresponding to all the fields required
-     * to initialize a transfer that are missing from the given {@link Transfer}
-     * object. If no fields are missing, an empty list is returned.
-     *
-     * @param transfer The {@link Transfer} object to check.
-     * @return The list of all missing fields encapsulated in {@link Error} objects.
-     */
-    private static List<Error> checkRequiredFields(Transfer transfer) {
-        List<Error> errors = new ArrayList<Error>();
-        if (transfer.getRule() == null || transfer.getRule().isEmpty()) {
-            errors.add(MISSING_FIELD(RULE));
-        }
-        if (transfer.getOriginalName() == null || transfer.getOriginalName().isEmpty()) {
-            errors.add(MISSING_FIELD(FILENAME));
-        }
-        if (transfer.getRequested() == null || transfer.getRequested().isEmpty()) {
-            errors.add(MISSING_FIELD(REQUESTED));
-        }
-
-        return errors;
-    }
-
-    /**
-     * Initialize a {@link Transfer} object with the values given in the
-     * {@link ObjectNode} parameter. All optional fields missing from the
-     * {@code object} parameter will be initialized with their default value.
-     *
-     * @param object The {@link ObjectNode} from which the transfer is extracted.
-     * @return The {@link Transfer} object extracted from the parameter.
-     * @throws UserErrorException Thrown if one or multiple fields are either
-     *                             missing, or were given an invalid value.
-     */
-    public static Transfer nodeToNewTransfer(ObjectNode object)
-            throws UserErrorException {
+    public static Transfer nodeToNewTransfer(ObjectNode object) {
         Transfer defaultTransfer = new Transfer(null, null, -1, false, null, null, 65536);
         defaultTransfer.setRequester(SERVER_NAME);
         defaultTransfer.setOwnerRequest(SERVER_NAME);
@@ -238,53 +173,107 @@ public final class RestTransferUtils {
         return transfer;
     }
 
-    /**
-     * Returns an {@link ObjectNode} representing the {@link Transfer} object
-     * given as parameter.
-     *
-     * @param transfer The {@link Transfer} object to serialize.
-     * @return The {@link ObjectNode} representing the given transfer.
-     */
-    public static ObjectNode transferToNode(Transfer transfer) {
-        ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
-        node.put(TRANSFER_ID, transfer.getId());
-        node.put(GLOBAL_STEP, transfer.getGlobalStep().toString());
-        node.put(GLOBAL_LAST_STEP, transfer.getLastGlobalStep().toString());
-        node.put(STEP, transfer.getStep());
-        node.put(RANK, transfer.getRank());
-        node.put(UPDATED_INFO, transfer.getUpdatedInfo().toString());
-        node.put(STEP_STATUS, transfer.getStepStatus().toString());
-        node.put(ERROR_CODE, transfer.getInfoStatus().code);
-        node.put(ERROR_MESSAGE, transfer.getInfoStatus().mesg);
-        node.put(ORIGINAL_FILENAME, transfer.getOriginalName());
-        node.put(FILENAME, transfer.getFilename());
-        node.put(RULE, transfer.getRule());
-        node.put(BLOCK_SIZE, transfer.getBlockSize());
-        node.put(FILE_INFO, transfer.getFileInfo());
-        node.put(TRANSFER_INFO, transfer.getTransferInfo());
-        node.put(START, new DateTime(transfer.getStart()).toString());
-        node.put(STOP, new DateTime(transfer.getStop()).toString());
-        node.put(REQUESTED, transfer.getRequested());
-        node.put(REQUESTER, transfer.getRequester());
-        node.put(RETRIEVE, transfer.getRetrieveMode());
 
-        return node;
+    //######################### PRIVATE METHODS ################################
+
+    /**
+     * Tells if the given rule exists in the database.
+     *
+     * @param rule the name of the rule
+     * @return     {@code true} if the rule exists, {@code false} otherwise.
+     */
+    private static boolean ruleExists(String rule) {
+        RuleDAO ruleDAO = null;
+        try {
+            ruleDAO = DAO_FACTORY.getRuleDAO();
+            return ruleDAO.exist(rule);
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (ruleDAO != null) {
+                ruleDAO.close();
+            }
+        }
+    }
+
+    /**
+     * Tells if the given host exists in the database.
+     *
+     * @param host the name of the host
+     * @return     {@code true} if the host exists, {@code false} otherwise.
+     */
+    private static boolean hostExists(String host) {
+        HostDAO hostDAO = null;
+        try {
+            hostDAO = DAO_FACTORY.getHostDAO();
+            return hostDAO.exist(host);
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (hostDAO != null) {
+                hostDAO.close();
+            }
+        }
+    }
+
+    /**
+     * Tells if the given host is allowed to use given rule.
+     *
+     * @param host the name of the host
+     * @param rule the name of the rule
+     * @return {@code true} if the host is allowed to use the rule, {@code false}
+     *         otherwise
+     */
+    private static boolean canUseRule(String host, String rule) {
+        RuleDAO ruleDAO = null;
+        try {
+            ruleDAO = DAO_FACTORY.getRuleDAO();
+            List<String> hostIds = ruleDAO.select(rule).getHostids();
+            return !hostIds.isEmpty() && !hostIds.contains(host);
+        } catch (DAOException e) {
+            throw new InternalServerErrorException(e);
+        } finally {
+            if (ruleDAO != null) {
+                ruleDAO.close();
+            }
+        }
+    }
+
+    /**
+     * Returns a list of {@link RestError} corresponding to all the fields required
+     * to initialize a transfer that are missing from the given {@link Transfer}
+     * object. If no fields are missing, an empty list is returned.
+     *
+     * @param transfer the Transfer object to check.
+     * @return         the list of all missing fields
+     */
+    private static List<RestError> checkRequiredFields(Transfer transfer) {
+        List<RestError> errors = new ArrayList<RestError>();
+        if (transfer.getRule() == null || transfer.getRule().isEmpty()) {
+            errors.add(MISSING_FIELD(RULE));
+        }
+        if (transfer.getOriginalName() == null || transfer.getOriginalName().isEmpty()) {
+            errors.add(MISSING_FIELD(FILENAME));
+        }
+        if (transfer.getRequested() == null || transfer.getRequested().isEmpty()) {
+            errors.add(MISSING_FIELD(REQUESTED));
+        }
+
+        return errors;
     }
 
     /**
      * Fills the fields of the given {@link Transfer} object with the values
-     * extracted from the {@code object} parameter, and returns the result.
+     * extracted from the {@link ObjectNode} parameter, and returns the result.
      *
-     * @param object The {@link ObjectNode} from which the values should be extracted.
-     * @param transfer The {@link Transfer} object whose fields will be filled.
-     * @return The {@link Transfer} object given as parameter, updated with the
-     *         values extracted from {@code object}.
-     * @throws UserErrorException Thrown if one or multiple fields are either
-     *                             missing, or were given an invalid value.
+     * @param object   the ObjectNode from which the values should be extracted
+     * @param transfer the Transfer object whose fields will be filled
+     * @return         the filled Transfer object
+     * @throws RestErrorException if the given ObjectNode does not represent
+     *                            a Transfer object.
      */
-    private static Transfer parseNode(ObjectNode object, Transfer transfer)
-            throws UserErrorException {
-        List<Error> errors = new ArrayList<Error>();
+    private static Transfer parseNode(ObjectNode object, Transfer transfer) {
+        List<RestError> errors = new ArrayList<RestError>();
 
         Iterator<Map.Entry<String, JsonNode>> fields = object.fields();
         while (fields.hasNext()) {
@@ -297,7 +286,7 @@ public final class RestTransferUtils {
                     if (ruleExists(value.asText())) {
                         transfer.setRule(value.asText());
                     } else {
-                        errors.add(Errors.UNKNOWN_RULE(value.asText()));
+                        errors.add(RestErrors.UNKNOWN_RULE(value.asText()));
                     }
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
@@ -316,7 +305,7 @@ public final class RestTransferUtils {
                     if (hostExists(value.asText())) {
                         transfer.setRequested(value.asText());
                     } else {
-                        errors.add(Errors.UNKNOWN_HOST(value.asText()));
+                        errors.add(RestErrors.UNKNOWN_HOST(value.asText()));
                     }
                 } else {
                     errors.add(ILLEGAL_FIELD_VALUE(name, value.toString()));
@@ -370,14 +359,7 @@ public final class RestTransferUtils {
         if (errors.isEmpty()) {
             return transfer;
         } else {
-            throw new UserErrorException(errors);
+            throw new RestErrorException(errors);
         }
-    }
-
-
-    /** Prevents the default constructor from being called. */
-    private RestTransferUtils() throws InstantiationException {
-        throw new InstantiationException(this.getClass().getName() +
-                " cannot be instantiated.");
     }
 }

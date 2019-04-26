@@ -28,6 +28,8 @@ import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
 import org.waarp.openr66.pojo.Transfer;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
@@ -41,22 +43,33 @@ import static org.waarp.openr66.configuration.AuthenticationFileBasedConfigurati
 import static org.waarp.openr66.configuration.RuleFileBasedConfiguration.*;
 import static org.waarp.openr66.database.data.DbHostConfiguration.*;
 
-/** An interface for POJOs used in XML (de)serialization. */
+/**
+ * An interface for POJOs used in XML (de)serialization.
+ * <p>
+ * Classes implementing this interface, as well as their fields' classes
+ * *MUST* be annotated with the required JAXB annotations to allow
+ * the objects to be marshalled and unmarshalled using JAXB.
+ *
+ * @see javax.xml.bind.Marshaller
+ * @see javax.xml.bind.Unmarshaller
+ */
 @SuppressWarnings("CanBeFinal")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.NONE)
 public interface XmlSerializable {
 
     /** A POJO representing a list of business ids for XML (de)serialisation purposes. */
     @XmlRootElement(name = XML_BUSINESS)
-    class Businesses implements XmlSerializable {
+    final class Businesses implements XmlSerializable {
         /** The list of host names. */
         @XmlElement(name = XML_BUSINESSID)
         public List<String> business = new ArrayList<String>();
     }
 
-    /** A POJO representing a list of roles for XML (de)serialisation purposes. */
+    /** A container for a list of roles for XML (de)serialisation purposes. */
     @XmlRootElement(name = XML_ROLES)
-    class Roles implements XmlSerializable {
-        /** The list of {@link RoleEntry}. */
+    final class Roles implements XmlSerializable {
+        /** The list of roles. */
         @XmlElement(name = XML_ROLE)
         public List<RoleEntry> roles = new ArrayList<RoleEntry>();
 
@@ -68,7 +81,7 @@ public interface XmlSerializable {
 
         /** A POJO representing a role entry for XML (de)serialisation purposes. */
         @XmlType
-        public static class RoleEntry {
+        public static final class RoleEntry {
             /** The host's id. */
             @XmlElement(name = XML_ROLEID)
             public String hostName;
@@ -80,10 +93,10 @@ public interface XmlSerializable {
         }
     }
 
-    /** A POJO representing a list of aliases for XML (de)serialisation purposes. */
+    /** A container for a list of aliases for XML (de)serialisation purposes. */
     @XmlRootElement(name = XML_ALIASES)
-    class Aliases implements XmlSerializable {
-        /** The list of {@link AliasEntry}. */
+    final class Aliases implements XmlSerializable {
+        /** The list of aliases. */
         @XmlElement(name = XML_ALIAS)
         public List<AliasEntry> aliases = new ArrayList<AliasEntry>();
 
@@ -95,7 +108,7 @@ public interface XmlSerializable {
 
         /** A POJO representing an alias entry for XML (de)serialisation purposes. */
         @XmlType
-        public static class AliasEntry {
+        public static final class AliasEntry {
             /** The host's id. */
             @XmlElement(name = XML_REALID)
             public String hostName;
@@ -107,8 +120,10 @@ public interface XmlSerializable {
         }
     }
 
+    /** A container for a list of hosts for XML (de)serialisation purposes. */
     @XmlRootElement(name = XML_AUTHENTIFICATION_ROOT)
-    class Hosts implements XmlSerializable {
+    final class Hosts implements XmlSerializable {
+        /** The list of {@link Host}. */
         @XmlElement(name = XML_AUTHENTIFICATION_ENTRY)
         public List<Host> hosts = new ArrayList<Host>();
 
@@ -119,8 +134,10 @@ public interface XmlSerializable {
         }
     }
 
+    /** A container for a list of rules for XML (de)serialisation purposes. */
     @XmlRootElement(name = MULTIPLEROOT)
-    class Rules implements XmlSerializable {
+    final class Rules implements XmlSerializable {
+        /** The list of rules. */
         @XmlElement(name = RuleFileBasedConfiguration.ROOT)
         public List<Rule> rules = new ArrayList<Rule>();
 
@@ -130,8 +147,10 @@ public interface XmlSerializable {
             this.rules = rules;
         }
 
+        /** A POJO representing a list of tasks for XML (de)serialisation purposes. */
         @XmlType(name = XTASKS)
-        public static class Tasks {
+        public static final class Tasks {
+            /** The list of tasks. */
             @XmlElementWrapper(name = XTASKS)
             @XmlElement(name = XTASK)
             public List<RuleTask> tasks;
@@ -144,6 +163,7 @@ public interface XmlSerializable {
         }
     }
 
+    /** container for a list of transfers for XML (de)serialisation purposes. */
     @XmlRootElement(name = DbTaskRunner.XMLRUNNERS)
     class Transfers implements XmlSerializable {
         @XmlElement(name = DbTaskRunner.XMLRUNNER)

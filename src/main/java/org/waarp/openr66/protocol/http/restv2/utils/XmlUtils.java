@@ -20,7 +20,8 @@
 
 package org.waarp.openr66.protocol.http.restv2.utils;
 
-import org.waarp.openr66.protocol.http.restv2.errors.UserErrorException;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrors;
+import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.xml.bind.JAXBContext;
@@ -45,7 +46,7 @@ import java.io.StringWriter;
 import static com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl.INDENT_NUMBER;
 import static javax.xml.transform.OutputKeys.INDENT;
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
-import static org.waarp.openr66.protocol.http.restv2.errors.Errors.FILE_NOT_FOUND;
+
 
 /** A series of utility methods for serializing and deserializing XML. */
 public final class XmlUtils {
@@ -56,11 +57,130 @@ public final class XmlUtils {
                 " cannot be instantiated.");
     }
 
+
+    //######################### PUBLIC METHODS #################################
+
+    /**
+     * Converts a serializable Java object into XML format as a String.
+     *
+     * @param object the object to convert to XML
+     * @return       the object's representation in XML
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static String objectToXml(XmlSerializable object) {
+        try {
+            StringWriter writer = new StringWriter();
+            JAXBContext context = JAXBContext.newInstance(object.getClass());
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+            marshaller.marshal(object, writer);
+
+            return writer.toString();
+        } catch (JAXBException e) {
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    /**
+     * Converts an XML String into a serializable Java object.
+     *
+     * @param xml  the string to convert into an object
+     * @param clazz the class of the serializable object
+     * @return     the deserialized Java object
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static <T extends XmlSerializable> T xmlToObject(String xml,
+                                                            Class<T> clazz) {
+        try {
+            StringReader reader = new StringReader(xml);
+            StreamSource source = new StreamSource(reader);
+            JAXBContext context = JAXBContext.newInstance(clazz);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+
+            return unmarshaller.unmarshal(source, clazz).getValue();
+        } catch (JAXBException e) {
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    /**
+     * Saves an XML String to a file at the given location.
+     *
+     * @param xml      the XML String
+     * @param filePath the path where to save the XML file
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static void saveXML(String xml, String filePath) {
+        try {
+            FileWriter fileWriter = new FileWriter(filePath, false);
+            String formattedXML = pretty(xml);
+            fileWriter.write(formattedXML);
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException e) {
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    /**
+     * Loads an XML file into a String.
+     *
+     * @param filePath the path of the XML file to load
+     * @return         the content of the XML file
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static String loadXML(String filePath) {
+        try {
+            BufferedReader buff = new BufferedReader(new FileReader(filePath));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = buff.readLine()) != null) {
+                stringBuilder.append(line.trim());
+            }
+            return stringBuilder.toString();
+        } catch (FileNotFoundException e) {
+            throw new RestErrorException(RestErrors.FILE_NOT_FOUND(filePath));
+        } catch (IOException e) {
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    /**
+     * Saves a serializable Java object to an XML file at the given location.
+     *
+     * @param object    the object to save as XML
+     * @param filePath  the path where to save the XML file
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static void saveObject(XmlSerializable object, String filePath) {
+
+        String xml = objectToXml(object);
+        saveXML(xml, filePath);
+    }
+
+    /**
+     * Loads the given XML file into a corresponding serializable Java object.
+     *
+     * @param filePath path of the file to load
+     * @param clazz    class of the target Java object
+     * @return         the deserialized XML object
+     * @throws InternalServerErrorException if an unexpected error occurred
+     */
+    public static <T extends XmlSerializable> T loadObject(String filePath,
+                                                           Class<T> clazz) {
+
+        String xml = loadXML(filePath);
+        return xmlToObject(xml, clazz);
+    }
+
+    //######################### PRIVATE METHODS #################################
+
     /**
      * Formats an unformatted XML String into a human readable one.
      *
      * @param input   The unformatted XML String.
      * @return      The XML String in human readable format.
+     * @throws InternalServerErrorException if an unexpected error occurred
      */
     private static String pretty(String input) {
         try {
@@ -78,111 +198,6 @@ public final class XmlUtils {
         } catch (TransformerConfigurationException e) {
             throw new InternalServerErrorException(e);
         } catch (TransformerException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Serializes an XmlPOJO into an XML string.
-     * Used to convert JSON object from REST into XML objects for the database.
-     *
-     * @param object    The object to convert to XML.
-     */
-    public static String objectToXml(XmlSerializable object) {
-        try {
-            StringWriter writer = new StringWriter();
-            JAXBContext context = JAXBContext.newInstance(object.getClass());
-            Marshaller marshaller = context.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshaller.marshal(object, writer);
-
-            return writer.toString();
-        } catch (JAXBException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Deserialize an XML string into an XmlPOJO.
-     * Used to convert XML object from the database in to JSON objects for REST.
-     *
-     * @param xml  The string to convert into an object.
-     * @param type The class of the target XmlPOJO.
-     */
-    public static <T extends XmlSerializable> T xmlToObject(String xml, Class<T> type) {
-        try {
-            StringReader reader = new StringReader(xml);
-            StreamSource source = new StreamSource(reader);
-            JAXBContext context = JAXBContext.newInstance(type);
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-
-            return unmarshaller.unmarshal(source, type).getValue();
-        } catch (JAXBException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Serializes and save a Java object to an XML file saved at the location
-     * given as parameter.
-     *
-     * @param object    The object to save as XML.
-     * @param filePath  The path where to save the XML file.
-     */
-    public static void saveObject(XmlSerializable object, String filePath) {
-
-        String xml = objectToXml(object);
-        saveXML(xml, filePath);
-    }
-
-    /**
-     * Deserialize an XML file into a corresponding Java object.
-     * @param filePath  Location of the input XML file.
-     * @param c         The class of the desired Java object.
-     * @return          The deserialized Java object.
-     */
-    public static <T extends XmlSerializable> T loadObject(String filePath, Class<T> c) {
-
-        String xml = loadXML(filePath);
-        return xmlToObject(xml, c);
-    }
-
-    /**
-     * Saves an unformatted XML String to a formatted XML file saved at the
-     * location given as parameter.
-     *
-     * @param xml       The unformatted XML String.
-     * @param filePath  The path where to save the XML file.
-     */
-    public static void saveXML(String xml, String filePath) {
-        try {
-            FileWriter fileWriter = new FileWriter(filePath, false);
-            String formattedXML = pretty(xml);
-            fileWriter.write(formattedXML);
-            fileWriter.flush();
-            fileWriter.close();
-        } catch (IOException e) {
-            throw new InternalServerErrorException(e);
-        }
-    }
-
-    /**
-     * Loads an XML file directly into a Java String.
-     *
-     * @param filePath  The path to the loaded XML file.
-     */
-    public static String loadXML(String filePath) {
-        try {
-            BufferedReader buff = new BufferedReader(new FileReader(filePath));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = buff.readLine()) != null) {
-                stringBuilder.append(line.trim());
-            }
-            return stringBuilder.toString();
-        } catch (FileNotFoundException e) {
-            throw new UserErrorException(FILE_NOT_FOUND(filePath));
-        } catch (IOException e) {
             throw new InternalServerErrorException(e);
         }
     }
