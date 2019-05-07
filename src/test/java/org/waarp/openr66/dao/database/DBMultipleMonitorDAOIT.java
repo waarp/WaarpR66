@@ -13,10 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 import static  org.junit.Assert.*;
 
-import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.database.DBMultipleMonitorDAO;
 import org.waarp.openr66.pojo.MultipleMonitor;
 
 public abstract class DBMultipleMonitorDAOIT {
@@ -64,7 +62,7 @@ public abstract class DBMultipleMonitorDAOIT {
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR");
+                .executeQuery("SELECT * FROM multiplemonitor");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -78,7 +76,7 @@ public abstract class DBMultipleMonitorDAOIT {
             dao.delete(new MultipleMonitor("server1", 0, 0, 0));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR where hostid = 'server1'");
+                .executeQuery("SELECT * FROM multiplemonitor where hostid = 'server1'");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -131,12 +129,12 @@ public abstract class DBMultipleMonitorDAOIT {
             dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) as count FROM MULTIPLEMONITOR");
+                .executeQuery("SELECT COUNT(1) as count FROM multiplemonitor");
             res.next();
             assertEquals(5, res.getInt("count"));
 
             ResultSet res2 = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'chacha'");
+                .executeQuery("SELECT * FROM multiplemonitor WHERE hostid = 'chacha'");
             res2.next();
             assertEquals("chacha", res2.getString("hostid"));
             assertEquals(98, res2.getInt("countRule"));
@@ -154,7 +152,7 @@ public abstract class DBMultipleMonitorDAOIT {
             dao.update(new MultipleMonitor("server2", 31, 19, 98));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM MULTIPLEMONITOR WHERE hostid = 'server2'");
+                .executeQuery("SELECT * FROM multiplemonitor WHERE hostid = 'server2'");
             res.next();
             assertEquals("server2", res.getString("hostid"));
             assertEquals(98, res.getInt("countRule"));

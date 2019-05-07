@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.testcontainers.containers.MySQLContainer;
 import org.waarp.openr66.dao.database.DBRuleDAOIT;
 
@@ -14,8 +14,8 @@ public class DBRuleMySQLDAOIT extends DBRuleDAOIT {
     private String populateScript = "populateMySQL.sql";
     private String cleanScript = "cleanMySQL.sql";
 
-    @Rule
-    public MySQLContainer db = new MySQLContainer();
+    @ClassRule
+    public static MySQLContainer db = new MySQLContainer();
 
     @Override
     public Connection getConnection() throws SQLException {

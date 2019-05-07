@@ -16,6 +16,7 @@ import static  org.junit.Assert.*;
 import org.waarp.openr66.dao.BusinessDAO; 
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.pojo.Business;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 public abstract class DBBusinessDAOIT {
 
@@ -62,7 +63,7 @@ public abstract class DBBusinessDAOIT {
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM HOSTCONFIG");
+                .executeQuery("SELECT * FROM hostconfig");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -76,7 +77,7 @@ public abstract class DBBusinessDAOIT {
             dao.delete(new Business("server1", "", "", "", ""));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM HOSTCONFIG where hostid = 'server1'");
+                .executeQuery("SELECT * FROM hostconfig where hostid = 'server1'");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
@@ -104,7 +105,7 @@ public abstract class DBBusinessDAOIT {
             assertEquals("marchand", business.getRoles());
             assertEquals("le borgne", business.getAliases());
             assertEquals("misc", business.getOthers());
-            assertEquals(17, business.getUpdatedInfo());
+            assertEquals(UpdatedInfo.NOTUPDATED, business.getUpdatedInfo());
             assertEquals(null, business2);
         } catch (Exception e) {
             fail(e.getMessage());
@@ -127,22 +128,24 @@ public abstract class DBBusinessDAOIT {
     public void testInsert() {
         try {
             BusinessDAO dao = new DBBusinessDAO(getConnection());
-            dao.insert(new Business("chacha", "lolo", "lala", "minou", "ect", -18));
+            dao.insert(new Business("chacha",
+                    "lolo", "lala", "minou", "ect",
+                    UpdatedInfo.TOSUBMIT));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) as count FROM HOSTCONFIG");
+                .executeQuery("SELECT COUNT(1) as count FROM hostconfig");
             res.next();
             assertEquals(6, res.getInt("count"));
 
             ResultSet res2 = con.createStatement()
-                .executeQuery("SELECT * FROM HOSTCONFIG WHERE hostid = 'chacha'");
+                .executeQuery("SELECT * FROM hostconfig WHERE hostid = 'chacha'");
             res2.next();
             assertEquals("chacha", res2.getString("hostid"));
             assertEquals("lolo", res2.getString("business"));
             assertEquals("lala", res2.getString("roles"));
             assertEquals("minou", res2.getString("aliases"));
             assertEquals("ect", res2.getString("others"));
-            assertEquals(-18, res2.getInt("updatedInfo"));
+            assertEquals(UpdatedInfo.TOSUBMIT.ordinal(), res2.getInt("updatedInfo"));
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -152,17 +155,19 @@ public abstract class DBBusinessDAOIT {
     public void testUpdate() {
         try {
             BusinessDAO dao = new DBBusinessDAO(getConnection());
-            dao.update(new Business("server2", "lolo", "lala", "minou", "ect", 18));
+            dao.update(new Business("server2",
+                    "lolo", "lala", "minou", "ect",
+                    UpdatedInfo.RUNNING));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM HOSTCONFIG WHERE hostid = 'server2'");
+                .executeQuery("SELECT * FROM hostconfig WHERE hostid = 'server2'");
             res.next();
             assertEquals("server2", res.getString("hostid"));
             assertEquals("lolo", res.getString("business"));
             assertEquals("lala", res.getString("roles"));
             assertEquals("minou", res.getString("aliases"));
             assertEquals("ect", res.getString("others"));
-            assertEquals(18, res.getInt("updatedInfo"));
+            assertEquals(UpdatedInfo.RUNNING.ordinal(), res.getInt("updatedInfo"));
         } catch (Exception e) {
             fail(e.getMessage());
         }

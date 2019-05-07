@@ -4,7 +4,7 @@ use test;
 -- Name: configuration; Type: TABLE;
 --
 
-CREATE TABLE CONFIGURATION (
+CREATE TABLE configuration (
     readgloballimit bigint NOT NULL,
     writegloballimit bigint NOT NULL,
     readsessionlimit bigint NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE CONFIGURATION (
 -- Name: hostconfig; Type: TABLE;
 --
 
-CREATE TABLE HOSTCONFIG (
+CREATE TABLE hostconfig (
     business text NOT NULL,
     roles text NOT NULL,
     aliases text NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE HOSTCONFIG (
 -- Name: hosts; Type: TABLE;
 --
 
-CREATE TABLE HOSTS (
+CREATE TABLE hosts (
     address character varying(255) NOT NULL,
     port integer NOT NULL,
     isssl boolean NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE HOSTS (
 -- Name: multiplemonitor; Type: TABLE;
 --
 
-CREATE TABLE MULTIPLEMONITOR (
+CREATE TABLE multiplemonitor (
     countconfig integer NOT NULL,
     counthost integer NOT NULL,
     countrule integer NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE MULTIPLEMONITOR (
 -- Name: rules; Type: TABLE;
 --
 
-CREATE TABLE RULES (
+CREATE TABLE rules (
     hostids text,
     modetrans integer,
     recvpath character varying(255),
@@ -85,7 +85,7 @@ CREATE TABLE RULES (
 -- Name: runner; Type: TABLE;
 --
 
-CREATE TABLE RUNNER (
+CREATE TABLE runner (
     globalstep integer NOT NULL,
     globallaststep integer NOT NULL,
     step integer NOT NULL,

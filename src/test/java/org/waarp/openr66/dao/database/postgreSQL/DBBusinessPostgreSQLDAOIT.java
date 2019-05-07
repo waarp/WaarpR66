@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.waarp.openr66.dao.database.DBBusinessDAOIT;
 
@@ -14,8 +14,8 @@ public class DBBusinessPostgreSQLDAOIT extends DBBusinessDAOIT {
     private String populateScript = "populatePG.sql";
     private String cleanScript = "cleanPG.sql";
 
-    @Rule
-    public PostgreSQLContainer db = new PostgreSQLContainer();
+    @ClassRule
+    public static PostgreSQLContainer db = new PostgreSQLContainer();
 
     @Override
     public Connection getConnection() throws SQLException {

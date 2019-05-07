@@ -2,16 +2,16 @@
 -- Data for Name: configuration; Type: TABLE DATA; Schema: public; Owner: waarp
 --
 
-INSERT INTO public.configuration VALUES (1, 2, 3, 4, 5, 42, 'server1');
-INSERT INTO public.configuration VALUES (2, 3, 2, 2, 2, 81, 'server2');
-INSERT INTO public.configuration VALUES (5, 6, 3, 4, 3, 1, 'server3');
+INSERT INTO public.configuration VALUES (1, 2, 3, 4, 5, 1, 'server1');
+INSERT INTO public.configuration VALUES (2, 3, 2, 2, 2, 0, 'server2');
+INSERT INTO public.configuration VALUES (5, 6, 3, 4, 3, 0, 'server3');
 
 
 --
 -- Data for Name: hostconfig; Type: TABLE DATA; Schema: public; Owner: waarp
 --
 
-INSERT INTO public.hostconfig VALUES ('joyaux', 'marchand', 'le borgne', 'misc', 17, 'server1');
+INSERT INTO public.hostconfig VALUES ('joyaux', 'marchand', 'le borgne', 'misc', 1, 'server1');
 INSERT INTO public.hostconfig VALUES ('ba', '', '', '<root><version>3.0.9</version></root>', 0, 'server2');
 INSERT INTO public.hostconfig VALUES ('ba', '', '', '<root><version>3.0.9</version></root>', 0, 'server3');
 INSERT INTO public.hostconfig VALUES ('', '', '', '<root><version>3.0.9</version></root>', 0, 'server4');
@@ -22,9 +22,15 @@ INSERT INTO public.hostconfig VALUES ('', '', '', '<root><version>3.0.9</version
 -- Data for Name: hosts; Type: TABLE DATA; Schema: public; Owner: waarp
 --
 
-INSERT INTO public.hosts VALUES ('127.0.0.1', 6666, true, '\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, true, false, true, 42, 'server1');
-INSERT INTO public.hosts VALUES ('127.0.0.1', 6667, true, '\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, false, true, false, 0, 'server1-ssl');
-INSERT INTO public.hosts VALUES ('127.0.0.3', 6676, false, '\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, false, true, false, 0, 'server2');
+INSERT INTO public.hosts VALUES ('127.0.0.1', 6666, true,
+'\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, true,
+false, true, 3, 'server1');
+INSERT INTO public.hosts VALUES ('127.0.0.1', 6667, true,
+'\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, false,
+true, false, 0, 'server1-ssl');
+INSERT INTO public.hosts VALUES ('127.0.0.3', 6676, false,
+'\x303465626439323336346235616136306332396630346461353132616361346265303639646336633661383432653235', false, false,
+true, false, 0, 'server2');
 
 
 --

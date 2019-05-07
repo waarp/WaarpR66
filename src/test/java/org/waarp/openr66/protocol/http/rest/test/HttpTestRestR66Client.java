@@ -304,7 +304,7 @@ public class HttpTestRestR66Client implements Runnable {
                 channel = clientHelper.getChannel(host, HttpTestR66PseudoMain.config.REST_PORT);
                 if (channel != null) {
                     AbstractDbData dbData;
-                    dbData = new DbHostAuth(null, hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
+                    dbData = new DbHostAuth(hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
                             hostkey.getBytes(), true, false);
                     logger.warn("Send query: " + RESTHANDLERS.DbHostAuth.uri);
                     RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.POST,
@@ -477,14 +477,14 @@ public class HttpTestRestR66Client implements Runnable {
     protected static AbstractDbData getItem(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
         switch (data) {
             case DbConfiguration:
-                return new DbConfiguration(null, hostid, limit, limit, limit, limit, delaylimit);
+                return new DbConfiguration(hostid, limit, limit, limit, limit, delaylimit);
             case DbHostAuth:
-                return new DbHostAuth(null, hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
+                return new DbHostAuth(hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
                         hostkey.getBytes(), false, false);
             case DbHostConfiguration:
-                return new DbHostConfiguration(null, hostid, business, roles, aliases, others);
+                return new DbHostConfiguration(hostid, business, roles, aliases, others);
             case DbRule:
-                return new DbRule(null, idRule, ids, 2, "/recv", "/send", "/arch", "/work", tasks, tasks, tasks, tasks,
+                return new DbRule(idRule, ids, 2, "/recv", "/send", "/arch", "/work", tasks, tasks, tasks, tasks,
                         tasks, tasks);
             case DbTaskRunner:
                 ObjectNode source = JsonHandler.createObjectNode();
@@ -513,7 +513,7 @@ public class HttpTestRestR66Client implements Runnable {
                 source.put(DbTaskRunner.JSON_THROUGHMODE, false);
                 source.put(DbTaskRunner.JSON_ORIGINALSIZE, 123L);
                 try {
-                    return new DbTaskRunner(null, source);
+                    return new DbTaskRunner(source);
                 } catch (WaarpDatabaseException e) {
                     throw new HttpInvalidAuthenticationException(e);
                 }
