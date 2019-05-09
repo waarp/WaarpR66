@@ -176,12 +176,29 @@
       <version>1.10.6</version>
     </dependency>
   </dependencies>
+
   <properties>
 	<skipITs>true</skipITs>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   	<attach-distribution>false</attach-distribution>
     <filtermodule>**</filtermodule>
   </properties>
+
+  <profiles>
+    <profile>
+      <id>development</id>
+      <properties>
+        <skipITs>true</skipITs>
+      </properties>
+    </profile>
+    <profile>
+      <id>integration-tests</id>
+      <properties>
+        <skipITs>false</skipITs>
+      </properties>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -219,7 +236,7 @@
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
-	    </goals>
+            </goals>
           </execution>
         </executions>
       </plugin>
