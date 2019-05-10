@@ -186,15 +186,18 @@ public class LocalChannelReference {
         }
         cts = (ChannelTrafficShapingHandler) networkChannelRef.channel().pipeline()
                 .get(NetworkServerInitializer.LIMITCHANNEL);
-        if (DbConstant.admin.isActive() && !DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+        if (DbConstant.admin.isActive()) {
             try {
                 this.noconcurrencyDbSession = new DbSession(DbConstant.admin, false);
+                logger.info("LocalChannel {}, will use DB session {}",
+                        localId, this.noconcurrencyDbSession.getInternalId());
             } catch (WaarpDatabaseNoConnectionException e) {
                 // Cannot connect so use default connection
                 logger.warn("Use default database connection");
                 this.noconcurrencyDbSession = null;
             }
         } else {
+            logger.warn("DbAdmin is not active");
             this.noconcurrencyDbSession = null;
         }
         networkChannelRef.add(this);
