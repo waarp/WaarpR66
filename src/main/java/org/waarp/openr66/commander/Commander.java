@@ -488,7 +488,12 @@ public class Commander implements CommanderInterface {
                     if (taskRunner.isSelfRequested()) {
                         // cannot schedule a request where the host is the requested host
                         taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-                        taskRunner.update();
+                        try {
+                            taskRunner.update();
+                        } catch (WaarpDatabaseNoDataException e) {
+                                logger.warn(
+                                        "Update failed, no transfer found");
+                        }
                         continue;
                     }
                     internalRunner.submitTaskRunner(taskRunner);
