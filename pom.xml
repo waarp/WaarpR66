@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpR66</artifactId>
   <name>Waarp OpenR66</name>
-  <version>3.0.11</version>
+  <version>3.0.12</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -75,7 +75,7 @@
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>3.0.11</version>
+      <version>3.0.12</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
