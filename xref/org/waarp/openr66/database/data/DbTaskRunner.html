@@ -1370,12 +1370,12 @@
 <a class="jxr_linenumber" name="L1362" href="#L1362">1362</a>         <em class="jxr_comment">// getting the preparedStatement</em>
 <a class="jxr_linenumber" name="L1363" href="#L1363">1363</a>         <strong class="jxr_keyword">if</strong> (preparedStatementUpdate == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L1364" href="#L1364">1364</a>             preparedStatementUpdate = <strong class="jxr_keyword">new</strong> DbPreparedStatement(dbSession);
-<a class="jxr_linenumber" name="L1365" href="#L1365">1365</a>             preparedStatementUpdate.createPrepareStatement(<span class="jxr_string">"UPDATE "</span> + getTable() +
-<a class="jxr_linenumber" name="L1366" href="#L1366">1366</a>                     <span class="jxr_string">" SET "</span> + getUpdateAllFields() + <span class="jxr_string">" WHERE "</span> +
-<a class="jxr_linenumber" name="L1367" href="#L1367">1367</a>                     getWherePrimaryKey());
-<a class="jxr_linenumber" name="L1368" href="#L1368">1368</a>             dbSession.addLongTermPreparedStatement(preparedStatementUpdate);
-<a class="jxr_linenumber" name="L1369" href="#L1369">1369</a>         }
-<a class="jxr_linenumber" name="L1370" href="#L1370">1370</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L1365" href="#L1365">1365</a>             dbSession.addLongTermPreparedStatement(preparedStatementUpdate);
+<a class="jxr_linenumber" name="L1366" href="#L1366">1366</a>         }
+<a class="jxr_linenumber" name="L1367" href="#L1367">1367</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L1368" href="#L1368">1368</a>             preparedStatementUpdate.createPrepareStatement(<span class="jxr_string">"UPDATE "</span> + getTable() +
+<a class="jxr_linenumber" name="L1369" href="#L1369">1369</a>                     <span class="jxr_string">" SET "</span> + getUpdateAllFields() + <span class="jxr_string">" WHERE "</span> +
+<a class="jxr_linenumber" name="L1370" href="#L1370">1370</a>                     getWherePrimaryKey());
 <a class="jxr_linenumber" name="L1371" href="#L1371">1371</a>             setValues(preparedStatementUpdate, allFields);
 <a class="jxr_linenumber" name="L1372" href="#L1372">1372</a>             <strong class="jxr_keyword">int</strong> count = preparedStatementUpdate.executeUpdate();
 <a class="jxr_linenumber" name="L1373" href="#L1373">1373</a>             <strong class="jxr_keyword">if</strong> (count &lt;= 0) {
