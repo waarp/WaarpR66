@@ -198,7 +198,7 @@ public class Transfer {
                     int blockSize, Timestamp start) {
         this.ownerRequest = Configuration.configuration.getHOST_ID();
         this.requester = Configuration.configuration.getHOST_ID();
-        this.requester = remote;
+        this.requested = remote;
         this.rule = rule;
         this.transferMode = ruleMode;
         this.retrieveMode = retrieveMode;
@@ -220,7 +220,7 @@ public class Transfer {
      */
     public Transfer(String remote, String rule, int ruleMode, boolean retrieveMode, String file,
             String fileInfo, int blockSize) {
-        this (remote, rule, ruleMode, retrieveMode, file, fileInfo, blockSize,
+        this(remote, rule, ruleMode, retrieveMode, file, fileInfo, blockSize,
                 new Timestamp(new Date().getTime()));
     }
 

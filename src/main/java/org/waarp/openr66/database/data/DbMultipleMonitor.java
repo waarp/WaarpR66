@@ -82,6 +82,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] { new DbValue(multipleMonitor.getHostid(),
                 Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
@@ -90,6 +91,7 @@ public class DbMultipleMonitor extends AbstractDbData {
                 new DbValue(getCountRule(), Columns.COUNTRULE.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], primaryKey[0] };
+         */
     }
 
     @Override

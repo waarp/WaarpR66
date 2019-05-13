@@ -26,6 +26,12 @@ public interface TransferDAO {
      */
     List<Transfer> find(List<Filter> filters) throws DAOException;
 
+    List<Transfer> find(List<Filter> filters, int limit) throws DAOException;
+
+    List<Transfer> find(List<Filter> filters, int limit, int offset)
+            throws DAOException;
+
+
     List<Transfer> find(List<Filter> filters, String column, boolean ascend)
             throws DAOException;
 
@@ -42,7 +48,7 @@ public interface TransferDAO {
      * @param id special ID of the Transfer object requested
      * @throws DAOException If a data access error occurs
      */
-    Transfer select(long id, String requester, String requested)
+    Transfer select(long id, String requester, String requested, String owner)
             throws DAOException;
 
     /**
@@ -54,7 +60,7 @@ public interface TransferDAO {
      * if no Transfer object correspond to the specified Special ID.
      * @throws DAOException If a data access error occurs
      */
-    boolean exist(long id, String requester, String requested)
+    boolean exist(long id, String requester, String requested, String owner)
             throws DAOException;
 
     /**

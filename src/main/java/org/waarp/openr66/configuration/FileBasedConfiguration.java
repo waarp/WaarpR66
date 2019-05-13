@@ -62,6 +62,7 @@ import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
+import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration;
@@ -1818,16 +1819,17 @@ public class FileBasedConfiguration {
                     DbConstant.admin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
-		    // New way of initializing database services
+		            // New way of initializing database services
                     try {
                         ConnectionFactory.initialize(dbserver, dbuser, dbpasswd);
-		    } catch (UnsupportedOperationException e) {
-		        logger.error(e);
-			return false;
+		            } catch (UnsupportedOperationException e) {
+		                logger.error(e);
+			            return false;
                     } catch (SQLException e) {
                         logger.error("Cannot create ConnectionFactory", e);
-			return false;
+			            return false;
                     }
+                    DAOFactory.initialize(ConnectionFactory.getInstance());
 
                     if (config.getMultipleMonitors() > 1) {
                         DbConstant.noCommitAdmin =

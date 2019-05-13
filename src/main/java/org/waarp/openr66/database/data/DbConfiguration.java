@@ -101,6 +101,7 @@ public class DbConfiguration extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] { new DbValue(limit.getHostid(),
                 Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
@@ -113,6 +114,8 @@ public class DbConfiguration extends AbstractDbData {
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], otherFields[5], primaryKey[0] };
+
+         */
     }
 
     @Override
@@ -240,6 +243,9 @@ public class DbConfiguration extends AbstractDbData {
             if (limitAccess != null) {
                 limitAccess.close();
             }
+        }
+        if (this.limit == null) {
+            this.limit = new Limit(hostid, 0l);
         }
     }
 

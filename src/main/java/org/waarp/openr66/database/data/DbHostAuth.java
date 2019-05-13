@@ -31,6 +31,7 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.json.JsonHandler;
@@ -133,6 +134,7 @@ public class DbHostAuth extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] { new DbValue(host.getHostid(), Columns.HOSTID
                 .name()) };
         otherFields = new DbValue[] {
@@ -150,6 +152,8 @@ public class DbHostAuth extends AbstractDbData {
                 otherFields[0], otherFields[1], otherFields[2],
                 otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
                 primaryKey[0] };
+
+         */
     }
 
     @Override
@@ -297,6 +301,9 @@ public class DbHostAuth extends AbstractDbData {
             if (hostAccess != null) {
                 hostAccess.close();
             }
+        }
+        if (host == null) {
+            throw new WaarpDatabaseNoDataException("Cannot find host");
         }
     }
 

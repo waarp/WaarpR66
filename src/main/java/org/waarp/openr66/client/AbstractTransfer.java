@@ -330,7 +330,7 @@ public abstract class AbstractTransfer implements Runnable {
      */
     protected void finalizeInErrorTransferRequest(ClientRunner runner, DbTaskRunner taskRunner, ErrorCode code) {
         if (runner.getLocalChannelReference() != null) {
-            runner.getLocalChannelReference().setErrorMessage(code.mesg, code);
+            runner.getLocalChannelReference().setErrorMessage(code.getMesg(), code);
         }
         taskRunner.setErrorTask(runner.getLocalChannelReference());
         try {

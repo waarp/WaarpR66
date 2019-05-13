@@ -6,7 +6,10 @@ import java.sql.SQLException;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.MariaDBContainer;
+import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAOIT;
+import org.waarp.openr66.dao.database.MariaDBTransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 
 public class DBTransferMariaDBDAOIT extends DBTransferDAOIT {
 
@@ -16,6 +19,12 @@ public class DBTransferMariaDBDAOIT extends DBTransferDAOIT {
 
     @ClassRule
     public static MariaDBContainer db = new MariaDBContainer();
+
+    @Override
+    public DBTransferDAO getDAO(Connection con) throws DAOException {
+        return new MariaDBTransferDAO(con);
+    }
+
 
     @Override
     public Connection getConnection() throws SQLException {

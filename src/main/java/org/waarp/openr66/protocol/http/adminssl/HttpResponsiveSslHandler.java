@@ -1028,7 +1028,7 @@ public class HttpResponsiveSslHandler extends SimpleChannelInboundHandler<FullHt
                 } else {
                     errorText = Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
                             +
-                            result.getResult().getCode().mesg + "</b></center></p>";
+                            result.getResult().getCode().getMesg() + "</b></center></p>";
                 }
             } else if ("CloseConn".equalsIgnoreCase(parm)) {
                 String host = getTrimValue("host");

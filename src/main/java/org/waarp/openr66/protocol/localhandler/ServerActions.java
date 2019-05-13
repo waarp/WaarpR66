@@ -1794,34 +1794,7 @@ public class ServerActions extends ConnectionActions {
                 Configuration.configuration.getHOST_ID() + "_" + System.currentTimeMillis() +
                 "_runners.xml";
         NbAndSpecialId nb = null;
-<<<<<<< HEAD
-
-        ArrayList<Filter> filters = new ArrayList<Filter>();
-        if (start != null) {
-            filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, ">=", start));
-        }
-        if (stop != null) {
-            filters.add(new Filter(DBTransferDAO.TRANSFER_STOP_FIELD, "<=", stop));
-        }
-        if (stop != null) {
-            filters.add(new Filter(DBTransferDAO.TRANSFER_STOP_FIELD, "<=", stop));
-        }
-        if (startid != null) {
-            filters.add(new Filter(DBTransferDAO.ID_FIELD, ">=", startid));
-        }
-        if (stopid != null) {
-            filters.add(new Filter(DBTransferDAO.ID_FIELD, "<=", stopid));
-        }
-        if (rule != null) {
-            filters.add(new Filter(DBTransferDAO.ID_RULE_FIELD, "=", rule));
-        }
-        if (request != null) {
-            filters.add(new Filter(DBTransferDAO.REQUESTED_FIELD, "=", request));
-        }
-
-=======
         DbPreparedStatement getValid = null;
->>>>>>> Integration of Pojo/DAO
         try {
             getValid =
                     DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
@@ -1955,12 +1928,7 @@ public class ServerActions extends ConnectionActions {
         LocalChannelReference lcr = getLocalChannelReference(transfer);
         if (lcr == null) {
             // Transfer is not running
-<<<<<<< HEAD
-            transfer.setUpdatedInfo(
-                    org.waarp.openr66.pojo.UpdatedInfo.INERROR);
-=======
             transfer.setUpdatedInfo(UpdatedInfo.INERROR);
->>>>>>> Integration of Pojo/DAO
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());
@@ -1992,12 +1960,7 @@ public class ServerActions extends ConnectionActions {
         LocalChannelReference lcr = getLocalChannelReference(transfer);
         if (lcr == null) {
             // Transfer is not running
-<<<<<<< HEAD
-            transfer.setUpdatedInfo(
-                    org.waarp.openr66.pojo.UpdatedInfo.INERROR);
-=======
             transfer.setUpdatedInfo(UpdatedInfo.INERROR);
->>>>>>> Integration of Pojo/DAO
             transfer.setTransferInfo(code.getCode());
             return new R66Result(session, true,
                     ErrorCode.CompleteOk, session.getRunner());

@@ -6,7 +6,11 @@ import java.sql.SQLException;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAOIT;
+import org.waarp.openr66.dao.database.PostgreSQLTransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 
 public class DBTransferPostgreSQLDAOIT extends DBTransferDAOIT {
 
@@ -16,6 +20,11 @@ public class DBTransferPostgreSQLDAOIT extends DBTransferDAOIT {
 
     @ClassRule
     public static PostgreSQLContainer db = new PostgreSQLContainer();
+
+    @Override
+    public DBTransferDAO getDAO(Connection con) throws DAOException {
+        return new PostgreSQLTransferDAO(con);
+    }
 
     @Override
     public Connection getConnection() throws SQLException {

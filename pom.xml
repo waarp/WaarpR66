@@ -45,6 +45,32 @@
   		</snapshots>
   	</repository>
   </repositories>
+
+  <properties>
+    <skipITs>true</skipITs>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <attach-distribution>false</attach-distribution>
+    <filtermodule>**</filtermodule>
+    <!-- Dependencies versions-->
+    <test-containers>1.11.2</test-containers>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>development</id>
+      <properties>
+        <skipITs>true</skipITs>
+      </properties>
+    </profile>
+    <profile>
+      <id>integration-tests</id>
+      <properties>
+        <skipITs>false</skipITs>
+      </properties>
+    </profile>
+  </profiles>
+
+
   <dependencies>
     <dependency>
       <groupId>Waarp</groupId>
@@ -163,41 +189,28 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mariadb</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mysql</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>oracle-xe</artifactId>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <properties>
-	<skipITs>true</skipITs>
-  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  	<attach-distribution>false</attach-distribution>
-    <filtermodule>**</filtermodule>
-  </properties>
-
-  <profiles>
-    <profile>
-      <id>development</id>
-      <properties>
-        <skipITs>true</skipITs>
-      </properties>
-    </profile>
-    <profile>
-      <id>integration-tests</id>
-      <properties>
-        <skipITs>false</skipITs>
-      </properties>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>

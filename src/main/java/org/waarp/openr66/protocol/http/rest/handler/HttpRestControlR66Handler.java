@@ -152,7 +152,7 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
                     String reqr = node.getRequester();
                     long id = node.getSpecialid();
                     resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-                    result.setDetail(resulttest.getCode().mesg);
+                    result.setDetail(resulttest.getCode().getMesg());
                     setOk(handler, result, node, HttpResponseStatus.OK);
                 }
             } else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {

@@ -1,28 +1,28 @@
-package org.waarp.openr66.dao.database.mySQL;
+package org.waarp.openr66.dao.database.oracle;
+
+import org.junit.ClassRule;
+import org.testcontainers.containers.OracleContainer;
+import org.waarp.openr66.dao.database.DBTransferDAO;
+import org.waarp.openr66.dao.database.DBTransferDAOIT;
+import org.waarp.openr66.dao.database.OracleTransferDAO;
+import org.waarp.openr66.dao.exception.DAOException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.ClassRule;
-import org.testcontainers.containers.MySQLContainer;
-import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.database.DBTransferDAOIT;
-import org.waarp.openr66.dao.database.MariaDBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
-
-public class DBTransferMySQLDAOIT extends DBTransferDAOIT {
+public class DBTransferOracleDBDAOIT extends DBTransferDAOIT {
 
     private String createScript = "createMySQL.sql";
     private String populateScript = "populateMySQL.sql";
     private String cleanScript = "cleanMySQL.sql";
 
     @ClassRule
-    public static MySQLContainer db = new MySQLContainer();
+    public static OracleContainer db = new OracleContainer("test");
 
     @Override
     public DBTransferDAO getDAO(Connection con) throws DAOException {
-        return new MariaDBTransferDAO(con);
+        return new OracleTransferDAO(con);
     }
 
     @Override

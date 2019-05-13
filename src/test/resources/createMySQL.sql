@@ -110,3 +110,7 @@ CREATE TABLE runner (
     specialid bigint NOT NULL,
     PRIMARY KEY (ownerreq, requester, requested, specialid)
 );
+
+CREATE TABLE Sequences (name VARCHAR(22) NOT NULL PRIMARY KEY, seq BIGINT NOT NULL);
+
+INSERT INTO Sequences (name, seq) VALUES ('RUNSEQ', 1);

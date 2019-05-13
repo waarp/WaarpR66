@@ -23,7 +23,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 /**
  * Implementation of TransferDAO for a standard SQL database
  */
-public class DBTransferDAO extends StatementExecutor implements TransferDAO {
+public abstract class DBTransferDAO extends StatementExecutor implements TransferDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBTransferDAO.class);
 
@@ -54,8 +54,6 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     public static final String REQUESTER_FIELD = "requester";
     public static final String UPDATED_INFO_FIELD = "updatedInfo";
 
-    // Next ID request
-    protected static String SQL_GET_ID = "SELECT NEXT VALUE FOR runseq";
     // CRUD requests
     protected static String SQL_DELETE = "DELETE FROM " + TABLE
             + " WHERE " + ID_FIELD + " = ? AND "
@@ -128,10 +126,6 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
 
     protected Connection connection;
 
-    protected String getSequenceRequest() {
-        return SQL_GET_ID;
-    }
-
     protected String getDeleteRequest() {
         return SQL_DELETE;
     }
@@ -168,10 +162,10 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     public void delete(Transfer transfer) throws DAOException {
         PreparedStatement stm = null;
         Object[] params = {
-                transfer.getOwnerRequest(),
+                transfer.getId(),
                 transfer.getRequester(),
                 transfer.getRequested(),
-                transfer.getId()
+                transfer.getOwnerRequest()
         };
         try {
             stm = connection.prepareStatement(getDeleteRequest());
@@ -262,6 +256,71 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
+    public List<Transfer> find(List<Filter> filters, int limit) throws DAOException {
+        ArrayList<Transfer> transfers = new ArrayList<Transfer>();
+        // Create the SQL query
+        Object[] params = new Object[filters.size()];
+        StringBuilder query =  new StringBuilder(
+                prepareFindQuery(filters, params));
+        // Set LIMIT
+        if (limit > 0) {
+            query.append(" LIMIT " + limit);
+        }
+        // Execute query
+        PreparedStatement stm = null;
+        ResultSet res = null;
+        try {
+            stm = connection.prepareStatement(query.toString());
+            setParameters(stm, params);
+            res = executeQuery(stm);
+            while (res.next()) {
+                transfers.add(getFromResultSet(res));
+            }
+        } catch (SQLException e) {
+            throw new DAOException(e);
+        } finally {
+            closeResultSet(res);
+            closeStatement(stm);
+        }
+        return transfers;
+    }
+
+    @Override
+    public List<Transfer> find(List<Filter> filters, int limit, int offset)
+            throws DAOException {
+        ArrayList<Transfer> transfers = new ArrayList<Transfer>();
+        // Create the SQL query
+        Object[] params = new Object[filters.size()];
+        StringBuilder query =  new StringBuilder(
+                prepareFindQuery(filters, params));
+        // Set LIMIT
+        if (limit > 0) {
+            query.append(" LIMIT " + limit);
+        }
+        // Set OFFSET
+        if (limit > 0) {
+            query.append(" OFFSET " + offset);
+        }
+        // Execute query
+        PreparedStatement stm = null;
+        ResultSet res = null;
+        try {
+            stm = connection.prepareStatement(query.toString());
+            setParameters(stm, params);
+            res = executeQuery(stm);
+            while (res.next()) {
+                transfers.add(getFromResultSet(res));
+            }
+        } catch (SQLException e) {
+            throw new DAOException(e);
+        } finally {
+            closeResultSet(res);
+            closeStatement(stm);
+        }
+        return transfers;
+    }
+
+    @Override
     public List<Transfer> find(List<Filter> filters, String column,
                                boolean ascend) throws DAOException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
@@ -270,9 +329,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         StringBuilder query =  new StringBuilder(
                 prepareFindQuery(filters, params));
         // Set ORDER BY
-        query.append(" ORDER BY" + column);
-        if (!ascend) {
-            query.append(" DESC");
+        if ((column != null) && (!column.equals(""))) {
+            query.append(" ORDER BY " + column);
+            if (!ascend) {
+                query.append(" DESC");
+            }
         }
         // Execute query
         PreparedStatement stm = null;
@@ -303,9 +364,11 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         StringBuilder query =  new StringBuilder(
                 prepareFindQuery(filters, params));
         // Set ORDER BY
-        query.append(" ORDER BY " + column);
-        if (!ascend) {
-            query.append(" DESC");
+        if ((column != null) && (!column.equals(""))) {
+            query.append(" ORDER BY " + column);
+            if (!ascend) {
+                query.append(" DESC");
+            }
         }
         // Set LIMIT
         if (limit > 0) {
@@ -329,6 +392,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         }
         return transfers;
     }
+
     @Override
     public List<Transfer> find(List<Filter> filters, String column,
                                boolean ascend, int limit, int offset)
@@ -371,15 +435,15 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public boolean exist(long id, String requester, String requested)
-            throws DAOException {
+    public boolean exist(long id, String requester, String requested,
+                         String owner) throws DAOException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
                 id,
                 requester,
                 requested,
-                Configuration.configuration.getHOST_ID()
+                owner
         };
         try {
             stm = connection.prepareStatement(getExistRequest());
@@ -395,15 +459,15 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     }
 
     @Override
-    public Transfer select(long id, String requester, String requested)
-            throws DAOException {
+    public Transfer select(long id, String requester, String requested,
+                           String owner) throws DAOException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
                 id,
                 requester,
                 requested,
-                Configuration.configuration.getHOST_ID()
+                owner
         };
         try {
             stm = connection.prepareStatement(getSelectRequest());
@@ -421,20 +485,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         return null;
     }
 
-    private long getNextId() throws DAOException {
-        try {
-            PreparedStatement ps = connection.prepareStatement(getSequenceRequest());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            } else {
-                throw new DAOException(
-                        "Error no id available, you should purge the database.");
-            }
-        } catch (SQLException e) {
-            throw new DAOException(e);
-        }
-    }
+    abstract protected long getNextId() throws DAOException;
 
     @Override
     public void insert(Transfer transfer) throws DAOException {
@@ -473,7 +524,6 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
                     Statement.RETURN_GENERATED_KEYS);
             setParameters(stm, params);
             executeUpdate(stm);
-            transfer.setId(stm.getGeneratedKeys().getLong(ID_FIELD));
         } catch (SQLException e) {
             throw new DAOException(e);
         } finally {

@@ -395,7 +395,7 @@ public class R66Session implements SessionInterface {
             } else {
                 this.localChannelReference = new LocalChannelReference();
             }
-            this.localChannelReference.setErrorMessage(this.runner.getErrorInfo().mesg,
+            this.localChannelReference.setErrorMessage(this.runner.getErrorInfo().getMesg(),
                     this.runner.getErrorInfo());
         }
         runner.setLocalChannelReference(this.localChannelReference);

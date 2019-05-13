@@ -195,6 +195,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] {
                 new DbValue(business.getHostid(), Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
@@ -206,6 +207,8 @@ public class DbHostConfiguration extends AbstractDbData {
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], primaryKey[0] };
+
+         */
     }
 
     @Override

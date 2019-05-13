@@ -102,7 +102,7 @@ public class TransferActions extends ServerActions {
      */
     private final void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
-        logger.error("TaskRunner initialisation in error: " + code.mesg + " " + session
+        logger.error("TaskRunner initialisation in error: " + code.getMesg() + " " + session
                 + " {} runner {}",
                 e1 != null ? e1.getMessage() : "no exception",
                 (runner != null ? runner.toShortString() : "no runner"));
@@ -132,7 +132,7 @@ public class TransferActions extends ServerActions {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket(
                     "TaskRunner initialisation in error: " + e1
-                            .getMessage() + " for " + packet.toString() + " since " + code.mesg,
+                            .getMessage() + " for " + packet.toString() + " since " + code.getMesg(),
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
         }
@@ -200,7 +200,7 @@ public class TransferActions extends ServerActions {
             }
         } else if (packet.getCode() == ErrorCode.ServerOverloaded.code) {
             // XXX unvalid limit on requested host received
-            logger.info("TaskRunner initialisation in error: " + ErrorCode.ServerOverloaded.mesg);
+            logger.info("TaskRunner initialisation in error: " + ErrorCode.ServerOverloaded.getMesg());
             localChannelReference.invalidateRequest(new R66Result(
                     null, session, true, ErrorCode.ServerOverloaded, null));
             session.setStatus(101);
@@ -394,7 +394,7 @@ public class TransferActions extends ServerActions {
             }
             session.newState(ERROR);
             logger.error("Bad runner at startup {} {}", packet, session);
-            ErrorPacket errorPacket = new ErrorPacket(code.mesg,
+            ErrorPacket errorPacket = new ErrorPacket(code.getMesg(),
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
             errorMesg(channel, errorPacket);
             return;
@@ -895,7 +895,6 @@ public class TransferActions extends ServerActions {
                 try {
                     session.setFinalizeTransfer(true, result);
                 } catch (OpenR66RunnerErrorException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -916,7 +915,6 @@ public class TransferActions extends ServerActions {
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
                 } catch (OpenR66ProtocolSystemException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -962,7 +960,6 @@ public class TransferActions extends ServerActions {
                 try {
                     session.setFinalizeTransfer(true, result);
                 } catch (OpenR66RunnerErrorException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -983,7 +980,6 @@ public class TransferActions extends ServerActions {
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
                 } catch (OpenR66ProtocolSystemException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {

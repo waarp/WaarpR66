@@ -94,7 +94,7 @@ public class R66Result {
         return (getException() != null ? "Exception: " + getException().toString() : "") +
                 (getFile() != null ? getFile().toString() : " no file") + "     " +
                 (getRunner() != null ? getRunner().toShortString() : " no runner") +
-                " isAnswered: " + isAnswered() + " Code: " + getCode().mesg;
+                " isAnswered: " + isAnswered() + " Code: " + getCode().getMesg();
     }
 
     /**
@@ -105,7 +105,7 @@ public class R66Result {
         if (getException() != null) {
             return getException().getMessage();
         } else {
-            return getCode().mesg;
+            return getCode().getMesg();
         }
     }
 

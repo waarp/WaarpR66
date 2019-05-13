@@ -18,7 +18,7 @@ public abstract class DAOFactory {
     }
 
     public static void initialize(ConnectionFactory factory) {
-        if (instance != null) {
+        if (instance == null) {
             instance = new DBDAOFactory(factory);
         }
     }

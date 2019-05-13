@@ -233,6 +233,7 @@ public class DbRule extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] { new DbValue(getIdRule(),
                 Columns.IDRULE.name()) };
         otherFields = new DbValue[] {
@@ -256,6 +257,7 @@ public class DbRule extends AbstractDbData {
                 otherFields[4], otherFields[5], otherFields[6], otherFields[7],
                 otherFields[8], otherFields[9], otherFields[10],
                 otherFields[11], otherFields[12], primaryKey[0] };
+         */
     }
 
     @Override
@@ -1211,7 +1213,7 @@ public class DbRule extends AbstractDbData {
      * @return the idsArray
      */
     public String[] getIdsArray() {
-        return (String[])rule.getHostids().toArray();
+        return rule.getHostids().toArray(new String[0]);
     }
 
     /**

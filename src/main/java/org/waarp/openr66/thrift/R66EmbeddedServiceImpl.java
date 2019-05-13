@@ -161,7 +161,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
                     result.setResultinfo("Transfer Done");
                 } else {
                     result.setCode(ErrorCode.valueOf(runner.getErrorInfo().name()));
-                    result.setResultinfo(runner.getErrorInfo().mesg);
+                    result.setResultinfo(runner.getErrorInfo().getMesg());
                 }
             } else {
                 try {

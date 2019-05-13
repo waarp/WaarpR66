@@ -1136,7 +1136,7 @@ public class HttpSslHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
                             +
-                            result.getResult().getCode().mesg + "</b></center></p>";
+                            result.getResult().getCode().getMesg() + "</b></center></p>";
                 }
             } else if ("CloseConn".equalsIgnoreCase(parm)) {
                 String host = getTrimValue("host");

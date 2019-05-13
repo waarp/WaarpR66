@@ -398,36 +398,6 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-<<<<<<< HEAD
-    private void addRunners(DbPreparedStatement preparedStatement, String type,
-                            int nb) throws WaarpDatabaseNoConnectionException,
-            WaarpDatabaseSqlException {
-        try {
-            preparedStatement.executeQuery();
-            responseContent
-                    .append("<style>td{font-size: 8pt;}</style><table border=\"2\">")
-                    .append("<tr><td>").append(type).append("</td>")
-                    .append(DbTaskRunner.headerHtml()).append("</tr>\r\n");
-            int i = 0;
-            while (preparedStatement.getNext()) {
-                DbTaskRunner taskRunner = DbTaskRunner
-                        .getFromStatement(preparedStatement);
-                responseContent.append("<tr><td>").append(taskRunner.isSender() ? "S" : "R").append("</td>");
-                LocalChannelReference lcr =
-                        Configuration.configuration.getLocalTransaction().
-                                getFromRequest(taskRunner.getKey());
-                responseContent.append(
-                        taskRunner.toHtml(
-                                getAuthentHttp(),
-                                lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages
-                                        .getString("HttpSslHandler.NotActive")))
-                        .append("</tr>\r\n");
-                if (nb > 0) {
-                    i++;
-                    if (i >= nb) {
-                        break;
-                    }
-=======
     private void addRunners(List<Transfer> transfers, String type, int nb) {
         responseContent
                 .append("<style>td{font-size: 8pt;}</style><table border=\"2\">")
@@ -451,7 +421,6 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                 i++;
                 if (i >= nb) {
                     break;
->>>>>>> Integration of Pojo/DAO
                 }
             }
         }
@@ -475,18 +444,18 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
             // Find Status = RUNNING transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.Running.mesg));
+                    "=", ErrorCode.Running.getMesg()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
-            addRunners(transfers, ErrorCode.Running.mesg, nb);
+            addRunners(transfers, ErrorCode.Running.getMesg(), nb);
 
             transfers.clear();
             filters.clear();
             // Find UpdatedInfo = INTERUPTED transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.INTERRUPTED));
+                    "=", UpdatedInfo.INTERRUPTED.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
@@ -499,7 +468,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find UpdatedInfo = TOSUBMIT transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.TOSUBMIT));
+                    "=", UpdatedInfo.TOSUBMIT.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
@@ -512,45 +481,45 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find Status = INITOK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.InitOk.mesg));
+                    "=", ErrorCode.InitOk.getMesg()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
-            addRunners(transfers, ErrorCode.InitOk.mesg, nb);
+            addRunners(transfers, ErrorCode.InitOk.getMesg(), nb);
 
             transfers.clear();
             filters.clear();
             // Find Status = PREPROCESSINGOK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.PreProcessingOk.mesg));
+                    "=", ErrorCode.PreProcessingOk.getMesg()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
-            addRunners(transfers, ErrorCode.PreProcessingOk.mesg, nb);
+            addRunners(transfers, ErrorCode.PreProcessingOk.getMesg(), nb);
 
             transfers.clear();
             filters.clear();
             // Find Status = TRANSFEROK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.TransferOk.mesg));
+                    "=", ErrorCode.TransferOk.getMesg()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
-            addRunners(transfers, ErrorCode.TransferOk.mesg, nb);
+            addRunners(transfers, ErrorCode.TransferOk.getMesg(), nb);
 
             transfers.clear();
             filters.clear();
             // Find Status = POSTPROCESSING transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.PostProcessingOk.mesg));
+                    "=", ErrorCode.PostProcessingOk.getMesg()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
-            addRunners(transfers, ErrorCode.PostProcessingOk.mesg, nb);
+            addRunners(transfers, ErrorCode.PostProcessingOk.getMesg(), nb);
         } catch (DAOException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
@@ -579,7 +548,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
             // Find UpdatedInfo = INERROR transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.INERROR));
+                    "=", UpdatedInfo.INERROR.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
@@ -592,7 +561,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find UpdatedInfo = INTERUPTED transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.INTERRUPTED));
+                    "=", UpdatedInfo.INTERRUPTED.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
@@ -605,7 +574,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find GlobalStep = ERRORTASK transfer
             filters.add(new Filter(DBTransferDAO.GLOBAL_STEP_FIELD,
-                    "=", Transfer.TASKSTEP.ERRORTASK));
+                    "=", Transfer.TASKSTEP.ERRORTASK.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD,
@@ -710,7 +679,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
             // Find UpdatedInfo = INERROR transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.INERROR));
+                    "=", UpdatedInfo.INERROR.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
 
@@ -725,7 +694,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transfers.clear();
             // Find UpdatedInfo = INTERUPTED transfer
             filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD,
-                    "=", UpdatedInfo.INTERRUPTED));
+                    "=", UpdatedInfo.INTERRUPTED.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
 
@@ -740,7 +709,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
             // Find GLOBAL_STEP = Error transfer
             filters.add(new Filter(DBTransferDAO.GLOBAL_STEP_FIELD,
-                    "=", Transfer.TASKSTEP.ERRORTASK));
+                    "=", Transfer.TASKSTEP.ERRORTASK.ordinal()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                 "=", Configuration.configuration.getHOST_ID()));
 

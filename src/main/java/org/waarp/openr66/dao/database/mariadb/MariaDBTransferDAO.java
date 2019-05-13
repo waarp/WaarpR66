@@ -1,28 +1,37 @@
 package org.waarp.openr66.dao.database;
 
+import org.waarp.openr66.dao.exception.DAOException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.waarp.openr66.dao.exception.DAOException;
+public class MariaDBTransferDAO extends DBTransferDAO {
 
-public class OracleTransferDAO extends DBTransferDAO {
+    protected static String SQL_GET_ID = "SELECT seq FROM Sequences " +
+            "WHERE name='RUNSEQ' FOR UPDATE";
+    private static String SQL_UPDATE_ID = "UPDATE Sequences SET seq = ? " +
+            "WHERE name='RUNSEQ'";
 
-    protected static String SQL_GET_ID = "SELECT runseq.nextval FROM DUAL";
-
-    public OracleTransferDAO(Connection con) throws DAOException {
+    public MariaDBTransferDAO(Connection con) throws DAOException {
         super(con);
     }
 
     @Override
     protected long getNextId() throws DAOException {
         PreparedStatement ps = null;
+        PreparedStatement ps2 = null;
         try {
             ps = connection.prepareStatement(SQL_GET_ID);
             ResultSet rs = ps.executeQuery();
+            long res;
             if (rs.next()) {
-                return rs.getLong(1);
+                res = rs.getLong(1);
+                ps2 = connection.prepareStatement(SQL_UPDATE_ID);
+                ps2.setLong(1, res + 1);
+                ps2.executeUpdate();
+                return res;
             } else {
                 throw new DAOException(
                         "Error no id available, you should purge the database.");
@@ -31,6 +40,7 @@ public class OracleTransferDAO extends DBTransferDAO {
             throw new DAOException(e);
         } finally {
             closeStatement(ps);
+            closeStatement(ps2);
         }
     }
 }

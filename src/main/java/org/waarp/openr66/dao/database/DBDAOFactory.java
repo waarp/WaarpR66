@@ -74,9 +74,9 @@ public class DBDAOFactory extends DAOFactory {
 	     if (prop instanceof H2Properties) {
                  return new H2TransferDAO(connectionFactory.getConnection());
 	     } else if (prop instanceof MariaDBProperties) {
-                 return new DBTransferDAO(connectionFactory.getConnection());
+                 return new MariaDBTransferDAO(connectionFactory.getConnection());
 	     } else if (prop instanceof MySQLProperties) {
-                 return new DBTransferDAO(connectionFactory.getConnection());
+                 return new MariaDBTransferDAO(connectionFactory.getConnection());
 	     } else if (prop instanceof OracleProperties) {
                  return new OracleTransferDAO(connectionFactory.getConnection());
 	     } else if (prop instanceof PostgreSQLProperties) {

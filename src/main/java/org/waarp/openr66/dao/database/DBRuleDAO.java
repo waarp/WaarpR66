@@ -313,6 +313,9 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     private List<String> retrieveHostids(String xml) throws DAOException {
         ArrayList<String> res = new ArrayList<String>();
+        if ((xml == null) || xml.equals("")) {
+            return res;
+        }
         Document document = null;
         try {
             InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));
@@ -332,6 +335,9 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     private List<RuleTask> retrieveTasks(String xml) throws DAOException {
         ArrayList<RuleTask> res = new ArrayList<RuleTask>();
+        if ((xml == null) || xml.equals("")) {
+            return res;
+        }
         Document document = null;
         try {
             InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));

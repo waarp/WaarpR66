@@ -17,7 +17,6 @@
  */
 package org.waarp.openr66.commander;
 
-import oracle.jdbc.driver.DBConversion;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -27,14 +26,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
-import org.waarp.openr66.dao.database.DBHostDAO;
 import org.waarp.openr66.database.DbConstant;
-import org.waarp.openr66.database.data.DbConfiguration;
-import org.waarp.openr66.database.data.DbHostAuth;
-import org.waarp.openr66.database.data.DbHostConfiguration;
-import org.waarp.openr66.database.data.DbMultipleMonitor;
-import org.waarp.openr66.database.data.DbRule;
-import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.database.data.*;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
@@ -189,7 +182,6 @@ public class Commander implements CommanderInterface {
                         configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                         configuration.update();
                     }
-                    configuration = null;
                     i++;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
@@ -238,7 +230,6 @@ public class Commander implements CommanderInterface {
                         configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                         configuration.update();
                     }
-                    configuration = null;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
@@ -293,7 +284,6 @@ public class Commander implements CommanderInterface {
                         hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                         hostAuth.update();
                     }
-                    hostAuth = null;
                     i++;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
@@ -348,7 +338,6 @@ public class Commander implements CommanderInterface {
                         rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                         rule.update();
                     }
-                    rule = null;
                     i++;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
@@ -420,7 +409,6 @@ public class Commander implements CommanderInterface {
                         continue;
                     }
                     internalRunner.submitTaskRunner(taskRunner);
-                    taskRunner = null;
                 }
             } catch (WaarpDatabaseNoConnectionException e) {
                 try {
@@ -443,8 +431,6 @@ public class Commander implements CommanderInterface {
                 }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
-            } finally {
-                preparedStatementRunner.close();
             }
             logger.debug("end commander");
         } finally {
@@ -460,7 +446,6 @@ public class Commander implements CommanderInterface {
                     } catch (WaarpDatabaseNoConnectionException e1) {
                     }
                 }
-                multipleMonitor = null;
             }
         }
     }

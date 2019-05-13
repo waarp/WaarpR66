@@ -296,6 +296,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     @Override
     protected void initObject() {
+        /*
         primaryKey = new DbValue[] {
                 new DbValue(transfer.getOwnerRequest(), Columns.OWNERREQ.name()),
                 new DbValue(transfer.getRequester(), Columns.REQUESTER.name()),
@@ -325,6 +326,7 @@ public class DbTaskRunner extends AbstractDbData {
                 new DbValue(transfer.getStop(), Columns.STOPTRANS.name()),
                 new DbValue(ErrorCode.Unknown.getCode(), Columns.INFOSTATUS.name()),// infostatus.getCode()
                 new DbValue(transfer.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
+
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], otherFields[5], otherFields[6], otherFields[7],
@@ -332,6 +334,7 @@ public class DbTaskRunner extends AbstractDbData {
                 otherFields[12], otherFields[13], otherFields[14], otherFields[15],
                 otherFields[16], otherFields[17],
                 primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3] };
+         */
     }
 
     @Override
@@ -443,10 +446,6 @@ public class DbTaskRunner extends AbstractDbData {
 
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @param session
      * @param requestPacket
      * @return The associated requested Host Id
@@ -468,10 +467,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @param session
      * @param requestPacket
      * @return The associated requester Host Id
@@ -533,11 +528,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param startTime
      * @throws WaarpDatabaseException
      */
-<<<<<<< HEAD
-    public DbTaskRunner(DbSession dbSession, DbRule rule, boolean isSender,
-=======
     public DbTaskRunner(DbRule rule, boolean isSender,
->>>>>>> Integration of Pojo/DAO
                         RequestPacket requestPacket, String requested, Timestamp startTime)
             throws WaarpDatabaseException {
         super(null);
@@ -576,15 +567,12 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
         checkThroughMode();
+        insert();
         requestPacket.setSpecialId(transfer.getId());
     }
 
     /**
-<<<<<<< HEAD
-     * Constructor from a request with a valid Special Id to be inserted into database
-=======
-     * Constructor from a request without a valid Special Id to be inserted into database
->>>>>>> Integration of Pojo/DAO
+     * Constructor from a request without a valid Special Id to be inserted into databases
      *
      * @param dbSession
      * @param session
@@ -593,16 +581,10 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requestPacket
      * @throws WaarpDatabaseException
      */
-<<<<<<< HEAD
-    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-                        boolean isSender, RequestPacket requestPacket)
-=======
     public DbTaskRunner(R66Session session, DbRule rule,
             boolean isSender, RequestPacket requestPacket)
->>>>>>> Integration of Pojo/DAO
             throws WaarpDatabaseException {
         super(null);
-        this.session = session;
         this.localChannelReference = session.getLocalChannelReference();
         this.rule = rule;
 
@@ -618,6 +600,7 @@ public class DbTaskRunner extends AbstractDbData {
 
         checkThroughMode();
         insert();
+        requestPacket.setSpecialId(transfer.getId());
     }
 
     /**
@@ -631,13 +614,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requested
      * @throws WaarpDatabaseException
      */
-<<<<<<< HEAD
-    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-                        long id, String requester, String requested)
-=======
     public DbTaskRunner(R66Session session, DbRule rule,
             long id, String requester, String requested)
->>>>>>> Integration of Pojo/DAO
             throws WaarpDatabaseException {
         super(null);
         TransferDAO transferAccess = null;
@@ -1000,8 +978,9 @@ public class DbTaskRunner extends AbstractDbData {
         TransferDAO transferAccess = null;
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
-            return transferAccess.exist(transfer.getId(), transfer.getRequester(),
-                    transfer.getRequested(), transfer.getOwnerRequest());
+            return transferAccess.exist(transfer.getId(),
+                    transfer.getRequester(), transfer.getRequested(),
+                    Configuration.configuration.getHOST_ID());
         } catch (DAOException e) {
             throw new WaarpDatabaseException(e);
         } finally {
@@ -1032,14 +1011,17 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transfer = transferAccess.select(transfer.getId(),
-                    transfer.getOwnerRequest(), transfer.getRequester(),
-                    transfer.getRequested());
+                    transfer.getRequester(), transfer.getRequested(),
+                    Configuration.configuration.getHOST_ID());
         } catch (DAOException e) {
-            throw new WaarpDatabaseException(e);
+            throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
             }
+        }
+        if (transfer == null) {
+            throw new WaarpDatabaseNoConnectionException("No Transfer found");
         }
         this.rule = new DbRule(getRuleId());
         checkThroughMode();
@@ -1055,15 +1037,9 @@ public class DbTaskRunner extends AbstractDbData {
                         "Task is " + transfer.getUpdatedInfo().name(), this);
             }
         } else {
-<<<<<<< HEAD
-            if (globalstep != TASKSTEP.TRANSFERTASK.ordinal() ||
-                    (globalstep == TASKSTEP.TRANSFERTASK.ordinal() &&
-                            (rank % 100 == 0))) {
-=======
             if (transfer.getGlobalStep() != Transfer.TASKSTEP.TRANSFERTASK ||
                     (transfer.getGlobalStep() == Transfer.TASKSTEP.TRANSFERTASK &&
                     (transfer.getRank() % 100 == 0))) {
->>>>>>> Integration of Pojo/DAO
                 if (Configuration.configuration.getR66Mib() != null) {
                     Configuration.configuration.getR66Mib().notifyTask(
                             "Task is currently " + transfer.getUpdatedInfo().name(), this);
@@ -1567,13 +1543,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
      */
-<<<<<<< HEAD
-    public static DbPreparedStatement getSelectFromInfoPrepareStatement(DbSession session,
-                                                                        UpdatedInfo info, boolean orderByStart, int limit)
-=======
     public static DbTaskRunner[] getSelectFromInfoPrepareStatement(
             UpdatedInfo info, boolean orderByStart, int limit)
->>>>>>> Integration of Pojo/DAO
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         List<Filter> filters = new ArrayList<Filter>(3);
         filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD, "=",
@@ -1589,7 +1560,7 @@ public class DbTaskRunner extends AbstractDbData {
             if (orderByStart) {
                 transfers = transferAccess.find(filters, DBTransferDAO.TRANSFER_START_FIELD, true, limit);
             } else {
-                transfers = transferAccess.find(filters, "", false, limit);
+                transfers = transferAccess.find(filters, limit);
             }
         } catch (DAOException e) {
             throw new WaarpDatabaseNoConnectionException(e);
@@ -2252,7 +2223,7 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot save transfer status", e);
             }
-            logger.warn("StopOrCancel: {}     {}", code.mesg, this.toShortString());
+            logger.warn("StopOrCancel: {}     {}", code.getMesg(), this.toShortString());
             return true;
         } else {
             logger.info("Transfer already finished {}", this.toShortString());
@@ -2275,10 +2246,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return The current UpdatedInfo value
      */
     public UpdatedInfo getUpdatedInfo() {
@@ -2286,10 +2253,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the error code associated with the Updated Info
      */
     public ErrorCode getErrorInfo() {
@@ -2319,14 +2282,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To set the rank at startup of the request if the request specify a specific rank
-<<<<<<< HEAD
-     *
-     * @param rank
-     *            the rank to set
-=======
      * 
      * @param rank the rank to set
->>>>>>> Integration of Pojo/DAO
      */
     public void setRankAtStartup(int rank) {
         if (transfer.getRank() > rank) {
@@ -2546,10 +2503,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if this runner is ready for transfer or post operation
      */
     public boolean ready() {
@@ -2558,10 +2511,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if the runner is currently in transfer
      */
     public boolean isInTransfer() {
@@ -2569,10 +2518,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if this runner is finished, either in success or in error
      */
     public boolean isFinished() {
@@ -2580,10 +2525,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if this runner is in error and no more running
      */
     public boolean isInError() {
@@ -2592,10 +2533,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if the runner is finished in success
      */
     public boolean isAllDone() {
@@ -2617,10 +2554,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the Initial Task step (before Pre task)
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      */
     public void setInitialTask() {
         transfer.setGlobalStep(Transfer.TASKSTEP.NOTASK);
@@ -2634,10 +2567,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set Pre Task step
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      */
     public void setPreTask() {
         transfer.setGlobalStep(Transfer.TASKSTEP.PRETASK);
@@ -2671,15 +2600,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     * Set the status of the transfer
-     *
-     * @param code
-     *            TransferOk if success
-     * @return the current rank of transfer
-=======
      * Set the Post Task step
->>>>>>> Integration of Pojo/DAO
      */
     public void setPostTask() {
         transfer.setGlobalStep(Transfer.TASKSTEP.POSTTASK);
@@ -2695,14 +2616,9 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-     * @return True if the transfer is valid to continue
-=======
      * Set the Error Task step
      *
      * @param localChannelReference (to get session)
->>>>>>> Integration of Pojo/DAO
      */
     public void setErrorTask(LocalChannelReference localChannelReference) {
         transfer.setGlobalStep(Transfer.TASKSTEP.ERRORTASK);
@@ -2711,12 +2627,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     * Set the Post Task step
-     *
-=======
      * Set the global step as finished (after post task in success)
->>>>>>> Integration of Pojo/DAO
      */
     public void setAllDone() {
         transfer.setGlobalStep(Transfer.TASKSTEP.ALLDONETASK);
@@ -2729,17 +2640,10 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     * Set the Error Task step
-     *
-     * @param localChannelReference
-     *            (to get session)
-=======
      * Set the status of the transfer
      * 
      * @param code TransferOk if success
      * @return the current rank of transfer
->>>>>>> Integration of Pojo/DAO
      */
     public int finishTransferTask(ErrorCode code) {
         if (code == ErrorCode.TransferOk) {
@@ -2784,15 +2688,9 @@ public class DbTaskRunner extends AbstractDbData {
             throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
         logger.debug((session == null) + ":"
                 + (session == null ? "norunner" : (this.session.getRunner() == null)) + ":"
-<<<<<<< HEAD
-                + this.toLogRunStep() + ":" + step + ":" + (tasks == null ? "null" : tasks.length)
-                + " Sender: " + this.isSender + " " + this.rule.printTasks(isSender,
-                TASKSTEP.values()[globalstep]));
-=======
                 + this.toLogRunStep() + ":" + getStep() + ":" + (tasks == null ? "null" : tasks.length)
                 + " Sender: " + isSender() + " " + this.rule.printTasks(isSender(),
                         getGlobalStep()));
->>>>>>> Integration of Pojo/DAO
         if (tasks == null) {
             throw new OpenR66RunnerEndTasksException("No tasks!");
         }
@@ -2809,7 +2707,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         this.session = tempSession;
         if (this.session.getLocalChannelReference().getCurrentCode() == ErrorCode.Unknown) {
-            this.session.getLocalChannelReference().setErrorMessage(getErrorInfo().mesg,
+            this.session.getLocalChannelReference().setErrorMessage(getErrorInfo().getMesg(),
                     getErrorInfo());
         }
         if (tasks.length <= getStep()) {
@@ -2872,16 +2770,9 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66RunnerErrorException("Rule Object not initialized");
             }
         }
-<<<<<<< HEAD
-        logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
-                + this.rule.printTasks(isSender,
-                TASKSTEP.values()[globalstep]));
-        switch (TASKSTEP.values()[globalstep]) {
-=======
         logger.debug(this.toLogRunStep() + " Sender: " + isSender() + " "
                 + this.rule.printTasks(isSender(), getGlobalStep()));
         switch (getGlobalStep()) {
->>>>>>> Integration of Pojo/DAO
             case PRETASK:
                 try {
                     if (isSender()) {
@@ -2935,17 +2826,10 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
-<<<<<<< HEAD
-        logger.debug(this.toLogRunStep() + " Status: " + status + " Sender: " + this.isSender
-                + " " + this.rule.printTasks(isSender,
-                TASKSTEP.values()[globalstep]));
-        if (status != ErrorCode.Running) {
-=======
         logger.debug(this.toLogRunStep() + " Status: " + getStatus()
                 + " Sender: " + isSender()
                 + " " + this.rule.printTasks(isSender(), getGlobalStep()));
         if (getStatus() != ErrorCode.Running) {
->>>>>>> Integration of Pojo/DAO
             throw new OpenR66RunnerErrorException(
                     "Current global STEP not ready to run: " + this.toString());
         }
@@ -2971,13 +2855,13 @@ public class DbTaskRunner extends AbstractDbData {
                     setErrorExecutionStatus(ErrorCode.ExternalOp);
                 }
                 this.saveStatus();
-                logger.info("Future is failed: " + getErrorInfo().mesg);
+                logger.info("Future is failed: " + getErrorInfo().getMesg());
                 if (future.getCause() != null) {
                     throw new OpenR66RunnerErrorException("Runner is failed: " +
                             future.getCause().getMessage(), future.getCause());
                 } else {
                     throw new OpenR66RunnerErrorException("Runner is failed: " +
-                            getErrorInfo().mesg);
+                            getErrorInfo().getMesg());
                 }
             }
             transfer.setStep(getStep() + 1);
@@ -3023,15 +2907,9 @@ public class DbTaskRunner extends AbstractDbData {
                         new R66Result(this.session, finalValue.isAnswered(),
                                 ErrorCode.FinalOp, this);
                 if (!isRecvThrough()) {
-<<<<<<< HEAD
-                    if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
-                            (this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
-                                    poststep == 0)) {
-=======
                     if (getGlobalStep() == TASKSTEP.TRANSFERTASK ||
                             (getGlobalStep() == TASKSTEP.POSTTASK
                                     && poststep == 0)) {
->>>>>>> Integration of Pojo/DAO
                         // Result file moves
                         String finalpath = R66Dir.getFinalUniqueFilename(file);
                         logger.debug("Will move file {}", finalpath);
@@ -3349,14 +3227,14 @@ public class DbTaskRunner extends AbstractDbData {
         return "Run: '" + (rule != null ? rule.toString() : getRuleId()) + "' Filename: '" +
                 getFilename() + "', STEP: '" + getGlobalStep() + "(" +
                 getLastGlobalStep() + "):" + getStep() + ":" +
-                getStatus().mesg + "', TransferRank: " + getRank() +
+                getStatus().getMesg() + "', TransferRank: " + getRank() +
                 ", Blocksize: " + getBlocksize() +
                 ", SpecialId: " + getSpecialId() + ", isSender: " + isSender() +
                 ", isMoved: " + isFileMoved() + ", Mode: '" + getMode() +
                 "', Requester: '" + getRequester() + "', Requested: '" +
                 getRequested() + "', Start: '" + getStart() + "', Stop: '" + getStop() +
                 "', Internal: '" + getUpdatedInfo().name() +
-                ":" + getErrorInfo().mesg + "', OriginalSize: " + originalSize +
+                ":" + getErrorInfo().getMesg() + "', OriginalSize: " + originalSize +
                 ", Fileinfo: '" + getFileInformation() + "', Transferinfo: '" + getTransferInfo() + "'";
     }
 
@@ -3364,21 +3242,21 @@ public class DbTaskRunner extends AbstractDbData {
         return "Run: " + getRuleId() + " on " +
                 getFilename() + " STEP: " + getGlobalStep() + "(" +
                 getLastGlobalStep() + "):" + getStep() + ":" +
-                getStatus().mesg;
+                getStatus().getMesg();
     }
 
     public String toShortNoHtmlString(String newline) {
         return "{Run: '" + getRuleId() + "', Filename: '" + getFilename() + "',"
                 + newline + " STEP: '" + getGlobalStep() + "(" +
                 getLastGlobalStep() + "):" + getStep() + ":" +
-                getStatus().mesg + "'," + newline + " TransferRank: " + getRank()
+                getStatus().getMesg() + "'," + newline + " TransferRank: " + getRank()
                 + ", Blocksize: " + getBlocksize() + ", SpecialId: " +
                 getSpecialId() + ", isSender: '" + isSender() + "', isMoved: '" +
                 isFileMoved() + "', Mode: '" + TRANSFERMODE.values()[getMode()] +
                 newline + "', Requester: '" + getRequester() + "', Requested: '" +
                 getRequested() + "', Start: '" + getStart() + "', Stop: '" + getStop() + "'," +
                 newline + " Internal: '" + getUpdatedInfo().name() +
-                ":" + getErrorInfo().mesg + "', OriginalSize: " + originalSize + "," +
+                ":" + getErrorInfo().getMesg() + "', OriginalSize: " + originalSize + "," +
                 newline + " Fileinfo: '" + getFileInformation() + "', Transferinfo: '" + getTransferInfo() + "'}";
     }
 
@@ -3386,14 +3264,14 @@ public class DbTaskRunner extends AbstractDbData {
         return "<RULE>" + getRuleId() + "</RULE><ID>" + getSpecialId() + "</ID><FILE>" +
                 getFilename() + "</FILE>     <STEP>" + getGlobalStep() +
                 "(" + getLastGlobalStep() + "):" + getStep() + ":" +
-                getStatus().mesg + "</STEP><RANK>" + getRank() + "</RANK><BLOCKSIZE>" + getBlocksize() +
+                getStatus().getMesg() + "</STEP><RANK>" + getRank() + "</RANK><BLOCKSIZE>" + getBlocksize() +
                 "</BLOCKSIZE>     <SENDER>" +
                 isSender() + "</SENDER><MOVED>" + isFileMoved() + "</MOVED><MODE>" +
                 TRANSFERMODE.values()[getMode()] + "</MODE>     <REQR>" +
                 getRequester() + "</REQR><REQD>" + getRequested() +
                 "</REQD>     <START>" + getStart() + "</START><STOP>" + getStop() +
                 "</STOP>     <INTERNAL>" + getUpdatedInfo().name()
-                + " : " + getErrorInfo().mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize
+                + " : " + getErrorInfo().getMesg() + "</INTERNAL><ORIGINALSIZE>" + originalSize
                 + "</ORIGINALSIZE>     <FILEINFO>" +
                 getFileInformation() + "</FILEINFO> <TRANSFERINFO>" + getTransferInfo() + "</TRANSFERINFO>";
     }
@@ -3568,10 +3446,10 @@ public class DbTaskRunner extends AbstractDbData {
                 ")</td><td>" +
                 getStep() +
                 "</td><td>" +
-                getStatus().mesg + " <b>" + running +
+                getStatus().getMesg() + " <b>" + running +
                 "</b></td><td bgcolor=\"" +
                 updcolor + "\">" +
-                getUpdatedInfo().name() + " : " + getErrorInfo().mesg +
+                getUpdatedInfo().name() + " : " + getErrorInfo().getMesg() +
                 "</td><td>" +
                 getRank() +
                 "</td><td>" +
@@ -3611,10 +3489,10 @@ public class DbTaskRunner extends AbstractDbData {
                 getGloballaststep() + ")");
         WaarpStringUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
         WaarpStringUtils.replace(builder, "XXXActXXX", Integer.toString(getStep()));
-        WaarpStringUtils.replace(builder, "XXXStatXXX", transfer.getStepStatus().mesg);
+        WaarpStringUtils.replace(builder, "XXXStatXXX", transfer.getStepStatus().getMesg());
         WaarpStringUtils.replace(builder, "XXXRunningXXX", running);
         WaarpStringUtils.replace(builder, "XXXInternXXX", getUpdatedInfo().name() +
-                " : " + getErrorInfo().mesg);
+                " : " + getErrorInfo().getMesg());
         WaarpStringUtils.replace(builder, "XXXUPDCOLXXX", getInfoHtmlColor());
         WaarpStringUtils.replace(builder, "XXXBloXXX", Integer.toString(getRank()));
         WaarpStringUtils.replace(builder, "XXXisSendXXX", Boolean.toString(isSender()));
@@ -3644,10 +3522,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if this is a self request and current action is on Requested
      */
     public boolean shallIgnoreSave() {
@@ -3657,10 +3531,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return True if the request is a self request (same host on both side)
      */
     public boolean isSelfRequest() {
@@ -3671,10 +3541,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the requested HostId
      */
     public String getRequested() {
@@ -3682,10 +3548,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the requester HostId
      */
     public String getRequester() {
@@ -3846,10 +3708,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Write selected TaskRunners to a Json String
      *
-<<<<<<< HEAD
      * @param preparedStatement
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the associated Json String
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -3989,10 +3848,6 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the backend XML filename for the current TaskRunner in NoDb Client mode
      */
     public String backendXmlFilename() {
@@ -4003,10 +3858,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the runner as XML
      * @throws OpenR66ProtocolBusinessException
      */
@@ -4035,10 +3886,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the Json string for this
      */
     public String getJsonAsString() {
@@ -4054,10 +3901,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-<<<<<<< HEAD
-     *
-=======
->>>>>>> Integration of Pojo/DAO
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {

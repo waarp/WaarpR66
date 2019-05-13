@@ -430,7 +430,7 @@ public class RequestTransfer implements Runnable {
                         error = result.getCode();
                     }
                     OpenR66Exception e =
-                            new OpenR66RunnerErrorException("Transfer in direct mode failed: " + error.mesg);
+                            new OpenR66RunnerErrorException("Transfer in direct mode failed: " + error.getMesg());
                     future.setFailure(e);
                     return error;
                 }

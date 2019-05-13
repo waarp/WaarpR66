@@ -18,6 +18,7 @@
 package org.waarp.openr66.commander;
 
 import java.net.SocketAddress;
+import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -136,7 +137,7 @@ public class ClientRunner extends Thread {
                 logger.error("No connection Error {}", e.getMessage());
                 if (localChannelReference != null) {
                     localChannelReference.setErrorMessage(
-                            ErrorCode.ConnectionImpossible.mesg,
+                            ErrorCode.ConnectionImpossible.getMesg(),
                             ErrorCode.ConnectionImpossible);
                 }
                 taskRunner.setErrorTask(localChannelReference);
@@ -162,7 +163,7 @@ public class ClientRunner extends Thread {
                             +
                             (transfer.isSuccess() ? Messages.getString("RequestInformation.Success") : Messages
                                     .getString("RequestInformation.Failure")) +
-                            "     " + ErrorCode.QueryAlreadyFinished.mesg +
+                            "     " + ErrorCode.QueryAlreadyFinished.getMesg() +
                             ":" +
                             (result != null ? result.toString() : "no result"));
                 } else {
@@ -296,7 +297,7 @@ public class ClientRunner extends Thread {
                         .setLocalChannelReference(new LocalChannelReference());
             }
             taskRunner.getLocalChannelReference().setErrorMessage(
-                    ErrorCode.ConnectionImpossible.mesg,
+                    ErrorCode.ConnectionImpossible.getMesg(),
                     ErrorCode.ConnectionImpossible);
             this.taskRunner.setErrorTask(localChannelReference);
             this.taskRunner.run();
@@ -440,9 +441,10 @@ public class ClientRunner extends Thread {
             throw new OpenR66ProtocolNoConnectionException(
                     "Requested host cannot initiate itself the request");
         }
-        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.getSession(),
-                taskRunner.getRequested());
-        if (host == null) {
+        DbHostAuth host = null;
+        try {
+            host = new DbHostAuth(taskRunner.getRequested());
+        } catch (WaarpDatabaseException e) {
             logger.error("Requested host cannot be found: " +
                     taskRunner.getRequested());
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost, true);

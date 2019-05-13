@@ -212,7 +212,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
                                                     .getOID(rootOIDWaarpNotif,
                                                             NotificationTasks.stepStatusInfo
                                                                     .getOID()),
-                                            new OctetString(runner.getStatus().mesg)),
+                                            new OctetString(runner.getStatus().getMesg())),
                                     new VariableBinding(
                                             NotificationElements.InfoTask
                                                     .getOID(rootOIDWaarpNotif,
@@ -255,7 +255,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
                                                     .getOID(rootOIDWaarpNotif,
                                                             NotificationTasks.infoStatusInfo
                                                                     .getOID()),
-                                            new OctetString(runner.getErrorInfo().mesg)),
+                                            new OctetString(runner.getErrorInfo().getMesg())),
                                     new VariableBinding(
                                             NotificationElements.InfoTask
                                                     .getOID(rootOIDWaarpNotif,

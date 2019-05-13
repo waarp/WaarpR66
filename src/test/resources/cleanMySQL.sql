@@ -4,3 +4,4 @@ DROP TABLE hosts;
 DROP TABLE multiplemonitor;
 DROP TABLE rules;
 DROP TABLE runner;
+DROP TABLE Sequences;
