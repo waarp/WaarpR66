@@ -34,6 +34,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -322,8 +323,14 @@ public abstract class ConnectionActions {
                             localChannelReference.getNetworkChannel().remoteAddress()
                             + " since " + e1.getMessage(), packet.getHostId());
         }
-        DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
-                packet.getHostId());
+
+        DbHostAuth auth = null;
+        try {
+            auth = new DbHostAuth(localChannelReference.getDbSession(),
+                    packet.getHostId());
+        } catch (WaarpDatabaseException e) {
+            logger.warn("Cannot find the authentication " + packet.getHostId(), e);
+        }
         if (auth != null && !auth.isActive()) {
             e1 = new Reply530Exception("Host is Inactive therefore connection is refused");
         }
@@ -357,7 +364,7 @@ public abstract class ConnectionActions {
      * @param packet
      * @throws OpenR66ProtocolPacketException
      */
-    public void authent(Channel channel, AuthentPacket packet)
+    public void authent(Channel channel, AuthentPacket packet, boolean isSsl)
             throws OpenR66ProtocolPacketException {
         if (packet.isToValidate()) {
             session.newState(AUTHENTR);
@@ -388,7 +395,7 @@ public abstract class ConnectionActions {
         }
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
-                    packet.getHostId(), packet.getKey());
+                    packet.getHostId(), packet.getKey(), isSsl);
         } catch (Reply530Exception e1) {
             refusedConnection(channel, packet, e1);
             session.setStatus(42);

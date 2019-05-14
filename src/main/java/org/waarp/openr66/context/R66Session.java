@@ -191,6 +191,7 @@ public class R66Session implements SessionInterface {
      * 
      * @param stat
      */
+    @Deprecated
     public void setStatus(int stat) {
         StackTraceElement elt = Thread.currentThread().getStackTrace()[2];
         this.status = "(" + elt.getFileName() + ":" + elt.getLineNumber() + "):" + stat;

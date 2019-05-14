@@ -243,7 +243,7 @@ public class LocalTransaction {
      * @throws OpenR66ProtocolNoConnectionException
      */
     public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
-            Integer remoteId, R66Future futureRequest)
+            Integer remoteId, R66Future futureRequest, boolean fromSsl)
             throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
         ChannelFuture channelFuture = null;
@@ -284,7 +284,7 @@ public class LocalTransaction {
                         localChannelReference);
                 logger.info("Add one localChannel to a Network Channel: " + channel.id());
                 // Now send first a Startup message
-                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId());
+                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId(), fromSsl);
                 channel.writeAndFlush(startup);
                 return localChannelReference;
             } else {

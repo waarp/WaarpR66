@@ -93,12 +93,24 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * @throws Reply421Exception
      *             If the service is not available
      */
-    public boolean connection(DbSession dbSession, String hostId, byte[] arg0)
+    public boolean connection(DbSession dbSession, String hostId, byte[] arg0,
+                              boolean isSsl)
             throws Reply530Exception, Reply421Exception {
-        DbHostAuth auth = R66Auth
-                .getServerAuth(dbSession, hostId);
-        if (auth == null) {
+        DbHostAuth auth = null;
+        try {
+            auth = new DbHostAuth(dbSession, hostId);
+        } catch (WaarpDatabaseException e) {
             logger.error("Cannot find authentication for " + hostId);
+            setIsIdentified(false);
+            currentAuth = null;
+            throw new Reply530Exception("HostId not allowed");
+        }
+        if (auth.isSsl() != isSsl) {
+            if (auth.isSsl()) {
+                logger.error("Hostid {} must use SSL", hostId);
+            } else {
+                logger.error("Hostid {} cannot use SSL", hostId);
+            }
             setIsIdentified(false);
             currentAuth = null;
             throw new Reply530Exception("HostId not allowed");
@@ -219,6 +231,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * @param server
      * @return the SimpleAuth if any for this user
      */
+    @Deprecated
     public static DbHostAuth getServerAuth(DbSession dbSession, String server) {
         DbHostAuth auth = null;
         try {

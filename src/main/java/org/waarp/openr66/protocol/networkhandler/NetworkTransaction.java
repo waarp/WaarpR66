@@ -374,7 +374,7 @@ public class NetworkTransaction {
             try {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().createNewClient(networkChannelReference,
-                                ChannelUtils.NOCHANNEL, futureRequest);
+                                ChannelUtils.NOCHANNEL, futureRequest, isSSL);
             } catch (OpenR66ProtocolSystemException e) {
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to local channel", e);
@@ -507,9 +507,10 @@ public class NetworkTransaction {
      */
     public static void createConnectionFromNetworkChannelStartup(
             NetworkChannelReference networkChannelReference,
-            NetworkPacket packet) {
+            NetworkPacket packet, boolean isSsl) {
         CreateConnectionFromNetworkChannel ccfnc =
-                new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
+                new CreateConnectionFromNetworkChannel(networkChannelReference,
+                        packet, isSsl);
         ccfnc.setDaemon(true);
         Configuration.configuration.getExecutorService().execute(ccfnc);
     }
@@ -517,11 +518,13 @@ public class NetworkTransaction {
     private static class CreateConnectionFromNetworkChannel extends Thread {
         final NetworkChannelReference networkChannelReference;
         final NetworkPacket startupPacket;
+        final boolean fromSsl;
 
         private CreateConnectionFromNetworkChannel(NetworkChannelReference networkChannelReference,
-                NetworkPacket packet) {
+                NetworkPacket packet, boolean fromSsl) {
             this.networkChannelReference = networkChannelReference;
             this.startupPacket = packet;
+            this.fromSsl = fromSsl;
         }
 
         @Override
@@ -532,7 +535,7 @@ public class NetworkTransaction {
             try {
                 lcr = Configuration.configuration
                         .getLocalTransaction().createNewClient(networkChannelReference,
-                                startupPacket.getRemoteId(), null);
+                                startupPacket.getRemoteId(), null, fromSsl);
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.error("Cannot create LocalChannel for: " + startupPacket + " due to "
                         + e1.getMessage());
