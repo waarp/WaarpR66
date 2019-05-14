@@ -602,7 +602,20 @@ public class Configuration {
         }
         setHostProxyfied(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false));
         setWarnOnStartup(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true));
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, true);
+
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         setChrootChecked(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true));
         setBlacklistBadAuthent(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true));
         setMaxfilenamelength(SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255));

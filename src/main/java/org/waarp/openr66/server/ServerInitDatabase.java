@@ -70,7 +70,7 @@ public class ServerInitDatabase {
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-initdb")) {
                 database = true;
-                FileBasedConfiguration.checkDatabase = false;
+                FileBasedConfiguration.autoupgrade = false;
                 upgradeDb = true;
             } else if (args[i].equalsIgnoreCase("-upgradeDb")) {
                 upgradeDb = true;
@@ -117,7 +117,7 @@ public class ServerInitDatabase {
 
         try {
             if (!FileBasedConfiguration
-                    .setConfigurationInitDatabase(Configuration.configuration, args[0])) {
+                    .setConfigurationInitDatabase(Configuration.configuration, args[0], database)) {
                 logger
                         .error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
                 if (DbConstant.admin != null) {
@@ -267,7 +267,7 @@ public class ServerInitDatabase {
     }
 
     /**
-     * 
+     *
      * @return True if the base is up to date, else False (need Upgrade)
      */
     public static boolean upgradedb() {
