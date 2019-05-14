@@ -281,7 +281,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             logger.debug("NetworkRecv Create: {} {}", packet,
                     channel.id());
             NetworkTransaction.createConnectionFromNetworkChannelStartup(
-                    this.networkChannelReference, packet);
+                    this.networkChannelReference, packet, isSSL);
             return;
         } else {
             if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
