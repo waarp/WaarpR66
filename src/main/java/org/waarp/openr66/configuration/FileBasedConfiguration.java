@@ -440,7 +440,13 @@ public class FileBasedConfiguration {
     /**
      * Database Checking
      */
+    @Deprecated
     private static final String XML_DBCHECK = "dbcheck";
+
+    /**
+     * Upgrade database
+     */
+    private static final String XML_DBAUTOUPGRADE = "autoUpgrade";
 
     /**
      * Check version in protocol
@@ -575,6 +581,7 @@ public class FileBasedConfiguration {
             new XmlDecl(XmlType.STRING, XML_DBUSER),
             new XmlDecl(XmlType.STRING, XML_DBPASSWD),
             new XmlDecl(XmlType.BOOLEAN, XML_DBCHECK),
+            new XmlDecl(XmlType.BOOLEAN, XML_DBAUTOUPGRADE),
             new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB)
     };
 
@@ -1760,16 +1767,16 @@ public class FileBasedConfiguration {
         return true;
     }
 
-    public static boolean checkDatabase = true;
+    public static boolean autoupgrade = false;
 
     /**
      * Load database parameter
      * 
      * @param config
-     * @param checkInit
+     * @param initdb
      * @return True if OK
      */
-    private static boolean loadDatabase(Configuration config, boolean checkInit) {
+    private static boolean loadDatabase(Configuration config, boolean initdb) {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_DB));
         try {
             XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
@@ -1848,7 +1855,7 @@ public class FileBasedConfiguration {
                 }
                 // Check if the database is ready (initdb already done before)
                 DbRequest request = null;
-                if (checkInit) {
+                if (!initdb) {
                     try {
                         request = new DbRequest(DbConstant.admin.getSession());
                         try {
@@ -1866,12 +1873,21 @@ public class FileBasedConfiguration {
                      */
                     }
                 }
-
+                // TODO to remove when <dbcheck> is drop from config file
                 value = hashConfig.get(XML_DBCHECK);
                 if (value != null && (!value.isEmpty())) {
-                    checkDatabase = value.getBoolean();
+                    logger.warn("<{}> is deprecated in configuration file "
+                                    + "use <{}> instead",
+                            XML_DBCHECK, XML_DBAUTOUPGRADE);
+                    autoupgrade = value.getBoolean();
+                } else {
+                    // Keep this part
+                    value = hashConfig.get(XML_DBAUTOUPGRADE);
+                    if (value != null && (!value.isEmpty())) {
+                        autoupgrade = value.getBoolean();
+                    }
                 }
-                if (checkDatabase) {
+                if (autoupgrade && !initdb) {
                     // Check if the database is up to date
                     if (!ServerInitDatabase.upgradedb()) {
                         return false;
@@ -2112,7 +2128,8 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
+    public static boolean setConfigurationInitDatabase(Configuration config,
+               String filename, boolean initdb) {
         Document document = null;
         // Open config file
         try {
@@ -2131,7 +2148,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, false)) {
+        if (!loadDatabase(config, initdb)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2164,7 +2181,19 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setConfigurationServerMinimalFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2183,7 +2212,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2234,7 +2263,19 @@ public class FileBasedConfiguration {
      */
     public static boolean setConfigurationServerShutdownFromXml(Configuration config,
             String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2254,7 +2295,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2338,7 +2379,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2412,7 +2453,19 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setClientConfigurationFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2433,7 +2486,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2497,7 +2550,19 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     public static boolean setSubmitClientConfigurationFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2518,7 +2583,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
