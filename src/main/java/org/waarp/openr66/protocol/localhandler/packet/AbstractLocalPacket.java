@@ -39,6 +39,8 @@ public abstract class AbstractLocalPacket {
 
     protected ByteBuf end;
 
+    protected boolean fromSSL = false;
+
     public AbstractLocalPacket(ByteBuf header, ByteBuf middle,
             ByteBuf end) {
         this.header = header;

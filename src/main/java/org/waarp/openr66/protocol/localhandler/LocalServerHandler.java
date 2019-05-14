@@ -93,6 +93,8 @@ class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket
      */
     private TransferActions serverHandler = new TransferActions();
 
+    private boolean isSsl = false;
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         serverHandler.channelClosed(ctx);
@@ -108,6 +110,7 @@ class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket
         // action as requested and answer if necessary
         final AbstractLocalPacket packet = msg;
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
+            isSsl = ((StartupPacket) packet).isFromSsl();
             serverHandler.startup(ctx.channel(), (StartupPacket) packet);
         } else {
             if (serverHandler.getLocalChannelReference() == null) {
@@ -129,7 +132,7 @@ class LocalServerHandler extends SimpleChannelInboundHandler<AbstractLocalPacket
             }
             switch (packet.getType()) {
                 case LocalPacketFactory.AUTHENTPACKET: {
-                    serverHandler.authent(ctx.channel(), (AuthentPacket) packet);
+                    serverHandler.authent(ctx.channel(), (AuthentPacket) packet, isSsl);
                     break;
                 }
                 // Already done case LocalPacketFactory.STARTUPPACKET:
