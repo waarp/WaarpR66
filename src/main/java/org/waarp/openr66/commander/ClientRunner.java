@@ -453,7 +453,7 @@ public class ClientRunner extends Thread {
                             taskRunner.getRequested());
         }
         if (host.isClient()) {
-            logger.debug("Cannot initiate a connection with a client: {}", host);
+            logger.warn("Cannot initiate a connection with a client: {}", host);
             this.changeUpdatedInfo(UpdatedInfo.INERROR,
                     ErrorCode.ConnectionImpossible, true);
             throw new OpenR66ProtocolNoConnectionException(

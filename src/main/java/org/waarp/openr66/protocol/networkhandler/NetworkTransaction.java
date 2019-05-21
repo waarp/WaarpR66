@@ -293,39 +293,36 @@ public class NetworkTransaction {
     public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress,
             boolean isSSL, R66Future futureRequest) {
         LocalChannelReference localChannelReference = null;
-        OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i++) {
             if (R66ShutdownHook.isShutdownStarting()) {
-                lastException = new OpenR66ProtocolSystemException("Local system in shutdown");
+                logger.error("Cannot connect : Local system in shutdown");
                 break;
             }
             try {
                 localChannelReference =
                         createConnection(socketAddress, isSSL, futureRequest);
                 break;
-            } catch (OpenR66ProtocolRemoteShutdownException e1) {
-                lastException = e1;
-                localChannelReference = null;
+            } catch (OpenR66ProtocolRemoteShutdownException e) {
+                logger.error("Cannot connect : {}", e.getMessage());
+                logger.debug(e);
                 break;
-            } catch (OpenR66ProtocolNoConnectionException e1) {
-                lastException = e1;
-                localChannelReference = null;
+            } catch (OpenR66ProtocolNoConnectionException e) {
+                logger.error("Cannot connect : {}", e.getMessage());
+                logger.debug(e);
                 break;
-            } catch (OpenR66ProtocolNetworkException e1) {
+            } catch (OpenR66ProtocolNetworkException e) {
                 // Can retry
-                lastException = e1;
-                localChannelReference = null;
+                logger.error("Cannot connect : {}. Will retry", e.getMessage());
+                logger.debug(e);
                 try {
                     Thread.sleep(Configuration.configuration.getDelayRetry());
-                } catch (InterruptedException e) {
+                } catch (InterruptedException e1) {
                     break;
                 }
             }
         }
-        if (localChannelReference == null) {
-            logger.debug("Cannot connect : {}", lastException.getMessage());
-        } else if (lastException != null) {
-            logger.debug("Connection retried since {}", lastException.getMessage());
+        if (localChannelReference != null) {
+            logger.info("Connected");
         }
         return localChannelReference;
     }
@@ -364,7 +361,6 @@ public class NetworkTransaction {
             }
             if (!valid) {
                 // Limit is locally exceeded
-                logger.debug("Overloaded local system");
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to remote server due to local overload");
             }
@@ -376,11 +372,9 @@ public class NetworkTransaction {
                         .getLocalTransaction().createNewClient(networkChannelReference,
                                 ChannelUtils.NOCHANNEL, futureRequest, isSSL);
             } catch (OpenR66ProtocolSystemException e) {
-                throw new OpenR66ProtocolNetworkException(
-                        "Cannot connect to local channel", e);
+                throw new OpenR66ProtocolNetworkException(e);
             } catch (NullPointerException e) {
-                throw new OpenR66ProtocolNetworkException(
-                        "Cannot connect to local channel", e);
+                throw new OpenR66ProtocolNetworkException(e);
             }
             ok = true;
         } finally {
@@ -484,8 +478,8 @@ public class NetworkTransaction {
                         logger.debug("KO CONNECT:" +
                                 channelFuture.cause().getMessage());
                         throw new OpenR66ProtocolNoConnectionException(
-                                "Cannot connect to remote server", channelFuture
-                                        .cause());
+                                channelFuture.cause().getMessage(),
+                                channelFuture.cause());
                     } else {
                         logger.debug("KO CONNECT but retry", channelFuture
                                 .cause());
