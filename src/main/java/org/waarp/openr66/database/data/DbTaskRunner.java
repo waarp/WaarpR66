@@ -1564,6 +1564,10 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } catch (DAOException e) {
             throw new WaarpDatabaseNoConnectionException(e);
+        } finally {
+            if (transferAccess != null) {
+                transferAccess.close();
+            }
         }
         DbTaskRunner[] res = new DbTaskRunner[transfers.size()];
         int i = 0;

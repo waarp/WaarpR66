@@ -668,6 +668,10 @@ public class DbRule extends AbstractDbData {
             rules = ruleAccess.find(filters);
         } catch (DAOException e) {
             throw new WaarpDatabaseNoConnectionException(e);
+        } finally {
+            if (ruleAccess != null) {
+                ruleAccess.close();
+            }
         }
         DbRule[] res = new DbRule[rules.size()];
         int i = 0;

@@ -477,6 +477,10 @@ public class DbHostAuth extends AbstractDbData {
             hosts = hostAccess.find(filters);
         } catch (DAOException e) {
             throw new WaarpDatabaseNoConnectionException(e);
+        } finally {
+            if (hostAccess != null) {
+                hostAccess.close();
+            }
         }
         DbHostAuth[] res = new DbHostAuth[hosts.size()];
         int i = 0;

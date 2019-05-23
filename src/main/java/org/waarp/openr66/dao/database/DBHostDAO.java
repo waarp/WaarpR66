@@ -75,11 +75,11 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
 
     @Override
     public void close() {
-	try {
+        try {
             this.connection.close();
-	} catch (SQLException e) {
+        } catch (SQLException e) {
             logger.warn("Cannot properly close the database connection", e);
-	}
+        }
     }
 
     @Override

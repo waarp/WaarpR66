@@ -63,11 +63,11 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
 
     @Override
     public void close() {
-	try {
+        try {
             this.connection.close();
-	} catch (SQLException e) {
+        } catch (SQLException e) {
             logger.warn("Cannot properly close the database connection", e);
-	}
+        }
     }
 
     @Override

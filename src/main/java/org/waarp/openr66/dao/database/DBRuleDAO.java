@@ -99,11 +99,11 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     @Override
     public void close() {
-	try {
+        try {
             this.connection.close();
-	} catch (SQLException e) {
+        } catch (SQLException e) {
             logger.warn("Cannot properly close the database connection", e);
-	}
+        }
     }
 
     @Override
