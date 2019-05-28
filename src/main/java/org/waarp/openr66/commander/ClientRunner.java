@@ -336,7 +336,7 @@ public class ClientRunner extends Thread {
             try {
                 taskRunner.select();
             } catch (WaarpDatabaseException e) {
-                logger.debug("Not a problem but cannot find at the end the task");
+                logger.debug("Not a problem but cannot find at the end the task", e);
                 taskRunner.setFrom(transfer.getRunner());
             }
             taskRunner.setSender(isSender);

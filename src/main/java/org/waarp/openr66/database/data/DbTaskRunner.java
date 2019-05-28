@@ -296,7 +296,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
+        // empty transfer for initObject
+        transfer = new Transfer();
         primaryKey = new DbValue[] {
                 new DbValue(transfer.getOwnerRequest(), Columns.OWNERREQ.name()),
                 new DbValue(transfer.getRequester(), Columns.REQUESTER.name()),
@@ -334,7 +335,6 @@ public class DbTaskRunner extends AbstractDbData {
                 otherFields[12], otherFields[13], otherFields[14], otherFields[15],
                 otherFields[16], otherFields[17],
                 primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3] };
-         */
     }
 
     @Override
@@ -629,6 +629,9 @@ public class DbTaskRunner extends AbstractDbData {
             if (transferAccess != null) {
                 transferAccess.close();
             }
+        }
+        if (transfer == null) {
+            throw new WaarpDatabaseNoDataException("Transfer not found");
         }
         this.rule = new DbRule(getRuleId());
         if (rule != null) {

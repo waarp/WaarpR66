@@ -226,6 +226,8 @@ public class Configuration {
      */
     private DbHostAuth HOST_SSLAUTH;
 
+    private String AUTH_FILE;
+
     /**
      * Default number of threads in pool for Server (true network listeners). Server will change
      * this value on startup if not set. The value should be closed to the number of CPU.
@@ -1510,6 +1512,14 @@ public class Configuration {
      */
     public void setHOST_SSLAUTH(DbHostAuth hOST_SSLAUTH) {
         HOST_SSLAUTH = hOST_SSLAUTH;
+    }
+
+    public String getAUTH_FILE() {
+        return AUTH_FILE;
+    }
+
+    public void setAUTH_FILE(String file) {
+        AUTH_FILE = file;
     }
 
     /**

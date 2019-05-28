@@ -3,6 +3,7 @@ package org.waarp.openr66.dao;
 import org.waarp.common.database.ConnectionFactory;
 import org.waarp.openr66.dao.database.DBDAOFactory;
 import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.xml.XMLDAOFactory;
 
 
 /**
@@ -13,7 +14,8 @@ public abstract class DAOFactory {
     private static DAOFactory instance;
 
     public static void initialize() {
-        if (instance != null) {
+        if (instance == null) {
+            instance = new XMLDAOFactory();
         }
     }
 

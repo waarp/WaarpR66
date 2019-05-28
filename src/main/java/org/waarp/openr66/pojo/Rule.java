@@ -42,7 +42,15 @@ public class Rule {
      * Empty constructor for compatibility issues
      */
     @Deprecated
-    public Rule() {}
+    public Rule() {
+        hostids = new ArrayList<String>();
+        rPreTasks = new ArrayList<RuleTask>();
+        rPostTasks = new ArrayList<RuleTask>();
+        rErrorTasks = new ArrayList<RuleTask>();
+        sPreTasks = new ArrayList<RuleTask>();
+        sPostTasks = new ArrayList<RuleTask>();
+        sErrorTasks = new ArrayList<RuleTask>();
+    }
 
     public Rule(String name, int mode, List<String> hostids, String recvPath,
             String sendPath, String archivePath, String workPath, 

@@ -65,6 +65,7 @@ import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -780,6 +781,10 @@ public class FileBasedConfiguration {
                 logger.warn(Messages.getString("FileBasedConfiguration.SSLIDNotFound")); //$NON-NLS-1$
                 config.setUseSSL(false);
                 config.setHOST_SSLID(null);
+            }
+            value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
+            if (value != null && (!value.isEmpty())) {
+                config.setAUTH_FILE(value.getString());
             }
             return setCryptoKey(config, hashConfig);
         } finally {
@@ -1721,7 +1726,7 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     private static boolean loadFromDatabase(Configuration config) {
-        if (DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // load from database the limit to apply
             try {
                 DbConfiguration configuration = new DbConfiguration(config.getHOST_ID());
@@ -1777,6 +1782,7 @@ public class FileBasedConfiguration {
                 logger.info(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
                 DbConstant.admin = new DbAdmin(); // no database support
                 DbConstant.noCommitAdmin = DbConstant.admin;
+                DAOFactory.initialize();
                 return true;
             }
             value = hashConfig.get(XML_DBDRIVER);
@@ -2443,6 +2449,10 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
+        if (!loadDirectory(config)) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
         if (!loadDatabase(config, true)) {
             logger.error("Cannot load Database configuration");
             return false;
@@ -2450,10 +2460,6 @@ public class FileBasedConfiguration {
         logger.info("Is Client connected to database: " + DbConstant.admin.isActive());
         if (!loadClientParam(config)) {
             logger.error("Cannot load Client Parameters");
-            return false;
-        }
-        if (!loadDirectory(config)) {
-            logger.error("Cannot load Directory configuration");
             return false;
         }
         if (!loadLimit(config, false)) {
@@ -2477,8 +2483,12 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
-        config.setHOST_AUTH(R66Auth.getServerAuth(
-                DbConstant.admin.getSession(), config.getHOST_ID()));
+        try {
+            config.setHOST_AUTH(new DbHostAuth(config.getHOST_ID()));
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot find Authentication for current host", e);
+            return false;
+        }
         if (config.getHOST_AUTH() == null) {
             logger.error("Cannot find Authentication for current host");
             return false;

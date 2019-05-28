@@ -35,6 +35,7 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.json.JsonHandler;
@@ -424,6 +425,9 @@ public class DbRule extends AbstractDbData {
             if (ruleAccess != null) {
                 ruleAccess.close();
             }
+        }
+        if (rule == null) {
+            throw new WaarpDatabaseNoDataException("Rule not found");
         }
     }
 
