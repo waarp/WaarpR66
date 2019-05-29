@@ -801,7 +801,7 @@ public class FileBasedConfiguration {
     private static boolean loadAuthentication(Configuration config) {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_IDENTITY));
         try {
-            if (!DbConstant.admin.isActive()) {
+            if (config.isSaveTaskRunnerWithNoDb()) {
                 // if no database, must load authentication from file
                 XmlValue value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
                 if (value != null && (!value.isEmpty())) {
@@ -1727,7 +1727,7 @@ public class FileBasedConfiguration {
      * @return True if OK
      */
     private static boolean loadFromDatabase(Configuration config) {
-        if (DbConstant.admin.isActive()) {
+        if (!config.isSaveTaskRunnerWithNoDb()) {
             // load from database the limit to apply
             try {
                 DbConfiguration configuration = new DbConfiguration(
@@ -1780,7 +1780,7 @@ public class FileBasedConfiguration {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_DB));
         try {
             XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
-            if (value != null && (!value.isEmpty())) {
+            if (value != null && (!value.isEmpty()) && value.getBoolean()) {
                 config.setSaveTaskRunnerWithNoDb(value.getBoolean());
                 logger.info(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
                 DbConstant.admin = new DbAdmin(); // no database support
@@ -2160,7 +2160,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2224,7 +2224,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2321,7 +2321,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Network configuration");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2413,7 +2413,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load configuration from Database");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2513,7 +2513,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load configuration from Database");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
