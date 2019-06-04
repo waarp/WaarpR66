@@ -1906,7 +1906,12 @@ public class FileBasedConfiguration {
                 }
                 if (autoupgrade && !initdb) {
                     // Check if the database is up to date
-                    if (!ServerInitDatabase.upgradedb()) {
+                    try {
+                        if (!ServerInitDatabase.upgradedb()) {
+                            return false;
+                        }
+                    } catch (WaarpDatabaseException e) {
+                        logger.error(e);
                         return false;
                     }
                 }
