@@ -1322,7 +1322,7 @@ public class DbRule extends AbstractDbData {
         List<RuleTask> res = new ArrayList<RuleTask>(size);
         for (int i = 0; i < size; i++) {
             res.add(new RuleTask(tasks[i][0], tasks[i][1],
-                    Integer.getInteger(tasks[i][2])));
+                    Integer.parseInt(tasks[i][2])));
         }
         return res;
     }

@@ -235,7 +235,7 @@ public class RuleFileBasedConfiguration {
      * @return the array of HostIds allowed for the current rule
      */
     public static String[] getHostIds(XmlValue value) {
-        String[] idsArray = null;
+        String[] idsArray = new String[0];
         if (value == null || (value.getList() == null) || value.getList().isEmpty()) {
             logger
                     .info("Unable to find the Hostid for Rule, setting to the default");

@@ -258,7 +258,7 @@ public class XMLTransferDAO implements TransferDAO {
         for (int j = 0; j < children.getLength(); j++) {
             Node node = children.item(j);
             if (node.getNodeName().equals(ID_FIELD)) {
-                res.setId(Long.getLong(node.getTextContent()));
+                res.setId(Long.parseLong(node.getTextContent()));
             } else if (node.getNodeName().equals(OWNER_FIELD)) {
                 res.setOwnerRequest(node.getTextContent());
             } else if (node.getNodeName().equals(REQUESTER_FIELD)) {
@@ -268,9 +268,9 @@ public class XMLTransferDAO implements TransferDAO {
             } else if (node.getNodeName().equals(RULE_FIELD)) {
                 res.setRule(node.getTextContent());
             } else if (node.getNodeName().equals(RETRIEVE_MODE_FIELD)) {
-                res.setRetrieveMode(Boolean.getBoolean(node.getTextContent()));
+                res.setRetrieveMode(Boolean.parseBoolean(node.getTextContent()));
             } else if (node.getNodeName().equals(TRANSFER_MODE_FIELD)) {
-                res.setTransferMode(Integer.getInteger(node.getTextContent()));
+                res.setTransferMode(Integer.parseInt(node.getTextContent()));
             } else if (node.getNodeName().equals(FILENAME_FIELD)) {
                 res.setFilename(node.getTextContent());
             } else if (node.getNodeName().equals(ORIGINAL_NAME_FIELD)) {
@@ -278,19 +278,19 @@ public class XMLTransferDAO implements TransferDAO {
             } else if (node.getNodeName().equals(FILE_INFO_FIELD)) {
                 res.setFileInfo(node.getTextContent());
             } else if (node.getNodeName().equals(IS_MOVED_FIELD)) {
-                res.setIsMoved(Boolean.getBoolean(node.getTextContent()));
+                res.setIsMoved(Boolean.parseBoolean(node.getTextContent()));
             } else if (node.getNodeName().equals(BLOCK_SIZE_FIELD)) {
-                res.setBlockSize(Integer.getInteger(node.getTextContent()));
+                res.setBlockSize(Integer.parseInt(node.getTextContent()));
             } else if (node.getNodeName().equals(GLOBAL_STEP_FIELD)) {
                 res.setGlobalStep(Transfer.TASKSTEP.valueOf(
-                        Integer.getInteger(node.getTextContent())));
+                        Integer.parseInt(node.getTextContent())));
             } else if (node.getNodeName().equals(LAST_GLOBAL_STEP_FIELD)) {
                 res.setLastGlobalStep(Transfer.TASKSTEP.valueOf(
-                        Integer.getInteger(node.getTextContent())));
+                        Integer.parseInt(node.getTextContent())));
             } else if (node.getNodeName().equals(STEP_FIELD)) {
-                res.setStep(Integer.getInteger(node.getTextContent()));
+                res.setStep(Integer.parseInt(node.getTextContent()));
             } else if (node.getNodeName().equals(RANK_FIELD)) {
-                res.setRank(Integer.getInteger(node.getTextContent()));
+                res.setRank(Integer.parseInt(node.getTextContent()));
             } else if (node.getNodeName().equals(STEP_STATUS_FIELD)) {
                 res.setStepStatus(ErrorCode.getFromCode(node.getTextContent()));
             } else if (node.getNodeName().equals(INFO_STATUS_FIELD)) {

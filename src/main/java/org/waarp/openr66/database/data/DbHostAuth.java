@@ -445,7 +445,7 @@ public class DbHostAuth extends AbstractDbData {
         for (Host host : hosts) {
             res.add(new DbHostAuth(host));
         }
-        return (DbHostAuth[]) res.toArray();
+        return res.toArray(new DbHostAuth[0]);
     }
 
     /**
