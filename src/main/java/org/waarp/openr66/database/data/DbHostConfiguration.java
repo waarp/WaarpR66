@@ -308,12 +308,12 @@ public class DbHostConfiguration extends AbstractDbData {
      */
     public DbHostConfiguration(String hostid, String business, String roles, String aliases,
             String others) {
-        super(null);
+        super();
         this.business = new Business(hostid, business, roles, aliases, others);
     }
 
     public DbHostConfiguration(Business business) {
-        super(null);
+        super();
         this.business = business;
     }
 
@@ -325,7 +325,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public DbHostConfiguration(ObjectNode source) throws WaarpDatabaseSqlException {
-        super(null);
+        super();
         this.business = new Business();
         setFromJson(source, false);
         if (business.getHostid() == null || business.getHostid().isEmpty()) {
@@ -341,7 +341,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbHostConfiguration(String hostid) throws WaarpDatabaseException {
-        super(null);
+        super();
         BusinessDAO businessAccess = null;
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
@@ -659,7 +659,7 @@ public class DbHostConfiguration extends AbstractDbData {
      * Private constructor for Commander only
      */
     private DbHostConfiguration() {
-        super(null);
+        super();
         this.business = new Business();
     }
 

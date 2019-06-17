@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -37,7 +37,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * @author frederic bregier
- * 
+ *
  */
 public class R66Auth extends FilesystemBasedAuthImpl {
     /**
@@ -93,8 +93,23 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * @throws Reply421Exception
      *             If the service is not available
      */
+    @Deprecated
     public boolean connection(DbSession dbSession, String hostId, byte[] arg0,
                               boolean isSsl)
+            throws Reply530Exception, Reply421Exception {
+        return connection(hostId, arg0, isSsl);
+    }
+
+    /**
+     * @param hostId
+     * @param arg0
+     * @return True if the connection is OK (authentication is OK)
+     * @throws Reply530Exception
+     *             if the authentication is wrong
+     * @throws Reply421Exception
+     *             If the service is not available
+     */
+    public boolean connection(String hostId, byte[] arg0, boolean isSsl)
             throws Reply530Exception, Reply421Exception {
         DbHostAuth auth = null;
         try {
@@ -151,7 +166,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     * 
+     *
      * @param key
      * @return True if the key is valid for the current user
      */
@@ -163,7 +178,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * Set the root relative Path from current status of Authentication (should be the highest level
      * for the current authentication). If setBusinessRootFromAuth returns null, by default set
      * /user.
-     * 
+     *
      * @exception Reply421Exception
      *                if the business root is not available
      */
@@ -196,7 +211,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     * 
+     *
      * @param roleCheck
      * @return True if the current role contains the specified role to check
      */
@@ -205,7 +220,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     * 
+     *
      * @return True if the associated host is using SSL
      */
     public boolean isSsl() {
@@ -245,7 +260,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /**
      * Special Authentication for local execution
-     * 
+     *
      * @param isSSL
      * @param hostid
      */
@@ -278,7 +293,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     /**
      * connection from HTTPS (no default rights, must be set either as admin or specifically through ROLEs).
      * Only "false client" with port with negative values are allowed.
-     * 
+     *
      * @param dbSession
      * @param hostId
      * @param arg0
@@ -335,7 +350,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     * 
+     *
      * @return a copy of the Role of the current authenticated partner
      */
     public RoleDefault getRole() {

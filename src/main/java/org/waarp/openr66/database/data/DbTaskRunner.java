@@ -512,7 +512,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     public DbTaskRunner(Transfer transfer) {
-        super(null);
+        super();
         this.transfer = transfer;
     }
 
@@ -531,7 +531,7 @@ public class DbTaskRunner extends AbstractDbData {
     public DbTaskRunner(DbRule rule, boolean isSender,
                         RequestPacket requestPacket, String requested, Timestamp startTime)
             throws WaarpDatabaseException {
-        super(null);
+        super();
         this.session = null;
         this.rule = rule;
 
@@ -584,7 +584,7 @@ public class DbTaskRunner extends AbstractDbData {
     public DbTaskRunner(R66Session session, DbRule rule,
             boolean isSender, RequestPacket requestPacket)
             throws WaarpDatabaseException {
-        super(null);
+        super();
         this.localChannelReference = session.getLocalChannelReference();
         this.rule = rule;
 
@@ -617,7 +617,7 @@ public class DbTaskRunner extends AbstractDbData {
     public DbTaskRunner(R66Session session, DbRule rule,
             long id, String requester, String requested)
             throws WaarpDatabaseException {
-        super(null);
+        super();
         TransferDAO transferAccess = null;
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
@@ -653,7 +653,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public DbTaskRunner(long id, String requester, String requested)
             throws WaarpDatabaseException {
-        super(null);
+        super();
         TransferDAO transferAccess = null;
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
@@ -696,7 +696,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbTaskRunner(ObjectNode source) throws WaarpDatabaseException {
-        super(null);
+        super();
         transfer = new Transfer();
         setFromJson(source, false);
     }
@@ -849,7 +849,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public DbTaskRunner(long id, String requested)
             throws WaarpDatabaseException {
-        super(null);
+        super();
         TransferDAO transferAccess = null;
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
@@ -1128,7 +1128,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param dbSession
      */
     private DbTaskRunner() {
-        super(null);
+        super();
         session = null;
         rule = null;
     }

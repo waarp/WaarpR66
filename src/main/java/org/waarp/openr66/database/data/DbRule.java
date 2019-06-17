@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -64,9 +64,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Rule Table object
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbRule extends AbstractDbData {
     /**
@@ -397,7 +397,7 @@ public class DbRule extends AbstractDbData {
             String sendPath, String archivePath, String workPath,
             String rpreTasks, String rpostTasks, String rerrorTasks,
             String spreTasks, String spostTasks, String serrorTasks) {
-        super(null);
+        super();
         rule = new Rule(idRule, mode, Arrays.asList(getIdsRule(ids)),
             recvPath, sendPath, archivePath, workPath,
             fromLegacyTasks(getTasksRule(rpreTasks)),
@@ -414,7 +414,7 @@ public class DbRule extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbRule(String idRule) throws WaarpDatabaseException {
-        super(null);
+        super();
         RuleDAO ruleAccess = null;
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
@@ -432,13 +432,13 @@ public class DbRule extends AbstractDbData {
     }
 
     public DbRule(Rule rule) {
-        super(null);
+        super();
         rule = rule;
     }
 
     /**
      * Constructor used from XML file
-     * 
+     *
      * @param dbSession
      * @param idrule
      * @param idsArrayRef
@@ -458,7 +458,10 @@ public class DbRule extends AbstractDbData {
             String workpath,
             String[][] rpretasksArray, String[][] rposttasksArray, String[][] rerrortasksArray,
             String[][] spretasksArray, String[][] sposttasksArray, String[][] serrortasksArray) {
-        super(null);
+        super();
+        if(idsArrayRef == null) {
+            idsArrayRef = new String[0];
+        }
         rule = new Rule(idrule, mode, Arrays.asList(idsArrayRef),
                 recvpath, sendpath, archivepath, workpath,
                 fromLegacyTasks(rpretasksArray),
@@ -471,13 +474,13 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Constructor from Json
-     * 
+     *
      * @param dbSession
      * @param source
      * @throws WaarpDatabaseSqlException
      */
     public DbRule(ObjectNode source) throws WaarpDatabaseSqlException {
-        super(null);
+        super();
         rule = new Rule();
         setFromJson(source, false);
         if (getIdRule() == null || getIdRule().isEmpty()) {
@@ -492,7 +495,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Delete all entries (used when purge and reload)
-     * 
+     *
      * @param dbSession
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
@@ -599,7 +602,7 @@ public class DbRule extends AbstractDbData {
      * Private constructor for Commander only
      */
     private DbRule() {
-        super(null);
+        super();
         rule = new Rule();
     }
 
@@ -655,7 +658,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbPreparedStatement for getting Updated Object
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -694,7 +697,7 @@ public class DbRule extends AbstractDbData {
     /**
      * Get Ids from String. If it is not ok, then it sets the default values and return False, else
      * returns True.
-     * 
+     *
      * @param idsref
      * @return True if ok, else False (default values).
      */
@@ -722,7 +725,7 @@ public class DbRule extends AbstractDbData {
     /**
      * Get Tasks from String. If it is not ok, then it sets the default values and return new array
      * of Tasks or null if in error.
-     * 
+     *
      * @param tasks
      * @return Array of tasks or empty array if in error.
      */
@@ -749,7 +752,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Initialized a ids String from args
-     * 
+     *
      * @param idsArray
      * @return the new ids string
      */
@@ -767,7 +770,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Initialized a tasks String from args
-     * 
+     *
      * @param tasksArray
      * @return the new tasks string
      */
@@ -801,7 +804,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Get the full path from RecvPath (used only in copy MODETRANS)
-     * 
+     *
      * @param filename
      * @return the full String path
      * @throws OpenR66ProtocolSystemException
@@ -816,7 +819,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Get the full path from sendPath
-     * 
+     *
      * @param filename
      * @return the full String path
      * @throws OpenR66ProtocolSystemException
@@ -833,7 +836,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Get the full path from archivePath
-     * 
+     *
      * @param filename
      * @return the full String path
      * @throws OpenR66ProtocolSystemException
@@ -848,7 +851,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Get the full path from workPath
-     * 
+     *
      * @param filename
      * @return the full String path
      * @throws OpenR66ProtocolSystemException
@@ -864,7 +867,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * ConsistencyCheck if the given hostTo is in the allowed list
-     * 
+     *
      * @param hostId
      * @return True if allow, else False
      */
@@ -881,7 +884,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this rule is adapted for SENDMODE
      */
     public boolean isSendMode() {
@@ -889,7 +892,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this rule is adapted for RECVMODE
      */
     public boolean isRecvMode() {
@@ -898,7 +901,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Object to String
-     * 
+     *
      * @return the string that displays this object
      * @see java.lang.Object#toString()
      */
@@ -917,7 +920,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param isSender
      * @param step
      * @return a string that prints (debug) the tasks to execute
@@ -950,7 +953,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Object to String
-     * 
+     *
      * @return the string that displays this object
      * @see java.lang.Object#toString()
      */
@@ -960,7 +963,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param rule
      * @param mode
@@ -1002,7 +1005,7 @@ public class DbRule extends AbstractDbData {
 
     /**
      * Write selected DbRule to a Json String
-     * 
+     *
      * @param preparedStatement
      * @return the associated Json String
      * @throws WaarpDatabaseNoConnectionException
@@ -1069,7 +1072,7 @@ public class DbRule extends AbstractDbData {
         return node;
     }
     /**
-     * 
+     *
      * @return the Json string for this
      */
     public String getJsonAsString() {
@@ -1181,7 +1184,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {

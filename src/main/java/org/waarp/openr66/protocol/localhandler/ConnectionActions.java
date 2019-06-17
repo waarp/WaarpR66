@@ -394,7 +394,7 @@ public abstract class ConnectionActions {
             return;
         }
         try {
-            session.getAuth().connection(localChannelReference.getDbSession(),
+            session.getAuth().connection(
                     packet.getHostId(), packet.getKey(), isSsl);
         } catch (Reply530Exception e1) {
             refusedConnection(channel, packet, e1);

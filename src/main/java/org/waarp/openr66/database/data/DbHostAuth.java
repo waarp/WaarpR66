@@ -226,7 +226,7 @@ public class DbHostAuth extends AbstractDbData {
      */
     public DbHostAuth(String hostid, String address, int port,
             boolean isSSL, byte[] hostkey, boolean adminrole, boolean isClient) {
-        super(null);
+        super();
         this.host = new Host(hostid, address, port, hostkey, isSSL, isClient,
                 false, adminrole);
         if (hostkey != null) {
@@ -248,12 +248,12 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     private DbHostAuth(Host host) {
-        super(null);
+        super();
         this.host = host;
     }
 
     public DbHostAuth(ObjectNode source) throws WaarpDatabaseSqlException {
-        super(null);
+        super();
         this.host = new Host();
         setFromJson(source, false);
     }
@@ -287,7 +287,7 @@ public class DbHostAuth extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbHostAuth(String hostid) throws WaarpDatabaseException {
-        super(null);
+        super();
         if (hostid == null) {
             throw new WaarpDatabaseException("No host id passed");
         }
@@ -414,7 +414,7 @@ public class DbHostAuth extends AbstractDbData {
      * Private constructor for Commander only
      */
     private DbHostAuth() {
-        super(null);
+        super();
         this.host = new Host();
     }
 

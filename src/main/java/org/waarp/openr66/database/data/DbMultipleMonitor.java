@@ -151,7 +151,7 @@ public class DbMultipleMonitor extends AbstractDbData {
      *            count for Rule
      */
     public DbMultipleMonitor(String hostid, int cc, int ch, int cr) {
-        super(null);
+        super();
         multipleMonitor = new MultipleMonitor(hostid, cc, ch, cr);
     }
 
@@ -161,7 +161,7 @@ public class DbMultipleMonitor extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbMultipleMonitor(String hostid) throws WaarpDatabaseException {
-        super(null);
+        super();
         MultipleMonitorDAO monitorAccess = null;
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
@@ -254,7 +254,7 @@ public class DbMultipleMonitor extends AbstractDbData {
      * Private constructor for Commander only
      */
     private DbMultipleMonitor() {
-        super(null);
+        super();
         multipleMonitor = new MultipleMonitor();
     }
 

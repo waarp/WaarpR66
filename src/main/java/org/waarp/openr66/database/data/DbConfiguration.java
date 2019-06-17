@@ -187,12 +187,12 @@ public class DbConfiguration extends AbstractDbData {
      */
     public DbConfiguration(String hostid, long rg, long wg, long rs, long ws,
            long del) {
-        super(null);
+        super();
         this.limit = new Limit(hostid, rg, wg, rs, ws, del);
     }
 
     public DbConfiguration(Limit limit) {
-        super(null);
+        super();
         this.limit = limit;
     }
 
@@ -204,7 +204,7 @@ public class DbConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseSqlException
      */
     public DbConfiguration(ObjectNode source) throws WaarpDatabaseSqlException {
-        super(null);
+        super();
         this.limit = new Limit();
         setFromJson(source, false);
         if (limit.getHostid() == null || limit.getHostid().isEmpty()) {
@@ -232,7 +232,7 @@ public class DbConfiguration extends AbstractDbData {
      * @throws WaarpDatabaseException
      */
     public DbConfiguration(String hostid) throws WaarpDatabaseException {
-        super(null);
+        super();
         LimitDAO limitAccess = null;
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
@@ -334,7 +334,7 @@ public class DbConfiguration extends AbstractDbData {
      * Private constructor for Commander only
      */
     private DbConfiguration() {
-        super(null);
+        super();
         this.limit = new Limit();
     }
 
