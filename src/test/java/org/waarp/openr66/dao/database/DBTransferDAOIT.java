@@ -113,6 +113,8 @@ public abstract class DBTransferDAOIT {
         TransferDAO dao = getDAO(getConnection());
         Transfer transfer = new Transfer("server2", "rule", 1, false,
                 "file", "info", 3);
+        // Requester and requested are setup manualy
+        transfer.setRequester("dummy");
         transfer.setOwnerRequest("dummy");
         transfer.setStart(new Timestamp(1112242l));
         transfer.setStop(new Timestamp(122l));

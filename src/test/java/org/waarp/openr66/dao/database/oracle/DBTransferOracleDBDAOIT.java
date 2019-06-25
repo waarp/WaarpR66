@@ -13,12 +13,12 @@ import java.sql.SQLException;
 
 public class DBTransferOracleDBDAOIT extends DBTransferDAOIT {
 
-    private String createScript = "createMySQL.sql";
-    private String populateScript = "populateMySQL.sql";
-    private String cleanScript = "cleanMySQL.sql";
+    private String createScript = "oracle/create.sql";
+    private String populateScript = "oracle/populate.sql";
+    private String cleanScript = "oracle/clean.sql";
 
     @ClassRule
-    public static OracleContainer db = new OracleContainer("test");
+    public static OracleContainer db = new OracleContainer("epiclabs/docker-oracle-xe-11g");
 
     @Override
     public DBTransferDAO getDAO(Connection con) throws DAOException {
@@ -35,8 +35,8 @@ public class DBTransferOracleDBDAOIT extends DBTransferDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override

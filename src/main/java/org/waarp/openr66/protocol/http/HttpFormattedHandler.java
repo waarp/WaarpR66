@@ -444,7 +444,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
 
             // Find Status = RUNNING transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.Running.getMesg()));
+                    "=", ErrorCode.Running.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
@@ -481,7 +481,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find Status = INITOK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.InitOk.getMesg()));
+                    "=", ErrorCode.InitOk.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
@@ -492,7 +492,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find Status = PREPROCESSINGOK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.PreProcessingOk.getMesg()));
+                    "=", ErrorCode.PreProcessingOk.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
@@ -503,7 +503,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find Status = TRANSFEROK transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.TransferOk.getMesg()));
+                    "=", ErrorCode.TransferOk.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
@@ -514,7 +514,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             filters.clear();
             // Find Status = POSTPROCESSING transfer
             filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
-                    "=", ErrorCode.PostProcessingOk.getMesg()));
+                    "=", ErrorCode.PostProcessingOk.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
             transfers = transferAccess.find(filters,
@@ -609,8 +609,8 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transferAccess = DAOFactory.getInstance().getTransferDAO();
 
             List<Filter> filters = new ArrayList<Filter>();
-            filters.add(new Filter(DBTransferDAO.STEP_FIELD,
-                    "=", ErrorCode.CompleteOk));
+            filters.add(new Filter(DBTransferDAO.STEP_STATUS_FIELD,
+                    "=", ErrorCode.CompleteOk.getCode()));
             filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD,
                     "=", Configuration.configuration.getHOST_ID()));
 

@@ -10,9 +10,9 @@ import org.waarp.openr66.dao.database.DBBusinessDAOIT;
 
 public class DBBusinessMySQLDAOIT extends DBBusinessDAOIT {
 
-    private String createScript = "createMySQL.sql";
-    private String populateScript = "populateMySQL.sql";
-    private String cleanScript = "cleanMySQL.sql";
+    private String createScript = "mysql/create.sql";
+    private String populateScript = "mysql/populate.sql";
+    private String cleanScript = "mysql/clean.sql";
 
     @ClassRule
     public static MySQLContainer db = new MySQLContainer();
@@ -27,8 +27,8 @@ public class DBBusinessMySQLDAOIT extends DBBusinessDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override

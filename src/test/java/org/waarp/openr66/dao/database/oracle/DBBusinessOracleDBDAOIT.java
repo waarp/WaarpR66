@@ -10,12 +10,12 @@ import java.sql.SQLException;
 
 public class DBBusinessOracleDBDAOIT extends DBBusinessDAOIT {
 
-    private String createScript = "createMySQL.sql";
-    private String populateScript = "populateMySQL.sql";
-    private String cleanScript = "cleanMySQL.sql";
+    private String createScript = "oracle/create.sql";
+    private String populateScript = "oracle/populate.sql";
+    private String cleanScript = "oracle/clean.sql";
 
     @ClassRule
-    public static OracleContainer db = new OracleContainer("test");
+    public static OracleContainer db = new OracleContainer("epiclabs/docker-oracle-xe-11g");
 
     @Override
     public Connection getConnection() throws SQLException {
@@ -27,8 +27,8 @@ public class DBBusinessOracleDBDAOIT extends DBBusinessDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override

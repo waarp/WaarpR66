@@ -10,9 +10,9 @@ import org.waarp.openr66.dao.database.DBLimitDAOIT;
 
 public class DBLimitPostgreSQLDAOIT extends DBLimitDAOIT {
 
-    private String createScript = "createPG.sql";
-    private String populateScript = "populatePG.sql";
-    private String cleanScript = "cleanPG.sql";
+    private String createScript = "postgresql/create.sql";
+    private String populateScript = "postgresql/populate.sql";
+    private String cleanScript = "postgresql/clean.sql";
 
     @ClassRule
     public static PostgreSQLContainer db = new PostgreSQLContainer();
@@ -27,8 +27,8 @@ public class DBLimitPostgreSQLDAOIT extends DBLimitDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override

@@ -13,9 +13,9 @@ import org.waarp.openr66.dao.exception.DAOException;
 
 public class DBTransferMySQLDAOIT extends DBTransferDAOIT {
 
-    private String createScript = "createMySQL.sql";
-    private String populateScript = "populateMySQL.sql";
-    private String cleanScript = "cleanMySQL.sql";
+    private String createScript = "mysql/create.sql";
+    private String populateScript = "mysql/populate.sql";
+    private String cleanScript = "mysql/clean.sql";
 
     @ClassRule
     public static MySQLContainer db = new MySQLContainer();
@@ -35,8 +35,8 @@ public class DBTransferMySQLDAOIT extends DBTransferDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override
