@@ -1,15 +1,15 @@
 /**
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3.0 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License along with this
  * software; if not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA 02110-1301 USA, or see the FSF site: http://www.fsf.org.
@@ -31,8 +31,8 @@ import org.waarp.common.logging.WaarpLoggerFactory;
 
 /**
  * ExecuteExecutor class. The given argument will be executed after replacements.
- * 
- * 
+ *
+ *
  * <br>
  * The following replacement are done dynamically before the command is executed:<br>
  * - #BASEPATH# is replaced by the full path for the root of FTP Directory<br>
@@ -43,9 +43,9 @@ import org.waarp.common.logging.WaarpLoggerFactory;
  * - #COMMAND# is replaced by the command issued for the file<br>
  * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
  * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class ExecuteExecutor extends AbstractExecutor {
     /**
@@ -59,7 +59,7 @@ public class ExecuteExecutor extends AbstractExecutor {
     private final long delay;
 
     /**
-     * 
+     *
      * @param command
      * @param delay
      * @param futureCompletion
@@ -72,7 +72,7 @@ public class ExecuteExecutor extends AbstractExecutor {
     }
 
     public void run() throws Reply421Exception {
-        // ConsistencyCheck if the execution will be done through LocalExec daemon
+        // Check if the execution will be done through LocalExec daemon
         if (AbstractExecutor.useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {

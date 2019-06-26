@@ -138,7 +138,7 @@ public class DbHostConfiguration extends AbstractDbData {
     public static final String XML_ROLE = "role";
 
     /**
-     * ConsistencyCheck version in protocol
+     * Check version in protocol
      */
     public static final String XML_BUSINESSID = "businessid";
     private static final XmlDecl[] businessDecl = {

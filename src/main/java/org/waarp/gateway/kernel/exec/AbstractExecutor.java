@@ -1,15 +1,15 @@
 /**
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3.0 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License along with this
  * software; if not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA 02110-1301 USA, or see the FSF site: http://www.fsf.org.
@@ -33,8 +33,8 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * be executed.<br>
  * If the command starts with "R66PREPARETRANSFER", the following will be a r66 prepare transfer
  * execution (asynchronous operation only).<br>
- * 
- * 
+ *
+ *
  * The following replacement are done dynamically before the command is executed:<br>
  * - #BASEPATH# is replaced by the full path for the root of FTP Directory<br>
  * - #FILE# is replaced by the current file path relative to FTP Directory (so #BASEPATH##FILE# is
@@ -44,9 +44,9 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * - #COMMAND# is replaced by the command issued for the file<br>
  * - #SPECIALID# is replaced by the FTP id of the transfer (whatever in or out)<br>
  * - #UUID# is replaced by a special UUID globally unique for the transfer, in general to be placed in -info part (for instance ##UUID## giving #uuid#)<br>
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public abstract class AbstractExecutor {
     /**
@@ -109,7 +109,7 @@ public abstract class AbstractExecutor {
         public long pstorDelay;
 
         /**
-         * 
+         *
          * @param retrieve
          * @param retrDelay
          * @param store
@@ -254,7 +254,7 @@ public abstract class AbstractExecutor {
 
     /**
      * Initialize the Executor with the correct command and delay
-     * 
+     *
      * @param retrieve
      * @param retrDelay
      * @param store
@@ -272,8 +272,8 @@ public abstract class AbstractExecutor {
     }
 
     /**
-     * ConsistencyCheck if the given operation is allowed Globally
-     * 
+     * Check if the given operation is allowed Globally
+     *
      * @param isStore
      * @return True if allowed, else False
      */
@@ -355,7 +355,7 @@ public abstract class AbstractExecutor {
     }
 
     /**
-     * 
+     *
      * @param command
      * @param args
      *            as {User, Account, BaseDir, FilePath(relative to BaseDir), Command}
@@ -380,7 +380,7 @@ public abstract class AbstractExecutor {
 
     /**
      * Make a replacement of first "find" string by "replace" string into the StringBuilder
-     * 
+     *
      * @param builder
      * @param find
      * @param replace
@@ -397,7 +397,7 @@ public abstract class AbstractExecutor {
 
     /**
      * Make replacement of all "find" string by "replace" string into the StringBuilder
-     * 
+     *
      * @param builder
      * @param find
      * @param replace

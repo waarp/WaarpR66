@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -39,9 +39,9 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
  * NetworkChannelReference object to keep Network channel open while some local channels are attached to it.
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class NetworkChannelReference {
     /**
@@ -128,7 +128,7 @@ public class NetworkChannelReference {
 
     /**
      * To set the last time used when correct
-     * 
+     *
      * @return True if last time used is set
      */
     public boolean useIfUsed() {
@@ -141,7 +141,7 @@ public class NetworkChannelReference {
 
     /**
      * Remove one LocalChanelReference, closing it if necessary.
-     * 
+     *
      * @param localChannel
      */
     public void remove(LocalChannelReference localChannel) {
@@ -222,7 +222,7 @@ public class NetworkChannelReference {
     }
 
     /**
-     * 
+     *
      * @return the hashcode for the global remote networkaddress
      */
     public int getSocketHashCode() {
@@ -231,7 +231,7 @@ public class NetworkChannelReference {
 
     /**
      * Used for BlackList
-     * 
+     *
      * @return the hashcode for the address
      */
     public int getAddressHashCode() {
@@ -239,8 +239,8 @@ public class NetworkChannelReference {
     }
 
     /**
-     * ConsistencyCheck if the last time used is ok with a delay applied to the current time (timeout)
-     * 
+     * Check if the last time used is ok with a delay applied to the current time (timeout)
+     *
      * @param delay
      * @return <= 0 if OK, else > 0 (should send a KeepAlive or wait that time in ms)
      */

@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp. If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -35,10 +35,10 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * code is one of the specified codes and the optional intervals of date are compatible with the new
  * time schedule<br>
  * <br>
- * 
+ *
  * Result of arguments will be as following options (the two first are mandatory):<br>
  * <br>
- * 
+ *
  * "-delay ms" where ms is the added number of ms on current time before retry on schedule<br>
  * <br>
  * "-case errorCode,errorCode,..." where errorCode is one of the following error of the current
@@ -74,7 +74,7 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * in any of the occurrence). If not specified, it only depends on "-notbetween".<br>
  * If none is specified, the planned date is always valid.<br>
  * <br>
- * 
+ *
  * Note that if a previous called to a reschedule was done for this attempt and was successful, the
  * following calls will be ignored.<br>
  * <br>
@@ -83,14 +83,14 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * In case start > end, end will be +1 day<br>
  * In case start and end < current planned date, both will have +1 day.<br>
  * <br>
- * 
+ *
  * Example: -delay 3600000 -case ConnectionImpossible,ServerOverloaded,Shutdown -notbetween
  * H7:m0:S0;H19:m0:S0 -notbetween H1:m0:S0;H=3:m0:S0<br>
  * means retry in case of error during initialization of connection in 1 hour if not between 7AM to
  * 7PM and not between 1AM to 3AM.<br>
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class RescheduleTransferTask extends AbstractTask {
     /**
@@ -181,7 +181,7 @@ public class RescheduleTransferTask extends AbstractTask {
         if (countUsed) {
             limitCount--;
             if (limitCount >= 0) {
-                // restart is allowed so resetting to new limitCount 
+                // restart is allowed so resetting to new limitCount
                 resetCount = limitCount;
             }
             resetInformation(resetCount);
@@ -323,12 +323,12 @@ public class RescheduleTransferTask extends AbstractTask {
                 }
                 logger.debug("Dates before check: Not between " + start.getTime() + " and "
                         + stop.getTime());
-                // ConsistencyCheck that start < stop
+                // Check that start < stop
                 if (start.compareTo(stop) > 0) {
                     // no so add 24H to stop
                     stop.add(Calendar.DAY_OF_MONTH, 1);
                 }
-                // ConsistencyCheck that start and stop > newDate (only start is checked since start <= stop)
+                // Check that start and stop > newDate (only start is checked since start <= stop)
                 if (start.compareTo(newDate) < 0) {
                     start.add(Calendar.DAY_OF_MONTH, 1);
                     stop.add(Calendar.DAY_OF_MONTH, 1);
@@ -370,12 +370,12 @@ public class RescheduleTransferTask extends AbstractTask {
                 }
                 logger.debug("Dates before check: Between " + start.getTime() + " and "
                         + stop.getTime());
-                // ConsistencyCheck that start < stop
+                // Check that start < stop
                 if (start.compareTo(stop) > 0) {
                     // no so add 24H to stop
                     stop.add(Calendar.DAY_OF_MONTH, 1);
                 }
-                // ConsistencyCheck that start and stop > newDate (only start is checked since start <= stop)
+                // Check that start and stop > newDate (only start is checked since start <= stop)
                 if (start.compareTo(newDate) < 0) {
                     start.add(Calendar.DAY_OF_MONTH, 1);
                     stop.add(Calendar.DAY_OF_MONTH, 1);
@@ -407,7 +407,7 @@ public class RescheduleTransferTask extends AbstractTask {
     }
 
     /**
-     * 
+     *
      * @param values
      *            as X+n or X-n or X=n or Xn where X=Y/M/D/H/m/s, n=number and +/- meaning
      *            adding/subtracting from current date and = meaning specific set value

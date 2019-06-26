@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -45,9 +45,9 @@ import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
  * The global object session in OpenR66, a session by local channel
- * 
+ *
  * @author frederic bregier
- * 
+ *
  */
 public class R66Session implements SessionInterface {
     /**
@@ -156,7 +156,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Propose a new State
-     * 
+     *
      * @param desiredstate
      * @throws IllegalFiniteStateException
      *             if the new status if not ok
@@ -179,7 +179,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * 
+     *
      * @return the current state in the finite state machine
      */
     public R66FiniteDualStates getState() {
@@ -188,7 +188,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Debugging purpose
-     * 
+     *
      * @param stat
      */
     @Deprecated
@@ -303,7 +303,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * 
+     *
      * @return True if the connection is currently authenticated
      */
     public boolean isAuthenticated() {
@@ -352,7 +352,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * 
+     *
      * @return the remote SocketAddress
      */
     public SocketAddress getRemoteAddress() {
@@ -360,7 +360,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * 
+     *
      * @return the local SocketAddress
      */
     public SocketAddress getLocalAddress() {
@@ -376,7 +376,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * To be called in case of No Session not from a valid LocalChannelHandler
-     * 
+     *
      * @param runner
      * @param localChannelReference
      */
@@ -405,7 +405,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set the File from the runner before PRE operation are done
-     * 
+     *
      * @throws OpenR66RunnerErrorException
      */
     public void setFileBeforePreRunner() throws OpenR66RunnerErrorException {
@@ -438,7 +438,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set the File from the runner once PRE operation are done
-     * 
+     *
      * @param createFile
      *            When True, the file can be newly created if needed. If False, no new file will be
      *            created, thus having an Exception.
@@ -559,7 +559,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * To be used when a request comes with a bad code so it cannot be set normally
-     * 
+     *
      * @param runner
      * @param code
      */
@@ -593,9 +593,9 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set the runner, and setup the directory first.
-     * 
+     *
      * This call should be followed by a startup() call.
-     * 
+     *
      * @param runner
      *            the runner to set
      * @throws OpenR66RunnerErrorException
@@ -647,7 +647,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * START from the PreTask if necessary, and prepare the file
-     * 
+     *
      * @param checkNotExternal
      *            if True, the file as Sender should not be external to current directory
      * @throws OpenR66RunnerErrorException
@@ -714,7 +714,7 @@ public class R66Session implements SessionInterface {
                 this.businessObject.checkAfterPreCommand(this);
             }
             if (!this.runner.isSender()) {
-                // ConsistencyCheck file length according to rank
+                // Check file length according to rank
                 if (runner.isRecvThrough()) {
                     // no size can be checked
                 } else {
@@ -738,7 +738,7 @@ public class R66Session implements SessionInterface {
                         available = truefile.getFreeSpace();
                         targetDir = truefile.getPath();
                     }
-                    logger.debug("ConsistencyCheck available space: " + available + " >? " + needed + "(+" + length + ")");
+                    logger.debug("Check available space: " + available + " >? " + needed + "(+" + length + ")");
                     // Available > 0 since some system returns 0 (wrong size)
                     if (available > 0 && needed > available) {
                         // not enough space
@@ -799,7 +799,7 @@ public class R66Session implements SessionInterface {
     /**
      * Rename the current receive file from the very beginning since the sender has a post action
      * that changes its name
-     * 
+     *
      * @param newFilename
      * @throws OpenR66RunnerErrorException
      */
@@ -829,7 +829,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Finalize the transfer step by running the error or post operation according to the status.
-     * 
+     *
      * @param status
      * @param finalValue
      * @throws OpenR66RunnerErrorException
@@ -932,7 +932,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Try to finalize the request if possible
-     * 
+     *
      * @param errorValue
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolSystemException
@@ -993,7 +993,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * 
+     *
      * @return True if the number of Error is still acceptable
      */
     public boolean addError() {

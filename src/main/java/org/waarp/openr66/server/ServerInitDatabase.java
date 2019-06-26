@@ -266,7 +266,7 @@ public class ServerInitDatabase {
         }
         // Update tables: runner
         boolean uptodate = true;
-        // ConsistencyCheck if the database is up to date
+        // Check if the database is up to date
         String version = DbHostConfiguration
                 .getVersionDb(Configuration.configuration.getHOST_ID());
         try {

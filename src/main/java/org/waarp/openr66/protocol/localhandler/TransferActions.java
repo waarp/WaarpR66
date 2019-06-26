@@ -5,8 +5,8 @@
    tags. See the COPYRIGHT.txt in the distribution for a full listing of
    individual contributors.
 
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
+   All Waarp Project is free software: you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as published
    by the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
@@ -76,7 +76,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 /**
  * Class to implement actions related to real transfer: request initialization, data transfer, end of transfer and of request,
  * changing filename or filesize.
- * 
+ *
  * @author "Frederic Bregier"
  *
  */
@@ -92,7 +92,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Finalize a request initialization in error
-     * 
+     *
      * @param channel
      * @param code
      * @param runner
@@ -142,7 +142,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive a request of Transfer
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolNoDataException
@@ -227,7 +227,7 @@ public class TransferActions extends ServerActions {
                 throw new OpenR66ProtocolNotAuthenticatedException(
                         Messages.getString("LocalServerHandler.10")); //$NON-NLS-1$
             }
-            // ConsistencyCheck if the blocksize is greater than local value
+            // Check if the blocksize is greater than local value
             if (Configuration.configuration.getBLOCKSIZE() < blocksize) {
                 blocksize = Configuration.configuration.getBLOCKSIZE();
                 String sep = localChannelReference.getPartner().getSeperator();
@@ -384,7 +384,7 @@ public class TransferActions extends ServerActions {
             packet.setSpecialId(runner.getSpecialId());
         }
         logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
-        // ConsistencyCheck now if request is a valid one
+        // Check now if request is a valid one
         if (packet.getCode() != ErrorCode.InitOk.code) {
             // not valid so create an error from there
             ErrorCode code = ErrorCode.getFromCode("" + packet.getCode());
@@ -545,7 +545,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Send a Filename/Filesize change to the partner
-     * 
+     *
      * @param packet
      * @param runner
      * @throws OpenR66ProtocolPacketException
@@ -588,7 +588,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Send an error
-     * 
+     *
      * @param message
      * @param code
      * @param channel
@@ -618,7 +618,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive a data block
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolNotAuthenticatedException
@@ -698,7 +698,7 @@ public class TransferActions extends ServerActions {
                 return;
             }
         }
-        // ConsistencyCheck global size
+        // Check global size
         long originalSize = session.getRunner().getOriginalSize();
         if (originalSize >= 0) {
             if (session.getRunner().getBlocksize() * (session.getRunner().getRank() - 1) > originalSize) {
@@ -791,7 +791,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive an End of Transfer
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -805,7 +805,7 @@ public class TransferActions extends ServerActions {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated while EndTransfer received");
         }
-        // ConsistencyCheck end of transfer
+        // Check end of transfer
         long originalSize = session.getRunner().getOriginalSize();
         logger.debug("OSize: " + originalSize + " isSender: " + session.getRunner().isSender());
         if (packet.isToValidate()) {
@@ -1006,7 +1006,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive an End of Request
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -1119,7 +1119,7 @@ public class TransferActions extends ServerActions {
     }
     /**
      * Change the filename and the filesize
-     * 
+     *
      * @param channel
      * @param newfilename
      * @param newSize
@@ -1136,7 +1136,7 @@ public class TransferActions extends ServerActions {
         if (runner != null) {
             if (newSize > 0) {
                 runner.setOriginalSize(newSize);
-                // ConsistencyCheck if a CHKFILE task was supposely needed to run
+                // Check if a CHKFILE task was supposely needed to run
                 String[][] rpretasks = runner.getRule().getRpreTasksArray();
                 if (rpretasks != null) {
                     for (String[] strings : rpretasks) {

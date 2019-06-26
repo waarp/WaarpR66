@@ -619,6 +619,7 @@ public class DbHostAuth extends AbstractDbData {
         if (host.getHostkey() == null) {
             return true;
         }
+        // Check before if any key is passed or if account is active
         if (newkey == null || !isActive()) {
             return false;
         }

@@ -866,7 +866,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * ConsistencyCheck if the given hostTo is in the allowed list
+     * Check if the given hostTo is in the allowed list
      *
      * @param hostId
      * @return True if allow, else False

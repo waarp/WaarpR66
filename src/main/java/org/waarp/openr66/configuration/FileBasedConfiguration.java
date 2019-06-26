@@ -452,7 +452,7 @@ public class FileBasedConfiguration {
     private static final String XML_DBAUTOUPGRADE = "autoUpgrade";
 
     /**
-     * ConsistencyCheck version in protocol
+     * Check version in protocol
      */
     private static final String XML_CHECKVERSION = "checkversion";
     /**
@@ -1870,7 +1870,7 @@ public class FileBasedConfiguration {
                     logger.error(Messages.getString("Database.CannotConnect"), e2); //$NON-NLS-1$
                     return false;
                 }
-                // ConsistencyCheck if the database is ready (initdb already done before)
+                // Check if the database is ready (initdb already done before)
                 DbRequest request = null;
                 if (!initdb) {
                     try {

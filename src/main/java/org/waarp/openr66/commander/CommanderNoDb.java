@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -37,11 +37,11 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 /**
  * Commander is responsible to read list of updated data from time to time in order to achieve new
  * runner or new configuration updates.
- * 
+ *
  * Based on no Database support
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class CommanderNoDb implements CommanderInterface {
     /**
@@ -55,7 +55,7 @@ public class CommanderNoDb implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      */
     public CommanderNoDb(InternalRunner runner) {
@@ -64,7 +64,7 @@ public class CommanderNoDb implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @param fromStartup
      *            True if call from startup of the server
@@ -140,21 +140,21 @@ public class CommanderNoDb implements CommanderInterface {
                     configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     configuration.update();
                 }
-                // ConsistencyCheck HostAuthent
+                // Check HostAuthent
                 else if (data instanceof DbHostAuth) {
                     DbHostAuth hostAuth = (DbHostAuth) data;
                     // Nothing to do except validate
                     hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     hostAuth.update();
                 }
-                // ConsistencyCheck Rules
+                // Check Rules
                 else if (data instanceof DbRule) {
                     // Nothing to do except validate
                     DbRule rule = (DbRule) data;
                     rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                     rule.update();
                 }
-                // ConsistencyCheck TaskRunner
+                // Check TaskRunner
                 else if (data instanceof DbTaskRunner) {
                     DbTaskRunner taskRunner = (DbTaskRunner) data;
                     logger.debug("get a task: {}", taskRunner);
