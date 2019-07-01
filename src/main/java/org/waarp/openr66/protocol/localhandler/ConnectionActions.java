@@ -326,8 +326,7 @@ public abstract class ConnectionActions {
 
         DbHostAuth auth = null;
         try {
-            auth = new DbHostAuth(localChannelReference.getDbSession(),
-                    packet.getHostId());
+            auth = new DbHostAuth(packet.getHostId());
         } catch (WaarpDatabaseException e) {
             logger.warn("Cannot find the authentication " + packet.getHostId(), e);
         }

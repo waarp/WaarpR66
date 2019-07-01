@@ -91,8 +91,6 @@ public class Rule {
         sErrorTasks = new ArrayList<RuleTask>();
     }
 
-    public Rule() {}
-
     @XmlElementDecl(name = XRPRETASKS)
     @XmlElement(name = XRPRETASKS)
     public Tasks get_rPreTasks() {

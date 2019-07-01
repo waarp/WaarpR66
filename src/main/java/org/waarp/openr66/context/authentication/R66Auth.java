@@ -113,7 +113,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             throws Reply530Exception, Reply421Exception {
         DbHostAuth auth = null;
         try {
-            auth = new DbHostAuth(dbSession, hostId);
+            auth = new DbHostAuth(hostId);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot find authentication for " + hostId);
             setIsIdentified(false);
