@@ -78,44 +78,4 @@ public abstract class DAOFactory {
      * @throws DAOException if cannot create the DAO
      */
     public abstract TransferDAO getTransferDAO() throws DAOException;
-
-    /**
-     * Return a file based DAOFactory
-     *
-     * @return a file based factory
-     */
-    public static DAOFactory getDAOFactory() {
-        //return new NoDBDAOFactory();
-        return null;
-    }
-
-    /**
-     * Return a DAOFactory using the Connection provided
-     *
-     * @param connection the connection used to access the database
-     * @return a database DAOFactory using the connection passed as argument;
-     * a file based DAO if the Connection is null.
-     */
-    public static DAOFactory getDAOFactory(Connection connection) {
-        if(connection == null) {
-            //return new NoDBDAOFactory();
-        }
-        return new DBDAOFactory(connection);
-    }
-
-    /**
-     * Return a DAOFactory using the ConnectionFactory provided
-     *
-     * @param factory the connectionFactory used to access the
-     * database
-     * @return a database DAOFactory using the connectionFactory passed as
-     * argument;
-     * a file based DAO if the Connection is null.
-     */
-    public static DAOFactory getDAOFactory(ConnectionFactory factory) {
-        if(factory == null) {
-            //return new NoDBDAOFactory();
-        }
-        return new DBDAOFactory(factory);
-    }
 }
