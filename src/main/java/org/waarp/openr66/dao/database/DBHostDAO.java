@@ -37,14 +37,14 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     public static final String UPDATED_INFO_FIELD = "updatedinfo";
 
     protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
-    protected static String SQL_DELETE = "DELETE FROM " + TABLE 
+    protected static String SQL_DELETE = "DELETE FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
     protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE;
-    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE 
+    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static String SQL_SELECT = "SELECT * FROM " + TABLE 
+    protected static String SQL_SELECT = "SELECT * FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_INSERT = "INSERT INTO " + TABLE + 
+    protected static final String SQL_INSERT = "INSERT INTO " + TABLE +
         " (" + HOSTID_FIELD + ", "
         + ADDRESS_FIELD + ", "
         + PORT_FIELD + ", "
@@ -53,9 +53,9 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
         + IS_ACTIVE_FIELD + ", "
         + IS_PROXIFIED_FIELD + ", "
         + HOSTKEY_FIELD + ", "
-        + ADMINROLE_FIELD + ", " 
+        + ADMINROLE_FIELD + ", "
         + UPDATED_INFO_FIELD + ") VALUES (?,?,?,?,?,?,?,?,?,?)";
-    protected static String SQL_UPDATE = "UPDATE " + TABLE + 
+    protected static String SQL_UPDATE = "UPDATE " + TABLE +
         " SET " + HOSTID_FIELD + " = ?, "
         + ADDRESS_FIELD + " = ?, "
         + PORT_FIELD + " = ?, "
@@ -67,7 +67,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
         + ADMINROLE_FIELD + " = ?, "
         + UPDATED_INFO_FIELD + " = ? WHERE " + HOSTID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBHostDAO(Connection con) throws DAOException {
         this.connection = con;
@@ -133,9 +133,9 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";

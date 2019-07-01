@@ -9,12 +9,12 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.exception.DAOException;
 
-abstract class StatementExecutor {     
+abstract class StatementExecutor {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(
             StatementExecutor.class);
 
-    public void setParameters(PreparedStatement stm, Object... values) 
+    public void setParameters(PreparedStatement stm, Object... values)
             throws SQLException {
             for (int i = 0; i < values.length; i++) {
                 stm.setObject(i+1, values[i]);

@@ -44,9 +44,9 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + HOSTID_FIELD + ", "
         + READ_GLOBAL_LIMIT_FIELD + ", "
-        + WRITE_GLOBAL_LIMIT_FIELD + ", " 
-        + READ_SESSION_LIMIT_FIELD + ", " 
-        + WRITE_SESSION_LIMIT_FIELD + ", " 
+        + WRITE_GLOBAL_LIMIT_FIELD + ", "
+        + READ_SESSION_LIMIT_FIELD + ", "
+        + WRITE_SESSION_LIMIT_FIELD + ", "
         + DELAY_LIMIT_FIELD + ", "
         + UPDATED_INFO_FIELD + ") VALUES (?,?,?,?,?,?,?)";
 
@@ -62,7 +62,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
 
     protected Connection connection;
 
-    public DBLimitDAO(Connection con) { 
+    public DBLimitDAO(Connection con) {
         this.connection = con;
     }
 
@@ -126,9 +126,9 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";

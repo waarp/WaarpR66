@@ -49,14 +49,14 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
     public static final String UPDATED_INFO_FIELD = "updatedInfo";
 
     protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
-    protected static String SQL_DELETE = "DELETE FROM " + TABLE 
+    protected static String SQL_DELETE = "DELETE FROM " + TABLE
         + " WHERE " + ID_FIELD + " = ?";
     protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE;
-    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE 
+    protected static String SQL_EXIST = "SELECT 1 FROM " + TABLE
         + " WHERE " + ID_FIELD + " = ?";
-    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE 
+    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE
         + " WHERE " + ID_FIELD + " = ?";
-    protected static final String SQL_INSERT = "INSERT INTO " + TABLE 
+    protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + GLOBAL_STEP_FIELD + ", "
         + GLOBAL_LAST_STEP_FIELD + ", "
         + STEP_FIELD + ", "
@@ -79,19 +79,19 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         + REQUESTER_FIELD + ", "
         + UPDATED_INFO_FIELD + ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-    protected static final String SQL_UPDATE = "UPDATE " + TABLE 
+    protected static final String SQL_UPDATE = "UPDATE " + TABLE
         + " SET " + ID_FIELD + " = ?, "
         + GLOBAL_STEP_FIELD + " = ?, "
         + GLOBAL_LAST_STEP_FIELD + " = ?, "
         + STEP_FIELD + " = ?, "
         + RANK_FIELD + " = ?, "
         + STEP_STATUS_FIELD + " = ?, "
-        + RETRIEVE_MODE_FIELD + " = ?, " 
+        + RETRIEVE_MODE_FIELD + " = ?, "
         + FILENAME_FIELD + " = ?, "
         + IS_MOVED_FIELD + " = ?, "
         + ID_RULE_FIELD + " = ?, "
         + BLOCK_SIZE_FIELD + " = ?, "
-        + ORIGINAL_NAME_FIELD + " = ?, " 
+        + ORIGINAL_NAME_FIELD + " = ?, "
         + FILE_INFO_FIELD + " = ?, "
         + TRANSFER_INFO_FIELD + " = ?, "
         + TRANSFER_MODE_FIELD + " = ?, "
@@ -103,7 +103,7 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         + REQUESTER_FIELD + " = ?, "
         + UPDATED_INFO_FIELD + " = ?  WHERE " + ID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBTransferDAO(Connection con) {
         this.connection = con;
@@ -169,9 +169,9 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";
@@ -309,33 +309,33 @@ public class DBTransferDAO extends StatementExecutor implements TransferDAO {
             throw new DAOException(e);
         } finally {
             closeStatement(stm);
-        } 
+        }
     }
 
     private Transfer getFromResultSet(ResultSet set) throws SQLException {
         return new Transfer(
                 set.getLong(ID_FIELD),
-                set.getString(ID_RULE_FIELD), 
-                set.getInt(TRANSFER_MODE_FIELD), 
-                set.getString(FILENAME_FIELD), 
-                set.getString(ORIGINAL_NAME_FIELD),  
-                set.getString(FILE_INFO_FIELD),  
-                set.getBoolean(IS_MOVED_FIELD), 
-                set.getInt(BLOCK_SIZE_FIELD), 
-                set.getBoolean(RETRIEVE_MODE_FIELD),  
-                set.getString(OWNER_REQUEST_FIELD), 
+                set.getString(ID_RULE_FIELD),
+                set.getInt(TRANSFER_MODE_FIELD),
+                set.getString(FILENAME_FIELD),
+                set.getString(ORIGINAL_NAME_FIELD),
+                set.getString(FILE_INFO_FIELD),
+                set.getBoolean(IS_MOVED_FIELD),
+                set.getInt(BLOCK_SIZE_FIELD),
+                set.getBoolean(RETRIEVE_MODE_FIELD),
+                set.getString(OWNER_REQUEST_FIELD),
                 set.getString(REQUESTER_FIELD),
-                set.getString(REQUESTED_FIELD), 
-                set.getString(TRANSFER_INFO_FIELD),  
-                Transfer.TASKSTEP.valueOf(set.getInt(GLOBAL_STEP_FIELD)),  
-                Transfer.TASKSTEP.valueOf(set.getInt(GLOBAL_LAST_STEP_FIELD)),  
-                set.getInt(STEP_FIELD),  
-                set.getString(STEP_STATUS_FIELD),  
-                set.getString(INFO_STATUS_FIELD), 
-                set.getInt(RANK_FIELD),  
-                set.getTimestamp(TRANSFER_START_FIELD), 
-                set.getTimestamp(TRANSFER_STOP_FIELD), 
-                set.getInt(UPDATED_INFO_FIELD)); 
+                set.getString(REQUESTED_FIELD),
+                set.getString(TRANSFER_INFO_FIELD),
+                Transfer.TASKSTEP.valueOf(set.getInt(GLOBAL_STEP_FIELD)),
+                Transfer.TASKSTEP.valueOf(set.getInt(GLOBAL_LAST_STEP_FIELD)),
+                set.getInt(STEP_FIELD),
+                set.getString(STEP_STATUS_FIELD),
+                set.getString(INFO_STATUS_FIELD),
+                set.getInt(RANK_FIELD),
+                set.getTimestamp(TRANSFER_START_FIELD),
+                set.getTimestamp(TRANSFER_STOP_FIELD),
+                set.getInt(UPDATED_INFO_FIELD));
     }
 }
 

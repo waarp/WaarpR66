@@ -31,13 +31,13 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     public static final String COUNT_HOST_FIELD = "counthost";
     public static final String COUNT_RULE_FIELD = "countrule";
 
-    protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE; 
-    protected static final String SQL_DELETE = "DELETE FROM " + TABLE 
+    protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
+    protected static final String SQL_DELETE = "DELETE FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE; 
-    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE 
+    protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE;
+    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE 
+    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
     protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + HOSTID_FIELD + ", "
@@ -51,7 +51,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
         + COUNT_HOST_FIELD + " = ?, "
         + COUNT_RULE_FIELD + " = ? WHERE " + HOSTID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBMultipleMonitorDAO(Connection con) {
         this.connection = con;
@@ -105,7 +105,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public List<MultipleMonitor> find(List<Filter> filters) 
+    public List<MultipleMonitor> find(List<Filter> filters)
             throws DAOException {
         ArrayList<MultipleMonitor> monitors = new ArrayList<MultipleMonitor>();
         // Create the SQL query
@@ -118,9 +118,9 @@ public class DBMultipleMonitorDAO extends StatementExecutor
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";

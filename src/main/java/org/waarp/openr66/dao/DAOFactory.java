@@ -42,7 +42,7 @@ public abstract class DAOFactory {
      * @return a ready to use MultipleMonitorDAO
      * @throws DAOException if cannot create the DAO
      */
-    public abstract MultipleMonitorDAO getMultipleMonitorDAO() 
+    public abstract MultipleMonitorDAO getMultipleMonitorDAO()
             throws DAOException;
 
     /**
@@ -63,7 +63,7 @@ public abstract class DAOFactory {
 
     /**
      * Return a file based DAOFactory
-     * 
+     *
      * @return a file based factory
      */
     public static DAOFactory getDAOFactory() {
@@ -73,7 +73,7 @@ public abstract class DAOFactory {
 
     /**
      * Return a DAOFactory using the Connection provided
-     * 
+     *
      * @param connection the connection used to access the database
      * @return a database DAOFactory using the connection passed as argument;
      * a file based DAO if the Connection is null.
@@ -87,8 +87,8 @@ public abstract class DAOFactory {
 
     /**
      * Return a DAOFactory using the ConnectionFactory provided
-     * 
-     * @param factory the connectionFactory used to access the 
+     *
+     * @param factory the connectionFactory used to access the
      * database
      * @return a database DAOFactory using the connectionFactory passed as
      * argument;

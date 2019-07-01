@@ -72,7 +72,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         + " WHERE " + ID_FIELD + " = ?";
     protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + ID_FIELD + ", "
-        + HOSTIDS_FIELD + ", " 
+        + HOSTIDS_FIELD + ", "
         + MODE_TRANS_FIELD + ", "
         + RECV_PATH_FIELD + ", "
         + SEND_PATH_FIELD + ", "
@@ -99,10 +99,10 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         + R_ERROR_TASKS_FIELD + " = ? ,"
         + S_PRE_TASKS_FIELD + " = ? ,"
         + S_POST_TASKS_FIELD + " = ? ,"
-        + S_ERROR_TASKS_FIELD + " = ? ," 
+        + S_ERROR_TASKS_FIELD + " = ? ,"
         + UPDATED_INFO_FIELD + " = ? WHERE " + ID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBRuleDAO(Connection con) {
         this.connection = con;
@@ -168,9 +168,9 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";
@@ -294,7 +294,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         }
     }
 
-    protected Rule getFromResultSet(ResultSet set) throws SQLException, 
+    protected Rule getFromResultSet(ResultSet set) throws SQLException,
               DAOException {
         return new Rule(
                 set.getString(ID_FIELD),
@@ -324,7 +324,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             throw new DAOException(e);
         }
         document.getDocumentElement().normalize();
-        
+
         NodeList hostsList = document.getElementsByTagName("hostid");
         for (int i = 0; i < hostsList.getLength(); i++) {
             res.add(hostsList.item(i).getTextContent());

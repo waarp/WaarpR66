@@ -27,7 +27,7 @@ public interface RuleDAO {
     List<Rule> find(List<Filter> filters) throws DAOException;
 
     /**
-     * Retrieve the Rule object with the specified Rulename from the 
+     * Retrieve the Rule object with the specified Rulename from the
      * persistance layer
      *
      * @param rulename rulename of the Rule object requested

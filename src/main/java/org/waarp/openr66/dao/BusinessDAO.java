@@ -27,7 +27,7 @@ public interface BusinessDAO {
     List<Business> find(List<Filter> filters) throws DAOException;
 
     /**
-     * Retrieve the Business object with the specified hostid from the 
+     * Retrieve the Business object with the specified hostid from the
      * persistance layer
      *
      * @param hostid Hostid of the Business object requested
