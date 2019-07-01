@@ -32,7 +32,7 @@ public abstract class DBTransferDAOIT {
 
     public void runScript(String script) {
         try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            ScriptRunner runner = new ScriptRunner(con, false, true);
             URL url = Thread.currentThread().getContextClassLoader().getResource(script);
             runner.runScript(new BufferedReader(new FileReader(url.getPath())));
         } catch (Exception e) {
@@ -59,7 +59,7 @@ public abstract class DBTransferDAOIT {
             //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -73,7 +73,7 @@ public abstract class DBTransferDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -81,7 +81,7 @@ public abstract class DBTransferDAOIT {
         try {
             TransferDAO dao = factory.getTransferDAO();
             dao.delete(new Transfer(0l, "", 1, "", "", "", false, 0, false, "",
-                        "", "", "", Transfer.TASKSTEP.NOTASK, 
+                        "", "", "", Transfer.TASKSTEP.NOTASK,
                         Transfer.TASKSTEP.NOTASK, 0, "", "" , 0, null, null));
 
             ResultSet res = con.createStatement()
@@ -89,7 +89,7 @@ public abstract class DBTransferDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -99,7 +99,7 @@ public abstract class DBTransferDAOIT {
             assertEquals(4, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -113,7 +113,7 @@ public abstract class DBTransferDAOIT {
             assertEquals(null, transfer2);
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -124,7 +124,7 @@ public abstract class DBTransferDAOIT {
             assertEquals(false, dao.exist(1));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
 
@@ -156,16 +156,16 @@ public abstract class DBTransferDAOIT {
             assertEquals(19000, res.getInt(0));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testUpdate() {
         try {
             TransferDAO dao = factory.getTransferDAO();
-            dao.update(new Transfer(0l, "rule", 13, "test", "testOrig", 
-                        "testInfo", true, 42, true, "owner", "requester", 
-                        "requested", "transferInfo", Transfer.TASKSTEP.ERRORTASK, 
+            dao.update(new Transfer(0l, "rule", 13, "test", "testOrig",
+                        "testInfo", true, 42, true, "owner", "requester",
+                        "requested", "transferInfo", Transfer.TASKSTEP.ERRORTASK,
                         Transfer.TASKSTEP.TRANSFERTASK, 27, "ste", "inf",
                         64, new Timestamp(192l), new Timestamp(1511l), 19000));
 
@@ -196,7 +196,7 @@ public abstract class DBTransferDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 
 
     @Test
@@ -210,6 +210,6 @@ public abstract class DBTransferDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 }
 

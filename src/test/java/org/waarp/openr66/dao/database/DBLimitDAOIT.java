@@ -30,7 +30,7 @@ public abstract class DBLimitDAOIT {
 
     public void runScript(String script) {
         try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            ScriptRunner runner = new ScriptRunner(con, false, true);
             URL url = Thread.currentThread().getContextClassLoader().getResource(script);
             runner.runScript(new BufferedReader(new FileReader(url.getPath())));
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public abstract class DBLimitDAOIT {
             //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -71,7 +71,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -85,7 +85,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -95,7 +95,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(3, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -115,7 +115,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(null, limit2);
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -126,7 +126,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
 
@@ -153,7 +153,7 @@ public abstract class DBLimitDAOIT {
             assertEquals(-18, res2.getInt("updatedInfo"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -175,7 +175,7 @@ public abstract class DBLimitDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 
 
     @Test
@@ -188,6 +188,6 @@ public abstract class DBLimitDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 }
 

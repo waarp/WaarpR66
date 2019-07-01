@@ -30,7 +30,7 @@ public abstract class DBHostDAOIT {
 
     public void runScript(String script) {
         try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            ScriptRunner runner = new ScriptRunner(con, false, true);
             URL url = Thread.currentThread().getContextClassLoader().getResource(script);
             runner.runScript(new BufferedReader(new FileReader(url.getPath())));
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public abstract class DBHostDAOIT {
             //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -71,7 +71,7 @@ public abstract class DBHostDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -85,7 +85,7 @@ public abstract class DBHostDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -95,7 +95,7 @@ public abstract class DBHostDAOIT {
             assertEquals(3, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -119,7 +119,7 @@ public abstract class DBHostDAOIT {
             assertEquals(null, host2);
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -130,7 +130,7 @@ public abstract class DBHostDAOIT {
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
 
@@ -160,7 +160,7 @@ public abstract class DBHostDAOIT {
             assertEquals(0, res2.getInt("updatedinfo"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -185,7 +185,7 @@ public abstract class DBHostDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 
 
     @Test
@@ -198,6 +198,6 @@ public abstract class DBHostDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 }
 

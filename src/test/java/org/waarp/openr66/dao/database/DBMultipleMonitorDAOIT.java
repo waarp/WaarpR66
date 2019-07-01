@@ -30,7 +30,7 @@ public abstract class DBMultipleMonitorDAOIT {
 
     public void runScript(String script) {
         try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            ScriptRunner runner = new ScriptRunner(con, false, true);
             URL url = Thread.currentThread().getContextClassLoader().getResource(script);
             runner.runScript(new BufferedReader(new FileReader(url.getPath())));
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public abstract class DBMultipleMonitorDAOIT {
             //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -71,7 +71,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -85,7 +85,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -95,7 +95,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(4, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -112,7 +112,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(null, multiple2);
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -123,7 +123,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
 
@@ -147,7 +147,7 @@ public abstract class DBMultipleMonitorDAOIT {
             assertEquals(31, res2.getInt("countConfig"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
@@ -166,7 +166,7 @@ public abstract class DBMultipleMonitorDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 
 
     @Test
@@ -179,6 +179,6 @@ public abstract class DBMultipleMonitorDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 }
 
