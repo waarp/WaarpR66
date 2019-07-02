@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.mariaDB;
+package org.waarp.openr66.dao.database.mariadb;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

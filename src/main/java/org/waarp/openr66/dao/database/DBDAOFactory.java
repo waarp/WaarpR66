@@ -7,6 +7,10 @@ import org.waarp.common.database.properties.*;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.database.h2.H2TransferDAO;
+import org.waarp.openr66.dao.database.mariadb.MariaDBTransferDAO;
+import org.waarp.openr66.dao.database.oracle.OracleTransferDAO;
+import org.waarp.openr66.dao.database.postgres.PostgreSQLTransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 
 /**

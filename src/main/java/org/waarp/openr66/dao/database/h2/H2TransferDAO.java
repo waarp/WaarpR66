@@ -1,10 +1,11 @@
-package org.waarp.openr66.dao.database;
+package org.waarp.openr66.dao.database.h2;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 
 public class H2TransferDAO extends DBTransferDAO {

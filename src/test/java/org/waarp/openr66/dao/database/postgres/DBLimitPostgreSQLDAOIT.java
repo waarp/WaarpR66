@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.postgreSQL;
+package org.waarp.openr66.dao.database.postgres;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,12 +6,9 @@ import java.sql.SQLException;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.database.DBTransferDAOIT;
-import org.waarp.openr66.dao.database.PostgreSQLTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.database.DBLimitDAOIT;
 
-public class DBTransferPostgreSQLDAOIT extends DBTransferDAOIT {
+public class DBLimitPostgreSQLDAOIT extends DBLimitDAOIT {
 
     private String createScript = "postgresql/create.sql";
     private String populateScript = "postgresql/populate.sql";
@@ -19,11 +16,6 @@ public class DBTransferPostgreSQLDAOIT extends DBTransferDAOIT {
 
     @ClassRule
     public static PostgreSQLContainer db = new PostgreSQLContainer();
-
-    @Override
-    public DBTransferDAO getDAO(Connection con) throws DAOException {
-        return new PostgreSQLTransferDAO(con);
-    }
 
     @Override
     public Connection getConnection() throws SQLException {

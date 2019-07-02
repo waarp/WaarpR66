@@ -520,7 +520,6 @@ public class DbTaskRunner extends AbstractDbData {
      * Constructor for submission (no transfer session), from database. It is created, so with a new
      * specialId if necessary
      *
-     * @param dbSession
      * @param rule
      * @param isSender
      * @param requestPacket
@@ -574,7 +573,6 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Constructor from a request without a valid Special Id to be inserted into databases
      *
-     * @param dbSession
      * @param session
      * @param rule
      * @param isSender
@@ -585,6 +583,7 @@ public class DbTaskRunner extends AbstractDbData {
             boolean isSender, RequestPacket requestPacket)
             throws WaarpDatabaseException {
         super();
+        this.session = session;
         this.localChannelReference = session.getLocalChannelReference();
         this.rule = rule;
 
@@ -606,7 +605,6 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Constructor from a request with a valid Special Id so loaded from database
      *
-     * @param dbSession
      * @param session
      * @param rule
      * @param id
@@ -618,6 +616,7 @@ public class DbTaskRunner extends AbstractDbData {
             long id, String requester, String requested)
             throws WaarpDatabaseException {
         super();
+        this.session = session;
         TransferDAO transferAccess = null;
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
@@ -645,7 +644,6 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Minimal constructor from database
      *
-     * @param dbSession
      * @param id
      * @param requester
      * @param requested
@@ -672,7 +670,6 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Minimal constructor from database
      *
-     * @param dbSession
      * @param id
      * @param requester
      * @param requested
@@ -691,7 +688,6 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * To create a new DbTaskRunner (specialId could be invalid) without making any entry in the database
      *
-     * @param dbSession
      * @param source
      * @throws WaarpDatabaseException
      */
@@ -842,7 +838,6 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * This object cannot be used except to retrieve information.
      *
-     * @param dbSession
      * @param id
      * @param requested
      * @throws WaarpDatabaseException
@@ -1537,7 +1532,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      *
-     * @param session
      * @param info
      * @param orderByStart
      *            If true, sort on Start ; If false, does not set the limit on start

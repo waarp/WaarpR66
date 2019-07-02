@@ -85,7 +85,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 6) If everything is in success:<br>
  * <tt>     transaction.finalizeRequest();</tt><br>
  * <br>
- * Or now wait for the transfer to finish:<br>
+ * And now wait for the transfer to finish:<br>
  * <tt>     futureReq.awaitUninterruptibly();</tt><br>
  * <tt>     R66Result result = futureReq.getResult();</tt><br>
  * <br>
