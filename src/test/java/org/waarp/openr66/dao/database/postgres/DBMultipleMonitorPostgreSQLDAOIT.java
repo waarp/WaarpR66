@@ -1,21 +1,21 @@
-package org.waarp.openr66.dao.database.mariaDB;
+package org.waarp.openr66.dao.database.postgres;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import org.junit.ClassRule;
-import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.waarp.openr66.dao.database.DBMultipleMonitorDAOIT;
 
-public class DBMultipleMonitorMariaDBDAOIT extends DBMultipleMonitorDAOIT {
+public class DBMultipleMonitorPostgreSQLDAOIT extends DBMultipleMonitorDAOIT {
 
-    private String createScript = "mysql/create.sql";
-    private String populateScript = "mysql/populate.sql";
-    private String cleanScript = "mysql/clean.sql";
+    private String createScript = "postgresql/create.sql";
+    private String populateScript = "postgresql/populate.sql";
+    private String cleanScript = "postgresql/clean.sql";
 
     @ClassRule
-    public static MariaDBContainer db = new MariaDBContainer();
+    public static PostgreSQLContainer db = new PostgreSQLContainer();
 
     @Override
     public Connection getConnection() throws SQLException {

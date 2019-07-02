@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.mariaDB;
+package org.waarp.openr66.dao.database.mariadb;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,9 +6,9 @@ import java.sql.SQLException;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.MariaDBContainer;
-import org.waarp.openr66.dao.database.DBLimitDAOIT;
+import org.waarp.openr66.dao.database.DBHostDAOIT;
 
-public class DBLimitMariaDBDAOIT extends DBLimitDAOIT {
+public class DBHostMariaDBDAOIT extends DBHostDAOIT {
 
     private String createScript = "mysql/create.sql";
     private String populateScript = "mysql/populate.sql";

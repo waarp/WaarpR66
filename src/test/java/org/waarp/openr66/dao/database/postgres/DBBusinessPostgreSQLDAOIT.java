@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.postgreSQL;
+package org.waarp.openr66.dao.database.postgres;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,9 +6,9 @@ import java.sql.SQLException;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.waarp.openr66.dao.database.DBMultipleMonitorDAOIT;
+import org.waarp.openr66.dao.database.DBBusinessDAOIT;
 
-public class DBMultipleMonitorPostgreSQLDAOIT extends DBMultipleMonitorDAOIT {
+public class DBBusinessPostgreSQLDAOIT extends DBBusinessDAOIT {
 
     private String createScript = "postgresql/create.sql";
     private String populateScript = "postgresql/populate.sql";

@@ -1,5 +1,6 @@
-package org.waarp.openr66.dao.database;
+package org.waarp.openr66.dao.database.mariadb;
 
+import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.exception.DAOException;
 
 import java.sql.Connection;
