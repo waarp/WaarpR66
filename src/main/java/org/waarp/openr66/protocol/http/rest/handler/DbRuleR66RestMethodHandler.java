@@ -87,7 +87,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
             } else {
                 id = node.asText();
             }
-            return new DbRule(handler.getDbSession(), id);
+            return new DbRule(id);
         } catch (WaarpDatabaseException e) {
             throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
         }
@@ -100,7 +100,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
         ObjectNode arg = arguments.getUriArgs().deepCopy();
         arg.setAll(arguments.getBody());
         try {
-            return new DbRule(handler.getDbSession(), arg);
+            return new DbRule(arg);
         } catch (WaarpDatabaseException e) {
             throw new HttpIncorrectRequestException("Issue while inserting into database", e);
         }

@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,15 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 import static  org.junit.Assert.*;
 
-import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.database.DBRuleDAO;
 import org.waarp.openr66.pojo.Rule;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 public abstract class DBRuleDAOIT {
 
-    private DAOFactory factory;
     private Connection con;
 
     public abstract Connection getConnection() throws SQLException;
@@ -30,7 +28,7 @@ public abstract class DBRuleDAOIT {
 
     public void runScript(String script) {
         try {
-            ScriptRunner runner = new ScriptRunner(con, false, true); 
+            ScriptRunner runner = new ScriptRunner(con, false, true);
             URL url = Thread.currentThread().getContextClassLoader().getResource(script);
             runner.runScript(new BufferedReader(new FileReader(url.getPath())));
         } catch (Exception e) {
@@ -42,7 +40,6 @@ public abstract class DBRuleDAOIT {
     public void setUp() {
         try {
             con = getConnection();
-            factory = DAOFactory.getDAOFactory(getConnection());
             initDB();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -54,54 +51,53 @@ public abstract class DBRuleDAOIT {
         try {
             cleanDB();
             con.close();
-            //factory.close();
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testDeleteAll() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             dao.deleteAll();
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM RULES");
+                .executeQuery("SELECT * FROM rules");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testDelete() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             dao.delete(new Rule("default", 1));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM RULES where idrule = 'default'");
+                .executeQuery("SELECT * FROM rules where idrule = 'default'");
             assertEquals(false, res.next());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testGetAll() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             assertEquals(3, dao.getAll().size());
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testSelect() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             Rule rule = dao.select("dummy");
             Rule rule2 = dao.select("ghost");
 
@@ -118,38 +114,38 @@ public abstract class DBRuleDAOIT {
             assertEquals(3, rule.getSPreTasks().size());
             assertEquals(0, rule.getSPostTasks().size());
             assertEquals(0, rule.getSErrorTasks().size());
-            assertEquals(42, rule.getUpdatedInfo());
+            assertEquals(UpdatedInfo.UNKNOWN, rule.getUpdatedInfo());
             assertEquals(null, rule2);
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testExist() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             assertEquals(true, dao.exist("dummy"));
             assertEquals(false, dao.exist("ghost"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
 
     @Test
     public void testInsert() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             dao.insert(new Rule("chacha", 2));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT COUNT(1) as count FROM RULES");
+                .executeQuery("SELECT COUNT(1) as count FROM rules");
             res.next();
             assertEquals(4, res.getInt("count"));
 
             ResultSet res2 = con.createStatement()
-                .executeQuery("SELECT * FROM RULES WHERE idrule = 'chacha'");
+                .executeQuery("SELECT * FROM rules WHERE idrule = 'chacha'");
             res2.next();
             assertEquals("chacha", res2.getString("idrule"));
             assertEquals(2, res2.getInt("modetrans"));
@@ -167,17 +163,17 @@ public abstract class DBRuleDAOIT {
             assertEquals(0, res2.getInt("updatedInfo"));
         } catch (Exception e) {
             fail(e.getMessage());
-        } 
+        }
     }
 
     @Test
     public void testUpdate() {
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             dao.update(new Rule("dummy", 2));
 
             ResultSet res = con.createStatement()
-                .executeQuery("SELECT * FROM RULES WHERE idrule = 'dummy'");
+                .executeQuery("SELECT * FROM rules WHERE idrule = 'dummy'");
             res.next();
             assertEquals("dummy", res.getString("idrule"));
             assertEquals(2, res.getInt("modetrans"));
@@ -196,7 +192,7 @@ public abstract class DBRuleDAOIT {
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 
 
     @Test
@@ -204,11 +200,11 @@ public abstract class DBRuleDAOIT {
         ArrayList<Filter> map = new ArrayList<Filter>();
         map.add(new Filter(DBRuleDAO.MODE_TRANS_FIELD, "=", 1));
         try {
-            RuleDAO dao = factory.getRuleDAO();
+            RuleDAO dao = new DBRuleDAO(getConnection());
             assertEquals(2, dao.find(map).size());
         } catch (Exception e) {
             fail(e.getMessage());
         }
-    } 
+    }
 }
 

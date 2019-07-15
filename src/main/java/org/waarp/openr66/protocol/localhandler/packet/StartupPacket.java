@@ -31,6 +31,7 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
  */
 public class StartupPacket extends AbstractLocalPacket {
     private final Integer localId;
+    private final boolean fromSsl;
 
     /**
      * @param headerLength
@@ -42,14 +43,16 @@ public class StartupPacket extends AbstractLocalPacket {
     public static StartupPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ByteBuf buf) {
         Integer newId = buf.readInt();
-        return new StartupPacket(newId);
+        Boolean fromSsl = buf.readBoolean();
+        return new StartupPacket(newId, fromSsl);
     }
 
     /**
      * @param newId
      */
-    public StartupPacket(Integer newId) {
+    public StartupPacket(Integer newId, boolean fromSsl) {
         localId = newId;
+        this.fromSsl = fromSsl;
     }
 
     @Override
@@ -65,7 +68,8 @@ public class StartupPacket extends AbstractLocalPacket {
 
     @Override
     public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-        middle = Unpooled.EMPTY_BUFFER;
+        middle = Unpooled.buffer(1);
+        header.writeBoolean(fromSsl);
     }
 
     @Override
@@ -83,6 +87,10 @@ public class StartupPacket extends AbstractLocalPacket {
      */
     public Integer getLocalId() {
         return localId;
+    }
+
+    public boolean isFromSsl() {
+        return fromSsl;
     }
 
 }

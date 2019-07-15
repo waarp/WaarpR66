@@ -6,12 +6,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -19,16 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -45,7 +34,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBRuleDAO.class);
 
-    protected static final String TABLE = "RULES";
+    protected static final String TABLE = "rules";
 
     public static final String ID_FIELD = "idrule";
     public static final String HOSTIDS_FIELD = "hostids";
@@ -72,7 +61,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         + " WHERE " + ID_FIELD + " = ?";
     protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + ID_FIELD + ", "
-        + HOSTIDS_FIELD + ", " 
+        + HOSTIDS_FIELD + ", "
         + MODE_TRANS_FIELD + ", "
         + RECV_PATH_FIELD + ", "
         + SEND_PATH_FIELD + ", "
@@ -99,13 +88,22 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         + R_ERROR_TASKS_FIELD + " = ? ,"
         + S_PRE_TASKS_FIELD + " = ? ,"
         + S_POST_TASKS_FIELD + " = ? ,"
-        + S_ERROR_TASKS_FIELD + " = ? ," 
+        + S_ERROR_TASKS_FIELD + " = ? ,"
         + UPDATED_INFO_FIELD + " = ? WHERE " + ID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBRuleDAO(Connection con) {
         this.connection = con;
+    }
+
+    @Override
+    public void close() {
+        try {
+            this.connection.close();
+        } catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+        }
     }
 
     @Override
@@ -168,9 +166,9 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";
@@ -247,7 +245,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             rule.getXMLSPreTasks(),
             rule.getXMLSPostTasks(),
             rule.getXMLSErrorTasks(),
-            rule.getUpdatedInfo()
+            rule.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -278,7 +276,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             rule.getXMLSPreTasks(),
             rule.getXMLSPostTasks(),
             rule.getXMLSErrorTasks(),
-            rule.getUpdatedInfo(),
+            rule.getUpdatedInfo().ordinal(),
             rule.getName()
         };
 
@@ -294,7 +292,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         }
     }
 
-    protected Rule getFromResultSet(ResultSet set) throws SQLException, 
+    protected Rule getFromResultSet(ResultSet set) throws SQLException,
               DAOException {
         return new Rule(
                 set.getString(ID_FIELD),
@@ -310,11 +308,14 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
                 retrieveTasks(set.getString(S_PRE_TASKS_FIELD)),
                 retrieveTasks(set.getString(S_POST_TASKS_FIELD)),
                 retrieveTasks(set.getString(S_ERROR_TASKS_FIELD)),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 
     private List<String> retrieveHostids(String xml) throws DAOException {
         ArrayList<String> res = new ArrayList<String>();
+        if ((xml == null) || xml.equals("")) {
+            return res;
+        }
         Document document = null;
         try {
             InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));
@@ -324,7 +325,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             throw new DAOException(e);
         }
         document.getDocumentElement().normalize();
-        
+
         NodeList hostsList = document.getElementsByTagName("hostid");
         for (int i = 0; i < hostsList.getLength(); i++) {
             res.add(hostsList.item(i).getTextContent());
@@ -334,6 +335,9 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
 
     private List<RuleTask> retrieveTasks(String xml) throws DAOException {
         ArrayList<RuleTask> res = new ArrayList<RuleTask>();
+        if ((xml == null) || xml.equals("")) {
+            return res;
+        }
         Document document = null;
         try {
             InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));

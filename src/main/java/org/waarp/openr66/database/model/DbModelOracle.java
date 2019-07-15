@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -39,14 +39,14 @@ import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
  * Oracle Database Model implementation
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle {
     /**
      * Create the object and initialize if necessary the driver
-     * 
+     *
      * @param dbserver
      * @param dbuser
      * @param dbpasswd
@@ -92,7 +92,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         } finally {
             request.close();
         }
-        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(
                 Configuration.configuration.getHOST_ID(), 0, 0, 0);
         try {
             if (!multipleMonitor.exist()) {
@@ -263,7 +263,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
             request.close();
         }
 
-        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+        DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
             R66Versions.V2_4_25.getVersion());
     }
 
@@ -417,7 +417,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.close();
             }
         }
-        DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+        DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                 R66Versions.V2_4_25.getVersion());
         return true;
     }
@@ -434,7 +434,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                         " where " + DbHostConfiguration.Columns.HOSTID + " = '" + Configuration.configuration.getHOST_ID()
                         + "'");
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_13.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -451,7 +451,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.select("select " + DbTaskRunner.Columns.TRANSFERINFO.name() + " from " + DbTaskRunner.table +
                         " where " + DbTaskRunner.Columns.SPECIALID + " = " + DbConstant.ILLEGALVALUE);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_17.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -468,7 +468,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
                 request.select("select " + DbHostAuth.Columns.ISACTIVE.name() + " from " + DbHostAuth.table +
                         " where " + DbHostAuth.Columns.PORT + " = " + 0);
                 request.close();
-                DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                         R66Versions.V2_4_23.getVersion());
             } catch (WaarpDatabaseSqlException e) {
                 return !upgradeDb(session, version);
@@ -482,7 +482,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
         if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
             try {
                 if (upgradeDb(session, version)) {
-                    DbHostConfiguration.updateVersionDb(session, Configuration.configuration.getHOST_ID(),
+                    DbHostConfiguration.updateVersionDb(Configuration.configuration.getHOST_ID(),
                             R66Versions.V2_4_25.getVersion());
                 } else {
                     return true;

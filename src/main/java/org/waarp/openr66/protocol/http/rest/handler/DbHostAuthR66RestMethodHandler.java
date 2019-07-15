@@ -89,7 +89,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
             } else {
                 id = node.asText();
             }
-            return new DbHostAuth(handler.getDbSession(), id);
+            return new DbHostAuth(id);
         } catch (WaarpDatabaseException e) {
             throw new HttpNotFoundRequestException("Issue while reading from database " + arg + " was " + arguments, e);
         }
@@ -102,7 +102,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
         ObjectNode arg = arguments.getUriArgs().deepCopy();
         arg.setAll(arguments.getBody());
         try {
-            return new DbHostAuth(handler.getDbSession(), arg);
+            return new DbHostAuth(arg);
         } catch (WaarpDatabaseException e) {
             throw new HttpIncorrectRequestException("Issue while inserting into database", e);
         }

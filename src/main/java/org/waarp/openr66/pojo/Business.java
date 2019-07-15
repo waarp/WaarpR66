@@ -15,10 +15,16 @@ public class Business {
 
     private String others;
 
-    private int updatedInfo = 0;
+    private UpdatedInfo updatedInfo = UpdatedInfo.UNKNOWN;
+
+    /**
+     * Empty constructor for compatibility issues
+     */
+    @Deprecated
+    public Business() {}
 
     public Business(String hostid, String business, String roles, 
-            String aliases, String others, int updatedInfo) {
+            String aliases, String others, UpdatedInfo updatedInfo) {
         this(hostid, business, roles, aliases, others);
         this.updatedInfo = updatedInfo;
     }
@@ -71,11 +77,12 @@ public class Business {
     public void setOthers(String others) {
         this.others = others;
     }
-    public int getUpdatedInfo() {
+
+    public UpdatedInfo getUpdatedInfo() {
         return this.updatedInfo;
     }
 
-    public void setUpdatedInfo(int info) {
+    public void setUpdatedInfo(UpdatedInfo info) {
         this.updatedInfo = info;
     }
 }

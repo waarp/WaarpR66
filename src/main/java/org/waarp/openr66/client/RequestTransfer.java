@@ -236,7 +236,7 @@ public class RequestTransfer implements Runnable {
         }
         DbTaskRunner runner = null;
         try {
-            runner = new DbTaskRunner(DbConstant.admin.getSession(), null, null,
+            runner = new DbTaskRunner(null, null,
                     specialId, requester, requested);
             logger.info("Found previous Runner: " + runner.toString());
         } catch (WaarpDatabaseException e) {
@@ -430,7 +430,7 @@ public class RequestTransfer implements Runnable {
                         error = result.getCode();
                     }
                     OpenR66Exception e =
-                            new OpenR66RunnerErrorException("Transfer in direct mode failed: " + error.mesg);
+                            new OpenR66RunnerErrorException("Transfer in direct mode failed: " + error.getMesg());
                     future.setFailure(e);
                     return error;
                 }

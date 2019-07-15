@@ -74,4 +74,6 @@ public interface LimitDAO {
      * @throws DAOException If a data access error occurs
      */
     void deleteAll() throws DAOException;
+
+    void close();
 }

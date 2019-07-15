@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -78,7 +78,7 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * This class handles Network Transaction connections
- * 
+ *
  * @author frederic bregier
  */
 public class NetworkTransaction {
@@ -145,6 +145,7 @@ public class NetworkTransaction {
         WaarpNettyUtil.setBootstrap(clientBootstrap, Configuration.configuration.getNetworkWorkerGroup(),
                 (int) Configuration.configuration.getTIMEOUTCON());
         clientBootstrap.handler(networkServerInitializer);
+        Configuration.configuration.setupLimitHandler();
         clientSslBootstrap = new Bootstrap();
         if (Configuration.configuration.isUseSSL() && Configuration.configuration.getHOST_SSLID() != null) {
             NetworkSslServerInitializer networkSslServerInitializer = new NetworkSslServerInitializer(true);
@@ -283,7 +284,7 @@ public class NetworkTransaction {
 
     /**
      * Create a connection to the specified socketAddress with multiple retries
-     * 
+     *
      * @param socketAddress
      * @param isSSL
      * @param futureRequest
@@ -292,46 +293,43 @@ public class NetworkTransaction {
     public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress,
             boolean isSSL, R66Future futureRequest) {
         LocalChannelReference localChannelReference = null;
-        OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i++) {
             if (R66ShutdownHook.isShutdownStarting()) {
-                lastException = new OpenR66ProtocolSystemException("Local system in shutdown");
+                logger.error("Cannot connect : Local system in shutdown");
                 break;
             }
             try {
                 localChannelReference =
                         createConnection(socketAddress, isSSL, futureRequest);
                 break;
-            } catch (OpenR66ProtocolRemoteShutdownException e1) {
-                lastException = e1;
-                localChannelReference = null;
+            } catch (OpenR66ProtocolRemoteShutdownException e) {
+                logger.error("Cannot connect : {}", e.getMessage());
+                logger.debug(e);
                 break;
-            } catch (OpenR66ProtocolNoConnectionException e1) {
-                lastException = e1;
-                localChannelReference = null;
+            } catch (OpenR66ProtocolNoConnectionException e) {
+                logger.error("Cannot connect : {}", e.getMessage());
+                logger.debug(e);
                 break;
-            } catch (OpenR66ProtocolNetworkException e1) {
+            } catch (OpenR66ProtocolNetworkException e) {
                 // Can retry
-                lastException = e1;
-                localChannelReference = null;
+                logger.error("Cannot connect : {}. Will retry", e.getMessage());
+                logger.debug(e);
                 try {
                     Thread.sleep(Configuration.configuration.getDelayRetry());
-                } catch (InterruptedException e) {
+                } catch (InterruptedException e1) {
                     break;
                 }
             }
         }
-        if (localChannelReference == null) {
-            logger.debug("Cannot connect : {}", lastException.getMessage());
-        } else if (lastException != null) {
-            logger.debug("Connection retried since {}", lastException.getMessage());
+        if (localChannelReference != null) {
+            logger.info("Connected");
         }
         return localChannelReference;
     }
 
     /**
      * Create a connection to the specified socketAddress
-     * 
+     *
      * @param socketAddress
      * @param isSSL
      * @param futureRequest
@@ -363,7 +361,6 @@ public class NetworkTransaction {
             }
             if (!valid) {
                 // Limit is locally exceeded
-                logger.debug("Overloaded local system");
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to remote server due to local overload");
             }
@@ -373,13 +370,11 @@ public class NetworkTransaction {
             try {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().createNewClient(networkChannelReference,
-                                ChannelUtils.NOCHANNEL, futureRequest);
+                                ChannelUtils.NOCHANNEL, futureRequest, isSSL);
             } catch (OpenR66ProtocolSystemException e) {
-                throw new OpenR66ProtocolNetworkException(
-                        "Cannot connect to local channel", e);
+                throw new OpenR66ProtocolNetworkException(e);
             } catch (NullPointerException e) {
-                throw new OpenR66ProtocolNetworkException(
-                        "Cannot connect to local channel", e);
+                throw new OpenR66ProtocolNetworkException(e);
             }
             ok = true;
         } finally {
@@ -406,7 +401,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param socketServerAddress
      * @param isSSL
      * @return the NetworkChannelReference
@@ -483,8 +478,8 @@ public class NetworkTransaction {
                         logger.debug("KO CONNECT:" +
                                 channelFuture.cause().getMessage());
                         throw new OpenR66ProtocolNoConnectionException(
-                                "Cannot connect to remote server", channelFuture
-                                        .cause());
+                                channelFuture.cause().getMessage(),
+                                channelFuture.cause());
                     } else {
                         logger.debug("KO CONNECT but retry", channelFuture
                                 .cause());
@@ -500,15 +495,16 @@ public class NetworkTransaction {
 
     /**
      * Create the LocalChannelReference when a remote local channel starts its connection
-     * 
+     *
      * @param networkChannelReference
      * @param packet
      */
     public static void createConnectionFromNetworkChannelStartup(
             NetworkChannelReference networkChannelReference,
-            NetworkPacket packet) {
+            NetworkPacket packet, boolean isSsl) {
         CreateConnectionFromNetworkChannel ccfnc =
-                new CreateConnectionFromNetworkChannel(networkChannelReference, packet);
+                new CreateConnectionFromNetworkChannel(networkChannelReference,
+                        packet, isSsl);
         ccfnc.setDaemon(true);
         Configuration.configuration.getExecutorService().execute(ccfnc);
     }
@@ -516,11 +512,13 @@ public class NetworkTransaction {
     private static class CreateConnectionFromNetworkChannel extends Thread {
         final NetworkChannelReference networkChannelReference;
         final NetworkPacket startupPacket;
+        final boolean fromSsl;
 
         private CreateConnectionFromNetworkChannel(NetworkChannelReference networkChannelReference,
-                NetworkPacket packet) {
+                NetworkPacket packet, boolean fromSsl) {
             this.networkChannelReference = networkChannelReference;
             this.startupPacket = packet;
+            this.fromSsl = fromSsl;
         }
 
         @Override
@@ -531,7 +529,7 @@ public class NetworkTransaction {
             try {
                 lcr = Configuration.configuration
                         .getLocalTransaction().createNewClient(networkChannelReference,
-                                startupPacket.getRemoteId(), null);
+                                startupPacket.getRemoteId(), null, fromSsl);
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.error("Cannot create LocalChannel for: " + startupPacket + " due to "
                         + e1.getMessage());
@@ -565,7 +563,7 @@ public class NetworkTransaction {
 
     /**
      * Send a validation of connection with Authentication
-     * 
+     *
      * @param localChannelReference
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
@@ -651,7 +649,7 @@ public class NetworkTransaction {
 
     /**
      * Add a new NetworkChannel from connection
-     * 
+     *
      * @param channel
      * @throws OpenR66ProtocolRemoteShutdownException
      */
@@ -680,7 +678,7 @@ public class NetworkTransaction {
 
     /**
      * To be called when a remote server seems to be down for a while, so to not retry immediately
-     * 
+     *
      * @param socketAddress
      */
     public static void proposeShutdownNetworkChannel(SocketAddress socketAddress) {
@@ -723,7 +721,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown one Network Channel
-     * 
+     *
      * @param networkChannelReference
      */
     private static void shuttingDownNetworkChannelInternal(NetworkChannelReference networkChannelReference) {
@@ -752,7 +750,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown one Network Channel
-     * 
+     *
      * @param networkChannelReference
      */
     public static void shuttingDownNetworkChannel(NetworkChannelReference networkChannelReference) {
@@ -761,7 +759,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown a NetworkChannel and add it to BlaclList
-     * 
+     *
      * @param networkChannelReference
      * @return True if this channel is now blacklisted for a while
      */
@@ -786,7 +784,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param channel
      * @return True if this channel is blacklisted
      */
@@ -804,7 +802,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @return True if this address (associated channel) is currently in shutdown (or if this channel is not valid)
      */
@@ -814,7 +812,7 @@ public class NetworkTransaction {
 
     /**
      * Shutdown NetworkChannelReference as client
-     * 
+     *
      * @param requester
      * @return True if shutdown occurs
      */
@@ -832,7 +830,7 @@ public class NetworkTransaction {
 
     /**
      * Add a requester channel
-     * 
+     *
      * @param networkChannelReference
      * @param requester
      */
@@ -860,7 +858,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param requester
      * @return The number of NetworkChannels associated with this requester
      */
@@ -874,7 +872,7 @@ public class NetworkTransaction {
 
     /**
      * Force remove of NetworkChannelReference when it is closed
-     * 
+     *
      * @param networkChannelReference
      */
     public static void closedNetworkChannel(NetworkChannelReference networkChannelReference) {
@@ -904,7 +902,7 @@ public class NetworkTransaction {
 
     /**
      * Force remove of NetworkChannelReference when it is closed
-     * 
+     *
      * @param address
      */
     public static void closedNetworkChannel(SocketAddress address) {
@@ -919,9 +917,9 @@ public class NetworkTransaction {
     /**
      * Class to close the Network Channel if after some delays it has really no Local Channel
      * attached
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static class CloseFutureChannel implements TimerTask {
 
@@ -968,7 +966,7 @@ public class NetworkTransaction {
 
     /**
      * Check if closing of the localChannel will bring future closing of NetworkChannel
-     * 
+     *
      * @param networkChannelReference
      * @param localChannelReference
      * @return the number of local channel still connected to this channel
@@ -1001,7 +999,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @param host
      * @return a number > 0 if a connection is still active on this socket or for this host
@@ -1016,7 +1014,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param address
      * @return True if this socket Address is currently valid for connection
      */
@@ -1044,7 +1042,7 @@ public class NetworkTransaction {
 
     /**
      * Returns the NetworkChannelReference if it exists associated with this address
-     * 
+     *
      * @param address
      * @return NetworkChannelReference
      * @throws OpenR66ProtocolRemoteShutdownException
@@ -1088,7 +1086,7 @@ public class NetworkTransaction {
     }
 
     /**
-     * 
+     *
      * @param channel
      * @return the associated NetworkChannelReference immediately (if known)
      */
@@ -1101,9 +1099,9 @@ public class NetworkTransaction {
 
     /**
      * Remover of Shutdown Remote Host
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static class R66ShutdownNetworkChannelTimerTask implements TimerTask {
         private static final ConcurrentSet<ChannelId> inShutdownRunning = new ConcurrentSet<ChannelId>();
@@ -1116,7 +1114,7 @@ public class NetworkTransaction {
 
         /**
          * Constructor from type
-         * 
+         *
          * @param href
          * @throws OpenR66RunnerErrorException
          */
@@ -1164,7 +1162,7 @@ public class NetworkTransaction {
 
     /**
      * Start retrieve operation
-     * 
+     *
      * @param session
      * @param channel
      */
@@ -1178,7 +1176,7 @@ public class NetworkTransaction {
 
     /**
      * Stop a retrieve operation
-     * 
+     *
      * @param localChannelReference
      */
     public static void stopRetrieve(LocalChannelReference localChannelReference) {
@@ -1191,7 +1189,7 @@ public class NetworkTransaction {
 
     /**
      * Normal end of a Retrieve Operation
-     * 
+     *
      * @param localChannelReference
      */
     public static void normalEndRetrieve(LocalChannelReference localChannelReference) {

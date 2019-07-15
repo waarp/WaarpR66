@@ -1,4 +1,4 @@
-package org.waarp.openr66.dao.database.test;
+package org.waarp.openr66.dao.database;
 /*
  * Slightly modified version of the com.ibatis.common.jdbc.ScriptRunner class
  * from the iBATIS Apache project. Only removed dependency on Resource class

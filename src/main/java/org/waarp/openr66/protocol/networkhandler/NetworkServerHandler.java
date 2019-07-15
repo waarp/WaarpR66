@@ -220,7 +220,7 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             // ignore message since close on going
             return;
         }
-        final NetworkPacket packet = (NetworkPacket) msg;
+        final NetworkPacket packet = msg;
         Channel channel = ctx.channel();
         if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
             if (networkChannelReference != null) {
@@ -274,14 +274,14 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
             packet.clear();
             return;
         }
-        logger.debug("GET MSG: " + packet.getCode());
+        logger.trace("GET MSG: {}", packet);
         this.networkChannelReference.use();
         LocalChannelReference localChannelReference = null;
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
             logger.debug("NetworkRecv Create: {} {}", packet,
                     channel.id());
             NetworkTransaction.createConnectionFromNetworkChannelStartup(
-                    this.networkChannelReference, packet);
+                    this.networkChannelReference, packet, isSSL);
             return;
         } else {
             if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
@@ -337,14 +337,6 @@ public class NetworkServerHandler extends SimpleChannelInboundHandler<NetworkPac
                         packet.clear();
                         return;
                     }
-                    // try to send later
-                    Configuration.configuration.getLocalTransaction()
-                        .sendLaterToClient(channel, packet.getRemoteId(), packet.getLocalId(), packet);
-                    /*logger.debug("Cannot get LocalChannel: " + packet + " due to " +
-                            e1.getMessage());
-                    final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                            "Cannot get localChannel since localId is not found anymore", "" + packet.getLocalId());
-                    writeError(channel, packet.getRemoteId(), packet.getLocalId(), error);*/
                     packet.clear();
                     return;
                 }

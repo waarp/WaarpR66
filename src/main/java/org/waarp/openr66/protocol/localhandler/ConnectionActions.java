@@ -5,8 +5,8 @@
    tags. See the COPYRIGHT.txt in the distribution for a full listing of
    individual contributors.
 
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
+   All Waarp Project is free software: you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as published
    by the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
@@ -34,6 +34,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
@@ -70,7 +71,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 /**
  * Class to implement actions related to general connection handler: channelClosed, startup, authentication, and error.
  * Used to store and retrieve the session information.
- * 
+ *
  * @author "Frederic Bregier"
  *
  */
@@ -139,7 +140,7 @@ public abstract class ConnectionActions {
 
     /**
      * Operations to ensure that channel closing is done correctly
-     * 
+     *
      * @param e
      */
     public void channelClosed(ChannelHandlerContext e) {
@@ -256,7 +257,7 @@ public abstract class ConnectionActions {
 
     /**
      * Startup of the session and the local channel reference
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolPacketException
@@ -302,7 +303,7 @@ public abstract class ConnectionActions {
 
     /**
      * Refuse a connection
-     * 
+     *
      * @param channel
      * @param packet
      * @param e1
@@ -322,8 +323,13 @@ public abstract class ConnectionActions {
                             localChannelReference.getNetworkChannel().remoteAddress()
                             + " since " + e1.getMessage(), packet.getHostId());
         }
-        DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
-                packet.getHostId());
+
+        DbHostAuth auth = null;
+        try {
+            auth = new DbHostAuth(packet.getHostId());
+        } catch (WaarpDatabaseException e) {
+            logger.warn("Cannot find the authentication " + packet.getHostId(), e);
+        }
         if (auth != null && !auth.isActive()) {
             e1 = new Reply530Exception("Host is Inactive therefore connection is refused");
         }
@@ -352,17 +358,18 @@ public abstract class ConnectionActions {
 
     /**
      * Authentication
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolPacketException
      */
-    public void authent(Channel channel, AuthentPacket packet)
+    public void authent(Channel channel, AuthentPacket packet, boolean isSsl)
             throws OpenR66ProtocolPacketException {
         if (packet.isToValidate()) {
             session.newState(AUTHENTR);
         }
 
+        System.err.println(localChannelReference == null);
         if (localChannelReference.getDbSession() != null) {
             localChannelReference.getDbSession().useConnection();
         }
@@ -386,8 +393,8 @@ public abstract class ConnectionActions {
             return;
         }
         try {
-            session.getAuth().connection(localChannelReference.getDbSession(),
-                    packet.getHostId(), packet.getKey());
+            session.getAuth().connection(
+                    packet.getHostId(), packet.getKey(), isSsl);
         } catch (Reply530Exception e1) {
             refusedConnection(channel, packet, e1);
             session.setStatus(42);
@@ -491,7 +498,7 @@ public abstract class ConnectionActions {
 
     /**
      * Receive a connection error
-     * 
+     *
      * @param channel
      * @param packet
      */
@@ -514,9 +521,9 @@ public abstract class ConnectionActions {
 
     /**
      * Class to finalize a runner when the future is over
-     * 
+     *
      * @author Frederic Bregier
-     * 
+     *
      */
     private static final class RunnerChannelFutureListener implements ChannelFutureListener {
         private LocalChannelReference localChannelReference;
@@ -537,7 +544,7 @@ public abstract class ConnectionActions {
 
     /**
      * Receive a remote error
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -645,7 +652,7 @@ public abstract class ConnectionActions {
 
     /**
      * Try to finalize the request if possible
-     * 
+     *
      * @param errorValue
      *            in case of Error
      * @throws OpenR66ProtocolSystemException

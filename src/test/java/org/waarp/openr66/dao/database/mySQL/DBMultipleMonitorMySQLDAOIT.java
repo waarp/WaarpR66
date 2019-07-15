@@ -1,21 +1,21 @@
-package org.waarp.openr66.dao.database.mySQL.test;
+package org.waarp.openr66.dao.database.mySQL;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.testcontainers.containers.MySQLContainer;
-import org.waarp.openr66.dao.database.test.DBMultipleMonitorDAOIT;
+import org.waarp.openr66.dao.database.DBMultipleMonitorDAOIT;
 
 public class DBMultipleMonitorMySQLDAOIT extends DBMultipleMonitorDAOIT {
 
-    private String createScript = "createMySQL.sql";
-    private String populateScript = "populateMySQL.sql";
-    private String cleanScript = "cleanMySQL.sql";
+    private String createScript = "mysql/create.sql";
+    private String populateScript = "mysql/populate.sql";
+    private String cleanScript = "mysql/clean.sql";
 
-    @Rule
-    public MySQLContainer db = new MySQLContainer();
+    @ClassRule
+    public static MySQLContainer db = new MySQLContainer();
 
     @Override
     public Connection getConnection() throws SQLException {
@@ -27,8 +27,8 @@ public class DBMultipleMonitorMySQLDAOIT extends DBMultipleMonitorDAOIT {
 
     @Override
     public void initDB() {
-        runScript(createScript); 
-        runScript(populateScript); 
+        runScript(createScript);
+        runScript(populateScript);
     }
 
     @Override

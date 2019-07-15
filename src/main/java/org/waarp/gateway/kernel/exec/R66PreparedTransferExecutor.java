@@ -180,7 +180,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
         logger.debug(message);
         DbRule rule;
         try {
-            rule = new DbRule(dbsession, rulename);
+            rule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename + " since {}\n    " +
                     message, e.getMessage());
@@ -206,7 +206,7 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
         logger.debug("Will prepare: {}", request);
         DbTaskRunner taskRunner;
         try {
-            taskRunner = new DbTaskRunner(dbsession, rule, isRetrieve, request,
+            taskRunner = new DbTaskRunner(rule, isRetrieve, request,
                     remoteHost, timestart);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get new task since {}\n    " + message, e

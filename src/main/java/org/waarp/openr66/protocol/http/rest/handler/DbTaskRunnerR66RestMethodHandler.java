@@ -101,7 +101,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
             } else {
                 id = node.asLong();
             }
-            return new DbTaskRunner(handler.getDbSession(), id,
+            return new DbTaskRunner(id,
                     arg.path(DbTaskRunner.Columns.REQUESTER.name()).asText(),
                     arg.path(DbTaskRunner.Columns.REQUESTED.name()).asText(),
                     arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText());
@@ -117,7 +117,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
         ObjectNode arg = arguments.getUriArgs().deepCopy();
         arg.setAll(arguments.getBody());
         try {
-            return new DbTaskRunner(handler.getDbSession(), arg);
+            return new DbTaskRunner(arg);
         } catch (WaarpDatabaseException e) {
             throw new HttpIncorrectRequestException("Issue while inserting into database", e);
         }
@@ -186,8 +186,8 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
         }
         try {
             return DbTaskRunner.getFilterPrepareStatement(handler.getDbSession(),
-                    limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done,
-                    all, owner);
+                    limit, orderBySpecialId, startid, stopid, start, stop, rule, req,
+                    pending, transfer, error, done, all, owner);
         } catch (WaarpDatabaseNoConnectionException e) {
             throw new HttpIncorrectRequestException("Issue while reading from database", e);
         } catch (WaarpDatabaseSqlException e) {

@@ -30,170 +30,147 @@ public enum ErrorCode {
     /**
      * Code stands for initialization ok (internal connection, authentication)
      */
-    InitOk(Messages.getString("ErrorCode.0"), 'i'), //$NON-NLS-1$
+    InitOk('i'),
     /**
      * Code stands for pre processing ok
      */
-    PreProcessingOk(
-            Messages.getString("ErrorCode.1"), //$NON-NLS-1$
-            'B'),
+    PreProcessingOk('B'),
     /**
      * Code stands for transfer OK
      */
-    TransferOk(Messages.getString("ErrorCode.2"), 'X'), //$NON-NLS-1$
+    TransferOk('X'),
     /**
      * Code stands for post processing ok
      */
-    PostProcessingOk(
-            Messages.getString("ErrorCode.3"), //$NON-NLS-1$
-            'P'),
+    PostProcessingOk('P'),
     /**
      * Code stands for All action are completed ok
      */
-    CompleteOk(Messages.getString("ErrorCode.4"), 'O'), //$NON-NLS-1$
+    CompleteOk('O'),
     /**
      * Code stands for connection is impossible (remote or local reason)
      */
-    ConnectionImpossible(
-            Messages.getString("ErrorCode.5"), //$NON-NLS-1$
-            'C'),
+    ConnectionImpossible('C'),
     /**
      * Code stands for connection is impossible now due to limits(remote or local reason)
      */
-    ServerOverloaded(
-            Messages.getString("ErrorCode.6"), //$NON-NLS-1$
-            'l'),
+    ServerOverloaded('l'),
     /**
      * Code stands for bad authentication (remote or local)
      */
-    BadAuthent(Messages.getString("ErrorCode.7"), 'A'), //$NON-NLS-1$
+    BadAuthent('A'),
     /**
      * Code stands for External operation in error (pre, post or error processing)
      */
-    ExternalOp(
-            Messages.getString("ErrorCode.8"), //$NON-NLS-1$
-            'E'),
+    ExternalOp('E'),
     /**
      * Code stands for Transfer is in error
      */
-    TransferError(Messages.getString("ErrorCode.9"), 'T'), //$NON-NLS-1$
+    TransferError('T'),
     /**
      * Code stands for Transfer in error due to MD5
      */
-    MD5Error(
-            Messages.getString("ErrorCode.10"), //$NON-NLS-1$
-            'M'),
+    MD5Error('M'),
     /**
      * Code stands for Network disconnection
      */
-    Disconnection(Messages.getString("ErrorCode.11"), 'D'), //$NON-NLS-1$
+    Disconnection('D'),
     /**
      * Code stands for Remote Shutdown
      */
-    RemoteShutdown(Messages.getString("ErrorCode.12"), 'r'), //$NON-NLS-1$
+    RemoteShutdown('r'),
     /**
      * Code stands for final action (like moving file) is in error
      */
-    FinalOp(
-            Messages.getString("ErrorCode.13"), //$NON-NLS-1$
-            'F'),
+    FinalOp('F'),
     /**
      * Code stands for unimplemented feature
      */
-    Unimplemented(Messages.getString("ErrorCode.14"), 'U'), //$NON-NLS-1$
+    Unimplemented('U'),
     /**
      * Code stands for shutdown is in progress
      */
-    Shutdown(
-            Messages.getString("ErrorCode.15"), //$NON-NLS-1$
-            'S'),
+    Shutdown('S'),
     /**
      * Code stands for a remote error is received
      */
-    RemoteError(Messages.getString("ErrorCode.16"), 'R'), //$NON-NLS-1$
+    RemoteError('R'),
     /**
      * Code stands for an internal error
      */
-    Internal(
-            Messages.getString("ErrorCode.17"), //$NON-NLS-1$
-            'I'),
+    Internal('I'),
     /**
      * Code stands for a request of stopping transfer
      */
-    StoppedTransfer(Messages.getString("ErrorCode.18"), 'H'), //$NON-NLS-1$
+    StoppedTransfer('H'), 
     /**
      * Code stands for a request of canceling transfer
      */
-    CanceledTransfer(Messages.getString("ErrorCode.19"), 'K'), //$NON-NLS-1$
+    CanceledTransfer('K'), 
     /**
      * Warning in execution
      */
-    Warning(Messages.getString("ErrorCode.20"), 'W'), //$NON-NLS-1$
+    Warning('W'), 
     /**
      * Code stands for unknown type of error
      */
-    Unknown(Messages.getString("ErrorCode.21"), '-'), //$NON-NLS-1$
+    Unknown('-'), 
     /**
      * Code stands for a request that is already remotely finished
      */
-    QueryAlreadyFinished(Messages.getString("ErrorCode.22"), 'Q'), //$NON-NLS-1$
+    QueryAlreadyFinished('Q'), 
     /**
      * Code stands for request that is still running
      */
-    QueryStillRunning(Messages.getString("ErrorCode.23"), 's'), //$NON-NLS-1$
+    QueryStillRunning('s'), 
     /**
      * Code stands for not known host
      */
-    NotKnownHost(Messages.getString("ErrorCode.24"), 'N'), //$NON-NLS-1$
+    NotKnownHost('N'), 
     /**
      * Code stands for self requested host starting request is invalid
      */
-    LoopSelfRequestedHost(Messages.getString("ErrorCode.25"), 'L'), //$NON-NLS-1$
+    LoopSelfRequestedHost('L'), 
     /**
      * Code stands for request should exist but is not found on remote host
      */
-    QueryRemotelyUnknown(Messages.getString("ErrorCode.26"), 'u'), //$NON-NLS-1$
+    QueryRemotelyUnknown('u'), 
     /**
      * Code stands for File not found error
      */
-    FileNotFound(Messages.getString("ErrorCode.27"), 'f'), //$NON-NLS-1$
+    FileNotFound('f'), 
     /**
      * Code stands for Command not found error
      */
-    CommandNotFound(Messages.getString("ErrorCode.28"), 'c'), //$NON-NLS-1$
+    CommandNotFound('c'), 
     /**
      * Code stands for a request in PassThroughMode and required action is incompatible with this
      * mode
      */
-    PassThroughMode(Messages.getString("ErrorCode.29"), 'p'), //$NON-NLS-1$
+    PassThroughMode('p'), 
     /**
      * Code stands for running step
      */
-    Running(Messages.getString("ErrorCode.30"), 'z'), //$NON-NLS-1$
+    Running('z'), 
     /**
      * Code stands for Incorrect command
      */
-    IncorrectCommand(Messages.getString("ErrorCode.31"), 'n'), //$NON-NLS-1$
+    IncorrectCommand('n'), 
     /**
      * Code stands for File not allowed
      */
-    FileNotAllowed(Messages.getString("ErrorCode.32"), 'a'), //$NON-NLS-1$
+    FileNotAllowed('a'), 
     /**
      * Code stands for Size not allowed
      */
-    SizeNotAllowed(Messages.getString("ErrorCode.33"), 'd'); //$NON-NLS-1$
+    SizeNotAllowed('d'); 
 
-    /**
-     * Literal for this code
-     */
-    public String mesg;
     /**
      * Code could be used to switch case operations
      */
     public char code;
 
-    private ErrorCode(String mesg, char code) {
-        this.mesg = mesg;
+    private ErrorCode(char code) {
         this.code = code;
     }
 
@@ -201,45 +178,7 @@ public enum ErrorCode {
         return String.valueOf(code);
     }
 
-    /**
-     * Update messages from current Language
-     */
-    public static void updateLang() {
-        InitOk.mesg = Messages.getString("ErrorCode.0");
-        PreProcessingOk.mesg = Messages.getString("ErrorCode.1");
-        TransferOk.mesg = Messages.getString("ErrorCode.2");
-        PostProcessingOk.mesg = Messages.getString("ErrorCode.3");
-        CompleteOk.mesg = Messages.getString("ErrorCode.4");
-        ConnectionImpossible.mesg = Messages.getString("ErrorCode.5");
-        ServerOverloaded.mesg = Messages.getString("ErrorCode.6");
-        BadAuthent.mesg = Messages.getString("ErrorCode.7");
-        ExternalOp.mesg = Messages.getString("ErrorCode.8");
-        TransferError.mesg = Messages.getString("ErrorCode.9");
-        MD5Error.mesg = Messages.getString("ErrorCode.10");
-        Disconnection.mesg = Messages.getString("ErrorCode.11");
-        RemoteShutdown.mesg = Messages.getString("ErrorCode.12");
-        FinalOp.mesg = Messages.getString("ErrorCode.13");
-        Unimplemented.mesg = Messages.getString("ErrorCode.14");
-        Shutdown.mesg = Messages.getString("ErrorCode.15");
-        RemoteError.mesg = Messages.getString("ErrorCode.16");
-        Internal.mesg = Messages.getString("ErrorCode.17");
-        StoppedTransfer.mesg = Messages.getString("ErrorCode.18");
-        CanceledTransfer.mesg = Messages.getString("ErrorCode.19");
-        Warning.mesg = Messages.getString("ErrorCode.20");
-        Unknown.mesg = Messages.getString("ErrorCode.21");
-        QueryAlreadyFinished.mesg = Messages.getString("ErrorCode.22");
-        QueryStillRunning.mesg = Messages.getString("ErrorCode.23");
-        NotKnownHost.mesg = Messages.getString("ErrorCode.24");
-        LoopSelfRequestedHost.mesg = Messages.getString("ErrorCode.25");
-        QueryRemotelyUnknown.mesg = Messages.getString("ErrorCode.26");
-        FileNotFound.mesg = Messages.getString("ErrorCode.27");
-        CommandNotFound.mesg = Messages.getString("ErrorCode.28");
-        PassThroughMode.mesg = Messages.getString("ErrorCode.29");
-        Running.mesg = Messages.getString("ErrorCode.30");
-        IncorrectCommand.mesg = Messages.getString("ErrorCode.31");
-        FileNotAllowed.mesg = Messages.getString("ErrorCode.32");
-        SizeNotAllowed.mesg = Messages.getString("ErrorCode.33");
-    }
+    public String getMesg() { return Messages.getString("ErrorCode." + code); }
 
     /**
      * Code is either the 1 char code or the exact name in Enum

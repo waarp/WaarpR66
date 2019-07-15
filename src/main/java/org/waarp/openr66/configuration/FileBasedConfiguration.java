@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -62,8 +62,10 @@ import org.waarp.gateway.kernel.rest.RestConfiguration;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
+import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -81,9 +83,9 @@ import org.waarp.snmp.SnmpConfiguration;
 
 /**
  * File Based Configuration
- * 
+ *
  * @author frederic bregier
- * 
+ *
  */
 public class FileBasedConfiguration {
     /**
@@ -441,7 +443,13 @@ public class FileBasedConfiguration {
     /**
      * Database Checking
      */
+    @Deprecated
     private static final String XML_DBCHECK = "dbcheck";
+
+    /**
+     * Upgrade database
+     */
+    private static final String XML_DBAUTOUPGRADE = "autoUpgrade";
 
     /**
      * Check version in protocol
@@ -502,7 +510,7 @@ public class FileBasedConfiguration {
 
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configIdentityDecls = {
             // identity
@@ -514,7 +522,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configServerParamDecls = {
             // server
@@ -542,7 +550,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configNetworkServerDecls = {
             // network
@@ -554,7 +562,7 @@ public class FileBasedConfiguration {
 
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configSslDecls = {
             // ssl
@@ -567,7 +575,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configDbDecls = {
             // db
@@ -576,12 +584,13 @@ public class FileBasedConfiguration {
             new XmlDecl(XmlType.STRING, XML_DBUSER),
             new XmlDecl(XmlType.STRING, XML_DBPASSWD),
             new XmlDecl(XmlType.BOOLEAN, XML_DBCHECK),
+            new XmlDecl(XmlType.BOOLEAN, XML_DBAUTOUPGRADE),
             new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB)
     };
 
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configLimitDecls = {
             // limit
@@ -616,7 +625,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configSubmitLimitDecls = {
             // limit
@@ -624,7 +633,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configClientParamDecls = {
             // client
@@ -633,7 +642,7 @@ public class FileBasedConfiguration {
     };
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configDirectoryDecls = {
             // directory
@@ -665,7 +674,7 @@ public class FileBasedConfiguration {
     private static final String XML_REST = "rest";
     /**
      * Structure of the Configuration file
-     * 
+     *
      */
     private static final XmlDecl[] configRestDecls = {
             // Rest support configuration
@@ -742,7 +751,7 @@ public class FileBasedConfiguration {
 
     /**
      * Load the locale from configuration file
-     * 
+     *
      * @param hashConfig
      */
     private static void loadLocale(XmlHash hashConfig) {
@@ -757,7 +766,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the identity of the server is correctly loaded
      */
@@ -780,6 +789,10 @@ public class FileBasedConfiguration {
                 config.setUseSSL(false);
                 config.setHOST_SSLID(null);
             }
+            value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
+            if (value != null && (!value.isEmpty())) {
+                config.setAUTH_FILE(value.getString());
+            }
             return setCryptoKey(config, hashConfig);
         } finally {
             hashConfig.clear();
@@ -788,14 +801,14 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the authentication of partners is correctly loaded
      */
     private static boolean loadAuthentication(Configuration config) {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_IDENTITY));
         try {
-            if (!DbConstant.admin.isActive()) {
+            if (config.isSaveTaskRunnerWithNoDb()) {
                 // if no database, must load authentication from file
                 XmlValue value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
                 if (value != null && (!value.isEmpty())) {
@@ -817,7 +830,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the server parameters are correctly loaded
      */
@@ -965,7 +978,7 @@ public class FileBasedConfiguration {
                 model = value.getInteger();
             }
             config.setHttpModel(model);
-    
+
             // Key for HTTPS
             value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
             if (value != null && (!value.isEmpty())) {
@@ -1066,7 +1079,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the client parameters are correctly loaded
      */
@@ -1101,7 +1114,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the directory parameters are correctly loaded
      */
@@ -1171,7 +1184,7 @@ public class FileBasedConfiguration {
     private static boolean alreadySetLimit = false;
 
     /**
-     * 
+     *
      * @param config
      * @param updateLimit
      * @return True if the limit configuration is correctly loaded
@@ -1243,7 +1256,6 @@ public class FileBasedConfiguration {
                 if (value != null && (!value.isEmpty())) {
                     config.setHOST_ID(value.getString());
                     DbConfiguration configuration = new DbConfiguration(
-                            DbConstant.admin.getSession(),
                             config.getHOST_ID(),
                             config.getServerGlobalReadLimit(),
                             config.getServerGlobalWriteLimit(),
@@ -1408,7 +1420,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the SSL configuration is correctly loaded
      */
@@ -1503,7 +1515,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @return True if the network configuration is correctly loaded
      */
@@ -1546,7 +1558,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param configuration
      * @return True if the REST configuration is correctly loaded
      */
@@ -1590,7 +1602,7 @@ public class FileBasedConfiguration {
                             restSignature = value.getBoolean();
                         }
                         config.REST_SIGNATURE = restSignature;
-                        if (config.REST_SIGNATURE) {
+                        if (config.REST_SIGNATURE || config.REST_AUTHENTICATED) {
                             XmlValue valueKey = subHash.get(XML_REST_AUTH_KEY);
                             if (valueKey != null && (!valueKey.isEmpty())) {
                                 String fileKey = valueKey.getString();
@@ -1601,7 +1613,7 @@ public class FileBasedConfiguration {
                                         logger.error("Unable to find REST Key in Config file");
                                         return false;
                                     }
-                                    fileKey = configuration.getConfigPath() + FilesystemBasedDirImpl.SEPARATOR + fileKey;
+                                    (fileKey) = configuration.getConfigPath() + FilesystemBasedDirImpl.SEPARATOR + fileKey;
                                 }
                                 try {
                                     config.initializeKey(file);
@@ -1620,7 +1632,7 @@ public class FileBasedConfiguration {
                             restTimeLimit = value.getLong();
                         }
                         config.REST_TIME_LIMIT = restTimeLimit;
-    
+
                         XmlValue valueMethod = subHash.get(XML_REST_METHOD);
                         if (valueMethod != null && (valueMethod.getList() != null)) {
                             boolean found = false;
@@ -1687,7 +1699,7 @@ public class FileBasedConfiguration {
 
     /**
      * Set the Crypto Key from the Document
-     * 
+     *
      * @param config
      * @return True if OK
      */
@@ -1716,17 +1728,15 @@ public class FileBasedConfiguration {
 
     /**
      * Load data from database or from files if not connected
-     * 
+     *
      * @param config
      * @return True if OK
      */
     private static boolean loadFromDatabase(Configuration config) {
-        if (DbConstant.admin.isActive()) {
+        if (!config.isSaveTaskRunnerWithNoDb()) {
             // load from database the limit to apply
             try {
-                DbConfiguration configuration = new DbConfiguration(
-                        DbConstant.admin.getSession(),
-                        config.getHOST_ID());
+                DbConfiguration configuration = new DbConfiguration(config.getHOST_ID());
                 configuration.updateConfiguration();
             } catch (WaarpDatabaseException e) {
                 logger.info(Messages.getString("FileBasedConfiguration.NoBandwidth") + e.getMessage()); //$NON-NLS-1$
@@ -1761,24 +1771,25 @@ public class FileBasedConfiguration {
         return true;
     }
 
-    public static boolean checkDatabase = true;
+    public static boolean autoupgrade = false;
 
     /**
      * Load database parameter
-     * 
+     *
      * @param config
-     * @param checkInit
+     * @param initdb
      * @return True if OK
      */
-    private static boolean loadDatabase(Configuration config, boolean checkInit) {
+    private static boolean loadDatabase(Configuration config, boolean initdb) {
         XmlHash hashConfig = new XmlHash(hashRootConfig.get(XML_DB));
         try {
             XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
-            if (value != null && (!value.isEmpty())) {
+            if (value != null && (!value.isEmpty()) && value.getBoolean()) {
                 config.setSaveTaskRunnerWithNoDb(value.getBoolean());
                 logger.info(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
                 DbConstant.admin = new DbAdmin(); // no database support
                 DbConstant.noCommitAdmin = DbConstant.admin;
+                DAOFactory.initialize();
                 return true;
             }
             value = hashConfig.get(XML_DBDRIVER);
@@ -1821,13 +1832,17 @@ public class FileBasedConfiguration {
                     DbConstant.admin =
                             DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                                     true);
+		            // New way of initializing database services
                     try {
-                        DbConstant.connectionFactory = new ConnectionFactory(
-                            ConnectionFactory.propertiesFor(dbserver),  dbserver,
-                            dbuser, dbpasswd);
+                        ConnectionFactory.initialize(dbserver, dbuser, dbpasswd);
+		            } catch (UnsupportedOperationException e) {
+		                logger.error(e);
+			            return false;
                     } catch (SQLException e) {
                         logger.error("Cannot create ConnectionFactory", e);
+			            return false;
                     }
+                    DAOFactory.initialize(ConnectionFactory.getInstance());
 
                     if (config.getMultipleMonitors() > 1) {
                         DbConstant.noCommitAdmin =
@@ -1840,7 +1855,7 @@ public class FileBasedConfiguration {
                     }
                     logger.info("Database connection: Admin:" + (DbConstant.admin != null) + " NoCommitAdmin:"
                             + (DbConstant.noCommitAdmin != null));
-    
+
                     try {
                         logger.info("DefaultTransactionIsolation: " +
                                 DbConstant.admin.getSession().getConn().getMetaData().getDefaultTransactionIsolation() +
@@ -1857,7 +1872,7 @@ public class FileBasedConfiguration {
                 }
                 // Check if the database is ready (initdb already done before)
                 DbRequest request = null;
-                if (checkInit) {
+                if (!initdb) {
                     try {
                         request = new DbRequest(DbConstant.admin.getSession());
                         try {
@@ -1870,19 +1885,33 @@ public class FileBasedConfiguration {
                         }
                     } catch (WaarpDatabaseNoConnectionException e1) {
                     // ignore
-                    /* TODO: Why Ignore? 
+                    /* TODO: Why Ignore?
                      * throwing bad configuration seems better
                      */
                     }
                 }
-
+                // TODO to remove when <dbcheck> is drop from config file
                 value = hashConfig.get(XML_DBCHECK);
                 if (value != null && (!value.isEmpty())) {
-                    checkDatabase = value.getBoolean();
+                    logger.warn("<{}> is deprecated in configuration file "
+                                    + "use <{}> instead",
+                            XML_DBCHECK, XML_DBAUTOUPGRADE);
+                    autoupgrade = value.getBoolean();
+                } else {
+                    // Keep this part
+                    value = hashConfig.get(XML_DBAUTOUPGRADE);
+                    if (value != null && (!value.isEmpty())) {
+                        autoupgrade = value.getBoolean();
+                    }
                 }
-                if (checkDatabase) {
+                if (autoupgrade && !initdb) {
                     // Check if the database is up to date
-                    if (!ServerInitDatabase.upgradedb()) {
+                    try {
+                        if (!ServerInitDatabase.upgradedb()) {
+                            return false;
+                        }
+                    } catch (WaarpDatabaseException e) {
+                        logger.error(e);
                         return false;
                     }
                 }
@@ -1896,7 +1925,7 @@ public class FileBasedConfiguration {
 
     /**
      * Load white list for Business if any
-     * 
+     *
      * @param config
      */
     private static void loadBusinessWhiteList(Configuration config) {
@@ -1922,8 +1951,7 @@ public class FileBasedConfiguration {
             // now check in DB
             if (DbConstant.admin != null) {
                 try {
-                    DbHostConfiguration hostconfiguration = new DbHostConfiguration(DbConstant.admin.getSession(),
-                            config.getHOST_ID());
+                    DbHostConfiguration hostconfiguration = new DbHostConfiguration(config.getHOST_ID());
                     if (hostconfiguration != null) {
                         DbHostConfiguration.updateHostConfiguration(config, hostconfiguration);
                     }
@@ -1940,7 +1968,7 @@ public class FileBasedConfiguration {
 
     /**
      * Load the aliases configuration
-     * 
+     *
      * @param config
      */
     @SuppressWarnings("unchecked")
@@ -1977,7 +2005,7 @@ public class FileBasedConfiguration {
 
     /**
      * Add the local host in Versions
-     * 
+     *
      * @param config
      */
     private static void setSelfVersion(Configuration config) {
@@ -1992,7 +2020,7 @@ public class FileBasedConfiguration {
 
     /**
      * Load Role list if any
-     * 
+     *
      * @param config
      */
     @SuppressWarnings("unchecked")
@@ -2039,7 +2067,7 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * 
+     *
      * @param config
      * @param fromXML
      * @return the new subpath
@@ -2055,7 +2083,7 @@ public class FileBasedConfiguration {
                 throw new OpenR66ProtocolSystemException(
                         Messages.getString("FileBasedConfiguration.NoXmlPath") + fromXML); //$NON-NLS-1$
             }
-    
+
             String path = value.getString();
             if (path == null || path.isEmpty()) {
                 throw new OpenR66ProtocolSystemException(
@@ -2076,7 +2104,7 @@ public class FileBasedConfiguration {
 
     /**
      * Load minimalistic Limit configuration
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
@@ -2116,12 +2144,77 @@ public class FileBasedConfiguration {
 
     /**
      * Load configuration for init database
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
+    public static boolean setConfigurationInitDatabase(Configuration config,
+               String filename, boolean initdb) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
+            return false;
+        }
+        if (document == null) {
+            logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashRootConfig = new XmlRootHash(configuration);
+        if (!loadIdentity(config)) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase(config, initdb)) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (!loadDirectory(config)) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (!loadLimit(config, false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (config.isSaveTaskRunnerWithNoDb()) {
+            // if no database, must load authentication from file
+            if (!loadAuthentication(config)) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+        hashRootConfig.clear();
+        hashRootConfig = null;
+        configuration = null;
+        return true;
+    }
+
+    /**
+     * Load minimalistic configuration
+     *
+     * @param config
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationServerMinimalFromXml(Configuration config, String filename) {
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2152,59 +2245,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
-            // if no database, must load authentication from file
-            if (!loadAuthentication(config)) {
-                logger.error("Cannot load Authentication configuration");
-                return false;
-            }
-        }
-        hashRootConfig.clear();
-        hashRootConfig = null;
-        configuration = null;
-        return true;
-    }
-
-    /**
-     * Load minimalistic configuration
-     * 
-     * @param config
-     * @param filename
-     * @return True if OK
-     */
-    public static boolean setConfigurationServerMinimalFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
-        Document document = null;
-        // Open config file
-        try {
-            document = new SAXReader().read(filename);
-        } catch (DocumentException e) {
-            logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
-            return false;
-        }
-        if (document == null) {
-            logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
-            return false;
-        }
-        configuration = XmlUtil.read(document, configServer);
-        hashRootConfig = new XmlRootHash(configuration);
-        if (!loadIdentity(config)) {
-            logger.error("Cannot load Identity");
-            return false;
-        }
-        if (!loadDatabase(config, true)) {
-            logger.error("Cannot load Database configuration");
-            return false;
-        }
-        if (!loadDirectory(config)) {
-            logger.error("Cannot load Directory configuration");
-            return false;
-        }
-        if (!loadLimit(config, false)) {
-            logger.error("Cannot load Limit configuration");
-            return false;
-        }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2236,14 +2277,26 @@ public class FileBasedConfiguration {
 
     /**
      * Initiate the configuration from the xml file for server shutdown
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
      */
     public static boolean setConfigurationServerShutdownFromXml(Configuration config,
             String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2263,7 +2316,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2289,7 +2342,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Network configuration");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2322,7 +2375,7 @@ public class FileBasedConfiguration {
 
     /**
      * Initiate the configuration from the xml file for server
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
@@ -2347,7 +2400,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
@@ -2381,7 +2434,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load configuration from Database");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
@@ -2415,13 +2468,25 @@ public class FileBasedConfiguration {
 
     /**
      * Initiate the configuration from the xml file for database client
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
      */
     public static boolean setClientConfigurationFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2442,17 +2507,13 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
         logger.info("Is Client connected to database: " + DbConstant.admin.isActive());
         if (!loadClientParam(config)) {
             logger.error("Cannot load Client Parameters");
-            return false;
-        }
-        if (!loadDirectory(config)) {
-            logger.error("Cannot load Directory configuration");
             return false;
         }
         if (!loadLimit(config, false)) {
@@ -2469,15 +2530,19 @@ public class FileBasedConfiguration {
             logger.error("Cannot load configuration from Database");
             return false;
         }
-        if (!DbConstant.admin.isActive()) {
+        if (config.isSaveTaskRunnerWithNoDb()) {
             // if no database, must load authentication from file
             if (!loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
         }
-        config.setHOST_AUTH(R66Auth.getServerAuth(
-                DbConstant.admin.getSession(), config.getHOST_ID()));
+        try {
+            config.setHOST_AUTH(new DbHostAuth(config.getHOST_ID()));
+        } catch (WaarpDatabaseException e) {
+            logger.error("Cannot find Authentication for current host", e);
+            return false;
+        }
         if (config.getHOST_AUTH() == null) {
             logger.error("Cannot find Authentication for current host");
             return false;
@@ -2500,13 +2565,25 @@ public class FileBasedConfiguration {
 
     /**
      * Initiate the configuration from the xml file for submit database client
-     * 
+     *
      * @param config
      * @param filename
      * @return True if OK
      */
     public static boolean setSubmitClientConfigurationFromXml(Configuration config, String filename) {
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         Document document = null;
         // Open config file
         try {
@@ -2527,7 +2604,7 @@ public class FileBasedConfiguration {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase(config, true)) {
+        if (!loadDatabase(config, false)) {
             logger.error("Cannot load Database configuration");
             return false;
         }

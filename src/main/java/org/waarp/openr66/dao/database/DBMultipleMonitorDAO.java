@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,20 +23,20 @@ public class DBMultipleMonitorDAO extends StatementExecutor
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBMultipleMonitorDAO.class);
 
-    protected static final String TABLE = "MULTIPLEMONITOR";
+    protected static final String TABLE = "multiplemonitor";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String COUNT_CONFIG_FIELD = "countconfig";
     public static final String COUNT_HOST_FIELD = "counthost";
     public static final String COUNT_RULE_FIELD = "countrule";
 
-    protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE; 
-    protected static final String SQL_DELETE = "DELETE FROM " + TABLE 
+    protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
+    protected static final String SQL_DELETE = "DELETE FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE; 
-    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE 
+    protected static final String SQL_GET_ALL = "SELECT * FROM " + TABLE;
+    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE 
+    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
     protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + HOSTID_FIELD + ", "
@@ -51,10 +50,19 @@ public class DBMultipleMonitorDAO extends StatementExecutor
         + COUNT_HOST_FIELD + " = ?, "
         + COUNT_RULE_FIELD + " = ? WHERE " + HOSTID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBMultipleMonitorDAO(Connection con) {
         this.connection = con;
+    }
+
+    @Override
+    public void close() {
+        try {
+            this.connection.close();
+        } catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+        }
     }
 
     @Override
@@ -105,7 +113,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public List<MultipleMonitor> find(List<Filter> filters) 
+    public List<MultipleMonitor> find(List<Filter> filters)
             throws DAOException {
         ArrayList<MultipleMonitor> monitors = new ArrayList<MultipleMonitor>();
         // Create the SQL query
@@ -118,9 +126,9 @@ public class DBMultipleMonitorDAO extends StatementExecutor
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";

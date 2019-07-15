@@ -19,7 +19,7 @@ public interface HostDAO {
 
     /**
      * Retrieve all Host objects corresponding to the given filters
-     * in a List from the persistance layer
+     * in a List from the persistance lsayer
      *
      * @param filters List of filter
      * @throws DAOException If data access error occurs
@@ -74,4 +74,6 @@ public interface HostDAO {
      * @throws DAOException If a data access error occurs
      */
     void deleteAll() throws DAOException;
+
+    void close();
 }

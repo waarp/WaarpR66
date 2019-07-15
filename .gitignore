@@ -17,6 +17,11 @@ local.properties
 .loadpath
 .pmd
 
+############
+## Intellij
+############
+.idea
+
 # External tool builders
 .externalToolBuilders/
 
@@ -28,6 +33,13 @@ local.properties
 
 # PDT-specific
 .buildpath
+
+
+#################
+# Intellij
+#################
+.idea
+src/main/java/resources/
 
 #################
 ## Java

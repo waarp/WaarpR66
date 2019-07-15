@@ -5,8 +5,8 @@
    tags. See the COPYRIGHT.txt in the distribution for a full listing of
    individual contributors.
 
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
+   All Waarp Project is free software: you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as published
    by the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
+import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -75,7 +76,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 /**
  * Class to implement actions related to real transfer: request initialization, data transfer, end of transfer and of request,
  * changing filename or filesize.
- * 
+ *
  * @author "Frederic Bregier"
  *
  */
@@ -91,7 +92,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Finalize a request initialization in error
-     * 
+     *
      * @param channel
      * @param code
      * @param runner
@@ -101,7 +102,7 @@ public class TransferActions extends ServerActions {
      */
     private final void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
-        logger.error("TaskRunner initialisation in error: " + code.mesg + " " + session
+        logger.error("TaskRunner initialisation in error: " + code.getMesg() + " " + session
                 + " {} runner {}",
                 e1 != null ? e1.getMessage() : "no exception",
                 (runner != null ? runner.toShortString() : "no runner"));
@@ -131,7 +132,7 @@ public class TransferActions extends ServerActions {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket(
                     "TaskRunner initialisation in error: " + e1
-                            .getMessage() + " for " + packet.toString() + " since " + code.mesg,
+                            .getMessage() + " for " + packet.toString() + " since " + code.getMesg(),
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
         }
@@ -141,7 +142,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive a request of Transfer
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolNoDataException
@@ -199,7 +200,7 @@ public class TransferActions extends ServerActions {
             }
         } else if (packet.getCode() == ErrorCode.ServerOverloaded.code) {
             // XXX unvalid limit on requested host received
-            logger.info("TaskRunner initialisation in error: " + ErrorCode.ServerOverloaded.mesg);
+            logger.info("TaskRunner initialisation in error: " + ErrorCode.ServerOverloaded.getMesg());
             localChannelReference.invalidateRequest(new R66Result(
                     null, session, true, ErrorCode.ServerOverloaded, null));
             session.setStatus(101);
@@ -208,7 +209,7 @@ public class TransferActions extends ServerActions {
         }
         DbRule rule;
         try {
-            rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
+            rule = new DbRule(packet.getRulename());
         } catch (WaarpDatabaseException e) {
             logger.info("Rule is unknown: " + packet.getRulename() + " {}", e.getMessage());
             session.setStatus(49);
@@ -254,8 +255,7 @@ public class TransferActions extends ServerActions {
                 // Id could be a creation or a reload
                 // Try reload
                 try {
-                    runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                            session, rule, packet.getSpecialId(),
+                    runner = new DbTaskRunner(session, rule, packet.getSpecialId(),
                             requester, requested);
                     // Patch to prevent self request to be stored by sender
                     boolean ignoreSave = runner.shallIgnoreSave();
@@ -270,8 +270,7 @@ public class TransferActions extends ServerActions {
                 } catch (WaarpDatabaseNoDataException e) {
                     // Reception of request from requester host
                     try {
-                        runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                                session, rule, isRetrieve, packet);
+                        runner = new DbTaskRunner(session, rule, isRetrieve, packet);
                         logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
                     } catch (WaarpDatabaseException e1) {
                         session.setStatus(33);
@@ -325,14 +324,14 @@ public class TransferActions extends ServerActions {
             } else {
                 // Id should be a reload
                 try {
-                    runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                    runner = new DbTaskRunner(
                             session, rule, packet.getSpecialId(),
                             requester, requested);
                 } catch (WaarpDatabaseException e) {
                     if (localChannelReference.getDbSession() == null) {
                         // Special case of no database client
                         try {
-                            runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                            runner = new DbTaskRunner(
                                     session, rule, isRetrieve, packet);
                             logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
                         } catch (WaarpDatabaseException e1) {
@@ -375,8 +374,7 @@ public class TransferActions extends ServerActions {
             // should not be the case (the requester should always set the id)
             logger.error("NO TransferID specified: SHOULD NOT BE THE CASE");
             try {
-                runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                        session, rule, isRetrieve, packet);
+                runner = new DbTaskRunner(session, rule, isRetrieve, packet);
             } catch (WaarpDatabaseException e) {
                 session.setStatus(37);
                 endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
@@ -396,7 +394,7 @@ public class TransferActions extends ServerActions {
             }
             session.newState(ERROR);
             logger.error("Bad runner at startup {} {}", packet, session);
-            ErrorPacket errorPacket = new ErrorPacket(code.mesg,
+            ErrorPacket errorPacket = new ErrorPacket(code.getMesg(),
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
             errorMesg(channel, errorPacket);
             return;
@@ -483,6 +481,22 @@ public class TransferActions extends ServerActions {
         }
         session.setReady(true);
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
+
+        // Set read/write limit
+        long remoteLimit = packet.getLimit();
+        long localLimit = localChannelReference.getChannelLimit(
+                runner.isSender());
+        // Take the minimum speed
+        logger.trace("Received limit {}", packet.getLimit());
+        logger.trace("Local limit {}", localChannelReference.getChannelLimit(runner.isSender()));
+        if (localLimit <= 0) {
+            localLimit = remoteLimit;
+        } else if (remoteLimit > 0 && remoteLimit < localLimit) {
+            localLimit = remoteLimit;
+        }
+        localChannelReference.setChannelLimit(runner.isSender(), localLimit);
+        packet.setLimit(localLimit);
+
         // inform back
         if (packet.isToValidate()) {
             if (Configuration.configuration.getMonitoring() != null) {
@@ -531,7 +545,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Send a Filename/Filesize change to the partner
-     * 
+     *
      * @param packet
      * @param runner
      * @throws OpenR66ProtocolPacketException
@@ -574,7 +588,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Send an error
-     * 
+     *
      * @param message
      * @param code
      * @param channel
@@ -604,7 +618,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive a data block
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolNotAuthenticatedException
@@ -777,7 +791,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive an End of Transfer
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -881,7 +895,6 @@ public class TransferActions extends ServerActions {
                 try {
                     session.setFinalizeTransfer(true, result);
                 } catch (OpenR66RunnerErrorException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -902,7 +915,6 @@ public class TransferActions extends ServerActions {
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
                 } catch (OpenR66ProtocolSystemException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -948,7 +960,6 @@ public class TransferActions extends ServerActions {
                 try {
                     session.setFinalizeTransfer(true, result);
                 } catch (OpenR66RunnerErrorException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -969,7 +980,6 @@ public class TransferActions extends ServerActions {
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
                 } catch (OpenR66ProtocolSystemException e) {
-                    // TODO
                     session.newState(ERROR);
                     ErrorPacket error = null;
                     if (localChannelReference.getFutureRequest().getResult() != null) {
@@ -996,7 +1006,7 @@ public class TransferActions extends ServerActions {
 
     /**
      * Receive an End of Request
-     * 
+     *
      * @param channel
      * @param packet
      * @throws OpenR66RunnerErrorException
@@ -1109,7 +1119,7 @@ public class TransferActions extends ServerActions {
     }
     /**
      * Change the filename and the filesize
-     * 
+     *
      * @param channel
      * @param newfilename
      * @param newSize

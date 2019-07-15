@@ -153,7 +153,7 @@ public class TestSendThroughForward extends SendThroughClient {
         }
         DbRule rule;
         try {
-            rule = new DbRule(DbConstant.admin.getSession(), rulename);
+            rule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
             logger.error("Cannot get Rule: " + rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -175,7 +175,7 @@ public class TestSendThroughForward extends SendThroughClient {
             try {
                 // no delay
                 taskRunner =
-                        new DbTaskRunner(DbConstant.admin.getSession(), rule, isSender, request,
+                        new DbTaskRunner(rule, isSender, request,
                                 remoteHost, null);
             } catch (WaarpDatabaseException e) {
                 logger.error("Cannot get task", e);

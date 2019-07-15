@@ -142,8 +142,7 @@ public class LocalTransaction {
             }
             return localChannelReference;
         }
-        throw new OpenR66ProtocolSystemException(
-                "Cannot find LocalChannelReference");
+        throw new OpenR66ProtocolSystemException("Cannot find LocalChannelReference");
     }
 
     private static class SendLater extends Thread {
@@ -244,7 +243,7 @@ public class LocalTransaction {
      * @throws OpenR66ProtocolNoConnectionException
      */
     public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
-            Integer remoteId, R66Future futureRequest)
+            Integer remoteId, R66Future futureRequest, boolean fromSsl)
             throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
         ChannelFuture channelFuture = null;
@@ -285,7 +284,7 @@ public class LocalTransaction {
                         localChannelReference);
                 logger.info("Add one localChannel to a Network Channel: " + channel.id());
                 // Now send first a Startup message
-                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId());
+                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId(), fromSsl);
                 channel.writeAndFlush(startup);
                 return localChannelReference;
             } else {
@@ -314,20 +313,6 @@ public class LocalTransaction {
      * @return the LocalChannelReference
      */
     public LocalChannelReference getFromId(Integer id) {
-        int maxtry = (int) (Configuration.configuration.getTIMEOUTCON() / Configuration.RETRYINMS) / 2;
-        maxtry = 100;
-        for (int i = 0; i < maxtry; i++) {
-            LocalChannelReference lcr = localChannelHashMap.get(id);
-            if (lcr == null) {
-                try {
-                    Thread.sleep(Configuration.RETRYINMS);
-                    Thread.yield();
-                } catch (InterruptedException e) {
-                }
-            } else {
-                return lcr;
-            }
-        }
         return localChannelHashMap.get(id);
     }
 

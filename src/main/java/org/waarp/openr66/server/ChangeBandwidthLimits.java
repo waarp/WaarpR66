@@ -235,7 +235,7 @@ public class ChangeBandwidthLimits implements Runnable {
                     networkTransaction);
             if (stohost != null) {
                 try {
-                    transaction.setHost(new DbHostAuth(DbConstant.admin.getSession(), stohost));
+                    transaction.setHost(new DbHostAuth(stohost));
                 } catch (WaarpDatabaseException e) {
                     logger.error("Bandwidth in     FAILURE since Host is not found: " + stohost, e);
                     networkTransaction.closeAll();

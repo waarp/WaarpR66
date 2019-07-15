@@ -30,7 +30,6 @@ public class Messages {
             setSlocale(locale.getLanguage());
         }
         RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, locale);
-        ErrorCode.updateLang();
     }
 
     public static String getString(String key) {

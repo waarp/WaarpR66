@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.exception.DAOException;
 import org.waarp.openr66.pojo.Business;
+import org.waarp.openr66.pojo.UpdatedInfo;
 
 /**
  * Implementation of BusinessDAO for standard SQL databases
@@ -23,7 +23,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(DBBusinessDAO.class);
 
-    protected static final String TABLE = "HOSTCONFIG";
+    protected static final String TABLE = "hostconfig";
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String BUSINESS_FIELD = "business";
@@ -33,32 +33,41 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     public static final String UPDATED_INFO_FIELD = "updatedInfo";
 
     protected static final String SQL_DELETE_ALL = "DELETE FROM " + TABLE;
-    protected static final String SQL_DELETE = "DELETE FROM " + TABLE 
+    protected static final String SQL_DELETE = "DELETE FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
     protected static final  String SQL_GET_ALL = "SELECT * FROM " + TABLE;
-    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE 
+    protected static final String SQL_EXIST = "SELECT 1 FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE 
+    protected static final String SQL_SELECT = "SELECT * FROM " + TABLE
         + " WHERE " + HOSTID_FIELD + " = ?";
-    protected static final String SQL_INSERT = "INSERT INTO " + TABLE 
+    protected static final String SQL_INSERT = "INSERT INTO " + TABLE
         + " (" + HOSTID_FIELD + ", "
         + BUSINESS_FIELD + ", "
         + ROLES_FIELD + ", "
         + ALIASES_FIELD + ", "
         + OTHERS_FIELD + ", "
         + UPDATED_INFO_FIELD + ") VALUES (?,?,?,?,?,?)";
-    protected static final String SQL_UPDATE = "UPDATE " + TABLE 
+    protected static final String SQL_UPDATE = "UPDATE " + TABLE
         + " SET " + HOSTID_FIELD + " = ?, "
         + BUSINESS_FIELD + " = ?, "
         + ROLES_FIELD + " = ?, "
-        + ALIASES_FIELD + " = ?, " 
+        + ALIASES_FIELD + " = ?, "
         + OTHERS_FIELD + " = ?, "
         + UPDATED_INFO_FIELD + " = ? WHERE " + HOSTID_FIELD + " = ?";
 
-    protected Connection connection;    
+    protected Connection connection;
 
     public DBBusinessDAO(Connection con) {
         this.connection = con;
+    }
+
+    @Override
+    public void close() {
+        try {
+            this.connection.close();
+        } catch (SQLException e) {
+            logger.warn("Cannot properly close the database connection", e);
+        }
     }
 
     @Override
@@ -121,9 +130,9 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
         String prefix = "";
         int i = 0;
         while (it.hasNext()) {
-            query.append(prefix); 
+            query.append(prefix);
             Filter filter = it.next();
-            query.append(filter.key + " " + filter.operand + " ?"); 
+            query.append(filter.key + " " + filter.operand + " ?");
             params[i] = filter.value;
             i++;
             prefix = " AND ";
@@ -192,7 +201,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             business.getRoles(),
             business.getAliases(),
             business.getOthers(),
-            business.getUpdatedInfo()
+            business.getUpdatedInfo().ordinal()
         };
 
         PreparedStatement stm = null;
@@ -215,9 +224,9 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             business.getRoles(),
             business.getAliases(),
             business.getOthers(),
-            business.getUpdatedInfo(),
+            business.getUpdatedInfo().ordinal(),
             business.getHostid()
-        }; 
+        };
 
         PreparedStatement stm = null;
         try {
@@ -238,7 +247,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
                 set.getString(ROLES_FIELD),
                 set.getString(ALIASES_FIELD),
                 set.getString(OTHERS_FIELD),
-                set.getInt(UPDATED_INFO_FIELD));
+                UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 }
 

@@ -87,7 +87,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
             } else {
                 id = node.asText();
             }
-            return new DbConfiguration(handler.getDbSession(), id);
+            return new DbConfiguration(id);
         } catch (WaarpDatabaseException e) {
             throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
         }
@@ -100,7 +100,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
         ObjectNode arg = arguments.getUriArgs().deepCopy();
         arg.setAll(arguments.getBody());
         try {
-            return new DbConfiguration(handler.getDbSession(), arg);
+            return new DbConfiguration(arg);
         } catch (WaarpDatabaseException e) {
             throw new HttpIncorrectRequestException("Issue while inserting into database", e);
         }
@@ -118,8 +118,7 @@ public class DbConfigurationR66RestMethodHandler extends DataModelRestMethodHand
         }
         int limit = arg.path(FILTER_ARGS.BANDWIDTH.name()).asInt(-1);
         try {
-            return DbConfiguration.getFilterPrepareStament(handler.getDbSession(),
-                    host, limit);
+            return DbConfiguration.getFilterPrepareStament(handler.getDbSession(), host, limit);
         } catch (WaarpDatabaseNoConnectionException e) {
             throw new HttpIncorrectRequestException("Issue while reading from database", e);
         } catch (WaarpDatabaseSqlException e) {

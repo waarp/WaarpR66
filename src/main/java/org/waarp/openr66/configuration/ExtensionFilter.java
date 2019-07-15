@@ -10,7 +10,7 @@ import java.io.FilenameFilter;
  * 
  */
 public class ExtensionFilter implements FilenameFilter {
-    String filter = RuleFileBasedConfiguration.EXT_RULE;
+    String filter;
 
     public ExtensionFilter(String filter) {
         this.filter = filter;

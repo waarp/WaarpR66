@@ -40,7 +40,7 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.traffic.AbstractTrafficShapingHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
-import io.netty.handler.traffic.GlobalChannelTrafficShapingHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 
@@ -83,10 +83,9 @@ import org.waarp.openr66.protocol.http.adminssl.HttpReponsiveSslInitializer;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslInitializer;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.restv2.RestServiceInitializer;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
-import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
-import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerInitializer;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
@@ -227,6 +226,8 @@ public class Configuration {
      * Server Actual SSL Authentication
      */
     private DbHostAuth HOST_SSLAUTH;
+
+    private String AUTH_FILE;
 
     /**
      * Default number of threads in pool for Server (true network listeners). Server will change
@@ -480,7 +481,7 @@ public class Configuration {
     /**
      * Global TrafficCounter (set from global configuration)
      */
-    protected GlobalTrafficHandler globalTrafficShapingHandler = null;
+    protected GlobalTrafficShapingHandler globalTrafficShapingHandler = null;
 
     /**
      * LocalTransaction
@@ -601,7 +602,20 @@ public class Configuration {
         }
         setHostProxyfied(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false));
         setWarnOnStartup(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true));
-        FileBasedConfiguration.checkDatabase = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, true);
+
+        if (!SystemPropertyUtil.get(
+                R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, "" )
+                .equals("")) {
+            logger.warn("{} is deprecated in system properties use {} instead",
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK,
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE);
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_CHECK, false);
+        } else {
+            FileBasedConfiguration.autoupgrade = SystemPropertyUtil.getBoolean(
+                    R66SystemProperties.OPENR66_STARTUP_DATABASE_AUTOUPGRADE, false);
+        }
+
         setChrootChecked(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true));
         setBlacklistBadAuthent(SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true));
         setMaxfilenamelength(SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255));
@@ -689,7 +703,7 @@ public class Configuration {
             WaarpDatabaseSqlException, ServerException {
         setServer(true);
         if (isBlacklistBadAuthent()) {
-            setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts(DbConstant.admin.getSession()));
+            setBlacklistBadAuthent(!DbHostAuth.hasProxifiedHosts());
         }
         getShutdownConfiguration().timeout = getTIMEOUTCON();
         if (getTimeLimitCache() < getTIMEOUTCON() * 10) {
@@ -766,9 +780,7 @@ public class Configuration {
         }
 
         // Factory for TrafficShapingHandler
-        globalTrafficShapingHandler = new GlobalTrafficHandler(subTaskGroup, getServerGlobalWriteLimit(),
-                getServerGlobalReadLimit(), getServerChannelWriteLimit(), getServerChannelReadLimit(), getDelayLimit());
-        this.getConstraintLimitHandler().setHandler(globalTrafficShapingHandler);
+        setupLimitHandler();
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();
@@ -782,6 +794,13 @@ public class Configuration {
         }
     }
 
+    public void setupLimitHandler() {
+        globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
+                subTaskGroup, getServerGlobalWriteLimit(),
+                getServerGlobalReadLimit(), getDelayLimit());
+        this.getConstraintLimitHandler().setHandler(
+                globalTrafficShapingHandler);
+    }
     public void startHttpSupport() {
         // Now start the HTTP support
         logger.info(Messages.getString("Configuration.HTTPStart") + getSERVER_HTTPPORT() + //$NON-NLS-1$
@@ -822,7 +841,8 @@ public class Configuration {
     public void startRestSupport() {
         HttpRestR66Handler.initialize(getBaseDirectory() + "/" + getWorkingPath() + "/httptemp");
         for (RestConfiguration config : getRestConfigurations()) {
-            HttpRestR66Handler.initializeService(config);
+            RestServiceInitializer.initRestService(config);
+            //HttpRestR66Handler.initializeService(config);
             logger.info(Messages.getString("Configuration.HTTPStart") + " (REST Support) " + config.toString());
         }
     }
@@ -1047,39 +1067,42 @@ public class Configuration {
      */
     public void changeNetworkLimit(long writeGlobalLimit, long readGlobalLimit,
             long writeSessionLimit, long readSessionLimit, long delayLimit) {
-        long newWriteLimit = writeGlobalLimit > 1024 ? writeGlobalLimit
-                : getServerGlobalWriteLimit();
         if (writeGlobalLimit <= 0) {
-            newWriteLimit = 0;
+            writeGlobalLimit = 0;
         }
-        long newReadLimit = readGlobalLimit > 1024 ? readGlobalLimit : getServerGlobalReadLimit();
         if (readGlobalLimit <= 0) {
-            newReadLimit = 0;
+            readGlobalLimit = 0;
         }
-        setServerGlobalReadLimit(newReadLimit);
-        setServerGlobalWriteLimit(newWriteLimit);
-        this.setDelayLimit(delayLimit);
-        if (globalTrafficShapingHandler != null) {
-            globalTrafficShapingHandler.configure(getServerGlobalWriteLimit(), getServerGlobalReadLimit(), delayLimit);
-            logger.warn(Messages.getString("Configuration.BandwidthChange"), globalTrafficShapingHandler); //$NON-NLS-1$
-        }
-        newWriteLimit = writeSessionLimit > 1024 ? writeSessionLimit
-                : getServerChannelWriteLimit();
         if (writeSessionLimit <= 0) {
-            newWriteLimit = 0;
+            writeSessionLimit = 0;
         }
-        newReadLimit = readSessionLimit > 1024 ? readSessionLimit
-                : getServerChannelReadLimit();
         if (readSessionLimit <= 0) {
-            newReadLimit = 0;
+            readSessionLimit = 0;
         }
-        setServerChannelReadLimit(newReadLimit);
-        setServerChannelWriteLimit(newWriteLimit);
-        if (globalTrafficShapingHandler != null && globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
-            ((GlobalChannelTrafficShapingHandler) globalTrafficShapingHandler).configureChannel(getServerChannelWriteLimit(), getServerChannelReadLimit());
+        if (writeGlobalLimit < writeSessionLimit) {
+            writeSessionLimit = writeGlobalLimit;
+            logger.warn("Wanted global write limit is inferior " 
+                    + "to session limit. Will force session limit to {} ",
+                   writeGlobalLimit);
         }
-        setAnyBandwidthLimitation((getServerGlobalReadLimit() > 0 || getServerGlobalWriteLimit() > 0 ||
-                getServerChannelReadLimit() > 0 || getServerChannelWriteLimit() > 0));
+        if (readGlobalLimit < readSessionLimit) {
+            readSessionLimit = readGlobalLimit;
+            logger.warn("Wanted global read limit is inferior " 
+                    + "to session limit. Will force session limit to {} ",
+                   readGlobalLimit);
+        }
+        this.setServerGlobalReadLimit(readGlobalLimit);
+        this.setServerGlobalReadLimit(readGlobalLimit);
+        this.setServerGlobalWriteLimit(writeGlobalLimit);
+        this.setServerChannelReadLimit(readSessionLimit);
+        this.setServerChannelWriteLimit(writeSessionLimit);
+        this.setDelayLimit(delayLimit);
+	if (globalTrafficShapingHandler != null) {
+        	globalTrafficShapingHandler.configure(writeGlobalLimit, readGlobalLimit,
+                	delayLimit);
+        	logger.info(Messages.getString("Configuration.BandwidthChange"),
+                	globalTrafficShapingHandler);
+	}
     }
 
     /**
@@ -1103,16 +1126,13 @@ public class Configuration {
     /**
      * @return a new ChannelTrafficShapingHandler
      * @throws OpenR66ProtocolNoDataException
+     *
+     * @deprecated Should instance channelTrafficShaping in initializer
      */
-    public ChannelTrafficShapingHandler newChannelTrafficShapingHandler()
-            throws OpenR66ProtocolNoDataException {
-        if (getServerChannelReadLimit() == 0 && getServerChannelWriteLimit() == 0) {
-            throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
-        }
-        if (globalTrafficShapingHandler instanceof GlobalChannelTrafficShapingHandler) {
-            throw new OpenR66ProtocolNoDataException("Already included through GlobalChannelTSH");
-        }
-        return new ChannelTrafficHandler(getServerChannelWriteLimit(), getServerChannelReadLimit(), getDelayLimit());
+    @Deprecated
+    public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() {
+        return new ChannelTrafficShapingHandler(getServerChannelWriteLimit(),
+                getServerChannelReadLimit(), getDelayLimit());
     }
 
     /**
@@ -1130,7 +1150,7 @@ public class Configuration {
     /**
      * @return the globalTrafficShapingHandler
      */
-    public GlobalTrafficHandler getGlobalTrafficShapingHandler() {
+    public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
         return globalTrafficShapingHandler;
     }
 
@@ -1265,7 +1285,7 @@ public class Configuration {
      * @throws WaarpDatabaseException
      */
     public String getHostId(DbSession dbSession, String remoteHost) throws WaarpDatabaseException {
-        DbHostAuth hostAuth = new DbHostAuth(dbSession, remoteHost);
+        DbHostAuth hostAuth = new DbHostAuth(remoteHost);
         try {
             return Configuration.configuration.getHostId(hostAuth.isSsl());
         } catch (OpenR66ProtocolNoSslException e) {
@@ -1507,6 +1527,14 @@ public class Configuration {
      */
     public void setHOST_SSLAUTH(DbHostAuth hOST_SSLAUTH) {
         HOST_SSLAUTH = hOST_SSLAUTH;
+    }
+
+    public String getAUTH_FILE() {
+        return AUTH_FILE;
+    }
+
+    public void setAUTH_FILE(String file) {
+        AUTH_FILE = file;
     }
 
     /**

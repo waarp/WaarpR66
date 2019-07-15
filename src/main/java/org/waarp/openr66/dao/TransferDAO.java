@@ -26,13 +26,30 @@ public interface TransferDAO {
      */
     List<Transfer> find(List<Filter> filters) throws DAOException;
 
+    List<Transfer> find(List<Filter> filters, int limit) throws DAOException;
+
+    List<Transfer> find(List<Filter> filters, int limit, int offset)
+            throws DAOException;
+
+
+    List<Transfer> find(List<Filter> filters, String column, boolean ascend)
+            throws DAOException;
+
+    List<Transfer> find(List<Filter> filters, String column, boolean ascend,
+                        int limit) throws DAOException;
+
+    List<Transfer> find(List<Filter> filters, String column, boolean ascend,
+                        int limit, int offset) throws DAOException;
+
+
     /**
      * Retrieve the Transfer object with the specified Special ID from the persistance layer
      *
      * @param id special ID of the Transfer object requested
      * @throws DAOException If a data access error occurs
      */
-    Transfer select(long id) throws DAOException;
+    Transfer select(long id, String requester, String requested, String owner)
+            throws DAOException;
 
     /**
      * Verify if a Transfer object with the specified Special ID exists in
@@ -43,7 +60,8 @@ public interface TransferDAO {
      * if no Transfer object correspond to the specified Special ID.
      * @throws DAOException If a data access error occurs
      */
-    boolean exist(long id) throws DAOException;
+    boolean exist(long id, String requester, String requested, String owner)
+            throws DAOException;
 
     /**
      * Insert the specified Transfer object in the persistance layer
@@ -75,4 +93,6 @@ public interface TransferDAO {
      * @throws DAOException If a data access error occurs
      */
     void deleteAll() throws DAOException;
+
+    void close();
 }

@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -37,11 +37,11 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 /**
  * Commander is responsible to read list of updated data from time to time in order to achieve new
  * runner or new configuration updates.
- * 
+ *
  * Based on no Database support
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class CommanderNoDb implements CommanderInterface {
     /**
@@ -55,7 +55,7 @@ public class CommanderNoDb implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      */
     public CommanderNoDb(InternalRunner runner) {
@@ -64,7 +64,7 @@ public class CommanderNoDb implements CommanderInterface {
 
     /**
      * Prepare requests that will be executed from time to time
-     * 
+     *
      * @param runner
      * @param fromStartup
      *            True if call from startup of the server
@@ -92,14 +92,14 @@ public class CommanderNoDb implements CommanderInterface {
                 }
                 DbRule rule;
                 try {
-                    rule = new DbRule(null, info[2]);
+                    rule = new DbRule(info[2]);
                 } catch (WaarpDatabaseException e) {
                     logger.warn("Cannot find the rule named: " + info[2]);
                     continue;
                 }
                 long id = Long.parseLong(info[3]);
                 try {
-                    DbTaskRunner task = new DbTaskRunner(null, null, rule, id, info[0], info[1]);
+                    DbTaskRunner task = new DbTaskRunner(null, rule, id, info[0], info[1]);
                     UpdatedInfo status = task.getUpdatedInfo();
                     if (status == UpdatedInfo.RUNNING || status == UpdatedInfo.INTERRUPTED) {
                         task.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);

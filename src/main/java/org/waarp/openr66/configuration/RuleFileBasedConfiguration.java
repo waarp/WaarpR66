@@ -17,11 +17,6 @@
  */
 package org.waarp.openr66.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -48,6 +43,11 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.utils.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Rule File Based Configuration
  * 
@@ -61,22 +61,22 @@ public class RuleFileBasedConfiguration {
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(RuleFileBasedConfiguration.class);
 
-    private static final String MULTIPLEROOT = "rules";
-    private static final String ROOT = "rule";
-    private static final String XIDRULE = "idrule";
+    public static final String MULTIPLEROOT = "rules";
+    public static final String ROOT = "rule";
+    public static final String XIDRULE = "idrule";
     public static final String XHOSTIDS = "hostids";
     public static final String XHOSTID = "hostid";
-    private static final String XMODE = "mode";
-    private static final String XRECVPATH = "recvpath";
-    private static final String XSENDPATH = "sendpath";
-    private static final String XARCHIVEPATH = "archivepath";
-    private static final String XWORKPATH = "workpath";
-    private static final String XRPRETASKS = "rpretasks";
-    private static final String XRPOSTTASKS = "rposttasks";
-    private static final String XRERRORTASKS = "rerrortasks";
-    private static final String XSPRETASKS = "spretasks";
-    private static final String XSPOSTTASKS = "sposttasks";
-    private static final String XSERRORTASKS = "serrortasks";
+    public static final String XMODE = "mode";
+    public static final String XRECVPATH = "recvpath";
+    public static final String XSENDPATH = "sendpath";
+    public static final String XARCHIVEPATH = "archivepath";
+    public static final String XWORKPATH = "workpath";
+    public static final String XRPRETASKS = "rpretasks";
+    public static final String XRPOSTTASKS = "rposttasks";
+    public static final String XRERRORTASKS = "rerrortasks";
+    public static final String XSPRETASKS = "spretasks";
+    public static final String XSPOSTTASKS = "sposttasks";
+    public static final String XSERRORTASKS = "serrortasks";
     public static final String XTASKS = "tasks";
     public static final String XTASK = "task";
 
@@ -235,7 +235,7 @@ public class RuleFileBasedConfiguration {
      * @return the array of HostIds allowed for the current rule
      */
     public static String[] getHostIds(XmlValue value) {
-        String[] idsArray = null;
+        String[] idsArray = new String[0];
         if (value == null || (value.getList() == null) || value.getList().isEmpty()) {
             logger
                     .info("Unable to find the Hostid for Rule, setting to the default");
@@ -448,7 +448,7 @@ public class RuleFileBasedConfiguration {
             }
         }
 
-        newRule = new DbRule(DbConstant.admin.getSession(), idrule, idsArray, mode, recvpath, sendpath,
+        newRule = new DbRule(idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, rpretasks, rposttasks, rerrortasks,
                 spretasks, sposttasks, serrortasks);
         if (DbConstant.admin != null && DbConstant.admin.getSession() != null) {
@@ -665,7 +665,7 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+        DbRule[] rules = DbRule.getAllRules();
         for (DbRule rule : rules) {
             String filename = dir.getAbsolutePath() + File.separator + hostname + "_" + rule.getIdRule()
                     +
@@ -692,7 +692,7 @@ public class RuleFileBasedConfiguration {
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }
-        DbRule[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+        DbRule[] rules = DbRule.getAllRules();
         String filename = dir.getAbsolutePath() + File.separator + hostname +
                 RuleFileBasedConfiguration.EXT_RULES;
         Document document = DocumentHelper.createDocument();

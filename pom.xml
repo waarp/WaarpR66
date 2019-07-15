@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpR66</artifactId>
   <name>Waarp OpenR66</name>
-  <version>3.0.10</version>
+  <version>3.0.12</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -45,11 +45,37 @@
   		</snapshots>
   	</repository>
   </repositories>
+
+  <properties>
+    <skipITs>true</skipITs>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <attach-distribution>false</attach-distribution>
+    <filtermodule>**</filtermodule>
+    <!-- Dependencies versions-->
+    <test-containers>1.11.2</test-containers>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>development</id>
+      <properties>
+        <skipITs>true</skipITs>
+      </properties>
+    </profile>
+    <profile>
+      <id>integration-tests</id>
+      <properties>
+        <skipITs>false</skipITs>
+      </properties>
+    </profile>
+  </profiles>
+
+
   <dependencies>
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>3.0.10</version>
+      <version>3.0.12</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
@@ -84,7 +110,7 @@
     <dependency>
     	<groupId>commons-codec</groupId>
     	<artifactId>commons-codec</artifactId>
-    	<version>1.11</version>
+    	<version>1.12</version>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>
@@ -95,7 +121,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpSnmp</artifactId>
-    	<version>3.0.5</version>
+    	<version>3.0.6</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -111,7 +137,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpThrift</artifactId>
-    	<version>3.0.5</version>
+    	<version>3.0.6</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -141,12 +167,12 @@
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpGatewayKernel</artifactId>
-        <version>3.0.9</version>
+        <version>3.0.10</version>
     </dependency>
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpFtpClient</artifactId>
-        <version>3.0.5</version>
+        <version>3.0.6</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -163,25 +189,49 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mariadb</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mysql</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>oracle-xe</artifactId>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.10.6</version>
+      <version>${test-containers}</version>
+      <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils-core</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
+      <version>2.28</version>
+    </dependency>
+      <dependency>
+        <groupId>io.cdap.http</groupId>
+        <artifactId>netty-http</artifactId>
+          <version>1.2.0</version>
+      </dependency>
   </dependencies>
-  <properties>
-	<skipITs>true</skipITs>
-  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  	<attach-distribution>false</attach-distribution>
-    <filtermodule>**</filtermodule>
-  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -219,7 +269,7 @@
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
-	    </goals>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -313,7 +363,7 @@
         <version>2.3</version>
         <inherited>false</inherited>
         <configuration>
-          <rulesUri>file:///${session.executionRootDirectory}/maven-version-rules.xml</rulesUri>
+          <rulesUri>file:///${session.executionRootDirectory}/maven-version-restRules.xml</rulesUri>
         </configuration>
       </plugin>
     </plugins>
