@@ -8,48 +8,48 @@
 <div id="overview"><a href="../../../../../api/org/waarp/openr66/configuration/AuthenticationFileBasedConfiguration.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> * This file is part of Waarp Project.</em>
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the</em>
 <a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * COPYRIGHT.txt in the distribution for a full listing of individual contributors.</em>
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of</em>
 <a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * the GNU General Public License as published by the Free Software Foundation, either version 3 of</em>
 <a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> * the License, or (at your option) any later version.</em>
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</em>
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General</em>
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment"> * Public License for more details.</em>
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * You should have received a copy of the GNU General Public License along with Waarp . If not, see</em>
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * &lt;<a href="http://www.gnu.org/licenses/&gt;" target="alexandria_uri">http://www.gnu.org/licenses/&gt;</a>.</em>
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">package</strong> org.waarp.openr66.configuration;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.Iterator;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Document;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentException;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentHelper;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Element;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.dom4j.io.SAXReader;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.dom4j.tree.DefaultElement;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseException;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseSqlException;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLogger;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLoggerFactory;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlDecl;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlHash;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlType;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlUtil;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlValue;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.DbConstant;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbHostAuth;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Document;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentException;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentHelper;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Element;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.dom4j.io.SAXReader;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.dom4j.tree.DefaultElement;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseException;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseSqlException;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLogger;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLoggerFactory;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlDecl;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlHash;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlType;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlUtil;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlValue;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.DbConstant;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbHostAuth;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.Iterator;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment"> * Authentication from File support</em>
@@ -67,15 +67,15 @@
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ROOT = <span class="jxr_string">"authent"</span>;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ROOT = <span class="jxr_string">"authent"</span>;
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ENTRY = <span class="jxr_string">"entry"</span>;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ENTRY = <span class="jxr_string">"entry"</span>;
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_BASED = <span class="jxr_string">"/"</span>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_BASED = <span class="jxr_string">"/"</span>
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>              +
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>              XML_AUTHENTIFICATION_ROOT
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>              + <span class="jxr_string">"/"</span>
@@ -84,47 +84,47 @@
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_HOSTID = <span class="jxr_string">"hostid"</span>;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_HOSTID = <span class="jxr_string">"hostid"</span>;
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_KEYFILE = <span class="jxr_string">"keyfile"</span>;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_KEYFILE = <span class="jxr_string">"keyfile"</span>;
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_KEY = <span class="jxr_string">"key"</span>;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_KEY = <span class="jxr_string">"key"</span>;
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ADMIN = <span class="jxr_string">"admin"</span>;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ADMIN = <span class="jxr_string">"admin"</span>;
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>  
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>  <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ADDRESS = <span class="jxr_string">"address"</span>;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ADDRESS = <span class="jxr_string">"address"</span>;
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_PORT = <span class="jxr_string">"port"</span>;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_PORT = <span class="jxr_string">"port"</span>;
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L105" href="#L105">105</a> <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L106" href="#L106">106</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISSSL = <span class="jxr_string">"isssl"</span>;
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISSSL = <span class="jxr_string">"isssl"</span>;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L110" href="#L110">110</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISCLIENT = <span class="jxr_string">"isclient"</span>;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISCLIENT = <span class="jxr_string">"isclient"</span>;
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L114" href="#L114">114</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISACTIVE = <span class="jxr_string">"isactive"</span>;
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISACTIVE = <span class="jxr_string">"isactive"</span>;
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L117" href="#L117">117</a> <em class="jxr_javadoccomment">     * Authentication Fields</em>
 <a class="jxr_linenumber" name="L118" href="#L118">118</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISPROXIFIED = <span class="jxr_string">"isproxified"</span>;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XML_AUTHENTIFICATION_ISPROXIFIED = <span class="jxr_string">"isproxified"</span>;
 <a class="jxr_linenumber" name="L120" href="#L120">120</a> 
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L122" href="#L122">122</a> <em class="jxr_javadoccomment">     * Structure of the Configuration file</em>
@@ -263,84 +263,83 @@
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>             <strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong> &amp;&amp; (!value.isEmpty())) {
 <a class="jxr_linenumber" name="L256" href="#L256">256</a>                 isProxified = value.getBoolean();
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>             }
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> auth = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(),
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>                     refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>             auth.setActive(isActive);
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>             auth.setProxified(isProxified);
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>                 <strong class="jxr_keyword">if</strong> (auth.exist()) {
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>                     auth.update();
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>                     auth.insert();
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 }
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>                 logger.error(<span class="jxr_string">"Cannot create Authentication for hostId {}"</span>, refHostId);
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>                 <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>             }
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>             logger.debug(<span class="jxr_string">"Add {} {}"</span>, refHostId, auth);
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>         }
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>         document = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>         hash.clear();
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>         values = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>     }
-<a class="jxr_linenumber" name="L279" href="#L279">279</a> 
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L281" href="#L281">281</a> <em class="jxr_javadoccomment">     * Construct a new Element with value</em>
-<a class="jxr_linenumber" name="L282" href="#L282">282</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L283" href="#L283">283</a> <em class="jxr_javadoccomment">     * @param name</em>
-<a class="jxr_linenumber" name="L284" href="#L284">284</a> <em class="jxr_javadoccomment">     * @param value</em>
-<a class="jxr_linenumber" name="L285" href="#L285">285</a> <em class="jxr_javadoccomment">     * @return the new Element</em>
-<a class="jxr_linenumber" name="L286" href="#L286">286</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Element newElement(String name, String value) {
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>         Element node = <strong class="jxr_keyword">new</strong> DefaultElement(name);
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>         node.addText(value);
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>         <strong class="jxr_keyword">return</strong> node;
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>     }
-<a class="jxr_linenumber" name="L292" href="#L292">292</a> 
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L294" href="#L294">294</a> <em class="jxr_javadoccomment">     * Write all authentication to a file with filename</em>
-<a class="jxr_linenumber" name="L295" href="#L295">295</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L296" href="#L296">296</a> <em class="jxr_javadoccomment">     * @param filename</em>
-<a class="jxr_linenumber" name="L297" href="#L297">297</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="L298" href="#L298">298</a> <em class="jxr_javadoccomment">     * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="L299" href="#L299">299</a> <em class="jxr_javadoccomment">     * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="L300" href="#L300">300</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeXML(<a href="../../../../org/waarp/openr66/protocol/configuration/Configuration.html">Configuration</a> config, String filename)
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>             <strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException, WaarpDatabaseNoConnectionException,
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>             WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         Document document = DocumentHelper.createDocument();
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.getSession());
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>         logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + hosts.length + <span class="jxr_string">" in "</span> + filename);
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <strong class="jxr_keyword">for</strong> (DbHostAuth auth : hosts) {
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>             logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + auth.getHostid());
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>             Element entry = <strong class="jxr_keyword">new</strong> DefaultElement(XML_AUTHENTIFICATION_ENTRY);
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>             entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>             byte[] key = auth.getHostkey();
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>             String encode;
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 encode = config.getCryptoKey().cryptToHex(key);
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>                 encode = <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>             }
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>             entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>             entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>             entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>             entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISCLIENT, Boolean.toString(auth.isClient())));
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISACTIVE, Boolean.toString(auth.isActive())));
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISPROXIFIED, Boolean.toString(auth.isProxified())));
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>             root.add(entry);
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>         }
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>             XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>         } <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>         }
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>     }
-<a class="jxr_linenumber" name="L335" href="#L335">335</a> }
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> auth = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>             auth.setActive(isActive);
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>             auth.setProxified(isProxified);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                 <strong class="jxr_keyword">if</strong> (auth.exist()) {
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                     auth.update();
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                     auth.insert();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 }
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                 logger.error(<span class="jxr_string">"Cannot create Authentication for hostId {}"</span>, refHostId);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>             }
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             logger.debug(<span class="jxr_string">"Add {} {}"</span>, refHostId, auth);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         }
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         document = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         hash.clear();
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         values = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     }
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L280" href="#L280">280</a> <em class="jxr_javadoccomment">     * Construct a new Element with value</em>
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> <em class="jxr_javadoccomment">     * @param name</em>
+<a class="jxr_linenumber" name="L283" href="#L283">283</a> <em class="jxr_javadoccomment">     * @param value</em>
+<a class="jxr_linenumber" name="L284" href="#L284">284</a> <em class="jxr_javadoccomment">     * @return the new Element</em>
+<a class="jxr_linenumber" name="L285" href="#L285">285</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Element newElement(String name, String value) {
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         Element node = <strong class="jxr_keyword">new</strong> DefaultElement(name);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         node.addText(value);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         <strong class="jxr_keyword">return</strong> node;
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     }
+<a class="jxr_linenumber" name="L291" href="#L291">291</a> 
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a> <em class="jxr_javadoccomment">     * Write all authentication to a file with filename</em>
+<a class="jxr_linenumber" name="L294" href="#L294">294</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> <em class="jxr_javadoccomment">     * @param filename</em>
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="L297" href="#L297">297</a> <em class="jxr_javadoccomment">     * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="L298" href="#L298">298</a> <em class="jxr_javadoccomment">     * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeXML(<a href="../../../../org/waarp/openr66/protocol/configuration/Configuration.html">Configuration</a> config, String filename)
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException, WaarpDatabaseNoConnectionException,
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>             WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         Document document = DocumentHelper.createDocument();
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>[] hosts = DbHostAuth.getAllHosts();
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + hosts.length + <span class="jxr_string">" in "</span> + filename);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>         <strong class="jxr_keyword">for</strong> (DbHostAuth auth : hosts) {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>             logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span> + auth.getHostid());
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>             Element entry = <strong class="jxr_keyword">new</strong> DefaultElement(XML_AUTHENTIFICATION_ENTRY);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>             entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>             byte[] key = auth.getHostkey();
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>             String encode;
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>                 encode = config.getCryptoKey().cryptToHex(key);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>                 encode = <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             }
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>             entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>             entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>             entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISCLIENT, Boolean.toString(auth.isClient())));
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISACTIVE, Boolean.toString(auth.isActive())));
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>             entry.add(newElement(XML_AUTHENTIFICATION_ISPROXIFIED, Boolean.toString(auth.isProxified())));
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             root.add(entry);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>         }
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         } <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         }
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>     }
+<a class="jxr_linenumber" name="L334" href="#L334">334</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2009&#x2013;2019 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>

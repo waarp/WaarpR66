@@ -411,7 +411,7 @@
 <a class="jxr_linenumber" name="L403" href="#L403">403</a>         <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a> dbhost = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L404" href="#L404">404</a>         <strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 dbhost = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(), stohost);
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 dbhost = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(stohost);
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>                 logger.error(<span class="jxr_string">"Wrong initialization"</span>);
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>                 <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isActive()) {

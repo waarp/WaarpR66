@@ -251,7 +251,7 @@
 <a class="jxr_linenumber" name="L243" href="#L243">243</a> <em class="jxr_javadoccomment">     * @throws OpenR66ProtocolNoConnectionException</em>
 <a class="jxr_linenumber" name="L244" href="#L244">244</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> createNewClient(<a href="../../../../../org/waarp/openr66/protocol/networkhandler/NetworkChannelReference.html">NetworkChannelReference</a> networkChannelReference,
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>             Integer remoteId, <a href="../../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> futureRequest)
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>             Integer remoteId, <a href="../../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> futureRequest, <strong class="jxr_keyword">boolean</strong> fromSsl)
 <a class="jxr_linenumber" name="L247" href="#L247">247</a>             <strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException,
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>             <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a> {
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>         ChannelFuture channelFuture = <strong class="jxr_keyword">null</strong>;
@@ -292,7 +292,7 @@
 <a class="jxr_linenumber" name="L284" href="#L284">284</a>                         localChannelReference);
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>                 logger.info(<span class="jxr_string">"Add one localChannel to a Network Channel: "</span> + channel.id());
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>                 <em class="jxr_comment">// Now send first a Startup message</em>
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/StartupPacket.html">StartupPacket</a> startup = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/StartupPacket.html">StartupPacket</a>(localChannelReference.getLocalId());
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/StartupPacket.html">StartupPacket</a> startup = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/StartupPacket.html">StartupPacket</a>(localChannelReference.getLocalId(), fromSsl);
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>                 channel.writeAndFlush(startup);
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>                 <strong class="jxr_keyword">return</strong> localChannelReference;
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>             } <strong class="jxr_keyword">else</strong> {

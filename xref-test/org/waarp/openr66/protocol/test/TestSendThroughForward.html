@@ -161,7 +161,7 @@
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>         }
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>         DbRule rule;
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>             rule = <strong class="jxr_keyword">new</strong> DbRule(DbConstant.admin.getSession(), rulename);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             rule = <strong class="jxr_keyword">new</strong> DbRule(rulename);
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>             logger.error(<span class="jxr_string">"Cannot get Rule: "</span> + rulename, e);
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>             future.setResult(<strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">new</strong> OpenR66DatabaseGlobalException(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
@@ -183,7 +183,7 @@
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>                 <em class="jxr_comment">// no delay</em>
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>                 taskRunner =
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>                         <strong class="jxr_keyword">new</strong> DbTaskRunner(DbConstant.admin.getSession(), rule, isSender, request,
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                         <strong class="jxr_keyword">new</strong> DbTaskRunner(rule, isSender, request,
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>                                 remoteHost, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);

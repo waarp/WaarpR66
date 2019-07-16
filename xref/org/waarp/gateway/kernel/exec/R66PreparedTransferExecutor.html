@@ -188,7 +188,7 @@
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>         logger.debug(message);
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>         <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule;
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(dbsession, rulename);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(rulename);
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>             logger.error(<span class="jxr_string">"Cannot get Rule: "</span> + rulename + <span class="jxr_string">" since {}\n    "</span> +
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>                     message, e.getMessage());
@@ -214,7 +214,7 @@
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         logger.debug(<span class="jxr_string">"Will prepare: {}"</span>, request);
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>         <a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner;
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>             taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(dbsession, rule, isRetrieve, request,
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(rule, isRetrieve, request,
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>                     remoteHost, timestart);
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>             logger.error(<span class="jxr_string">"Cannot get new task since {}\n    "</span> + message, e

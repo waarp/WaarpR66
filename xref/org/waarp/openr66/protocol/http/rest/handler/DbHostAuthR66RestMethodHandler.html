@@ -97,7 +97,7 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>              } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>                  id = node.asText();
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>              }
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(handler.getDbSession(), id);
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(id);
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> HttpNotFoundRequestException(<span class="jxr_string">"Issue while reading from database "</span> + arg + <span class="jxr_string">" was "</span> + arguments, e);
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
@@ -110,7 +110,7 @@
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>         ObjectNode arg = arguments.getUriArgs().deepCopy();
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>         arg.setAll(arguments.getBody());
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(handler.getDbSession(), arg);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(arg);
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> HttpIncorrectRequestException(<span class="jxr_string">"Issue while inserting into database"</span>, e);
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         }

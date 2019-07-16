@@ -289,7 +289,7 @@
 <a class="jxr_linenumber" name="L281" href="#L281">281</a>             logger.debug(<span class="jxr_string">"NetworkRecv Create: {} {}"</span>, packet,
 <a class="jxr_linenumber" name="L282" href="#L282">282</a>                     channel.id());
 <a class="jxr_linenumber" name="L283" href="#L283">283</a>             NetworkTransaction.createConnectionFromNetworkChannelStartup(
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>                     <strong class="jxr_keyword">this</strong>.networkChannelReference, packet);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                     <strong class="jxr_keyword">this</strong>.networkChannelReference, packet, isSSL);
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>             <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>             <strong class="jxr_keyword">if</strong> (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {

@@ -25,36 +25,36 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">package</strong> org.waarp.openr66.configuration;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Document;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentException;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentHelper;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Element;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.dom4j.io.SAXReader;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.dom4j.tree.DefaultElement;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseException;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoDataException;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseSqlException;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.file.DirInterface;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLogger;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLoggerFactory;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlDecl;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlHash;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlType;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlUtil;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlValue;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.context.task.TaskType;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.DbConstant;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbRule;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.FileUtils;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Document;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentException;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.dom4j.DocumentHelper;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.dom4j.Element;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.dom4j.io.SAXReader;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.dom4j.tree.DefaultElement;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseException;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseNoDataException;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.database.exception.WaarpDatabaseSqlException;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.file.DirInterface;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLogger;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.logging.WaarpLoggerFactory;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlDecl;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlHash;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlType;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlUtil;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.common.xml.XmlValue;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.context.task.TaskType;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.DbConstant;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbRule;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.FileUtils;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment"> * Rule File Based Configuration</em>
@@ -69,22 +69,22 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpLogger logger = WaarpLoggerFactory
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>              .getLogger(RuleFileBasedConfiguration.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String MULTIPLEROOT = <span class="jxr_string">"rules"</span>;
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ROOT = <span class="jxr_string">"rule"</span>;
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XIDRULE = <span class="jxr_string">"idrule"</span>;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String MULTIPLEROOT = <span class="jxr_string">"rules"</span>;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ROOT = <span class="jxr_string">"rule"</span>;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XIDRULE = <span class="jxr_string">"idrule"</span>;
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XHOSTIDS = <span class="jxr_string">"hostids"</span>;
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XHOSTID = <span class="jxr_string">"hostid"</span>;
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XMODE = <span class="jxr_string">"mode"</span>;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRECVPATH = <span class="jxr_string">"recvpath"</span>;
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSENDPATH = <span class="jxr_string">"sendpath"</span>;
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XARCHIVEPATH = <span class="jxr_string">"archivepath"</span>;
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XWORKPATH = <span class="jxr_string">"workpath"</span>;
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRPRETASKS = <span class="jxr_string">"rpretasks"</span>;
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRPOSTTASKS = <span class="jxr_string">"rposttasks"</span>;
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRERRORTASKS = <span class="jxr_string">"rerrortasks"</span>;
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSPRETASKS = <span class="jxr_string">"spretasks"</span>;
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSPOSTTASKS = <span class="jxr_string">"sposttasks"</span>;
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSERRORTASKS = <span class="jxr_string">"serrortasks"</span>;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XMODE = <span class="jxr_string">"mode"</span>;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRECVPATH = <span class="jxr_string">"recvpath"</span>;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSENDPATH = <span class="jxr_string">"sendpath"</span>;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XARCHIVEPATH = <span class="jxr_string">"archivepath"</span>;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XWORKPATH = <span class="jxr_string">"workpath"</span>;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRPRETASKS = <span class="jxr_string">"rpretasks"</span>;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRPOSTTASKS = <span class="jxr_string">"rposttasks"</span>;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XRERRORTASKS = <span class="jxr_string">"rerrortasks"</span>;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSPRETASKS = <span class="jxr_string">"spretasks"</span>;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSPOSTTASKS = <span class="jxr_string">"sposttasks"</span>;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XSERRORTASKS = <span class="jxr_string">"serrortasks"</span>;
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XTASKS = <span class="jxr_string">"tasks"</span>;
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String XTASK = <span class="jxr_string">"task"</span>;
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  
@@ -243,7 +243,7 @@
 <a class="jxr_linenumber" name="L235" href="#L235">235</a> <em class="jxr_javadoccomment">     * @return the array of HostIds allowed for the current rule</em>
 <a class="jxr_linenumber" name="L236" href="#L236">236</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getHostIds(XmlValue value) {
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>         String[] idsArray = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         String[] idsArray = <strong class="jxr_keyword">new</strong> String[0];
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>         <strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.getList() == <strong class="jxr_keyword">null</strong>) || value.getList().isEmpty()) {
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>             logger
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>                     .info(<span class="jxr_string">"Unable to find the Hostid for Rule, setting to the default"</span>);
@@ -456,7 +456,7 @@
 <a class="jxr_linenumber" name="L448" href="#L448">448</a>             }
 <a class="jxr_linenumber" name="L449" href="#L449">449</a>         }
 <a class="jxr_linenumber" name="L450" href="#L450">450</a> 
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>         newRule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), idrule, idsArray, mode, recvpath, sendpath,
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         newRule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(idrule, idsArray, mode, recvpath, sendpath,
 <a class="jxr_linenumber" name="L452" href="#L452">452</a>                 archivepath, workpath, rpretasks, rposttasks, rerrortasks,
 <a class="jxr_linenumber" name="L453" href="#L453">453</a>                 spretasks, sposttasks, serrortasks);
 <a class="jxr_linenumber" name="L454" href="#L454">454</a>         <strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.getSession() != <strong class="jxr_keyword">null</strong>) {
@@ -673,7 +673,7 @@
 <a class="jxr_linenumber" name="L665" href="#L665">665</a>         <strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
 <a class="jxr_linenumber" name="L666" href="#L666">666</a>             dir.mkdirs();
 <a class="jxr_linenumber" name="L667" href="#L667">667</a>         }
-<a class="jxr_linenumber" name="L668" href="#L668">668</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] rules = DbRule.getAllRules();
 <a class="jxr_linenumber" name="L669" href="#L669">669</a>         <strong class="jxr_keyword">for</strong> (DbRule rule : rules) {
 <a class="jxr_linenumber" name="L670" href="#L670">670</a>             String filename = dir.getAbsolutePath() + File.separator + hostname + <span class="jxr_string">"_"</span> + rule.getIdRule()
 <a class="jxr_linenumber" name="L671" href="#L671">671</a>                     +
@@ -700,7 +700,7 @@
 <a class="jxr_linenumber" name="L692" href="#L692">692</a>         <strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
 <a class="jxr_linenumber" name="L693" href="#L693">693</a>             dir.mkdirs();
 <a class="jxr_linenumber" name="L694" href="#L694">694</a>         }
-<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] rules = DbRule.getAllRules(DbConstant.admin.getSession());
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] rules = DbRule.getAllRules();
 <a class="jxr_linenumber" name="L696" href="#L696">696</a>         String filename = dir.getAbsolutePath() + File.separator + hostname +
 <a class="jxr_linenumber" name="L697" href="#L697">697</a>                 RuleFileBasedConfiguration.EXT_RULES;
 <a class="jxr_linenumber" name="L698" href="#L698">698</a>         Document document = DocumentHelper.createDocument();

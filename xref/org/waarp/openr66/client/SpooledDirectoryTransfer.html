@@ -242,7 +242,7 @@
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>         <em class="jxr_comment">// first check if rule is for SEND</em>
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> dbrule = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>             dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(rulename);
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>             logger.error(Messages.getString(<span class="jxr_string">"Transfer.18"</span>), e1); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">this</strong>.future.setFailure(e1);

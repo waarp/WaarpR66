@@ -88,7 +88,7 @@
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>          <em class="jxr_comment">// first check if filenames contains wildcards</em>
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> dbrule = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              dbrule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(rulename);
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>          } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>              logger.error(Messages.getString(<span class="jxr_string">"SubmitTransfer.2"</span>) + rule); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>              ChannelUtils.stopLogger();

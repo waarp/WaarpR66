@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>     <strong class="jxr_keyword">protected</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> initRequest() {
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>         <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule;
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.getSession(), rulename);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(rulename);
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>             logger.error(<span class="jxr_string">"Cannot get Rule: "</span> + rulename, e);
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>             future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
@@ -148,209 +148,207 @@
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>         <strong class="jxr_keyword">if</strong> (id != DbConstant.ILLEGALVALUE) {
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), id,
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>                         remoteHost);
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>                 future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>                         ErrorCode.QueryRemotelyUnknown, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>                 future.setFailure(e);
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>             }
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>             <em class="jxr_comment">// requested</em>
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>             taskRunner.setSenderByRequestToValidate(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>             <strong class="jxr_keyword">if</strong> (fileinfo != <strong class="jxr_keyword">null</strong> &amp;&amp; !fileinfo.equals(NO_INFO_ARGS)) {
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>                 taskRunner.setFileInformation(fileinfo);
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>             }
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>             <strong class="jxr_keyword">if</strong> (startTime != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>                 taskRunner.setStart(startTime);
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>             }
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>             <strong class="jxr_keyword">long</strong> originalSize = -1;
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>             <strong class="jxr_keyword">if</strong> (RequestPacket.isSendMode(mode) &amp;&amp; !RequestPacket.isThroughMode(mode)) {
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>                 File file = <strong class="jxr_keyword">new</strong> File(filename);
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>                 <em class="jxr_comment">// Change dir</em>
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>                     <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>                     session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>                     session.getDir().changeDirectory(rule.getSendPath());
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>                     <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> filer66 = FileUtils.getFile(logger, session, filename, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>                     file = filer66.getTrueFile();
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>                 } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 }
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>                 <strong class="jxr_keyword">if</strong> (file.canRead()) {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>                     originalSize = file.length();
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>                     <strong class="jxr_keyword">if</strong> (originalSize == 0) {
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>                         originalSize = -1;
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>                     }
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>                 }
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>             }
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>             logger.debug(<span class="jxr_string">"Filesize: "</span> + originalSize);
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>             String sep = PartnerConfiguration.getSeparator(remoteHost);
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>             <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/RequestPacket.html">RequestPacket</a> request = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/RequestPacket.html">RequestPacket</a>(rulename,
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>                     mode, filename, blocksize, 0,
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>                     id, fileinfo, originalSize, sep);
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <em class="jxr_comment">// Not isRecv since it is the requester, so send =&gt; isRetrieve is true</em>
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <strong class="jxr_keyword">boolean</strong> isRetrieve = !RequestPacket.isRecvMode(request.getMode());
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>                 taskRunner =
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), rule, isRetrieve, request,
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>                                 remoteHost, startTime);
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>                         ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 future.setFailure(e);
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>             }
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>         }
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>         <strong class="jxr_keyword">return</strong> taskRunner;
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>     }
-<a class="jxr_linenumber" name="L202" href="#L202">202</a> 
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String rhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String localFilename = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String rule = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String fileInfo = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> ismd5 = false;
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">int</strong> block = 0x10000; <em class="jxr_comment">// 64K</em>
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>                                           <em class="jxr_comment">// as</em>
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>                                           <em class="jxr_comment">// default</em>
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> nolog = false;
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">long</strong> idt = DbConstant.ILLEGALVALUE;
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> Timestamp ttimestart = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> snormalInfoAsWarn = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L215" href="#L215">215</a> 
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L217" href="#L217">217</a> <em class="jxr_javadoccomment">     * Parse the parameter and set current values</em>
-<a class="jxr_linenumber" name="L218" href="#L218">218</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L219" href="#L219">219</a> <em class="jxr_javadoccomment">     * @param args</em>
-<a class="jxr_linenumber" name="L220" href="#L220">220</a> <em class="jxr_javadoccomment">     * @param submitOnly</em>
-<a class="jxr_linenumber" name="L221" href="#L221">221</a> <em class="jxr_javadoccomment">     *            True if the client is only a submitter (through database)</em>
-<a class="jxr_linenumber" name="L222" href="#L222">222</a> <em class="jxr_javadoccomment">     * @return True if all parameters were found and correct</em>
-<a class="jxr_linenumber" name="L223" href="#L223">223</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args, <strong class="jxr_keyword">boolean</strong> submitOnly) {
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>         _INFO_ARGS = Messages.getString(<span class="jxr_string">"AbstractTransfer.0"</span>) + Messages.getString(<span class="jxr_string">"Message.OutputFormat"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>         <strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>             logger.error(_INFO_ARGS);
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>         <strong class="jxr_keyword">if</strong> (submitOnly) {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>             <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>                     .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 logger.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>             }
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>                 .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         }
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <em class="jxr_comment">// Now set default values from configuration</em>
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>         block = Configuration.configuration.getBLOCKSIZE();
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>         <strong class="jxr_keyword">int</strong> i = 1;
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-to"</span>)) {
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>                     i++;
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>                     rhost = args[i];
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.getAliases().containsKey(rhost)) {
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>                         rhost = Configuration.configuration.getAliases().get(rhost);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>                     }
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-file"</span>)) {
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>                     i++;
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>                     localFilename = args[i];
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>                     localFilename = localFilename.replace('§', '*');
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>                     i++;
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>                     rule = args[i];
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>                     i++;
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>                     fileInfo = args[i];
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>                     ismd5 = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-logWarn"</span>)) {
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>                     snormalInfoAsWarn = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-notlogWarn"</span>)) {
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>                     snormalInfoAsWarn = false;
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>                     i++;
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>                     block = Integer.parseInt(args[i]);
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>                     <strong class="jxr_keyword">if</strong> (block &lt; 100) {
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>                         logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + block); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>                         <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>                     }
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     nolog = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-id"</span>)) {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>                     i++;
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>                     idt = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-start"</span>)) {
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>                     i++;
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>                     Date date;
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>                     SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>                     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>                         date = dateFormat.parse(args[i]);
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(date.getTime());
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>                     } <strong class="jxr_keyword">catch</strong> (ParseException e) {
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>                     }
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-delay"</span>)) {
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     i++;
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>                     <strong class="jxr_keyword">if</strong> (args[i].charAt(0) == '+') {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(System.currentTimeMillis() +
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>                                 Long.parseLong(args[i].substring(1)));
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(Long.parseLong(args[i]));
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>                     }
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 }
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>             }
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>             OutputFormat.getParams(args);
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         } <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>             logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.20"</span>) + i); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>         }
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         <strong class="jxr_keyword">if</strong> (fileInfo == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>             fileInfo = NO_INFO_ARGS;
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         }
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>         <strong class="jxr_keyword">if</strong> (rhost != <strong class="jxr_keyword">null</strong> &amp;&amp; rule != <strong class="jxr_keyword">null</strong> &amp;&amp; localFilename != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (idt != DbConstant.ILLEGALVALUE &amp;&amp; rhost != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>                 <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), idt,
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>                         rhost);
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 rule = runner.getRuleId();
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>                 localFilename = runner.getOriginalFilename();
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>                 logger.error(
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>                         Messages.getString(<span class="jxr_string">"AbstractBusinessRequest.NeedMoreArgs"</span>, <span class="jxr_string">"(-to -rule -file | -to -id)"</span>) <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>                         , e);
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>                 <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>             }
-<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>         }
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>         logger.error(Messages.getString(<span class="jxr_string">"AbstractBusinessRequest.NeedMoreArgs"</span>, <span class="jxr_string">"(-to -rule -file | -to -id)"</span>) + <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>                 _INFO_ARGS);
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>     }
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L329" href="#L329">329</a> <em class="jxr_javadoccomment">     * Shared code for finalize one Transfer request in error</em>
-<a class="jxr_linenumber" name="L330" href="#L330">330</a> <em class="jxr_javadoccomment">     * @param runner</em>
-<a class="jxr_linenumber" name="L331" href="#L331">331</a> <em class="jxr_javadoccomment">     * @param taskRunner</em>
-<a class="jxr_linenumber" name="L332" href="#L332">332</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> finalizeInErrorTransferRequest(<a href="../../../../org/waarp/openr66/commander/ClientRunner.html">ClientRunner</a> runner, <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code) {
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">if</strong> (runner.getLocalChannelReference() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>             runner.getLocalChannelReference().setErrorMessage(code.mesg, code);
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>         }
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>         taskRunner.setErrorTask(runner.getLocalChannelReference());
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>             taskRunner.forceSaveStatus();
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>             taskRunner.run();
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>         } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e1) {
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>             runner.changeUpdatedInfo(UpdatedInfo.INERROR, code, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>         }
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>     }
-<a class="jxr_linenumber" name="L345" href="#L345">345</a> }
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 taskRunner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(id, remoteHost);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>                         ErrorCode.QueryRemotelyUnknown, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                 future.setFailure(e);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             }
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>             <em class="jxr_comment">// requested</em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>             taskRunner.setSenderByRequestToValidate(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             <strong class="jxr_keyword">if</strong> (fileinfo != <strong class="jxr_keyword">null</strong> &amp;&amp; !fileinfo.equals(NO_INFO_ARGS)) {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>                 taskRunner.setFileInformation(fileinfo);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             }
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             <strong class="jxr_keyword">if</strong> (startTime != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                 taskRunner.setStart(startTime);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>             }
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             <strong class="jxr_keyword">long</strong> originalSize = -1;
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>             <strong class="jxr_keyword">if</strong> (RequestPacket.isSendMode(mode) &amp;&amp; !RequestPacket.isThroughMode(mode)) {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                 File file = <strong class="jxr_keyword">new</strong> File(filename);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>                 <em class="jxr_comment">// Change dir</em>
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                     <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                     session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                     session.getDir().changeDirectory(rule.getSendPath());
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                     <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> filer66 = FileUtils.getFile(logger, session, filename, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                     file = filer66.getTrueFile();
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>                 } <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>                 } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                 }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 <strong class="jxr_keyword">if</strong> (file.canRead()) {
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>                     originalSize = file.length();
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                     <strong class="jxr_keyword">if</strong> (originalSize == 0) {
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                         originalSize = -1;
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>                     }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                 }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             }
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             logger.debug(<span class="jxr_string">"Filesize: "</span> + originalSize);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             String sep = PartnerConfiguration.getSeparator(remoteHost);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>             <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/RequestPacket.html">RequestPacket</a> request = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/RequestPacket.html">RequestPacket</a>(rulename,
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>                     mode, filename, blocksize, 0,
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>                     id, fileinfo, originalSize, sep);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <em class="jxr_comment">// Not isRecv since it is the requester, so send =&gt; isRetrieve is true</em>
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <strong class="jxr_keyword">boolean</strong> isRetrieve = !RequestPacket.isRecvMode(request.getMode());
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                 taskRunner =
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                         <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(rule, isRetrieve, request, remoteHost,
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                                 startTime);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>                 logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                         ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 future.setFailure(e);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>             }
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         }
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         <strong class="jxr_keyword">return</strong> taskRunner;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     }
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> 
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String rhost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String localFilename = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String rule = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> String fileInfo = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> ismd5 = false;
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">int</strong> block = 0x10000; <em class="jxr_comment">// 64K</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                                           <em class="jxr_comment">// as</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                                           <em class="jxr_comment">// default</em>
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> nolog = false;
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">long</strong> idt = DbConstant.ILLEGALVALUE;
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> Timestamp ttimestart = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> snormalInfoAsWarn = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> <em class="jxr_javadoccomment">     * Parse the parameter and set current values</em>
+<a class="jxr_linenumber" name="L217" href="#L217">217</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> <em class="jxr_javadoccomment">     * @param args</em>
+<a class="jxr_linenumber" name="L219" href="#L219">219</a> <em class="jxr_javadoccomment">     * @param submitOnly</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a> <em class="jxr_javadoccomment">     *            True if the client is only a submitter (through database)</em>
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> <em class="jxr_javadoccomment">     * @return True if all parameters were found and correct</em>
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args, <strong class="jxr_keyword">boolean</strong> submitOnly) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         _INFO_ARGS = Messages.getString(<span class="jxr_string">"AbstractTransfer.0"</span>) + Messages.getString(<span class="jxr_string">"Message.OutputFormat"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         <strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             logger.error(_INFO_ARGS);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         }
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         <strong class="jxr_keyword">if</strong> (submitOnly) {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                     .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                 logger.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             }
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                 .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             logger.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         <em class="jxr_comment">// Now set default values from configuration</em>
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         block = Configuration.configuration.getBLOCKSIZE();
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">int</strong> i = 1;
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             <strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>                 <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-to"</span>)) {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                     i++;
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                     rhost = args[i];
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                     <strong class="jxr_keyword">if</strong> (Configuration.configuration.getAliases().containsKey(rhost)) {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                         rhost = Configuration.configuration.getAliases().get(rhost);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                     }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-file"</span>)) {
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                     i++;
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                     localFilename = args[i];
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                     localFilename = localFilename.replace('§', '*');
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                     i++;
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                     rule = args[i];
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                     i++;
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                     fileInfo = args[i];
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                     ismd5 = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-logWarn"</span>)) {
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                     snormalInfoAsWarn = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-notlogWarn"</span>)) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                     snormalInfoAsWarn = false;
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                     i++;
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                     block = Integer.parseInt(args[i]);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>                     <strong class="jxr_keyword">if</strong> (block &lt; 100) {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                         logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + block); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>                         <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>                     }
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                     nolog = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-id"</span>)) {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                     i++;
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>                     idt = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-start"</span>)) {
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>                     i++;
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                     Date date;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>                     SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                         date = dateFormat.parse(args[i]);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(date.getTime());
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                     } <strong class="jxr_keyword">catch</strong> (ParseException e) {
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                     }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-delay"</span>)) {
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                     i++;
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     <strong class="jxr_keyword">if</strong> (args[i].charAt(0) == '+') {
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(System.currentTimeMillis() +
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                                 Long.parseLong(args[i].substring(1)));
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                         ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(Long.parseLong(args[i]));
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                     }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                 }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>             }
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>             OutputFormat.getParams(args);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         } <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.20"</span>) + i); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">if</strong> (fileInfo == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>             fileInfo = NO_INFO_ARGS;
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         }
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">if</strong> (rhost != <strong class="jxr_keyword">null</strong> &amp;&amp; rule != <strong class="jxr_keyword">null</strong> &amp;&amp; localFilename != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (idt != DbConstant.ILLEGALVALUE &amp;&amp; rhost != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>                 <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(idt, rhost);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>                 rule = runner.getRuleId();
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>                 localFilename = runner.getOriginalFilename();
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 logger.error(
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>                         Messages.getString(<span class="jxr_string">"AbstractBusinessRequest.NeedMoreArgs"</span>, <span class="jxr_string">"(-to -rule -file | -to -id)"</span>) <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>                         , e);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             }
+<a class="jxr_linenumber" name="L320" href="#L320">320</a> 
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         logger.error(Messages.getString(<span class="jxr_string">"AbstractBusinessRequest.NeedMoreArgs"</span>, <span class="jxr_string">"(-to -rule -file | -to -id)"</span>) + <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                 _INFO_ARGS);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     }
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> <em class="jxr_javadoccomment">     * Shared code for finalize one Transfer request in error</em>
+<a class="jxr_linenumber" name="L328" href="#L328">328</a> <em class="jxr_javadoccomment">     * @param runner</em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> <em class="jxr_javadoccomment">     * @param taskRunner</em>
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> finalizeInErrorTransferRequest(<a href="../../../../org/waarp/openr66/commander/ClientRunner.html">ClientRunner</a> runner, <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code) {
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <strong class="jxr_keyword">if</strong> (runner.getLocalChannelReference() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             runner.getLocalChannelReference().setErrorMessage(code.getMesg(), code);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         }
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         taskRunner.setErrorTask(runner.getLocalChannelReference());
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>             taskRunner.forceSaveStatus();
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             taskRunner.run();
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         } <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e1) {
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>             runner.changeUpdatedInfo(UpdatedInfo.INERROR, code, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         }
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     }
+<a class="jxr_linenumber" name="L343" href="#L343">343</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2009&#x2013;2019 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>

@@ -160,7 +160,7 @@
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>                     String reqr = node.getRequester();
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>                     <strong class="jxr_keyword">long</strong> id = node.getSpecialid();
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>                     resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>                     result.setDetail(resulttest.getCode().mesg);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>                     result.setDetail(resulttest.getCode().getMesg());
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>                     setOk(handler, result, node, HttpResponseStatus.OK);
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>                 }
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (json instanceof TransferRequestJsonPacket &amp;&amp; method == METHOD.POST) {

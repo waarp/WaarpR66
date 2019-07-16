@@ -243,7 +243,7 @@
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>                     networkTransaction);
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>             <strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(), stohost));
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(stohost));
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>                     logger.error(<span class="jxr_string">"Bandwidth in     FAILURE since Host is not found: "</span> + stohost, e);
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>                     networkTransaction.closeAll();

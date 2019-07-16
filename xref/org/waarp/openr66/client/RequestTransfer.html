@@ -244,7 +244,7 @@
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>         }
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>         <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>             runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(DbConstant.admin.getSession(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             runner = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>,
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>                     specialId, requester, requested);
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>             logger.info(<span class="jxr_string">"Found previous Runner: "</span> + runner.toString());
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>         } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
@@ -438,7 +438,7 @@
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>                         error = result.getCode();
 <a class="jxr_linenumber" name="L431" href="#L431">431</a>                     }
 <a class="jxr_linenumber" name="L432" href="#L432">432</a>                     <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66Exception.html">OpenR66Exception</a> e =
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>                             <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Transfer in direct mode failed: "</span> + error.mesg);
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>                             <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Transfer in direct mode failed: "</span> + error.getMesg());
 <a class="jxr_linenumber" name="L434" href="#L434">434</a>                     future.setFailure(e);
 <a class="jxr_linenumber" name="L435" href="#L435">435</a>                     <strong class="jxr_keyword">return</strong> error;
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>                 }

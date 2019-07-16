@@ -89,7 +89,7 @@
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          String argRule = out + <span class="jxr_string">"/#DATE#_%s_%s_"</span> + filename;
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          String argTransfer = <span class="jxr_string">"basic information"</span>;
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          R66Session session = <strong class="jxr_keyword">new</strong> R66Session();
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>          DbRule rule = <strong class="jxr_keyword">new</strong> DbRule(<strong class="jxr_keyword">null</strong>, <span class="jxr_string">"idRule"</span>, (String) <strong class="jxr_keyword">null</strong>, TRANSFERMODE.SENDMODE.ordinal(), out, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, in,
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          DbRule rule = <strong class="jxr_keyword">new</strong> DbRule(<span class="jxr_string">"idRule"</span>, (String) <strong class="jxr_keyword">null</strong>, TRANSFERMODE.SENDMODE.ordinal(), out, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, in,
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>                  <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          RequestPacket requestPacket = <strong class="jxr_keyword">new</strong> RequestPacket(rule.getIdRule(), rule.getMode(), filename,
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>                  Configuration.BUFFERSIZEDEFAULT, (<strong class="jxr_keyword">int</strong>) size / Configuration.BUFFERSIZEDEFAULT + 1,
@@ -98,7 +98,7 @@
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>          DbConstant.admin = <strong class="jxr_keyword">new</strong> DbAdmin();
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          session.getAuth().specialNoSessionAuth(false, <span class="jxr_string">"false"</span>);
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>              runner = <strong class="jxr_keyword">new</strong> DbTaskRunner(<strong class="jxr_keyword">null</strong>, session, rule, false, requestPacket);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              runner = <strong class="jxr_keyword">new</strong> DbTaskRunner(session, rule, false, requestPacket);
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>          } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>          runner.setPostTask();

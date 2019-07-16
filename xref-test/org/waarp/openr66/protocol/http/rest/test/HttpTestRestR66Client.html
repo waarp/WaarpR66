@@ -312,7 +312,7 @@
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>                 channel = clientHelper.getChannel(host, HttpTestR66PseudoMain.config.REST_PORT);
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>                 <strong class="jxr_keyword">if</strong> (channel != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>                     AbstractDbData dbData;
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>                     dbData = <strong class="jxr_keyword">new</strong> DbHostAuth(<strong class="jxr_keyword">null</strong>, hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>                     dbData = <strong class="jxr_keyword">new</strong> DbHostAuth(hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>                             hostkey.getBytes(), <strong class="jxr_keyword">true</strong>, false);
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>                     logger.warn(<span class="jxr_string">"Send query: "</span> + RESTHANDLERS.DbHostAuth.uri);
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>                     RestFuture future = clientHelper.sendQuery(HttpTestR66PseudoMain.config, channel, HttpMethod.POST,
@@ -485,14 +485,14 @@
 <a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> AbstractDbData getItem(RESTHANDLERS data) <strong class="jxr_keyword">throws</strong> HttpInvalidAuthenticationException {
 <a class="jxr_linenumber" name="L478" href="#L478">478</a>         <strong class="jxr_keyword">switch</strong> (data) {
 <a class="jxr_linenumber" name="L479" href="#L479">479</a>             <strong class="jxr_keyword">case</strong> DbConfiguration:
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbConfiguration(<strong class="jxr_keyword">null</strong>, hostid, limit, limit, limit, limit, delaylimit);
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbConfiguration(hostid, limit, limit, limit, limit, delaylimit);
 <a class="jxr_linenumber" name="L481" href="#L481">481</a>             <strong class="jxr_keyword">case</strong> DbHostAuth:
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbHostAuth(<strong class="jxr_keyword">null</strong>, hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbHostAuth(hostid, address, HttpTestR66PseudoMain.config.REST_PORT, false,
 <a class="jxr_linenumber" name="L483" href="#L483">483</a>                         hostkey.getBytes(), false, false);
 <a class="jxr_linenumber" name="L484" href="#L484">484</a>             <strong class="jxr_keyword">case</strong> DbHostConfiguration:
-<a class="jxr_linenumber" name="L485" href="#L485">485</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbHostConfiguration(<strong class="jxr_keyword">null</strong>, hostid, business, roles, aliases, others);
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbHostConfiguration(hostid, business, roles, aliases, others);
 <a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">case</strong> DbRule:
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbRule(<strong class="jxr_keyword">null</strong>, idRule, ids, 2, <span class="jxr_string">"/recv"</span>, <span class="jxr_string">"/send"</span>, <span class="jxr_string">"/arch"</span>, <span class="jxr_string">"/work"</span>, tasks, tasks, tasks, tasks,
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbRule(idRule, ids, 2, <span class="jxr_string">"/recv"</span>, <span class="jxr_string">"/send"</span>, <span class="jxr_string">"/arch"</span>, <span class="jxr_string">"/work"</span>, tasks, tasks, tasks, tasks,
 <a class="jxr_linenumber" name="L488" href="#L488">488</a>                         tasks, tasks);
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>             <strong class="jxr_keyword">case</strong> DbTaskRunner:
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>                 ObjectNode source = JsonHandler.createObjectNode();
@@ -521,7 +521,7 @@
 <a class="jxr_linenumber" name="L513" href="#L513">513</a>                 source.put(DbTaskRunner.JSON_THROUGHMODE, false);
 <a class="jxr_linenumber" name="L514" href="#L514">514</a>                 source.put(DbTaskRunner.JSON_ORIGINALSIZE, 123L);
 <a class="jxr_linenumber" name="L515" href="#L515">515</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>                     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbTaskRunner(<strong class="jxr_keyword">null</strong>, source);
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DbTaskRunner(source);
 <a class="jxr_linenumber" name="L517" href="#L517">517</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L518" href="#L518">518</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> HttpInvalidAuthenticationException(e);
 <a class="jxr_linenumber" name="L519" href="#L519">519</a>                 }

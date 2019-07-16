@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>             <em class="jxr_comment">// Update all UpdatedInfo to DONE</em>
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>             <em class="jxr_comment">// where GlobalLastStep = ALLDONETASK and status = CompleteOk</em>
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>                 DbTaskRunner.changeFinishedToDone(DbConstant.admin.getSession());
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>                 DbTaskRunner.changeFinishedToDone();
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>             } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>                 logger.warn(<span class="jxr_string">"Clean cannot be done {}"</span>, e.getMessage());
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>             }
@@ -246,7 +246,7 @@
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>                     networkTransaction);
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>             <strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.getSession(), stohost));
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(stohost));
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>                 } <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>                     logger.error(<span class="jxr_string">"LogExport in     FAILURE since Host is not found: "</span> + stohost, e);
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>                     networkTransaction.closeAll();
