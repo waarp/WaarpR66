@@ -215,7 +215,6 @@ public class DbHostAuth extends AbstractDbData {
         primaryKey[0].setValue(host.getHostid());
     }
     /**
-     * @param dbSession
      * @param hostid
      * @param address
      * @param port
@@ -282,7 +281,6 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @throws WaarpDatabaseException
      */
@@ -310,7 +308,6 @@ public class DbHostAuth extends AbstractDbData {
     /**
      * Delete all entries (used when purge and reload)
      *
-     * @param dbSession
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
      */
@@ -421,8 +418,6 @@ public class DbHostAuth extends AbstractDbData {
     /**
      * Get All DbHostAuth from database or from internal hashMap in case of no database support
      *
-     * @param dbSession
-     *            may be null
      * @return the array of DbHostAuth
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -866,7 +861,6 @@ public class DbHostAuth extends AbstractDbData {
 
     /**
      *
-     * @param session
      * @return True if any of the server has the isProxified property
      */
     public static boolean hasProxifiedHosts() {

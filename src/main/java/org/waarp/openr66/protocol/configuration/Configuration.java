@@ -59,6 +59,7 @@ import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpShutdownHook;
@@ -714,6 +715,9 @@ public class Configuration {
         logger.debug("Use NoSSL: " + isUseNOSSL() + " Use SSL: " + isUseSSL());
         if ((!isUseNOSSL()) && (!isUseSSL())) {
             logger.error(Messages.getString("Configuration.NoSSL")); //$NON-NLS-1$
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             System.exit(-1);
         }
         pipelineInit();
@@ -870,6 +874,10 @@ public class Configuration {
             }
             this.setR66Mib(r66Mib);
         }
+    }
+
+    public void startJunitRestSupport(RestConfiguration config) {
+        HttpRestR66Handler.initializeService(config);
     }
 
     public InternalRunner getInternalRunner() {

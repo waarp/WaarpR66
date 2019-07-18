@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -149,6 +150,9 @@ public abstract class AbstractBusinessRequest implements Runnable {
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(2);
         }
@@ -181,6 +185,9 @@ public abstract class AbstractBusinessRequest implements Runnable {
                     "    <REMOTE>" + rhost + "</REMOTE>" +
                     "    <ERROR>" + future.getCause() + "</ERROR>" +
                     "    delay: " + delay);
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             networkTransaction.closeAll();
             System.exit(ErrorCode.Unknown.ordinal());
         }

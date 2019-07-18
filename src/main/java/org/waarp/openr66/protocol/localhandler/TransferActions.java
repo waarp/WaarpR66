@@ -721,7 +721,7 @@ public class TransferActions extends ServerActions {
                 logger.error(
                         Messages.getString("LocalServerHandler.17"), packet, localChannelReference.getPartner().getDigestAlgo().name); //$NON-NLS-1$
                 errorToSend("Transfer in error due to bad Hash on data packet ("
-                        + localChannelReference.getPartner().getDigestAlgo().name + ")",
+                        + localChannelReference.getPartner().getDigestAlgo().name+ ")",
                         ErrorCode.MD5Error, channel, 21);
                 packet.clear();
                 return;
@@ -849,7 +849,7 @@ public class TransferActions extends ServerActions {
                     //session.getRunner().setRankAtStartup(0);
                     R66Result result = new R66Result(new OpenR66RunnerErrorException(
                             Messages.getString("LocalServerHandler.19") + //$NON-NLS-1$
-                                    localChannelReference.getPartner().getDigestAlgo().name + ")"),
+                                    localChannelReference.getPartner().getDigestAlgo().name+ ")"),
                             session, true, ErrorCode.MD5Error, session.getRunner());
                     try {
                         session.setFinalizeTransfer(false, result);

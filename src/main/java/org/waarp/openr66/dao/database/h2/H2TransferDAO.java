@@ -10,7 +10,7 @@ import org.waarp.openr66.dao.exception.DAOException;
 
 public class H2TransferDAO extends DBTransferDAO {
 
-    protected static String SQL_GET_ID = "SELECT NEXTVAL(runseq)";
+  protected static String SQL_GET_ID = "SELECT NEXTVAL('RUNSEQ')";
 
     public H2TransferDAO(Connection con) throws DAOException {
         super(con);

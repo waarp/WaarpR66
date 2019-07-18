@@ -25,6 +25,7 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
@@ -224,6 +225,9 @@ public class MultipleDirectTransfer extends DirectTransfer {
                                 logger.error(outputFormat.loggerOut(), future.getCause());
                                 outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
                                 outputFormat.sysout();
+                                if (DetectionUtils.isJunit()) {
+                                    return;
+                                }
                                 networkTransaction.closeAll();
                                 System.exit(ErrorCode.Unknown.ordinal());
                             }
@@ -282,6 +286,9 @@ public class MultipleDirectTransfer extends DirectTransfer {
             }
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
+            }
+            if (DetectionUtils.isJunit()) {
+                return;
             }
             ChannelUtils.stopLogger();
             System.exit(2);
@@ -342,12 +349,18 @@ public class MultipleDirectTransfer extends DirectTransfer {
                         result.sysout();
                     }
                 }
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 networkTransaction.closeAll();
                 System.exit(multipleDirectTransfer.getErrorMultiple());
             }
         } catch (Throwable e) {
             logger.error("Exception", e);
         } finally {
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             networkTransaction.closeAll();
             System.exit(0);
         }
