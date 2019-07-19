@@ -22,11 +22,12 @@ package org.waarp.openr66.dao.database.h2;
 
 import org.waarp.openr66.dao.database.DBAllDAOTest;
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 
 public class DbH2DAOTest extends DBAllDAOTest {
 
@@ -54,7 +55,7 @@ public class DbH2DAOTest extends DBAllDAOTest {
   }
 
   @Override
-  public DBTransferDAO getDAO(Connection con) throws DAOException {
+  public DBTransferDAO getDAO(Connection con) throws DAOConnectionException {
     return new H2TransferDAO(con);
   }
 

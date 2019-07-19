@@ -150,6 +150,7 @@ public class RuleFileBasedConfiguration {
         File[] files = FileUtils.getFiles(configDirectory,
                 new ExtensionFilter(EXT_RULE));
         for (File file : files) {
+            logger.info("Load rule from {}", file.getAbsolutePath());
             DbRule rule = getFromFile(file);
             logger.debug(rule.toString());
         }
@@ -238,7 +239,8 @@ public class RuleFileBasedConfiguration {
         String[] idsArray = new String[0];
         if (value == null || (value.getList() == null) || value.getList().isEmpty()) {
             logger
-                    .info("Unable to find the Hostid for Rule, setting to the default");
+                    .debug("Unable to find the Hostid for Rule, setting to " +
+                           "the default");
         } else {
             @SuppressWarnings("unchecked")
             List<String> ids = (List<String>) value.getList();
@@ -588,7 +590,9 @@ public class RuleFileBasedConfiguration {
                 task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
                 task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
                 task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-                task.add(newElement(DbRule.TASK_COMMENT, array[rank][3]));
+                if (array[rank].length > 3) {
+                    task.add(newElement(DbRule.TASK_COMMENT, array[rank][3]));
+                }
                 roottasks.add(task);
             }
         }

@@ -2373,6 +2373,7 @@ public class ServerActions extends ConnectionActions {
         }
         DbTaskRunner runner = null;
         if (isTo) {
+            logger.info("{} {} {}", id, remote, local);
             try {
                 runner = new DbTaskRunner(session, null, id, remote, local);
             } catch (WaarpDatabaseException e) {

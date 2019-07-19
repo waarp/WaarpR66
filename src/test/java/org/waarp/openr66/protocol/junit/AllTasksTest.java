@@ -49,7 +49,7 @@ public class AllTasksTest extends TestAbstract {
     }
 
     @Test
-    public void test2_Tasks() throws IOException, OpenR66RunnerErrorException,
+    public void test_Tasks() throws IOException, OpenR66RunnerErrorException,
                                      CommandAbstractException {
         System.err.println("Start Tasks");
         File totest = new File("/tmp/R66/in/testTask.txt");

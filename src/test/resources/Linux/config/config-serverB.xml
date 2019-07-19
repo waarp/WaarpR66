@@ -14,7 +14,7 @@
         <usessl>False</usessl>
         <usehttpcomp>False</usehttpcomp>
         <uselocalexec>False</uselocalexec>
-        <httpadmin>src/test/resources/Linux/httpadmin</httpadmin>
+        <httpadmin>src/main/httpadmin</httpadmin>
         <admkeypath>src/test/resources/Linux/config/certs/testsslnocert.jks</admkeypath>
         <admkeystorepass>testsslnocert</admkeystorepass>
         <admkeypass>testalias</admkeypass>

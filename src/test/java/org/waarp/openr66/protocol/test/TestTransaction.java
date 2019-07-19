@@ -19,6 +19,7 @@
  ******************************************************************************/
 package org.waarp.openr66.protocol.test;
 
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -70,7 +71,7 @@ public class TestTransaction implements Runnable {
 
   public static void main(String[] args) {
     WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-        null));
+        WaarpLogLevel.WARN));
     if (logger == null) {
       logger = WaarpLoggerFactory.getLogger(TestTransaction.class);
     }

@@ -1,7 +1,7 @@
 package org.waarp.openr66.dao.database.mariadb;
 
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,12 +15,12 @@ public class MariaDBTransferDAO extends DBTransferDAO {
     private static String SQL_UPDATE_ID = "UPDATE Sequences SET seq = ? " +
             "WHERE name='RUNSEQ'";
 
-    public MariaDBTransferDAO(Connection con) throws DAOException {
+    public MariaDBTransferDAO(Connection con) throws DAOConnectionException {
         super(con);
     }
 
     @Override
-    protected long getNextId() throws DAOException {
+    protected long getNextId() throws DAOConnectionException {
         PreparedStatement ps = null;
         PreparedStatement ps2 = null;
         try {
@@ -34,11 +34,11 @@ public class MariaDBTransferDAO extends DBTransferDAO {
                 ps2.executeUpdate();
                 return res;
             } else {
-                throw new DAOException(
+                throw new DAOConnectionException(
                         "Error no id available, you should purge the database.");
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(ps);
             closeStatement(ps2);

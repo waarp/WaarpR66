@@ -24,8 +24,7 @@ import org.junit.ClassRule;
 import org.testcontainers.containers.MariaDBContainer;
 import org.waarp.openr66.dao.database.DBAllDAOTest;
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.database.h2.H2TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,7 +39,7 @@ public class DbMariadbDAOTest extends DBAllDAOTest {
   private String cleanScript = "mariadb/clean.sql";
 
   @Override
-  public DBTransferDAO getDAO(Connection con) throws DAOException {
+  public DBTransferDAO getDAO(Connection con) throws DAOConnectionException {
     return new MariaDBTransferDAO(con);
   }
 

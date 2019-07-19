@@ -21,7 +21,9 @@ import java.io.File;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -34,6 +36,7 @@ import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
@@ -43,7 +46,10 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
+import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
+import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
@@ -340,4 +346,72 @@ public abstract class AbstractTransfer implements Runnable {
             runner.changeUpdatedInfo(UpdatedInfo.INERROR, code, true);
         }
     }
+
+
+    public List<String> getRemoteFiles(DbRule dbrule, String[] localfilenames, String requested,
+                                              NetworkTransaction networkTransaction) {
+        List<String> files = new ArrayList<String>();
+        for (String filename : localfilenames) {
+            if (!(filename.contains("*") || filename.contains("?") || filename.contains("~"))) {
+                files.add(filename);
+            } else {
+                // remote query
+                R66Future futureInfo = new R66Future(true);
+                logger.info(Messages.getString("Transfer.3") + filename + " to " + requested); //$NON-NLS-1$
+                RequestInformation info = new RequestInformation(
+                    futureInfo, requested, rulename, filename,
+                    (byte) InformationPacket.ASKENUM.ASKLIST.ordinal(), -1, false, networkTransaction);
+                info.run();
+                futureInfo.awaitUninterruptibly();
+                if (futureInfo.isSuccess()) {
+                    ValidPacket valid = (ValidPacket) futureInfo.getResult().getOther();
+                    if (valid != null) {
+                        String line = valid.getSheader();
+                        String[] lines = line.split("\n");
+                        for (String string : lines) {
+                            File tmpFile = new File(string);
+                            files.add(tmpFile.getPath());
+                        }
+                    }
+                } else {
+                    logger.error(Messages.getString("Transfer.6") + filename + " to " + requested + ": " +
+                                 (futureInfo.getCause() == null ? "" : futureInfo.getCause().getMessage())); //$NON-NLS-1$
+                }
+            }
+        }
+        return files;
+    }
+
+    public List<String> getLocalFiles(DbRule dbrule, String[] localfilenames) {
+        List<String> files = new ArrayList<String>();
+        R66Session session = new R66Session();
+        session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
+        R66Dir dir = new R66Dir(session);
+        try {
+            dir.changeDirectory(dbrule.getSendPath());
+        } catch (CommandAbstractException e) {
+        }
+        if (localfilenames != null) {
+            for (String filename : localfilenames) {
+                if (!(filename.contains("*") || filename.contains("?") || filename.contains("~"))) {
+                    logger.info("Direct add: " + filename);
+                    files.add(filename);
+                } else {
+                    // local: must check
+                    logger.info("Local Ask for " + filename + " from " + dir.getFullPath());
+                    List<String> list;
+                    try {
+                        list = dir.list(filename);
+                        if (list != null) {
+                            files.addAll(list);
+                        }
+                    } catch (CommandAbstractException e) {
+                        logger.warn(Messages.getString("Transfer.14") + filename + " : " + e.getMessage()); //$NON-NLS-1$
+                    }
+                }
+            }
+        }
+        return files;
+    }
+
 }

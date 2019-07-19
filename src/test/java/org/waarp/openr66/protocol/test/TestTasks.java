@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.test;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
@@ -69,14 +70,14 @@ public class TestTasks {
    */
   public static void main(String[] args) {
     WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-        null));
+        WaarpLogLevel.WARN));
     if (args.length < 4) {
       System.err.println(
           "Need config inDirectory outDirectory filename (in inDirectory)");
       return;
     }
     if (!FileBasedConfiguration
-        .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+        .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
       System.err
           .println("Needs a correct configuration file as first argument");
       return;

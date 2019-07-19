@@ -2,7 +2,8 @@ package org.waarp.openr66.dao;
 
 import java.util.List;
 
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.MultipleMonitor;
 
 /**
@@ -13,26 +14,29 @@ public interface MultipleMonitorDAO {
     /**
      * Retrieve all MultipleMonitor objects in a List from the persistance layer
      *
-     * @throws DAOException If data access error occurs
+     * @throws DAOConnectionException If data access error occurs
      */
-    List<MultipleMonitor> getAll() throws DAOException;
+    List<MultipleMonitor> getAll() throws DAOConnectionException;
 
     /**
      * Retrieve all MultipleMonitor objects corresponding to the given filters
      * in a List from the persistance layer
      *
      * @param filters List of filter
-     * @throws DAOException If data access error occurs
+     * @throws DAOConnectionException If data access error occurs
      */
-    List<MultipleMonitor> find(List<Filter> filters) throws DAOException;
+    List<MultipleMonitor> find(List<Filter> filters) throws
+                                                     DAOConnectionException;
 
     /**
      * Retrieve the MultipleMonitor object with the specified hostid from the persistance layer
      *
      * @param hostid Hostid of the MultipleMonitor object requested
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
+     * @throws  DAONoDataException if no data are available
      */
-    MultipleMonitor select(String hostid) throws DAOException;
+    MultipleMonitor select(String hostid)
+        throws DAOConnectionException, DAONoDataException;
 
     /**
      * Verify if a MultipleMonitor object with the specified hostid exists in
@@ -41,40 +45,44 @@ public interface MultipleMonitorDAO {
      * @param hostid Hostid of the MultipleMonitor object verified
      * @return true if a MultipleMonitor object with the specified hostid exist; false
      * if no MultipleMonitor object correspond to the specified hostid.
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
      */
-    boolean exist(String hostid) throws DAOException;
+    boolean exist(String hostid) throws DAOConnectionException;
 
     /**
      * Insert the specified MultipleMonitor object in the persistance layer
      *
      * @param multipleMonitor MultipleMonitor object to insert
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
      */
-    void insert(MultipleMonitor multipleMonitor) throws DAOException;
+    void insert(MultipleMonitor multipleMonitor) throws DAOConnectionException;
 
     /**
      * Update the specified MultipleMonitor object in the persistance layer
      *
      * @param multipleMonitor MultipleMonitor object to update
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
+     * @throws  DAONoDataException if no data are available
      */
-    void update(MultipleMonitor multipleMonitor) throws DAOException;
+    void update(MultipleMonitor multipleMonitor)
+        throws DAOConnectionException, DAONoDataException;
 
     /**
      * Remove the specified MultipleMonitor object from the persistance layer
      *
      * @param multipleMonitor MultipleMonitor object to insert
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
+     * @throws  DAONoDataException if no data are available
      */
-    void delete(MultipleMonitor multipleMonitor) throws DAOException;
+    void delete(MultipleMonitor multipleMonitor)
+        throws DAOConnectionException, DAONoDataException;
 
     /**
      * Remove all MultipleMonitor objects from the persistance layer
      *
-     * @throws DAOException If a data access error occurs
+     * @throws DAOConnectionException If a data access error occurs
      */
-    void deleteAll() throws DAOException;
+    void deleteAll() throws DAOConnectionException;
 
     void close();
 }

@@ -92,7 +92,7 @@ public class HttpTestR66PseudoMain {
       configuration.RESTHANDLERS_CRUD[i] = RestConfiguration.CRUD.ALL.mask;
     }
     configuration.REST_AUTHENTICATED = true;
-    configuration.initializeKey(new File("/opt/R66/certs/key.sha256"));
+    configuration.initializeKey(new File(HttpTestRestR66Client.keydesfilename));
     configuration.REST_TIME_LIMIT = 10000;
     configuration.REST_SIGNATURE = true;
     configuration.REST_ADDRESS = "127.0.0.1";

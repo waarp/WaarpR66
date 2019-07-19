@@ -37,7 +37,8 @@ import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.pojo.Rule;
@@ -237,8 +238,10 @@ public class ServerHandler extends AbstractRestDbHandler {
             DefaultHttpHeaders headers = new DefaultHttpHeaders();
             headers.add("active", host.isActive());
             responder.sendStatus(NO_CONTENT, headers);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (hostDAO != null) {
                 hostDAO.close();
@@ -432,8 +435,10 @@ public class ServerHandler extends AbstractRestDbHandler {
             String responseText = JsonUtils.nodeToString(responseObject);
             responder.sendJson(OK, responseText);
 
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (transferDAO != null) {
                 transferDAO.close();
@@ -566,8 +571,10 @@ public class ServerHandler extends AbstractRestDbHandler {
             String responseText = JsonUtils.nodeToString(responseObject);
             responder.sendJson(OK, responseText);
 
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (hostDAO != null) { hostDAO.close(); }
             if (ruleDAO != null) { ruleDAO.close(); }
@@ -731,8 +738,10 @@ public class ServerHandler extends AbstractRestDbHandler {
                 throw new RestErrorException(errors);
             }
 
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (hostDAO != null) { hostDAO.close(); }
             if (ruleDAO != null) { ruleDAO.close(); }

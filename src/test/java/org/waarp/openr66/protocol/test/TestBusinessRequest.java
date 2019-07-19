@@ -19,6 +19,7 @@
  ******************************************************************************/
 package org.waarp.openr66.protocol.test;
 
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -55,7 +56,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 
   public static void main(String[] args) {
     WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
-        null));
+        WaarpLogLevel.WARN));
     if (logger == null) {
       logger = WaarpLoggerFactory.getLogger(TestBusinessRequest.class);
     }
@@ -72,19 +73,19 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
     }
     Configuration.configuration.pipelineInit();
 
-        NetworkTransaction networkTransaction = new NetworkTransaction();
-        DbHostAuth host = Configuration.configuration.getHOST_AUTH();
-        runTest(networkTransaction, host, 1);
-        networkTransaction.closeAll();
-    }
+    NetworkTransaction networkTransaction = new NetworkTransaction();
+    DbHostAuth host = Configuration.configuration.getHOST_AUTH();
+    runTest(networkTransaction, host, 1);
+    networkTransaction.closeAll();
+  }
 
-    public static int runTest(NetworkTransaction networkTransaction,
-                              DbHostAuth host, int nbToDo) {
-        if (logger == null) {
-            logger = WaarpLoggerFactory.getLogger(TestBusinessRequest.class);
-        }
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = nbToDo;
+  public static int runTest(NetworkTransaction networkTransaction,
+                            DbHostAuth host, int nbToDo) {
+    if (logger == null) {
+      logger = WaarpLoggerFactory.getLogger(TestBusinessRequest.class);
+    }
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    int nb = nbToDo;
 
     R66Future[] arrayFuture = new R66Future[nb];
     logger.info("Start Test of Transaction");
@@ -154,47 +155,47 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
         "Simple ExecJava Success: " + success + " Error: " + error + " NB/s: " +
         1000 / (time4 - time3));
 
-        logger.info("Start Test of Increasing Transaction");
-        time1 = System.currentTimeMillis();
-        String argsAdd =
-                "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-        String value = " business 0 ";
-        int lastnb = nb;
-        for (int i = 0; i < nb; i++) {
-            arrayFuture[i] = new R66Future(true);
-            try {
-                value += argsAdd + argsAdd + argsAdd + argsAdd + argsAdd +
-                         argsAdd + argsAdd + argsAdd + argsAdd
-                         + argsAdd;
-            } catch (OutOfMemoryError e) {
-                logger.warn("Send size: " + value.length());
-                lastnb = i;
-                break;
-            }
-            packet = new BusinessRequestPacket(
-                    TestExecJavaTask.class.getName() + value, 0);
-            TestBusinessRequest transaction2 =
-                    new TestBusinessRequest(networkTransaction, arrayFuture[i],
-                                            host.getHostid(), packet);
-            executorService.execute(transaction2);
-        }
-        int success2 = 0;
-        int error2 = 0;
-        for (int i = 0; i < lastnb; i++) {
-            arrayFuture[i].awaitForDoneOrInterruptible();
-            if (arrayFuture[i].isSuccess()) {
-                success2++;
-            } else {
-                error2++;
-            }
-        }
-        time2 = System.currentTimeMillis();
-        logger.warn(
-                "Simple TestExecJavaTask with increasing argument size Success: " +
-                success2 + " Error: " + error2
-                + " NB/s: " + success2 * nb * 1000 / (time2 - time1));
-        executorService.shutdown();
-        return error + error2;
+    logger.info("Start Test of Increasing Transaction");
+    time1 = System.currentTimeMillis();
+    String argsAdd =
+        "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    String value = " business 0 ";
+    int lastnb = nb;
+    for (int i = 0; i < nb; i++) {
+      arrayFuture[i] = new R66Future(true);
+      try {
+        value += argsAdd + argsAdd + argsAdd + argsAdd + argsAdd +
+                 argsAdd + argsAdd + argsAdd + argsAdd
+                 + argsAdd;
+      } catch (OutOfMemoryError e) {
+        logger.warn("Send size: " + value.length());
+        lastnb = i;
+        break;
+      }
+      packet = new BusinessRequestPacket(
+          TestExecJavaTask.class.getName() + value, 0);
+      TestBusinessRequest transaction2 =
+          new TestBusinessRequest(networkTransaction, arrayFuture[i],
+                                  host.getHostid(), packet);
+      executorService.execute(transaction2);
     }
+    int success2 = 0;
+    int error2 = 0;
+    for (int i = 0; i < lastnb; i++) {
+      arrayFuture[i].awaitForDoneOrInterruptible();
+      if (arrayFuture[i].isSuccess()) {
+        success2++;
+      } else {
+        error2++;
+      }
+    }
+    time2 = System.currentTimeMillis();
+    logger.warn(
+        "Simple TestExecJavaTask with increasing argument size Success: " +
+        success2 + " Error: " + error2
+        + " NB/s: " + success2 * nb * 1000 / (time2 - time1));
+    executorService.shutdown();
+    return error + error2;
+  }
 
 }

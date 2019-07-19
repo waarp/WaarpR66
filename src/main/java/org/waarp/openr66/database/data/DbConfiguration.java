@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -28,13 +28,15 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.database.DBLimitDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Limit;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
@@ -42,9 +44,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Configuration Table object
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbConfiguration extends AbstractDbData {
     public static enum Columns {
@@ -68,12 +70,6 @@ public class DbConfiguration extends AbstractDbData {
     };
 
     public static final String table = " CONFIGURATION ";
-
-    /**
-     * HashTable in case of lack of database
-     */
-    private static final ConcurrentHashMap<String, DbConfiguration> dbR66ConfigurationHashMap =
-            new ConcurrentHashMap<String, DbConfiguration>();
 
     private Limit limit = null;
 
@@ -101,21 +97,18 @@ public class DbConfiguration extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
-        primaryKey = new DbValue[] { new DbValue(limit.getHostid(),
-                Columns.HOSTID.name()) };
+        primaryKey = new DbValue[] { new DbValue("", Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
-                new DbValue(limit.getReadGlobalLimit(), Columns.READGLOBALLIMIT.name()),
-                new DbValue(limit.getWriteGlobalLimit(), Columns.WRITEGLOBALLIMIT.name()),
-                new DbValue(limit.getReadSessionLimit(), Columns.READSESSIONLIMIT.name()),
-                new DbValue(limit.getWriteSessionLimit(), Columns.WRITESESSIONLIMIT.name()),
-                new DbValue(limit.getDelayLimit(), Columns.DELAYLIMIT.name()),
-                new DbValue(limit.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
+                new DbValue(0l, Columns.READGLOBALLIMIT.name()),
+                new DbValue(0l, Columns.WRITEGLOBALLIMIT.name()),
+                new DbValue(0l, Columns.READSESSIONLIMIT.name()),
+                new DbValue(0l, Columns.WRITESESSIONLIMIT.name()),
+                new DbValue(0l, Columns.DELAYLIMIT.name()),
+                new DbValue(0, Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], otherFields[5], primaryKey[0] };
 
-         */
     }
 
     @Override
@@ -146,7 +139,7 @@ public class DbConfiguration extends AbstractDbData {
         allFields[Columns.READSESSIONLIMIT.ordinal()].setValue(limit.getReadSessionLimit());
         allFields[Columns.WRITESESSIONLIMIT.ordinal()].setValue(limit.getWriteSessionLimit());
         allFields[Columns.DELAYLIMIT.ordinal()].setValue(limit.getDelayLimit());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(limit.getUpdatedInfo());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(limit.getUpdatedInfo().ordinal());
     }
 
     @Override
@@ -172,7 +165,6 @@ public class DbConfiguration extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @param rg
      *            Read Global Limit
@@ -189,17 +181,22 @@ public class DbConfiguration extends AbstractDbData {
            long del) {
         super();
         this.limit = new Limit(hostid, rg, wg, rs, ws, del);
+        setToArray();
     }
 
     public DbConfiguration(Limit limit) {
         super();
+        if (limit == null) {
+            throw new IllegalArgumentException(
+                "Argument in constructor cannot be null");
+        }
         this.limit = limit;
+        setToArray();
     }
 
     /**
      * Constructor from Json
-     * 
-     * @param dbSession
+     *
      * @param source
      * @throws WaarpDatabaseSqlException
      */
@@ -210,6 +207,7 @@ public class DbConfiguration extends AbstractDbData {
         if (limit.getHostid() == null || limit.getHostid().isEmpty()) {
             throw new WaarpDatabaseSqlException("Not enough argument to create the object");
         }
+        setToArray();
     }
 
     /**
@@ -227,7 +225,6 @@ public class DbConfiguration extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @throws WaarpDatabaseException
      */
@@ -237,16 +234,16 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             this.limit = limitAccess.select(hostid);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            this.limit = new Limit(hostid, 0l);
         } finally {
             if (limitAccess != null) {
                 limitAccess.close();
             }
         }
-        if (this.limit == null) {
-            this.limit = new Limit(hostid, 0l);
-        }
+        setToArray();
     }
 
     @Override
@@ -255,8 +252,11 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             limitAccess.delete(limit);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "Configuration", e);
         } finally {
             if (limitAccess != null) {
                 limitAccess.close();
@@ -273,7 +273,7 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             limitAccess.insert(limit);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (limitAccess != null) {
@@ -288,7 +288,7 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             return limitAccess.exist(limit.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (limitAccess != null) {
@@ -303,8 +303,11 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             limit = limitAccess.select(limit.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "Configuration", e);
         } finally {
             if (limitAccess != null) {
                 limitAccess.close();
@@ -321,8 +324,11 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             limitAccess.update(limit);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "Configuration", e);
         } finally {
             if (limitAccess != null) {
                 limitAccess.close();
@@ -342,13 +348,13 @@ public class DbConfiguration extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbConfiguration dbConfiguration = new DbConfiguration();
         dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
-        dbConfiguration.setFromArray();
+        dbConfiguration.setToArray();
         dbConfiguration.isSaved = true;
         return dbConfiguration;
     }
 
     /**
-     * 
+     *
      * @return the DbPreparedStatement for getting Updated Object
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -366,7 +372,7 @@ public class DbConfiguration extends AbstractDbData {
         try {
             limitAccess = DAOFactory.getInstance().getLimitDAO();
             limits = limitAccess.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (limitAccess != null) {
@@ -443,7 +449,7 @@ public class DbConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this Configuration refers to the current host
      */
     public boolean isOwnConfiguration() {
@@ -452,7 +458,7 @@ public class DbConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {

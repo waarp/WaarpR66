@@ -32,7 +32,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.ModeTrans;
 import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter.Order;
@@ -165,7 +165,7 @@ public class RulesHandler extends AbstractRestDbHandler {
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
             rules = ruleDAO.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (ruleDAO != null) {
@@ -213,7 +213,7 @@ public class RulesHandler extends AbstractRestDbHandler {
             }
 
             ruleDAO.insert(rule);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (ruleDAO != null) {

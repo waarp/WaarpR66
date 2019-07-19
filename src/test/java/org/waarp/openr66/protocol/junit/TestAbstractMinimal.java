@@ -24,6 +24,7 @@
 package org.waarp.openr66.protocol.junit;
 
 import org.waarp.common.file.FileUtils;
+import org.waarp.common.logging.WaarpLogLevel;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -49,7 +50,8 @@ public abstract class TestAbstractMinimal {
      */
     public static void setUpBeforeClassMinimal(String serverInit)
             throws Exception {
-        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(
+            WaarpLogLevel.WARN));
         if (logger == null) {
             logger = WaarpLoggerFactory.getLogger(TestAbstractMinimal.class);
         }
@@ -67,12 +69,6 @@ public abstract class TestAbstractMinimal {
             new File(tmp, "work").mkdir();
             File conf = new File(tmp, "conf");
             conf.mkdir();
-            File[] files = dir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.isFile();
-                }
-            });
             File [] copied = FileUtils.copyRecursive(dir, conf, false);
             for (File fileCopied : copied) {
                 System.out.print(fileCopied.getAbsolutePath() + " ");

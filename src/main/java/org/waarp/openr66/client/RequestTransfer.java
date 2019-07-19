@@ -231,148 +231,223 @@ public class RequestTransfer implements Runnable {
     }
 
     public void run() {
-        if (logger == null) {
-            logger = WaarpLoggerFactory.getLogger(RequestTransfer.class);
-        }
         DbTaskRunner runner = null;
         try {
-            runner = new DbTaskRunner(null, null,
-                    specialId, requester, requested);
-            logger.info("Found previous Runner: " + runner.toString());
-        } catch (WaarpDatabaseException e) {
-            // Maybe we can ask to the remote
-            R66Future futureInfo = new R66Future(true);
-            RequestInformation requestInformation = new RequestInformation(futureInfo, requested, null, null,
-                    (byte) -1, specialId, true, networkTransaction);
-            requestInformation.normalInfoAsWarn = normalInfoAsWarn;
-            requestInformation.run();
-            futureInfo.awaitUninterruptibly();
-            if (futureInfo.isSuccess()) {
-                R66Result r66result = futureInfo.getResult();
-                ValidPacket info = (ValidPacket) r66result.getOther();
-                String xml = info.getSheader();
-                try {
-                    runner = DbTaskRunner.fromStringXml(xml, true);
-                    runner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-                    // useful ?
-                    CommanderNoDb.todoList.add(runner);
+            if (logger == null) {
+                logger = WaarpLoggerFactory.getLogger(RequestTransfer.class);
+            }
+            try {
+                runner = new DbTaskRunner(null, null,
+                                          specialId, requester, requested);
+                logger.info("Found previous Runner: " + runner.toString());
+            } catch (WaarpDatabaseException e) {
+                // Maybe we can ask to the remote
+                R66Future futureInfo = new R66Future(true);
+                RequestInformation requestInformation =
+                    new RequestInformation(futureInfo, requested, null, null,
+                                           (byte) -1, specialId, true,
+                                           networkTransaction);
+                requestInformation.normalInfoAsWarn = normalInfoAsWarn;
+                requestInformation.run();
+                futureInfo.awaitUninterruptibly();
+                if (futureInfo.isSuccess()) {
+                    R66Result r66result = futureInfo.getResult();
+                    ValidPacket info = (ValidPacket) r66result.getOther();
+                    String xml = info.getSheader();
+                    try {
+                        runner = DbTaskRunner.fromStringXml(xml, true);
+                        runner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                        // useful ?
+                        CommanderNoDb.todoList.add(runner);
 
-                    logger.info("Get Runner from remote: " + runner.toString());
-                    if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || !runner.isSender()) {
-                        logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-                        future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        logger.info(
+                            "Get Runner from remote: " + runner.toString());
+                        if (runner.getSpecialId() == DbConstant.ILLEGALVALUE ||
+                            !runner.isSender()) {
+                            logger.error(Messages.getString(
+                                "RequestTransfer.18")); //$NON-NLS-1$
+                            future.setResult(new R66Result(
+                                new OpenR66DatabaseGlobalException(e), null,
+                                true,
                                 ErrorCode.Internal, null));
-                        future.setFailure(e);
-                        return;
-                    }
-                    if (runner.isAllDone()) {
-                        logger.error(Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
-                        future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                            future.setFailure(e);
+                            return;
+                        }
+                        if (runner.isAllDone()) {
+                            logger.error(Messages.getString(
+                                "RequestTransfer.21")); //$NON-NLS-1$
+                            future.setResult(new R66Result(
+                                new OpenR66DatabaseGlobalException(e), null,
+                                true,
                                 ErrorCode.Internal, null));
-                        future.setFailure(e);
-                        return;
-                    }
-                } catch (OpenR66ProtocolBusinessException e1) {
-                    logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-                    future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
+                            future.setFailure(e);
+                            return;
+                        }
+                    } catch (OpenR66ProtocolBusinessException e1) {
+                        logger.error(Messages.getString(
+                            "RequestTransfer.18")); //$NON-NLS-1$
+                        future.setResult(new R66Result(
+                            new OpenR66DatabaseGlobalException(e1), null, true,
                             ErrorCode.Internal, null));
+                        future.setFailure(e);
+                        return;
+                    }
+                } else {
+                    logger.error(
+                        Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
+                    future.setResult(
+                        new R66Result(new OpenR66DatabaseGlobalException(e),
+                                      null, true,
+                                      ErrorCode.Internal, null));
                     future.setFailure(e);
                     return;
                 }
-            } else {
-                logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-                        ErrorCode.Internal, null));
-                future.setFailure(e);
-                return;
             }
-        }
-        if (cancel || stop || restart) {
-            if (cancel) {
-                // Cancel the task and delete any file if in retrieve
-                if (runner.isAllDone()) {
-                    // nothing to do since already finished
-                    setDone(runner);
-                    logger.info("Transfer already finished: " + runner.toString());
-                    future.setResult(new R66Result(null, true, ErrorCode.TransferOk, runner));
-                    future.getResult().setRunner(runner);
-                    future.setSuccess();
-                    return;
-                } else {
-                    // Send a request of cancel
-                    ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.CANCELPACKET);
-                    switch (code) {
+            if (cancel || stop || restart) {
+                if (cancel) {
+                    // Cancel the task and delete any file if in retrieve
+                    if (runner.isAllDone()) {
+                        // nothing to do since already finished
+                        setDone(runner);
+                        logger.info(
+                            "Transfer already finished: " + runner.toString());
+                        future.setResult(
+                            new R66Result(null, true, ErrorCode.TransferOk,
+                                          runner));
+                        future.getResult().setRunner(runner);
+                        future.setSuccess();
+                        return;
+                    } else {
+                        // Send a request of cancel
+                        ErrorCode code = sendStopOrCancel(runner,
+                                                          LocalPacketFactory.CANCELPACKET);
+                        future.setResult(
+                            new R66Result(null, true, code,
+                                          runner));
+                        future.getResult().setRunner(runner);
+                        switch (code) {
                         case CompleteOk:
-                            logger.info("Transfer cancel requested and done: {}",
-                                    runner);
+                            logger
+                                .info("Transfer cancel requested and done: {}",
+                                      runner);
+                            future.setSuccess();
                             break;
                         case TransferOk:
-                            logger.info("Transfer cancel requested but already finished: {}",
-                                    runner);
+                            logger.info(
+                                "Transfer cancel requested but already finished: {}",
+                                runner);
+                            future.setSuccess();
                             break;
                         default:
-                            logger.info("Transfer cancel requested but internal error: {}",
-                                    runner);
+                            logger.info(
+                                "Transfer cancel requested but internal error: {}",
+                                runner);
+                            future.setFailure(new WaarpDatabaseException("Transfer cancel requested but internal error"));
                             break;
+                        }
                     }
-                }
-            } else if (stop) {
-                // Just stop the task
-                // Send a request
-                ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.STOPPACKET);
-                switch (code) {
+                } else if (stop) {
+                    // Just stop the task
+                    // Send a request
+                    ErrorCode code =
+                        sendStopOrCancel(runner, LocalPacketFactory.STOPPACKET);
+                    future.setResult(
+                        new R66Result(null, true, code,
+                                      runner));
+                    future.getResult().setRunner(runner);
+                    switch (code) {
                     case CompleteOk:
-                        logger.info("Transfer stop requested and done: {}", runner);
+                        logger.info("Transfer stop requested and done: {}",
+                                    runner);
+                        future.setSuccess();
                         break;
                     case TransferOk:
-                        logger.info("Transfer stop requested but already finished: {}",
-                                runner);
+                        logger.info(
+                            "Transfer stop requested but already finished: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     default:
-                        logger.info("Transfer stop requested but internal error: {}",
-                                runner);
+                        logger.info(
+                            "Transfer stop requested but internal error: {}",
+                            runner);
+                        future.setFailure(new WaarpDatabaseException("Transfer stop requested but internal error"));
                         break;
-                }
-            } else if (restart) {
-                // Restart if already stopped and not finished
-                ErrorCode code = sendValid(runner, LocalPacketFactory.VALIDPACKET);
-                switch (code) {
+                    }
+                } else if (restart) {
+                    // Restart if already stopped and not finished
+                    ErrorCode code =
+                        sendValid(runner, LocalPacketFactory.VALIDPACKET);
+                    future.setResult(
+                        new R66Result(null, true, code,
+                                      runner));
+                    future.getResult().setRunner(runner);
+                    switch (code) {
                     case QueryStillRunning:
                         logger.info(
-                                "Transfer restart requested but already active and running: {}",
-                                runner);
+                            "Transfer restart requested but already active and running: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     case Running:
-                        logger.info("Transfer restart requested but already running: {}",
-                                runner);
+                        logger.info(
+                            "Transfer restart requested but already running: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     case PreProcessingOk:
-                        logger.info("Transfer restart requested and restarted: {}",
-                                runner);
+                        logger.info(
+                            "Transfer restart requested and restarted: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     case CompleteOk:
-                        logger.info("Transfer restart requested but already finished: {}",
-                                runner);
+                        logger.info(
+                            "Transfer restart requested but already finished: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     case RemoteError:
-                        logger.info("Transfer restart requested but remote error: {}",
-                                runner);
+                        logger.info(
+                            "Transfer restart requested but remote error: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     case PassThroughMode:
-                        logger.info("Transfer not restarted since it is in PassThrough mode: {}",
-                                runner);
+                        logger.info(
+                            "Transfer not restarted since it is in PassThrough mode: {}",
+                            runner);
+                        future.setSuccess();
                         break;
                     default:
-                        logger.info("Transfer restart requested but internal error: {}",
-                                runner);
+                        logger.info(
+                            "Transfer restart requested but internal error: {}",
+                            runner);
+                        future.setFailure(new WaarpDatabaseException("Transfer restart requested but internal error"));
                         break;
+                    }
+                }
+            } else {
+                // Only request
+                logger.info(
+                    "Transfer information: {}    " + runner.toShortString(),
+                    future.isDone());
+                future.setResult(
+                    new R66Result(null, true, runner.getErrorInfo(), runner));
+                future.setSuccess();
+            }
+        } finally {
+            if (!future.isDone()) {
+                if (runner != null) {
+                    // Default set to success
+                    future.setResult(
+                        new R66Result(null, true, runner.getErrorInfo(),
+                                      runner));
+                    future.setSuccess();
+                } else {
+                    future.setFailure(new WaarpDatabaseException("Transfer requested but internal error"));
                 }
             }
-        } else {
-            // Only request
-            logger.info("Transfer information:     " + runner.toShortString());
-            future.setResult(new R66Result(null, true, runner.getErrorInfo(), runner));
-            future.setSuccess();
         }
     }
 

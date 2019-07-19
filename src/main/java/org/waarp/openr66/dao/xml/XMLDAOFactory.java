@@ -1,7 +1,7 @@
 package org.waarp.openr66.dao.xml;
 
 import org.waarp.openr66.dao.*;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 public class XMLDAOFactory extends DAOFactory {
@@ -18,32 +18,33 @@ public class XMLDAOFactory extends DAOFactory {
 
 
     @Override
-    public BusinessDAO getBusinessDAO() throws DAOException {
+    public BusinessDAO getBusinessDAO() throws DAOConnectionException {
         return new XMLBusinessDAO(businessFile);
     }
 
     @Override
-    public HostDAO getHostDAO() throws DAOException {
+    public HostDAO getHostDAO() throws DAOConnectionException {
         return new XMLHostDAO(hostFile);
     }
 
     @Override
-    public LimitDAO getLimitDAO() throws DAOException {
-        return new XMLimitDAO(limitFile);
+    public LimitDAO getLimitDAO() throws DAOConnectionException {
+        return new XMLLimitDAO(limitFile);
     }
 
     @Override
-    public MultipleMonitorDAO getMultipleMonitorDAO() throws DAOException {
-        throw new DAOException("MultipleMonitor is not supported on XML DAO");
+    public MultipleMonitorDAO getMultipleMonitorDAO() throws
+                                                      DAOConnectionException {
+        throw new DAOConnectionException("MultipleMonitor is not supported on XML DAO");
     }
 
     @Override
-    public RuleDAO getRuleDAO() throws DAOException {
+    public RuleDAO getRuleDAO() throws DAOConnectionException {
         return new XMLRuleDAO(ruleFile);
     }
 
     @Override
-    public TransferDAO getTransferDAO() throws DAOException {
+    public TransferDAO getTransferDAO() throws DAOConnectionException {
         return new XMLTransferDAO(transferFile);
     }
 }

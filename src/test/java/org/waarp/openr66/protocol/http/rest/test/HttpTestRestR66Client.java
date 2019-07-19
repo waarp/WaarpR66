@@ -24,6 +24,7 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpMethod;
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.Des;
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -83,6 +84,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author "Frederic Bregier"
@@ -90,11 +92,11 @@ import static org.junit.Assert.*;
 public class HttpTestRestR66Client implements Runnable {
   public static String keydesfilename = "/opt/R66/certs/test-key.des";
   private static final String baseURI = "/";
-  private static final String userAuthent = "admin2";
-  private static final String keyAuthent = "test";
+  public static String userAuthent = "admin2";
+  private static String keyAuthent = "test";
   private static final long limit = 10000000;
   private static final long delaylimit = 5000;
-  private static final String hostid = "hostZZ";
+  private static String hostid = "hostZZ";
   private static final String address = "10.10.10.10";
   private static final String hostkey = "ABCDEFGH";
   private static final String business =
@@ -147,7 +149,7 @@ public class HttpTestRestR66Client implements Runnable {
 
     try {
       HttpTestR66PseudoMain.config =
-          HttpTestR66PseudoMain.getTestConfiguration2();
+          HttpTestR66PseudoMain.getTestConfiguration();
     } catch (CryptoException e2) {
       // TODO Auto-generated catch block
       e2.printStackTrace();

@@ -11,7 +11,7 @@ import org.waarp.openr66.dao.database.h2.H2TransferDAO;
 import org.waarp.openr66.dao.database.mariadb.MariaDBTransferDAO;
 import org.waarp.openr66.dao.database.oracle.OracleTransferDAO;
 import org.waarp.openr66.dao.database.postgres.PostgreSQLTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 /**
  * DAOFactory for standard SQL databases
@@ -27,52 +27,53 @@ public class DBDAOFactory extends DAOFactory {
     }
 
     @Override
-    public DBBusinessDAO getBusinessDAO() throws DAOException {
+    public DBBusinessDAO getBusinessDAO() throws DAOConnectionException {
         try {
             return new DBBusinessDAO(connectionFactory.getConnection());
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 
     @Override
-    public DBHostDAO getHostDAO() throws DAOException {
+    public DBHostDAO getHostDAO() throws DAOConnectionException {
         try {
             return new DBHostDAO(connectionFactory.getConnection());
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 
     @Override
-    public DBLimitDAO getLimitDAO() throws DAOException {
+    public DBLimitDAO getLimitDAO() throws DAOConnectionException {
         try {
             return new DBLimitDAO(connectionFactory.getConnection());
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 
     @Override
-    public DBMultipleMonitorDAO getMultipleMonitorDAO() throws DAOException {
+    public DBMultipleMonitorDAO getMultipleMonitorDAO() throws
+                                                        DAOConnectionException {
         try {
             return new DBMultipleMonitorDAO(connectionFactory.getConnection());
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 
     @Override
-    public DBRuleDAO getRuleDAO() throws DAOException {
+    public DBRuleDAO getRuleDAO() throws DAOConnectionException {
         try {
             return new DBRuleDAO(connectionFactory.getConnection());
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 
     @Override
-    public DBTransferDAO getTransferDAO() throws DAOException {
+    public DBTransferDAO getTransferDAO() throws DAOConnectionException {
         try {
 	     DbProperties prop = connectionFactory.getProperties();
 	     if (prop instanceof H2Properties) {
@@ -86,10 +87,10 @@ public class DBDAOFactory extends DAOFactory {
 	     } else if (prop instanceof PostgreSQLProperties) {
                  return new PostgreSQLTransferDAO(connectionFactory.getConnection());
 	     } else {
-	         throw new DAOException("Unsupported database");
+	         throw new DAOConnectionException("Unsupported database");
 	     }
         } catch (SQLException e) {
-            throw new DAOException("data access error", e);
+            throw new DAOConnectionException("data access error", e);
         }
     }
 

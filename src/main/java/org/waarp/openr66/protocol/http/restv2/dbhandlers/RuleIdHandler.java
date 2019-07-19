@@ -28,7 +28,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.RuleDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.protocol.http.restv2.converters.RuleConverter;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
@@ -110,8 +111,10 @@ public class RuleIdHandler extends AbstractRestDbHandler {
             ObjectNode responseObject = RuleConverter.ruleToNode(rule);
             String responseText = JsonUtils.nodeToString(responseObject);
             responder.sendJson(OK, responseText);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (ruleDAO != null) {
                 ruleDAO.close();
@@ -150,8 +153,10 @@ public class RuleIdHandler extends AbstractRestDbHandler {
             ObjectNode responseObject = RuleConverter.ruleToNode(newRule);
             String responseText = JsonUtils.nodeToString(responseObject);
             responder.sendJson(CREATED, responseText);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (ruleDAO != null) {
                 ruleDAO.close();
@@ -182,8 +187,10 @@ public class RuleIdHandler extends AbstractRestDbHandler {
                 ruleDAO.delete(rule);
                 responder.sendStatus(NO_CONTENT);
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (ruleDAO != null) {
                 ruleDAO.close();

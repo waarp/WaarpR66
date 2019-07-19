@@ -33,7 +33,8 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.Base64;
 import org.waarp.openr66.dao.HostDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestServiceInitializer;
 import org.waarp.openr66.protocol.http.restv2.converters.HostConfigConverter;
@@ -288,7 +289,9 @@ public class RestHandlerHook implements HandlerHook {
                     throw new NotAllowedException("User does not exist.");
                 }
                 host = hostDAO.select(user);
-            } catch (DAOException e) {
+            } catch (DAOConnectionException e) {
+                throw new InternalServerErrorException(e);
+            } catch (DAONoDataException e) {
                 throw new InternalServerErrorException(e);
             } finally {
                 if (hostDAO != null) {
@@ -338,7 +341,9 @@ public class RestHandlerHook implements HandlerHook {
                     throw new NotAllowedException("User does not exist.");
                 }
                 host = hostDAO.select(authUser);
-            } catch (DAOException e) {
+            } catch (DAOConnectionException e) {
+                throw new InternalServerErrorException(e);
+            } catch (DAONoDataException e) {
                 throw new InternalServerErrorException(e);
             } finally {
                 if (hostDAO != null) {

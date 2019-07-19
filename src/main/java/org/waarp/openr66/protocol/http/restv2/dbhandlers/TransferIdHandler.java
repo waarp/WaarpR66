@@ -28,7 +28,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.converters.TransferConverter;
 import org.waarp.openr66.protocol.http.restv2.utils.JsonUtils;
@@ -117,8 +118,10 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (transferDAO != null) {
                 transferDAO.close();
@@ -176,8 +179,10 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (transferDAO != null) {
                 transferDAO.close();
@@ -234,8 +239,10 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (transferDAO != null) {
                 transferDAO.close();
@@ -291,8 +298,10 @@ public class TransferIdHandler extends AbstractRestDbHandler {
             }
         } catch (NumberFormatException e) {
             responder.sendStatus(NOT_FOUND);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (transferDAO != null) {
                 transferDAO.close();

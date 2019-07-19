@@ -12,7 +12,8 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Limit;
 import org.waarp.openr66.pojo.UpdatedInfo;
 
@@ -76,34 +77,39 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public void delete(Limit limit) throws DAOException {
+    public void delete(Limit limit)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE);
             setParameters(stm, limit.getHostid());
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE_ALL);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<Limit> getAll() throws DAOException {
+    public List<Limit> getAll() throws DAOConnectionException {
         ArrayList<Limit> limits = new ArrayList<Limit>();
         ResultSet res = null;
         PreparedStatement stm = null;
@@ -114,7 +120,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
                 limits.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
             closeResultSet(res);
@@ -123,7 +129,8 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public List<Limit> find(List<Filter> filters) throws DAOException {
+    public List<Limit> find(List<Filter> filters) throws
+                                                  DAOConnectionException {
         ArrayList<Limit> limits = new ArrayList<Limit>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
@@ -153,7 +160,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
                 limits.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
             closeResultSet(res);
@@ -162,7 +169,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -171,7 +178,7 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
             closeResultSet(res);
@@ -179,7 +186,8 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
     }
 
     @Override
-    public Limit select(String hostid) throws DAOException {
+    public Limit select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -188,18 +196,19 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
             closeResultSet(res);
         }
-        return null;
     }
 
     @Override
-    public void insert(Limit limit) throws DAOException {
+    public void insert(Limit limit) throws DAOConnectionException {
         Object[] params = {
             limit.getHostid(),
             limit.getReadGlobalLimit(),
@@ -216,14 +225,15 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(Limit limit) throws DAOException {
+    public void update(Limit limit)
+        throws DAOConnectionException, DAONoDataException {
         Object[] params = {
             limit.getHostid(),
             limit.getReadGlobalLimit(),
@@ -239,9 +249,13 @@ public class DBLimitDAO extends StatementExecutor implements LimitDAO {
         try {
             stm = connection.prepareStatement(SQL_UPDATE);
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }

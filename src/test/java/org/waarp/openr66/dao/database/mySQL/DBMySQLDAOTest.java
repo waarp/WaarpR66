@@ -25,13 +25,13 @@ import org.testcontainers.containers.MySQLContainer;
 import org.waarp.openr66.dao.database.DBAllDAOTest;
 import org.waarp.openr66.dao.database.DBTransferDAO;
 import org.waarp.openr66.dao.database.mariadb.MariaDBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBMySQLDAOTransfer extends DBAllDAOTest {
+public class DBMySQLDAOTest extends DBAllDAOTest {
 
   @ClassRule
   public static MySQLContainer db = new MySQLContainer();
@@ -40,7 +40,7 @@ public class DBMySQLDAOTransfer extends DBAllDAOTest {
   private String cleanScript = "mysql/clean.sql";
 
   @Override
-  public DBTransferDAO getDAO(Connection con) throws DAOException {
+  public DBTransferDAO getDAO(Connection con) throws DAOConnectionException {
     return new MariaDBTransferDAO(con);
   }
 

@@ -83,7 +83,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         try {
             dbrule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
-            logger.error(Messages.getString("SubmitTransfer.2") + rule); //$NON-NLS-1$
+            logger.error(Messages.getString("SubmitTransfer.2") + rulename); //$NON-NLS-1$
             if (DetectionUtils.isJunit()) {
                 return;
             }
@@ -100,7 +100,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         }
         List<String> files = null;
         if (dbrule.isSendMode()) {
-            files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
+            files = getLocalFiles(dbrule, localfilenames);
         } else if (submit) {
             files = new ArrayList<String>();
             for (String string : localfilenames) {
@@ -111,15 +111,15 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
             host = host.trim();
             if (host != null && !host.isEmpty()) {
                 if (!submit && dbrule.isRecvMode()) {
-                    files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+                    files = getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
                 }
                 for (String filename : files) {
                     filename = filename.trim();
                     if (filename != null && !filename.isEmpty()) {
                         R66Future future = new R66Future(true);
-                        SubmitTransfer transaction = new SubmitTransfer(future,
-                                host, filename, rule, fileInfo, ismd5, block, idt,
-                                ttimestart);
+                        SubmitTransfer transaction = new SubmitTransfer(
+                            future, host, filename, rulename, fileinfo,
+                            isMD5, blocksize, id, startTime);
                         transaction.normalInfoAsWarn = normalInfoAsWarn;
                         transaction.run();
                         future.awaitUninterruptibly();

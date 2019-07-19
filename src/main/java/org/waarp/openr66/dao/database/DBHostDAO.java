@@ -12,7 +12,8 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.pojo.UpdatedInfo;
 
@@ -69,7 +70,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
 
     protected Connection connection;
 
-    public DBHostDAO(Connection con) throws DAOException {
+    public DBHostDAO(Connection con) throws DAOConnectionException {
         this.connection = con;
     }
 
@@ -83,34 +84,39 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public void delete(Host host) throws DAOException {
+    public void delete(Host host)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE);
             setParameters(stm, host.getHostid());
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE_ALL);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<Host> getAll() throws DAOException {
+    public List<Host> getAll() throws DAOConnectionException {
         ArrayList<Host> hosts = new ArrayList<Host>();
         PreparedStatement stm = null;
         ResultSet res = null;
@@ -121,7 +127,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
                 hosts.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -130,7 +136,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public List<Host> find(List<Filter> filters) throws DAOException {
+    public List<Host> find(List<Filter> filters) throws DAOConnectionException {
         ArrayList<Host> hosts = new ArrayList<Host>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
@@ -160,7 +166,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
                 hosts.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -169,7 +175,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -178,7 +184,7 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -186,7 +192,8 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
     }
 
     @Override
-    public Host select(String hostid) throws DAOException {
+    public Host select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -195,18 +202,19 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
         }
-        return null;
     }
 
     @Override
-    public void insert(Host host) throws DAOException {
+    public void insert(Host host) throws DAOConnectionException {
         Object[] params = {
             host.getHostid(),
             host.getAddress(),
@@ -226,14 +234,15 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(Host host) throws DAOException {
+    public void update(Host host)
+        throws DAOConnectionException, DAONoDataException {
         Object[] params = {
             host.getHostid(),
             host.getAddress(),
@@ -252,9 +261,13 @@ public class DBHostDAO extends StatementExecutor implements HostDAO {
         try {
             stm = connection.prepareStatement(SQL_UPDATE);
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }

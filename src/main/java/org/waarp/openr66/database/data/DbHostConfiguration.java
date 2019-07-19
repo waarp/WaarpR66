@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -52,7 +52,8 @@ import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.database.DBBusinessDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
@@ -62,9 +63,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Configuration Table object
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbHostConfiguration extends AbstractDbData {
     /**
@@ -91,12 +92,6 @@ public class DbHostConfiguration extends AbstractDbData {
             Types.NVARCHAR };
 
     public static final String table = " HOSTCONFIG ";
-
-    /**
-     * HashTable in case of lack of database
-     */
-    private static final ConcurrentHashMap<String, DbHostConfiguration> dbR66HostConfigurationHashMap =
-            new ConcurrentHashMap<String, DbHostConfiguration>();
 
     private Business business;
 
@@ -195,20 +190,17 @@ public class DbHostConfiguration extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
         primaryKey = new DbValue[] {
-                new DbValue(business.getHostid(), Columns.HOSTID.name()) };
+                new DbValue("", Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
-                new DbValue(business.getBusiness(), Columns.BUSINESS.name(), true),
-                new DbValue(business.getRoles(), Columns.ROLES.name(), true),
-                new DbValue(business.getAliases(), Columns.ALIASES.name(), true),
-                new DbValue(business.getOthers(), Columns.OTHERS.name(), true),
-                new DbValue(business.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
+                new DbValue("", Columns.BUSINESS.name(), true),
+                new DbValue("", Columns.ROLES.name(), true),
+                new DbValue("", Columns.ALIASES.name(), true),
+                new DbValue("", Columns.OTHERS.name(), true),
+                new DbValue(0, Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], primaryKey[0] };
-
-         */
     }
 
     @Override
@@ -274,7 +266,7 @@ public class DbHostConfiguration extends AbstractDbData {
             } while (len != business.getOthers().length());
         }
         allFields[Columns.OTHERS.ordinal()].setValue(business.getOthers());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(business.getUpdatedInfo());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(business.getUpdatedInfo().ordinal());
     }
 
     @Override
@@ -299,7 +291,6 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @param business Business configuration
      * @param roles Roles configuration
@@ -310,17 +301,22 @@ public class DbHostConfiguration extends AbstractDbData {
             String others) {
         super();
         this.business = new Business(hostid, business, roles, aliases, others);
+        setToArray();
     }
 
     public DbHostConfiguration(Business business) {
         super();
+        if (business == null) {
+            throw new IllegalArgumentException(
+                "Argument in constructor cannot be null");
+        }
         this.business = business;
+        setToArray();
     }
 
     /**
      * Constructor from Json
-     * 
-     * @param dbSession
+     *
      * @param source
      * @throws WaarpDatabaseSqlException
      */
@@ -336,7 +332,6 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @throws WaarpDatabaseException
      */
@@ -346,8 +341,12 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             this.business = businessAccess.select(hostid);
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("DbHostConfiguration not " +
+                                                   "found", e);
         } finally {
             if (businessAccess != null) {
                 businessAccess.close();
@@ -554,7 +553,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the element for the content of the other part
      */
     public Element getOtherElement() {
@@ -572,7 +571,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param element
      *            the element to set as XML string to other part
      */
@@ -586,8 +585,11 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             businessAccess.delete(business);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("DbHostConfiguration not " +
+                                                   "found", e);
         } finally {
             if (businessAccess != null) {
                 businessAccess.close();
@@ -601,7 +603,7 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             businessAccess.insert(business);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (businessAccess != null) {
@@ -616,7 +618,7 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             return businessAccess.exist(business.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (businessAccess != null) {
@@ -631,8 +633,11 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             this.business = businessAccess.select(business.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("DbHostConfiguration not " +
+                                                   "found", e);
         } finally {
             if (businessAccess != null) {
                 businessAccess.close();
@@ -646,8 +651,11 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             businessAccess.update(business);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("DbHostConfiguration not " +
+                                                   "found", e);
         } finally {
             if (businessAccess != null) {
                 businessAccess.close();
@@ -665,7 +673,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * For instance from Commander when getting updated information
-     * 
+     *
      * @param preparedStatement
      * @return the next updated Configuration
      * @throws WaarpDatabaseNoConnectionException
@@ -675,13 +683,13 @@ public class DbHostConfiguration extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbHostConfiguration dbConfiguration = new DbHostConfiguration();
         dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
-        dbConfiguration.setFromArray();
+        dbConfiguration.setToArray();
         dbConfiguration.isSaved = true;
         return dbConfiguration;
     }
 
     /**
-     * 
+     *
      * @return the DbPreparedStatement for getting Updated Object
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -699,7 +707,7 @@ public class DbHostConfiguration extends AbstractDbData {
         try {
             businessAccess = DAOFactory.getInstance().getBusinessDAO();
             businesses = businessAccess.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (businessAccess != null) {
@@ -716,7 +724,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @param session
      * @param hostid
      * @param business
@@ -787,7 +795,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return True if this Configuration refers to the current host
      */
     public boolean isOwnConfiguration() {
@@ -796,7 +804,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * Shortcut to add all paths element from source into set
-     * 
+     *
      * @param source
      * @param path
      * @param set
@@ -847,7 +855,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * update Business with possible purge and new or added content, and updating in memory information
-     * 
+     *
      * @param config
      * @param newbusiness
      * @param purged
@@ -892,7 +900,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * Shortcut to add all paths element with key and value from source into map
-     * 
+     *
      * @param source
      * @param path
      * @param keypath
@@ -963,7 +971,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * update Alias with possible purge and new or added content, and updating in memory information
-     * 
+     *
      * @param config
      * @param newalias
      * @param purged
@@ -1044,7 +1052,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * update Roles with possible purge and new or added content, and updating in memory information
-     * 
+     *
      * @param config
      * @param newroles
      * @param purged
@@ -1136,8 +1144,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
-     * @param dbSession
+     *
      * @param hostid
      * @return the version of the database from HostConfiguration table
      */
@@ -1177,8 +1184,7 @@ public class DbHostConfiguration extends AbstractDbData {
 
     /**
      * Update the version for this HostId
-     * 
-     * @param dbSession
+     *
      * @param hostid
      * @param version
      */
@@ -1223,7 +1229,7 @@ public class DbHostConfiguration extends AbstractDbData {
     }
 
     /**
-     * 
+     *
      * @return the DbValue associated with this table
      */
     public static DbValue[] getAllType() {

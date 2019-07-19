@@ -24,7 +24,7 @@ import org.junit.ClassRule;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.waarp.openr66.dao.database.DBAllDAOTest;
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -39,7 +39,7 @@ public class DBPostgreSQLDAOTest extends DBAllDAOTest {
   private String cleanScript = "postgresql/clean.sql";
 
   @Override
-  public DBTransferDAO getDAO(Connection con) throws DAOException {
+  public DBTransferDAO getDAO(Connection con) throws DAOConnectionException {
     return new PostgreSQLTransferDAO(con);
   }
 

@@ -12,7 +12,8 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.MultipleMonitor;
 
 /**
@@ -66,34 +67,40 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public void delete(MultipleMonitor multipleMonitor) throws DAOException {
+    public void delete(MultipleMonitor multipleMonitor) throws
+                                                        DAOConnectionException,
+                                                        DAONoDataException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE);
             setParameters(stm, multipleMonitor.getHostid());
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE_ALL);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<MultipleMonitor> getAll() throws DAOException {
+    public List<MultipleMonitor> getAll() throws DAOConnectionException {
         ArrayList<MultipleMonitor> monitors = new ArrayList<MultipleMonitor>();
         PreparedStatement stm = null;
         ResultSet res = null;
@@ -104,7 +111,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
                 monitors.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -114,7 +121,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
 
     @Override
     public List<MultipleMonitor> find(List<Filter> filters)
-            throws DAOException {
+        throws DAOConnectionException {
         ArrayList<MultipleMonitor> monitors = new ArrayList<MultipleMonitor>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
@@ -144,7 +151,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
                 monitors.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -153,7 +160,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -162,7 +169,7 @@ public class DBMultipleMonitorDAO extends StatementExecutor
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -170,7 +177,8 @@ public class DBMultipleMonitorDAO extends StatementExecutor
     }
 
     @Override
-    public MultipleMonitor select(String hostid) throws DAOException {
+    public MultipleMonitor select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -179,18 +187,20 @@ public class DBMultipleMonitorDAO extends StatementExecutor
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
         }
-        return null;
     }
 
     @Override
-    public void insert(MultipleMonitor multipleMonitor) throws DAOException {
+    public void insert(MultipleMonitor multipleMonitor) throws
+                                                        DAOConnectionException {
         Object[] params = {
             multipleMonitor.getHostid(),
             multipleMonitor.getCountConfig(),
@@ -204,14 +214,16 @@ public class DBMultipleMonitorDAO extends StatementExecutor
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(MultipleMonitor multipleMonitor) throws DAOException {
+    public void update(MultipleMonitor multipleMonitor) throws
+                                                        DAOConnectionException,
+                                                        DAONoDataException {
         Object[] params = {
             multipleMonitor.getHostid(),
             multipleMonitor.getCountConfig(),
@@ -224,9 +236,13 @@ public class DBMultipleMonitorDAO extends StatementExecutor
         try {
             stm = connection.prepareStatement(SQL_UPDATE);
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }

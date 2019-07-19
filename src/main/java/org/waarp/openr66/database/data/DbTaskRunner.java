@@ -69,7 +69,9 @@ import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
+import org.waarp.openr66.dao.xml.XMLTransferDAO;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -112,12 +114,6 @@ public class DbTaskRunner extends AbstractDbData {
             .getLogger(DbTaskRunner.class);
 
     /**
-     * HashTable in case of lack of database using LRU mode with
-     * 20 000 items maximum (< 200 MB?) for 180s
-     */
-    private static SynchronizedLruCache<Long, DbTaskRunner> dbR66TaskHashMap;
-
-    /**
      * Create the LRU cache
      *
      * @param limit
@@ -126,11 +122,11 @@ public class DbTaskRunner extends AbstractDbData {
      *            time to leave used
      */
     public static void createLruCache(int limit, long ttl) {
-        dbR66TaskHashMap = new SynchronizedLruCache<Long, DbTaskRunner>(limit, ttl);
+        XMLTransferDAO.createLruCache(limit, ttl);
     }
 
     public static String hashStatus() {
-        return "DbTaskRunner: [dbR66TaskHashMap: " + dbR66TaskHashMap.size() + "] ";
+        return XMLTransferDAO.hashStatus();
     }
 
     /**
@@ -139,7 +135,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return the number of elements removed
      */
     public static int clearCache() {
-        return dbR66TaskHashMap.forceClearOldest();
+        return XMLTransferDAO.clearCache();
     }
 
     /**
@@ -148,7 +144,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param ttl
      */
     public static void updateLruCacheTimeout(long ttl) {
-        dbR66TaskHashMap.setNewTtl(ttl);
+        XMLTransferDAO.updateLruCacheTimeout(ttl);
     }
 
     public static enum Columns {
@@ -299,34 +295,34 @@ public class DbTaskRunner extends AbstractDbData {
         // empty transfer for initObject
         transfer = new Transfer();
         primaryKey = new DbValue[] {
-                new DbValue(transfer.getOwnerRequest(), Columns.OWNERREQ.name()),
-                new DbValue(transfer.getRequester(), Columns.REQUESTER.name()),
-                new DbValue(transfer.getRequested(), Columns.REQUESTED.name()),
-                new DbValue(transfer.getId(), Columns.SPECIALID.name()) };
+                new DbValue("", Columns.OWNERREQ.name()),
+                new DbValue("", Columns.REQUESTER.name()),
+                new DbValue("", Columns.REQUESTED.name()),
+                new DbValue(0l, Columns.SPECIALID.name()) };
         otherFields = new DbValue[] {
                 // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
                 // FILENAME, ISMOVED, IDRULE,
                 // BLOCKSZ, ORIGINALNAME, FILEINFO, MODETRANS,
                 // STARTTRANS, STOPTRANS
                 // INFOSTATUS, UPDATEDINFO
-                new DbValue(transfer.getGlobalStep().ordinal(), Columns.GLOBALSTEP.name()),
-                new DbValue(transfer.getLastGlobalStep().ordinal(), Columns.GLOBALLASTSTEP.name()),
-                new DbValue(transfer.getStep(), Columns.STEP.name()),
-                new DbValue(transfer.getRank(), Columns.RANK.name()),
-                new DbValue(ErrorCode.Unknown.getCode(), Columns.STEPSTATUS.name()), // status.getCode()
-                new DbValue(transfer.getRetrieveMode(), Columns.RETRIEVEMODE.name()),
-                new DbValue(transfer.getFilename(), Columns.FILENAME.name()),
-                new DbValue(transfer.getIsMoved(), Columns.ISMOVED.name()),
-                new DbValue(transfer.getRule(), Columns.IDRULE.name()),
-                new DbValue(transfer.getBlockSize(), Columns.BLOCKSZ.name()),
-                new DbValue(transfer.getOriginalName(), Columns.ORIGINALNAME.name()),
-                new DbValue(transfer.getFileInfo(), Columns.FILEINFO.name(), true),
-                new DbValue(transfer.getTransferInfo(), Columns.TRANSFERINFO.name(), true),
-                new DbValue(transfer.getTransferMode(), Columns.MODETRANS.name()),
-                new DbValue(transfer.getStart(), Columns.STARTTRANS.name()),
-                new DbValue(transfer.getStop(), Columns.STOPTRANS.name()),
-                new DbValue(ErrorCode.Unknown.getCode(), Columns.INFOSTATUS.name()),// infostatus.getCode()
-                new DbValue(transfer.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
+                new DbValue(0, Columns.GLOBALSTEP.name()),
+                new DbValue(0, Columns.GLOBALLASTSTEP.name()),
+                new DbValue(0, Columns.STEP.name()),
+                new DbValue(0, Columns.RANK.name()),
+                new DbValue("", Columns.STEPSTATUS.name()), // status.getCode()
+                new DbValue(false, Columns.RETRIEVEMODE.name()),
+                new DbValue("", Columns.FILENAME.name()),
+                new DbValue(false, Columns.ISMOVED.name()),
+                new DbValue("", Columns.IDRULE.name()),
+                new DbValue(0, Columns.BLOCKSZ.name()),
+                new DbValue("", Columns.ORIGINALNAME.name()),
+                new DbValue("", Columns.FILEINFO.name(), true),
+                new DbValue("", Columns.TRANSFERINFO.name(), true),
+                new DbValue(0, Columns.MODETRANS.name()),
+                new DbValue(new Timestamp(0l), Columns.STARTTRANS.name()),
+                new DbValue(new Timestamp(0l), Columns.STOPTRANS.name()),
+                new DbValue("", Columns.INFOSTATUS.name()),// infostatus.getCode()
+                new DbValue(0, Columns.UPDATEDINFO.name()) };
 
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
@@ -359,8 +355,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     @Override
     protected void setToArray() {
-        allFields[Columns.GLOBALSTEP.ordinal()].setValue(transfer.getGlobalStep());
-        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(transfer.getLastGlobalStep());
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(transfer.getGlobalStep().ordinal());
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(transfer.getLastGlobalStep().ordinal());
         allFields[Columns.STEP.ordinal()].setValue(transfer.getStep());
         allFields[Columns.RANK.ordinal()].setValue(transfer.getRank());
         allFields[Columns.STEPSTATUS.ordinal()].setValue(transfer.getStepStatus().getCode());
@@ -377,7 +373,7 @@ public class DbTaskRunner extends AbstractDbData {
         transfer.setStop(new Timestamp(System.currentTimeMillis()));
         allFields[Columns.STOPTRANS.ordinal()].setValue(transfer.getStop());
         allFields[Columns.INFOSTATUS.ordinal()].setValue(transfer.getInfoStatus().getCode());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(transfer.getUpdatedInfo());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(transfer.getUpdatedInfo().ordinal());
         allFields[Columns.OWNERREQ.ordinal()].setValue(transfer.getOwnerRequest());
         allFields[Columns.REQUESTER.ordinal()].setValue(transfer.getRequester());
         allFields[Columns.REQUESTED.ordinal()].setValue(transfer.getRequested());
@@ -513,7 +509,12 @@ public class DbTaskRunner extends AbstractDbData {
 
     public DbTaskRunner(Transfer transfer) {
         super();
+        if (transfer == null) {
+            throw new IllegalArgumentException(
+                "Argument in constructor cannot be null");
+        }
         this.transfer = transfer;
+        setToArray();
     }
 
     /**
@@ -568,6 +569,7 @@ public class DbTaskRunner extends AbstractDbData {
         checkThroughMode();
         insert();
         requestPacket.setSpecialId(transfer.getId());
+        setToArray();
     }
 
     /**
@@ -598,6 +600,7 @@ public class DbTaskRunner extends AbstractDbData {
         setOriginalSizeTransferMap(originalSize);
 
         checkThroughMode();
+        setToArray();
         insert();
         requestPacket.setSpecialId(transfer.getId());
     }
@@ -622,15 +625,14 @@ public class DbTaskRunner extends AbstractDbData {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transfer = transferAccess.select(id, requester, requested,
                     Configuration.configuration.getHOST_ID());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
             }
-        }
-        if (transfer == null) {
-            throw new WaarpDatabaseNoDataException("Transfer not found");
         }
         this.rule = new DbRule(getRuleId());
         if (rule != null) {
@@ -639,6 +641,7 @@ public class DbTaskRunner extends AbstractDbData {
                         "Rule does not correspond");
             }
         }
+        setToArray();
     }
 
     /**
@@ -657,14 +660,17 @@ public class DbTaskRunner extends AbstractDbData {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transfer = transferAccess.select(id, requester, requested,
                     Configuration.configuration.getHOST_ID());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
             }
         }
         this.rule = new DbRule(getRuleId());
+        setToArray();
     }
 
     /**
@@ -683,6 +689,7 @@ public class DbTaskRunner extends AbstractDbData {
         } else {
             transfer.setOwnerRequest(owner);
         }
+        setToArray();
     }
 
     /**
@@ -695,6 +702,7 @@ public class DbTaskRunner extends AbstractDbData {
         super();
         transfer = new Transfer();
         setFromJson(source, false);
+        setToArray();
     }
 
     @Override
@@ -851,8 +859,11 @@ public class DbTaskRunner extends AbstractDbData {
             transfer = transferAccess.select(id,
                     Configuration.configuration.getHOST_ID(), requested,
                     Configuration.configuration.getHOST_ID());
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
@@ -874,17 +885,6 @@ public class DbTaskRunner extends AbstractDbData {
     private void createNoDbSpecialId() {
         transfer.setId(new LongUuid().getLong());
         setPrimaryKey();
-        /*synchronized (clientNoDbSpecialIdLast) {
-        	// New SpecialId is not possible with No Database Model
-        	specialId = System.currentTimeMillis();
-        	if (clientNoDbSpecialIdLast.get() >= specialId) {
-        		specialId = clientNoDbSpecialIdLast.incrementAndGet();
-        	} else {
-        		clientNoDbSpecialIdLast.set(specialId);
-        	}
-        	setPrimaryKey();
-        	return;
-        }*/
     }
 
     /**
@@ -900,7 +900,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param specialId
      */
     public static final void removeNoDbSpecialId(long specialId) {
-        dbR66TaskHashMap.remove(specialId);
+        XMLTransferDAO.removeNoDbSpecialId(specialId);
     }
 
     /**
@@ -909,7 +909,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param specialId
      */
     public static final void updateUsed(long specialId) {
-        dbR66TaskHashMap.updateTtl(specialId);
+        XMLTransferDAO.updateUsed(specialId);
     }
 
     @Override
@@ -918,8 +918,10 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transferAccess.delete(transfer);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
@@ -953,7 +955,7 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transferAccess.insert(transfer);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (transferAccess != null) {
@@ -979,7 +981,7 @@ public class DbTaskRunner extends AbstractDbData {
             return transferAccess.exist(transfer.getId(),
                     transfer.getRequester(), transfer.getRequested(),
                     Configuration.configuration.getHOST_ID());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (transferAccess != null) {
@@ -1011,15 +1013,14 @@ public class DbTaskRunner extends AbstractDbData {
             transfer = transferAccess.select(transfer.getId(),
                     transfer.getRequester(), transfer.getRequested(),
                     Configuration.configuration.getHOST_ID());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
             }
-        }
-        if (transfer == null) {
-            throw new WaarpDatabaseNoConnectionException("No Transfer found");
         }
         this.rule = new DbRule(getRuleId());
         checkThroughMode();
@@ -1067,8 +1068,10 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             transferAccess = DAOFactory.getInstance().getTransferDAO();
             transferAccess.update(transfer);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Transfer not found", e);
         } finally {
             if (transferAccess != null) {
                 transferAccess.close();
@@ -1157,8 +1160,7 @@ public class DbTaskRunner extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbTaskRunner dbTaskRunner = new DbTaskRunner();
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
-        dbTaskRunner.setFromArray();
-        if (dbTaskRunner.rule == null) {
+        if (dbTaskRunner.rule == null && dbTaskRunner.transfer.getRule() != null) {
             try {
                 dbTaskRunner.rule = new DbRule(dbTaskRunner.getRuleId());
             } catch (WaarpDatabaseException e) {
@@ -1167,6 +1169,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
         dbTaskRunner.checkThroughMode();
+        dbTaskRunner.setToArray();
         dbTaskRunner.isSaved = true;
         return dbTaskRunner;
     }
@@ -1185,6 +1188,7 @@ public class DbTaskRunner extends AbstractDbData {
         DbTaskRunner dbTaskRunner = new DbTaskRunner();
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
         dbTaskRunner.setFromArray();
+        dbTaskRunner.setToArray();
         if (dbTaskRunner.rule == null) {
             try {
                 dbTaskRunner.rule = new DbRule(dbTaskRunner.getRuleId());
@@ -1559,7 +1563,7 @@ public class DbTaskRunner extends AbstractDbData {
             } else {
                 transfers = transferAccess.find(filters, limit);
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (transferAccess != null) {
@@ -2084,8 +2088,10 @@ public class DbTaskRunner extends AbstractDbData {
                 transfer.setUpdatedInfo(org.waarp.openr66.pojo.UpdatedInfo.DONE);
                 transferAccess.update(transfer);
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoConnectionException("Transfer not found");
         } finally {
             transferAccess.close();
         }
@@ -3875,6 +3881,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     @Override
     public ObjectNode getJson() {
+        setToArray();
         ObjectNode node = super.getJson();
         if (rescheduledTransfer) {
             node.put(JSON_RESCHEDULE, true);
@@ -3955,6 +3962,7 @@ public class DbTaskRunner extends AbstractDbData {
         setRunnerFromElementNoException(runner, document.getRootElement());
         try {
             runner.setFromArray();
+            runner.setToArray();
         } catch (WaarpDatabaseSqlException e) {
             logger.error("Cannot read XML", e);
             throw new OpenR66ProtocolBusinessException("Cannot read XML: " + e.getMessage());
@@ -4129,6 +4137,7 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 setRunnerFromElement(runnerlog, element);
                 runnerlog.setFromArray();
+                runnerlog.setToArray();
                 runnerlog.insertOrUpdateForLogsImport();
             } catch (WaarpDatabaseSqlException e) {
                 error = true;

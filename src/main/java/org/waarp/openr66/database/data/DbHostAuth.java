@@ -44,7 +44,8 @@ import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.database.DBHostDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -96,12 +97,6 @@ public class DbHostAuth extends AbstractDbData {
 
     public static final String table = " HOSTS ";
 
-    /**
-     * HashTable in case of lack of database
-     */
-    private static final ConcurrentHashMap<String, DbHostAuth> dbR66HostAuthHashMap =
-            new ConcurrentHashMap<String, DbHostAuth>();
-
     private Host host;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
@@ -134,26 +129,21 @@ public class DbHostAuth extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
-        primaryKey = new DbValue[] { new DbValue(host.getHostid(), Columns.HOSTID
-                .name()) };
+        primaryKey = new DbValue[] { new DbValue("", Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
-                new DbValue(host.getAddress(), Columns.ADDRESS.name()),
-                new DbValue(host.getPort(), Columns.PORT.name()),
-                new DbValue(host.isSSL(), Columns.ISSSL.name()),
-                new DbValue(host.getHostkey(), Columns.HOSTKEY.name()),
-                new DbValue(host.isAdmin(), Columns.ADMINROLE.name()),
-                new DbValue(host.isClient(), Columns.ISCLIENT.name()),
-                new DbValue(host.isActive(), Columns.ISACTIVE.name()),
-                new DbValue(host.isProxified(), Columns.ISPROXIFIED.name()),
-                new DbValue(host.getUpdatedInfo().ordinal(),
-                        Columns.UPDATEDINFO.name()) };
+                new DbValue("", Columns.ADDRESS.name()),
+                new DbValue(0, Columns.PORT.name()),
+                new DbValue(false, Columns.ISSSL.name()),
+                new DbValue(new byte[0], Columns.HOSTKEY.name()),
+                new DbValue(false, Columns.ADMINROLE.name()),
+                new DbValue(false, Columns.ISCLIENT.name()),
+                new DbValue(false, Columns.ISACTIVE.name()),
+                new DbValue(false, Columns.ISPROXIFIED.name()),
+                new DbValue(0, Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2],
                 otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
                 primaryKey[0] };
-
-         */
     }
 
     @Override
@@ -186,7 +176,7 @@ public class DbHostAuth extends AbstractDbData {
         allFields[Columns.ISCLIENT.ordinal()].setValue(host.isClient());
         allFields[Columns.ISACTIVE.ordinal()].setValue(host.isActive());
         allFields[Columns.ISPROXIFIED.ordinal()].setValue(host.isProxified());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(host.getUpdatedInfo());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(host.getUpdatedInfo().ordinal());
         allFields[Columns.HOSTID.ordinal()].setValue(host.getHostid());
     }
 
@@ -248,13 +238,19 @@ public class DbHostAuth extends AbstractDbData {
 
     private DbHostAuth(Host host) {
         super();
+        if (host == null) {
+            throw new IllegalArgumentException(
+                "Argument in constructor cannot be null");
+        }
         this.host = host;
+        setToArray();
     }
 
     public DbHostAuth(ObjectNode source) throws WaarpDatabaseSqlException {
         super();
         this.host = new Host();
         setFromJson(source, false);
+        setToArray();
     }
 
     @Override
@@ -293,15 +289,15 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             host = hostAccess.select(hostid);
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find host", e);
         } finally {
             if (hostAccess != null) {
                 hostAccess.close();
             }
-        }
-        if (host == null) {
-            throw new WaarpDatabaseNoDataException("Cannot find host");
         }
     }
 
@@ -319,7 +315,7 @@ public class DbHostAuth extends AbstractDbData {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hosts = hostAccess.getAll();
             hostAccess.deleteAll();
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (hostAccess != null) {
@@ -338,8 +334,10 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hostAccess.delete(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find host", e);
         } finally {
             if (hostAccess != null) {
                 hostAccess.close();
@@ -353,7 +351,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hostAccess.insert(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (hostAccess != null) {
@@ -368,7 +366,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             return hostAccess.exist(host.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (hostAccess != null) {
@@ -383,8 +381,10 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             host = hostAccess.select(host.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find host", e);
         } finally {
             if (hostAccess != null) {
                 hostAccess.close();
@@ -398,8 +398,10 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hostAccess.update(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find host", e);
         } finally {
             if (hostAccess != null) {
                 hostAccess.close();
@@ -430,7 +432,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hosts = hostAccess.getAll();
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (hostAccess != null) {
@@ -470,7 +472,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             hosts = hostAccess.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (hostAccess != null) {
@@ -871,7 +873,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             hostAccess = DAOFactory.getInstance().getHostDAO();
             return hostAccess.find(filters).size() > 0;
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.error("DAO Access error", e);
             return false;
         } finally {

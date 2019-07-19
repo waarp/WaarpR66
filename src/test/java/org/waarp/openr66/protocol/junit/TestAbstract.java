@@ -1,22 +1,22 @@
-/*******************************************************************************
+/**
  * This file is part of Waarp Project (named also Waarp or GG).
- *
- *  Copyright (c) 2019, Waarp SAS, and individual contributors by the @author
- *  tags. See the COPYRIGHT.txt in the distribution for a full listing of
- *  individual contributors.
- *
- *  All Waarp Project is free software: you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or (at your
- *  option) any later version.
- *
- *  Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
- *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- *  A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with
- *  Waarp . If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * <p>
+ * Copyright (c) 2019, Waarp SAS, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
+ * <p>
+ * All Waarp Project is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ * <p>
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public License along with
+ * Waarp . If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  *
@@ -30,8 +30,19 @@ import org.apache.tools.ant.types.Commandline.Argument;
 import org.apache.tools.ant.types.Path;
 import org.junit.After;
 import org.junit.Before;
+import org.waarp.common.database.DbPreparedStatement;
+import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
+import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
+import org.waarp.openr66.dao.DAOFactory;
+import org.waarp.openr66.dao.TransferDAO;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
+import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.database.data.DbTaskRunner.Columns;
+import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -39,6 +50,7 @@ import org.waarp.openr66.server.R66Server;
 import org.waarp.openr66.server.ServerInitDatabase;
 
 import java.io.File;
+import java.io.FileFilter;
 
 /**
  * @author frederic
@@ -51,6 +63,7 @@ public abstract class TestAbstract extends TestAbstractMinimal {
   private static File homeDir;
 
   public static void setUpDbBeforeClass() throws Exception {
+    deleteBase();
     String serverInit = "Linux/config/config-serverInitB.xml";
     setUpBeforeClassMinimal(serverInit);
 
@@ -75,38 +88,18 @@ public abstract class TestAbstract extends TestAbstractMinimal {
     listener.setMessageOutputLevel(Project.MSG_WARN);
     project.fireBuildStarted();
 
-    initiateDbB();
-    initiateDbA();
+    serverInit = "config-serverInitB.xml";
+    initiateDb(serverInit);
+    serverInit = "config-serverInitA.xml";
+    initiateDb(serverInit);
 
     project.log("finished");
     project.fireBuildFinished(null);
   }
 
 
-  public static void initiateDbB() {
+  public static void initiateDb(String serverInit) {
     DetectionUtils.setJunit(true);
-    String serverInit = "config-serverInitB.xml";
-    File file = new File(dir, serverInit);
-    logger.warn("File {} exists? {}", file, file.isFile());
-    File fileAuth = new File(dir, "OpenR66-authent-A.xml");
-    File fileLimit = new File(dir, "limitConfiga.xml");
-    logger.warn("File {} exists? {}", fileAuth, fileAuth.isFile());
-    logger.warn("File {} exists? {}", fileLimit, fileLimit.isFile());
-
-    String[] args = {
-        file.getAbsolutePath(), "-initdb", "-dir",
-        dir.getAbsolutePath(), "-auth",
-        new File(dir, "OpenR66-authent-A.xml").getAbsolutePath(),
-        "-limit",
-        new File(dir, "limitConfiga.xml").getAbsolutePath()
-    };
-    executeJvm(homeDir, ServerInitDatabase.class, args);
-  }
-
-  public static void initiateDbA() {
-    DetectionUtils.setJunit(true);
-    String serverInit = "config-serverInitA.xml";
-
     File file = new File(dir, serverInit);
     logger.warn("File {} exists? {}", file, file.isFile());
     File fileAuth = new File(dir, "OpenR66-authent-A.xml");
@@ -201,16 +194,24 @@ public abstract class TestAbstract extends TestAbstractMinimal {
     }
   }
 
-  /**
-   * @throws java.lang.Exception
-   */
   public static void tearDownAfterClassServer() throws Exception {
     ChannelUtils.exit();
+    deleteBase();
   }
 
-  /**
-   * @throws java.lang.Exception
-   */
+  public static void deleteBase() {
+    File tmp = new File("/tmp");
+    File[] files = tmp.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File file) {
+        return file.getName().startsWith("openr66");
+      }
+    });
+    for (File file : files) {
+      file.delete();
+    }
+  }
+
   public static void setUpBeforeClassClient(String clientConfig)
       throws Exception {
     File clientConfigFile = new File(dir, clientConfig);
@@ -233,26 +234,32 @@ public abstract class TestAbstract extends TestAbstractMinimal {
     }
     Configuration.configuration.pipelineInit();
     networkTransaction = new NetworkTransaction();
+    DbTaskRunner.clearCache();
+    TransferDAO transferAccess = null;
+    try {
+      transferAccess = DAOFactory.getInstance().getTransferDAO();
+      transferAccess.deleteAll();
+    } catch (DAOConnectionException e) {
+      throw new WaarpDatabaseException(e);
+    } finally {
+      if (transferAccess != null) {
+        transferAccess.close();
+      }
+    }
   }
 
-  /**
-   * @throws java.lang.Exception
-   */
   public static void tearDownAfterClassClient() throws Exception {
     networkTransaction.closeAll();
   }
 
-  /**
-   * @throws java.lang.Exception
-   */
   @Before
   public void setUp() throws Exception {
     Configuration.configuration.setTIMEOUTCON(10000);
+    Configuration.configuration
+        .changeNetworkLimit(1000000000, 1000000000, 1000000000, 1000000000,
+                            1000);
   }
 
-  /**
-   * @throws java.lang.Exception
-   */
   @After
   public void tearDown() throws Exception {
     Configuration.configuration.setTIMEOUTCON(100);

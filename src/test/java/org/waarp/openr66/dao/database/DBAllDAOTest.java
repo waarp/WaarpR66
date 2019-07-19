@@ -25,13 +25,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.BusinessDAO;
+import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.LimitDAO;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.pojo.Limit;
@@ -54,6 +56,75 @@ import static org.junit.Assert.*;
 public abstract class DBAllDAOTest {
 
   private Connection con;
+  private DAOFactoryTest factoryTest = new DAOFactoryTest();
+
+  public DAOFactory getDaoFactory() {
+    return factoryTest;
+  }
+
+  class DAOFactoryTest extends DAOFactory {
+
+    @Override
+    public BusinessDAO getBusinessDAO() throws DAOConnectionException {
+      try {
+        return new DBBusinessDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+
+    @Override
+    public HostDAO getHostDAO() throws DAOConnectionException {
+      try {
+        return new DBHostDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+
+    @Override
+    public LimitDAO getLimitDAO() throws DAOConnectionException {
+      try {
+        return new DBLimitDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+
+    @Override
+    public MultipleMonitorDAO getMultipleMonitorDAO()
+        throws DAOConnectionException {
+      try {
+        return new DBMultipleMonitorDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+
+    @Override
+    public RuleDAO getRuleDAO() throws DAOConnectionException {
+      try {
+        return new DBRuleDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+
+    @Override
+    public TransferDAO getTransferDAO() throws DAOConnectionException {
+      try {
+        return getDAO(getConnection());
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    }
+  }
 
   public void runScript(String script) {
     try {
@@ -84,7 +155,9 @@ public abstract class DBAllDAOTest {
   public void wrapUp() {
     try {
       cleanDB();
-      con.close();
+      if (con != null) {
+        con.close();
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -92,13 +165,14 @@ public abstract class DBAllDAOTest {
 
   public abstract void cleanDB() throws SQLException;
 
+
   /*******************
    * BUSINESS
    *******************/
   @Test
   public void testDeleteAllBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       dao.deleteAll();
 
       ResultSet res = con.createStatement()
@@ -112,7 +186,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       dao.delete(new Business("server1", "", "", "", ""));
 
       ResultSet res = con.createStatement()
@@ -127,7 +201,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testGetAllBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       assertEquals(5, dao.getAll().size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -137,16 +211,21 @@ public abstract class DBAllDAOTest {
   @Test
   public void testSelectBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       Business business = dao.select("server1");
-      Business business2 = dao.select("ghost");
 
       assertEquals("joyaux", business.getBusiness());
       assertEquals("marchand", business.getRoles());
       assertEquals("le borgne", business.getAliases());
       assertEquals("misc", business.getOthers());
       assertEquals(UpdatedInfo.NOTUPDATED, business.getUpdatedInfo());
-      assertEquals(null, business2);
+
+      try {
+        dao.select("ghost");
+        fail("Should raised an exception");
+      } catch (DAONoDataException e) {
+        // Ignore since OK
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -155,7 +234,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testExistBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       assertEquals(true, dao.exist("server1"));
       assertEquals(false, dao.exist("ghost"));
     } catch (Exception e) {
@@ -167,7 +246,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testInsertBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       dao.insert(new Business("chacha",
                               "lolo", "lala", "minou", "ect",
                               UpdatedInfo.TOSUBMIT));
@@ -196,7 +275,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testUpdateBusiness() {
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       dao.update(new Business("server2",
                               "lolo", "lala", "minou", "ect",
                               UpdatedInfo.RUNNING));
@@ -222,7 +301,7 @@ public abstract class DBAllDAOTest {
     ArrayList<Filter> map = new ArrayList<Filter>();
     map.add(new Filter(DBBusinessDAO.BUSINESS_FIELD, "=", "ba"));
     try {
-      BusinessDAO dao = new DBBusinessDAO(getConnection());
+      BusinessDAO dao = getDaoFactory().getBusinessDAO();
       assertEquals(2, dao.find(map).size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -236,7 +315,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteAllHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       dao.deleteAll();
 
       ResultSet res = con.createStatement()
@@ -250,7 +329,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       dao.delete(new Host("server1", "", 666, null, false, false));
 
       ResultSet res = con.createStatement()
@@ -265,7 +344,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testGetAllHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       assertEquals(3, dao.getAll().size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -275,9 +354,8 @@ public abstract class DBAllDAOTest {
   @Test
   public void testSelectHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       Host host = dao.select("server1");
-      Host host2 = dao.select("ghost");
 
       assertEquals("server1", host.getHostid());
       assertEquals("127.0.0.1", host.getAddress());
@@ -290,7 +368,12 @@ public abstract class DBAllDAOTest {
       assertEquals(false, host.isActive());
       assertEquals(UpdatedInfo.TOSUBMIT, host.getUpdatedInfo());
 
-      assertEquals(null, host2);
+      try {
+        dao.select("ghost");
+        fail("Should raised an exception");
+      } catch (DAONoDataException e) {
+        // Ignore since OK
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -299,7 +382,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testExistHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       assertEquals(true, dao.exist("server1"));
       assertEquals(false, dao.exist("ghost"));
     } catch (Exception e) {
@@ -311,7 +394,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testInsertHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       dao.insert(
           new Host("chacha", "address", 666, "aaa".getBytes("utf-8"), false,
                    false));
@@ -343,7 +426,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testUpdateHost() {
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       dao.update(
           new Host("server2", "address", 666, "password".getBytes("utf-8"),
                    false, false));
@@ -373,7 +456,7 @@ public abstract class DBAllDAOTest {
     ArrayList<Filter> map = new ArrayList<Filter>();
     map.add(new Filter(DBHostDAO.ADDRESS_FIELD, "=", "127.0.0.1"));
     try {
-      HostDAO dao = new DBHostDAO(getConnection());
+      HostDAO dao = getDaoFactory().getHostDAO();
       assertEquals(2, dao.find(map).size());
     } catch (Exception e) {
       e.printStackTrace();
@@ -389,7 +472,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteAllLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       dao.deleteAll();
 
       ResultSet res = con.createStatement()
@@ -403,7 +486,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       dao.delete(new Limit("server1", 0l));
 
       ResultSet res = con.createStatement()
@@ -418,7 +501,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testGetAllLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       assertEquals(3, dao.getAll().size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -428,9 +511,8 @@ public abstract class DBAllDAOTest {
   @Test
   public void testSelectLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       Limit limit = dao.select("server1");
-      Limit limit2 = dao.select("ghost");
 
       assertEquals("server1", limit.getHostid());
       assertEquals(1, limit.getReadGlobalLimit());
@@ -439,7 +521,13 @@ public abstract class DBAllDAOTest {
       assertEquals(4, limit.getWriteSessionLimit());
       assertEquals(5, limit.getDelayLimit());
       assertEquals(UpdatedInfo.NOTUPDATED, limit.getUpdatedInfo());
-      assertEquals(null, limit2);
+
+      try {
+        dao.select("ghost");
+        fail("Should raised an exception");
+      } catch (DAONoDataException e) {
+        // Ignore since OK
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -448,7 +536,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testExistLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       assertEquals(true, dao.exist("server1"));
       assertEquals(false, dao.exist("ghost"));
     } catch (Exception e) {
@@ -460,7 +548,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testInsertLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       dao.insert(new Limit("chacha", 4l,
                            1l, 5l, 13l, 12,
                            UpdatedInfo.TOSUBMIT));
@@ -490,7 +578,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testUpdateLimit() {
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       dao.update(new Limit("server2", 4l,
                            1l, 5l, 13l, 12l,
                            UpdatedInfo.RUNNING));
@@ -517,7 +605,7 @@ public abstract class DBAllDAOTest {
     ArrayList<Filter> map = new ArrayList<Filter>();
     map.add(new Filter(DBLimitDAO.READ_SESSION_LIMIT_FIELD, ">", 2));
     try {
-      LimitDAO dao = new DBLimitDAO(getConnection());
+      LimitDAO dao = getDaoFactory().getLimitDAO();
       assertEquals(2, dao.find(map).size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -533,7 +621,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteAllMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       dao.deleteAll();
 
       ResultSet res = con.createStatement()
@@ -547,7 +639,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       dao.delete(new MultipleMonitor("server1", 0, 0, 0));
 
       ResultSet res = con.createStatement()
@@ -562,7 +658,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testGetAllMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       assertEquals(4, dao.getAll().size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -572,15 +672,23 @@ public abstract class DBAllDAOTest {
   @Test
   public void testSelectMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       MultipleMonitor multiple = dao.select("server1");
-      MultipleMonitor multiple2 = dao.select("ghost");
 
       assertEquals("server1", multiple.getHostid());
       assertEquals(11, multiple.getCountConfig());
       assertEquals(29, multiple.getCountRule());
       assertEquals(18, multiple.getCountHost());
-      assertEquals(null, multiple2);
+      try {
+        dao.select("ghost");
+        fail("Should raised an exception");
+      } catch (DAONoDataException e) {
+        // Ignore since OK
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -589,7 +697,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testExistMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       assertEquals(true, dao.exist("server1"));
       assertEquals(false, dao.exist("ghost"));
     } catch (Exception e) {
@@ -601,7 +713,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testInsertMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       dao.insert(new MultipleMonitor("chacha", 31, 19, 98));
 
       ResultSet res = con.createStatement()
@@ -626,7 +742,11 @@ public abstract class DBAllDAOTest {
   @Test
   public void testUpdateMultipleMonitor() {
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       dao.update(new MultipleMonitor("server2", 31, 19, 98));
 
       ResultSet res = con.createStatement()
@@ -648,7 +768,11 @@ public abstract class DBAllDAOTest {
     ArrayList<Filter> map = new ArrayList<Filter>();
     map.add(new Filter(DBMultipleMonitorDAO.COUNT_CONFIG_FIELD, "=", 0));
     try {
-      MultipleMonitorDAO dao = new DBMultipleMonitorDAO(getConnection());
+      MultipleMonitorDAO dao = getDaoFactory().getMultipleMonitorDAO();
+      if (dao == null) {
+        // ignore since XML
+        return;
+      }
       assertEquals(2, dao.find(map).size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -664,7 +788,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteAllRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       dao.deleteAll();
 
       ResultSet res = con.createStatement()
@@ -678,7 +802,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testDeleteRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       dao.delete(new Rule("default", 1));
 
       ResultSet res = con.createStatement()
@@ -693,7 +817,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testGetAllRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       assertEquals(3, dao.getAll().size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -703,9 +827,8 @@ public abstract class DBAllDAOTest {
   @Test
   public void testSelectRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       Rule rule = dao.select("dummy");
-      Rule rule2 = dao.select("ghost");
 
       assertEquals("dummy", rule.getName());
       assertEquals(1, rule.getMode());
@@ -721,7 +844,12 @@ public abstract class DBAllDAOTest {
       assertEquals(0, rule.getSPostTasks().size());
       assertEquals(0, rule.getSErrorTasks().size());
       assertEquals(UpdatedInfo.UNKNOWN, rule.getUpdatedInfo());
-      assertEquals(null, rule2);
+      try {
+        dao.select("ghost");
+        fail("Should raised an exception");
+      } catch (DAONoDataException e) {
+        // Ignore since OK
+      }
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -730,7 +858,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testExistRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       assertEquals(true, dao.exist("dummy"));
       assertEquals(false, dao.exist("ghost"));
     } catch (Exception e) {
@@ -742,7 +870,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testInsertRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       dao.insert(new Rule("chacha", 2));
 
       ResultSet res = con.createStatement()
@@ -780,7 +908,7 @@ public abstract class DBAllDAOTest {
   @Test
   public void testUpdateRule() {
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       dao.update(new Rule("dummy", 2));
 
       ResultSet res = con.createStatement()
@@ -816,7 +944,7 @@ public abstract class DBAllDAOTest {
     ArrayList<Filter> map = new ArrayList<Filter>();
     map.add(new Filter(DBRuleDAO.MODE_TRANS_FIELD, "=", 1));
     try {
-      RuleDAO dao = new DBRuleDAO(getConnection());
+      RuleDAO dao = getDaoFactory().getRuleDAO();
       assertEquals(2, dao.find(map).size());
     } catch (Exception e) {
       fail(e.getMessage());
@@ -838,7 +966,8 @@ public abstract class DBAllDAOTest {
     assertEquals(false, res.next());
   }
 
-  public abstract TransferDAO getDAO(Connection con) throws DAOException;
+  public abstract TransferDAO getDAO(Connection con) throws
+                                                     DAOConnectionException;
 
   @Test
   public void testDeleteTransfer() throws Exception {
@@ -866,10 +995,14 @@ public abstract class DBAllDAOTest {
   public void testSelectTransfer() throws Exception {
     TransferDAO dao = getDAO(getConnection());
     Transfer transfer = dao.select(0l, "server1", "server2", "server1");
-    Transfer transfer2 = dao.select(1l, "server1", "server2", "server1");
 
     assertEquals(0, transfer.getId());
-    assertEquals(null, transfer2);
+    try {
+      dao.select(1l, "server1", "server2", "server1");
+      fail("Should raised an exception");
+    } catch (DAONoDataException e) {
+      // Ignore since OK
+    }
   }
 
   @Test

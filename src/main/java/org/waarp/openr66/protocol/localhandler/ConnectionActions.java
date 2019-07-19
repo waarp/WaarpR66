@@ -369,7 +369,8 @@ public abstract class ConnectionActions {
             session.newState(AUTHENTR);
         }
 
-        System.err.println(localChannelReference == null);
+        logger.debug("LocalChannelReference null? {}",
+                     localChannelReference == null);
         if (localChannelReference.getDbSession() != null) {
             localChannelReference.getDbSession().useConnection();
         }
