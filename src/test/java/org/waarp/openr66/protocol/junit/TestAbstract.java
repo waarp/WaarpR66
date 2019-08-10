@@ -60,7 +60,7 @@ public abstract class TestAbstract extends TestAbstractMinimal {
 
   protected static NetworkTransaction networkTransaction = null;
   private static Project project;
-  private static File homeDir;
+  static File homeDir;
 
   public static void setUpDbBeforeClass() throws Exception {
     deleteBase();

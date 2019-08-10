@@ -29,17 +29,20 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.tools.ant.Project;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.utility.Processes;
 import org.waarp.openr66.client.Message;
 import org.waarp.openr66.client.MultipleDirectTransfer;
 import org.waarp.openr66.client.MultipleSubmitTransfer;
@@ -50,6 +53,7 @@ import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.context.task.test.TestExecJavaTask;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
@@ -83,10 +87,12 @@ import org.waarp.openr66.protocol.test.TestProgressBarTransfer;
 import org.waarp.openr66.protocol.test.TestRecvThroughClient;
 import org.waarp.openr66.protocol.test.TestRecvThroughClient.TestRecvThroughHandler;
 import org.waarp.openr66.protocol.test.TestSendThroughClient;
+import org.waarp.openr66.protocol.test.TestTasks;
 import org.waarp.openr66.protocol.test.TestTransaction;
 import org.waarp.openr66.protocol.test.TestTransferNoDb;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.server.R66Server;
 import org.waarp.thrift.r66.Action;
 import org.waarp.thrift.r66.R66Request;
 import org.waarp.thrift.r66.R66Service;
@@ -1426,5 +1432,43 @@ public class NetworkClientTest extends TestAbstract {
         new File(dir, "certs/test-key.des").getAbsolutePath();
     logger.info("Key filename: {}", HttpTestRestR66Client.keydesfilename);
     HttpTestRestR66Client.main(new String[] { "1" });
+  }
+
+  @Test
+  public void test98_Tasks() throws IOException, OpenR66RunnerErrorException,
+                                  CommandAbstractException {
+    System.err.println("Start Tasks");
+    File totest = new File("/tmp/R66/in/testTask.txt");
+    FileWriter fileWriter = new FileWriter(totest);
+    fileWriter.write("Test content");
+    fileWriter.flush();
+    fileWriter.close();
+    TestTasks.main(new String[] {
+        new File(dir, "config-serverA-minimal.xml").getAbsolutePath(),
+        "/tmp/R66/in",
+        "/tmp/R66/out", totest.getName()
+    });
+    System.err.println("End Tasks");
+  }
+
+  @Test
+  public void test99_SigTermR66() throws InterruptedException {
+    // global ant project settings
+    final Project project = Processes.getProject(homeDir);
+    final String[] argsServer = {
+        new File(dir, "config-serverA-minimal.xml").getAbsolutePath()
+    };
+    int pid = Processes.executeJvm(project, homeDir, R66Server.class,
+                                   argsServer, true);
+    Thread.sleep(1000);
+    logger.warn("PID found is {}", pid);
+    logger.warn("PID is running: {}", Processes.exists(pid));
+    assertTrue("Process should still exists... " + pid, Processes.exists(pid));
+    Processes.kill(pid, true);
+    while (Processes.exists(pid)) {
+      logger.warn("{} still running", pid);
+      Thread.sleep(1000);
+    }
+    Processes.finalizeProject(project);
   }
 }

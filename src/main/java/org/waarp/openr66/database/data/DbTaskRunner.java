@@ -1550,7 +1550,7 @@ public class DbTaskRunner extends AbstractDbData {
         List<Filter> filters = new ArrayList<Filter>(3);
         filters.add(new Filter(DBTransferDAO.UPDATED_INFO_FIELD, "=",
                 org.waarp.openr66.pojo.UpdatedInfo.fromLegacy(info).ordinal()));
-        filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, "=",
+        filters.add(new Filter(DBTransferDAO.TRANSFER_START_FIELD, "<=",
                 new Timestamp(System.currentTimeMillis())));
         filters.add(new Filter(DBTransferDAO.OWNER_REQUEST_FIELD, "=",
                 Configuration.configuration.getHOST_ID()));
