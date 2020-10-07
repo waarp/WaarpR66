@@ -219,7 +219,7 @@ public final class RestServiceInitializer {
         if (restService != null) {
             try {
                 restService.stop();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error("Exception caught during RESTv2 service shutdown", e);
             }
         } else {

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpR66</artifactId>
   <name>Waarp OpenR66</name>
-  <version>3.1.0</version>
+  <version>3.1.1</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -75,7 +75,7 @@
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>3.0.12</version>
+      <version>3.1.1</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
@@ -98,7 +98,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.4.197</version>
+      <version>1.4.199</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -115,13 +115,13 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpExec</artifactId>
-    	<version>3.0.4</version>
+    	<version>3.1.0</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpSnmp</artifactId>
-    	<version>3.0.6</version>
+    	<version>3.1.0</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -137,7 +137,7 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpThrift</artifactId>
-    	<version>3.0.6</version>
+    	<version>3.1.0</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -149,7 +149,7 @@
     <dependency>
     	<groupId>org.postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>42.2.5.jre6</version>
+    	<version>42.2.6.jre6</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -167,12 +167,12 @@
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpGatewayKernel</artifactId>
-        <version>3.0.10</version>
+        <version>3.1.1</version>
     </dependency>
     <dependency>
         <groupId>Waarp</groupId>
         <artifactId>WaarpFtpClient</artifactId>
-        <version>3.0.6</version>
+        <version>3.1.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -230,6 +230,40 @@
         <artifactId>netty-http</artifactId>
           <version>1.2.0</version>
       </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.10.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jnr-posix</artifactId>
+      <version>3.0.50</version>
+      <!-- For Testing purpose but could be used in production too -->
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.10.6</version>
+      <!-- For Testing purpose but could be used in production too -->
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>Waarp</groupId>
+      <artifactId>WaarpCommon</artifactId>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
+      <version>3.1.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -253,7 +287,7 @@
             <source>1.6</source>
             <target>1.6</target>
             <optimize>true</optimize>
-            <showDeprecations>true</showDeprecations>
+            <showDeprecation>true</showDeprecation>
           </configuration>
       </plugin>
       <plugin>

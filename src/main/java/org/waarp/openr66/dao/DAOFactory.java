@@ -1,8 +1,9 @@
 package org.waarp.openr66.dao;
 
 import org.waarp.common.database.ConnectionFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.dao.database.DBDAOFactory;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.dao.xml.XMLDAOFactory;
 
 
@@ -33,48 +34,48 @@ public abstract class DAOFactory {
      * Return a BusinessDAO
      *
      * @return a ready to use BusinessDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
-    public abstract BusinessDAO getBusinessDAO() throws DAOException;
+    public abstract BusinessDAO getBusinessDAO() throws DAOConnectionException;
 
     /**
      * Return a HostDAO
      *
      * @return a ready to use HostDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
-    public abstract HostDAO getHostDAO() throws DAOException;
+    public abstract HostDAO getHostDAO() throws DAOConnectionException;
 
     /**
      * Return a LimitDAO
      *
      * @return a ready to use LimitDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
-    public abstract LimitDAO getLimitDAO() throws DAOException;
+    public abstract LimitDAO getLimitDAO() throws DAOConnectionException;
 
     /**
      * Return a MultipleMonitorDAO
      *
      * @return a ready to use MultipleMonitorDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
     public abstract MultipleMonitorDAO getMultipleMonitorDAO()
-            throws DAOException;
+        throws DAOConnectionException;
 
     /**
      * Return a RuleDAO
      *
      * @return a ready to use RuleDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
-    public abstract RuleDAO getRuleDAO() throws DAOException;
+    public abstract RuleDAO getRuleDAO() throws DAOConnectionException;
 
     /**
      * Return a TransferDAO
      *
      * @return a ready to use TramsferDAO
-     * @throws DAOException if cannot create the DAO
+     * @throws DAOConnectionException if cannot create the DAO
      */
-    public abstract TransferDAO getTransferDAO() throws DAOException;
+    public abstract TransferDAO getTransferDAO() throws DAOConnectionException;
 }

@@ -12,7 +12,8 @@ import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.pojo.UpdatedInfo;
 
@@ -71,34 +72,39 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public void delete(Business business) throws DAOException {
+    public void delete(Business business)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE);
             setParameters(stm, business.getHostid());
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE_ALL);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<Business> getAll() throws DAOException {
+    public List<Business> getAll() throws DAOConnectionException {
         ArrayList<Business> businesses = new ArrayList<Business>();
         PreparedStatement stm = null;
         ResultSet res = null;
@@ -109,7 +115,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
                 businesses.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -118,7 +124,8 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public List<Business> find(List<Filter> filters) throws DAOException {
+    public List<Business> find(List<Filter> filters) throws
+                                                     DAOConnectionException {
         ArrayList<Business> businesses = new ArrayList<Business>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
@@ -148,7 +155,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
                 businesses.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -157,7 +164,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -166,7 +173,7 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -174,7 +181,8 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
     }
 
     @Override
-    public Business select(String hostid) throws DAOException {
+    public Business select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -183,18 +191,19 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
         }
-        return null;
     }
 
     @Override
-    public void insert(Business business) throws DAOException {
+    public void insert(Business business) throws DAOConnectionException {
         Object[] params = {
             business.getHostid(),
             business.getBusiness(),
@@ -210,14 +219,15 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(Business business) throws DAOException {
+    public void update(Business business)
+        throws DAOConnectionException, DAONoDataException {
         Object[] params = {
             business.getHostid(),
             business.getBusiness(),
@@ -232,9 +242,13 @@ public class DBBusinessDAO extends StatementExecutor implements BusinessDAO {
         try {
             stm = connection.prepareStatement(SQL_UPDATE);
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }

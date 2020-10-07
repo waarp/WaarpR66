@@ -17,13 +17,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.UpdatedInfo;
 
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
 
@@ -107,34 +108,39 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public void delete(Rule rule) throws DAOException {
+    public void delete(Rule rule)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE);
             setParameters(stm, rule.getName());
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(SQL_DELETE_ALL);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<Rule> getAll() throws DAOException {
+    public List<Rule> getAll() throws DAOConnectionException {
         ArrayList<Rule> rules = new ArrayList<Rule>();
         PreparedStatement stm = null;
         ResultSet res = null;
@@ -145,7 +151,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
                 rules.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -154,7 +160,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public List<Rule> find(List<Filter> filters) throws DAOException {
+    public List<Rule> find(List<Filter> filters) throws DAOConnectionException {
         ArrayList<Rule> rules = new ArrayList<Rule>();
         // Create the SQL query
         StringBuilder query = new StringBuilder(SQL_GET_ALL);
@@ -184,7 +190,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
                 rules.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -193,7 +199,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public boolean exist(String ruleName) throws DAOException {
+    public boolean exist(String ruleName) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -202,7 +208,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -210,7 +216,8 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
     }
 
     @Override
-    public Rule select(String ruleName) throws DAOException {
+    public Rule select(String ruleName)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         try {
@@ -219,18 +226,19 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
         }
-        return null;
     }
 
     @Override
-    public void insert(Rule rule) throws DAOException {
+    public void insert(Rule rule) throws DAOConnectionException {
         Object[] params = {
             rule.getName(),
             rule.getXMLHostids(),
@@ -254,14 +262,15 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(Rule rule) throws DAOException {
+    public void update(Rule rule)
+        throws DAOConnectionException, DAONoDataException {
         Object[] params = {
             rule.getName(),
             rule.getXMLHostids(),
@@ -284,16 +293,20 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         try {
             stm = connection.prepareStatement(SQL_UPDATE);
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     protected Rule getFromResultSet(ResultSet set) throws SQLException,
-              DAOException {
+                                                          DAOConnectionException {
         return new Rule(
                 set.getString(ID_FIELD),
                 set.getInt(MODE_TRANS_FIELD),
@@ -311,7 +324,8 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
                 UpdatedInfo.valueOf(set.getInt(UPDATED_INFO_FIELD)));
     }
 
-    private List<String> retrieveHostids(String xml) throws DAOException {
+    private List<String> retrieveHostids(String xml) throws
+                                                     DAOConnectionException {
         ArrayList<String> res = new ArrayList<String>();
         if ((xml == null) || xml.equals("")) {
             return res;
@@ -322,7 +336,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             document = DocumentBuilderFactory.newInstance().
             newDocumentBuilder().parse(stream);
         } catch (Exception e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
         document.getDocumentElement().normalize();
 
@@ -333,7 +347,8 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
         return res;
     }
 
-    private List<RuleTask> retrieveTasks(String xml) throws DAOException {
+    private List<RuleTask> retrieveTasks(String xml) throws
+                                                     DAOConnectionException {
         ArrayList<RuleTask> res = new ArrayList<RuleTask>();
         if ((xml == null) || xml.equals("")) {
             return res;
@@ -344,7 +359,7 @@ public class DBRuleDAO extends StatementExecutor implements RuleDAO {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(stream);
         } catch (Exception e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
         document.getDocumentElement().normalize();
 

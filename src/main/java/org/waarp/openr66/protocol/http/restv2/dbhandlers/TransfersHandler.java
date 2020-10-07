@@ -33,7 +33,7 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.http.restv2.converters.TransferConverter;
 import org.waarp.openr66.protocol.http.restv2.errors.RestError;
@@ -200,7 +200,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
             transferDAO = DAO_FACTORY.getTransferDAO();
             transferList = transferDAO.find(filters, order.column, order.ascend,
                     limit, offset);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (transferDAO != null) {
@@ -238,7 +238,7 @@ public class TransfersHandler extends AbstractRestDbHandler {
         try {
             transferDAO = DAO_FACTORY.getTransferDAO();
             transferDAO.insert(transfer);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (transferDAO != null) {

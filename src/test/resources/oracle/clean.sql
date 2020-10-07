@@ -1,3 +1,4 @@
+DROP SEQUENCE runseq;
 DROP TABLE configuration PURGE;
 DROP TABLE hostconfig PURGE;
 DROP TABLE hosts PURGE;

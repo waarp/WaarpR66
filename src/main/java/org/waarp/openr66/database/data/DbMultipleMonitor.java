@@ -1,17 +1,17 @@
 /**
  * This file is part of Waarp Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -26,18 +26,20 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.DbValue;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.MultipleMonitorDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.MultipleMonitor;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Configuration Table object
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class DbMultipleMonitor extends AbstractDbData {
     public static enum Columns {
@@ -55,12 +57,6 @@ public class DbMultipleMonitor extends AbstractDbData {
     };
 
     public static final String table = " MULTIPLEMONITOR ";
-
-    /**
-     * HashTable in case of lack of database
-     */
-    private static final ConcurrentHashMap<String, DbMultipleMonitor> dbR66MMHashMap =
-            new ConcurrentHashMap<String, DbMultipleMonitor>();
 
     private MultipleMonitor multipleMonitor;
 
@@ -82,16 +78,13 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
-        primaryKey = new DbValue[] { new DbValue(multipleMonitor.getHostid(),
-                Columns.HOSTID.name()) };
+        primaryKey = new DbValue[] { new DbValue("", Columns.HOSTID.name()) };
         otherFields = new DbValue[] {
-                new DbValue(getCountConfig(), Columns.COUNTCONFIG.name()),
-                new DbValue(getCountHost(), Columns.COUNTHOST.name()),
-                new DbValue(getCountRule(), Columns.COUNTRULE.name()) };
+                new DbValue(0, Columns.COUNTCONFIG.name()),
+                new DbValue(0, Columns.COUNTHOST.name()),
+                new DbValue(0, Columns.COUNTRULE.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], primaryKey[0] };
-         */
     }
 
     @Override
@@ -141,7 +134,6 @@ public class DbMultipleMonitor extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @param cc
      *            count for Config
@@ -156,7 +148,6 @@ public class DbMultipleMonitor extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param hostid
      * @throws WaarpDatabaseException
      */
@@ -166,8 +157,12 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             multipleMonitor = monitorAccess.select(hostid);
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "MultipleMonitor", e);
         } finally {
             if (monitorAccess != null) {
                 monitorAccess.close();
@@ -181,8 +176,11 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             monitorAccess.delete(multipleMonitor);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "MultipleMonitor", e);
         } finally {
             if (monitorAccess != null) {
                 monitorAccess.close();
@@ -196,7 +194,7 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             monitorAccess.insert(multipleMonitor);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (monitorAccess != null) {
@@ -211,7 +209,7 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             return monitorAccess.exist(multipleMonitor.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (monitorAccess != null) {
@@ -226,8 +224,11 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             multipleMonitor = monitorAccess.select(multipleMonitor.getHostid());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "MultipleMonitor", e);
         } finally {
             if (monitorAccess != null) {
                 monitorAccess.close();
@@ -241,8 +242,11 @@ public class DbMultipleMonitor extends AbstractDbData {
         try {
             monitorAccess = DAOFactory.getInstance().getMultipleMonitorDAO();
             monitorAccess.update(multipleMonitor);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Cannot find " +
+                                                   "MultipleMonitor", e);
         } finally {
             if (monitorAccess != null) {
                 monitorAccess.close();
@@ -260,7 +264,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     /**
      * For instance from Commander when getting updated information
-     * 
+     *
      * @param preparedStatement
      * @return the next updated Configuration
      * @throws WaarpDatabaseNoConnectionException
@@ -270,13 +274,13 @@ public class DbMultipleMonitor extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbMultipleMonitor dbMm = new DbMultipleMonitor();
         dbMm.getValues(preparedStatement, dbMm.allFields);
-        dbMm.setFromArray();
+        dbMm.setToArray();
         dbMm.isSaved = true;
         return dbMm;
     }
 
     /**
-     * 
+     *
      * @return the DbPreparedStatement for getting Updated Object in "FOR UPDATE" mode
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -302,7 +306,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     /**
      * On Commander side
-     * 
+     *
      * @return True if this is the last update
      */
     public boolean checkUpdateConfig() {
@@ -319,7 +323,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     /**
      * On Commander side
-     * 
+     *
      * @return True if this is the last update
      */
     public boolean checkUpdateHost() {
@@ -336,7 +340,7 @@ public class DbMultipleMonitor extends AbstractDbData {
 
     /**
      * On Commander side
-     * 
+     *
      * @return True if this is the last update
      */
     public boolean checkUpdateRule() {

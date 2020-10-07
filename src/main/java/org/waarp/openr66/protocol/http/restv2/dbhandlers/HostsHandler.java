@@ -32,7 +32,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.pojo.Host;
 import org.waarp.openr66.protocol.http.restv2.RestConstants;
 import org.waarp.openr66.protocol.http.restv2.converters.HostConverter;
@@ -193,7 +193,7 @@ public class HostsHandler extends AbstractRestDbHandler {
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
             hosts = hostDAO.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (hostDAO != null) {
@@ -241,7 +241,7 @@ public class HostsHandler extends AbstractRestDbHandler {
             }
 
             hostDAO.insert(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (hostDAO != null) {

@@ -20,6 +20,7 @@ package org.waarp.openr66.client;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.commander.ClientRunner;
@@ -139,6 +140,9 @@ public class DirectTransfer extends AbstractTransfer {
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(2);
         }
@@ -191,6 +195,9 @@ public class DirectTransfer extends AbstractTransfer {
                                 e);
                     }
                 }
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 networkTransaction.closeAll();
                 System.exit(0);
             } else {
@@ -202,6 +209,9 @@ public class DirectTransfer extends AbstractTransfer {
                     outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
                     if (!OutputFormat.isQuiet()) {
                         outputFormat.sysout();
+                    }
+                    if (DetectionUtils.isJunit()) {
+                        return;
                     }
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
@@ -226,6 +236,9 @@ public class DirectTransfer extends AbstractTransfer {
                 if (!OutputFormat.isQuiet()) {
                     outputFormat.sysout();
                 }
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 networkTransaction.closeAll();
                 System.exit(result.getCode().ordinal());
             }
@@ -233,6 +246,9 @@ public class DirectTransfer extends AbstractTransfer {
             logger.error("Exception", e);
         } finally {
             logger.debug("finish transfer: " + future.isDone() + ":" + future.isSuccess());
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             networkTransaction.closeAll();
             // In case something wrong append
             if (future.isDone() && future.isSuccess()) {

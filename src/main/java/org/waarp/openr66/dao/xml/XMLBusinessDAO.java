@@ -1,15 +1,16 @@
 package org.waarp.openr66.dao.xml;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.BusinessDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
+import org.waarp.openr66.pojo.Host;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -17,15 +18,22 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 //TODO
 public class XMLBusinessDAO implements BusinessDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(XMLBusinessDAO.class);
+
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, Business>
+        dbR66BusinessHashMap =
+        new ConcurrentHashMap<String, Business>();
 
     public static final String HOSTID_FIELD = "hostid";
 
@@ -34,23 +42,23 @@ public class XMLBusinessDAO implements BusinessDAO {
 
     private File file;
 
-    public XMLBusinessDAO(String filePath) throws DAOException {
+    public XMLBusinessDAO(String filePath) throws DAOConnectionException {
         this.file = new File(filePath);
     }
 
     public void close() {}
 
-    public void delete(Business business) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void delete(Business business) throws DAOConnectionException {
+        dbR66BusinessHashMap.remove(business.getHostid());
     }
 
-    public void deleteAll() throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void deleteAll() throws DAOConnectionException {
+        dbR66BusinessHashMap.clear();
     }
 
-    public List<Business> getAll() throws DAOException {
+    public List<Business> getAll() throws DAOConnectionException {
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -64,23 +72,28 @@ public class XMLBusinessDAO implements BusinessDAO {
             List<Business> res = new ArrayList<Business>(listNode.getLength());
             for (int i = 0; i < listNode.getLength(); i++) {
                 Node node = listNode.item(i);
-                res.add(getFromNode(node));
+                Business business = getFromNode(node);
+                res.add(business);
+                dbR66BusinessHashMap.put(business.getHostid(), business);
             }
             return res;
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
+        if (dbR66BusinessHashMap.containsKey(hostid)) {
+            return true;
+        }
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -95,27 +108,33 @@ public class XMLBusinessDAO implements BusinessDAO {
             // Query will return "" if nothing is found
             return(!"".equals(xpe.evaluate(document)));
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public List<Business> find(List<Filter> fitlers) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Business> find(List<Filter> fitlers) throws
+                                                     DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
-    public void insert(Business business) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void insert(Business business) throws DAOConnectionException {
+        dbR66BusinessHashMap.put(business.getHostid(), business);
     }
 
-    public Business select(String hostid) throws DAOException {
+    public Business select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
+        Business business = dbR66BusinessHashMap.get(hostid);
+        if (business != null) {
+            return business;
+        }
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -130,22 +149,24 @@ public class XMLBusinessDAO implements BusinessDAO {
             // Retrieve node and instantiate object
             Node node = (Node) xpe.evaluate(document, XPathConstants.NODE);
             if (node != null) {
-                return getFromNode(node);
+                business = getFromNode(node);
+                dbR66BusinessHashMap.put(business.getHostid(), business);
+                return business;
             }
-            return null;
+            throw new DAONoDataException("Business not found");
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public void update(Business business) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void update(Business business) throws DAOConnectionException {
+        dbR66BusinessHashMap.put(business.getHostid(), business);
     }
 
     private Business getFromNode(Node parent) {

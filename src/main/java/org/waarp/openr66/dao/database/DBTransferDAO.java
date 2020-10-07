@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -12,13 +11,13 @@ import java.util.List;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.Filter;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.pojo.UpdatedInfo;
-import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
  * Implementation of TransferDAO for a standard SQL database
@@ -159,7 +158,8 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
     }
 
     @Override
-    public void delete(Transfer transfer) throws DAOException {
+    public void delete(Transfer transfer)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         Object[] params = {
                 transfer.getId(),
@@ -170,29 +170,33 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
         try {
             stm = connection.prepareStatement(getDeleteRequest());
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void deleteAll() throws DAOException {
+    public void deleteAll() throws DAOConnectionException {
         PreparedStatement stm = null;
         try {
             stm = connection.prepareStatement(getDeleteAllRequest());
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public List<Transfer> getAll() throws DAOException {
+    public List<Transfer> getAll() throws DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         PreparedStatement stm = null;
         ResultSet res = null;
@@ -203,7 +207,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -231,7 +235,8 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters) throws DAOException {
+    public List<Transfer> find(List<Filter> filters) throws
+                                                     DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -247,7 +252,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -256,7 +261,8 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, int limit) throws DAOException {
+    public List<Transfer> find(List<Filter> filters, int limit) throws
+                                                                DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -277,7 +283,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -287,7 +293,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
     @Override
     public List<Transfer> find(List<Filter> filters, int limit, int offset)
-            throws DAOException {
+        throws DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -312,7 +318,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -322,7 +328,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
     @Override
     public List<Transfer> find(List<Filter> filters, String column,
-                               boolean ascend) throws DAOException {
+                               boolean ascend) throws DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -347,7 +353,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -357,7 +363,8 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
     @Override
     public List<Transfer> find(List<Filter> filters, String column,
-                               boolean ascend, int limit) throws DAOException {
+                               boolean ascend, int limit) throws
+                                                          DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -385,7 +392,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -396,7 +403,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
     @Override
     public List<Transfer> find(List<Filter> filters, String column,
                                boolean ascend, int limit, int offset)
-            throws DAOException {
+        throws DAOConnectionException {
         ArrayList<Transfer> transfers = new ArrayList<Transfer>();
         // Create the SQL query
         Object[] params = new Object[filters.size()];
@@ -426,7 +433,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
                 transfers.add(getFromResultSet(res));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -436,7 +443,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
     @Override
     public boolean exist(long id, String requester, String requested,
-                         String owner) throws DAOException {
+                         String owner) throws DAOConnectionException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
@@ -451,7 +458,7 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
             res = executeQuery(stm);
             return res.next();
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
@@ -460,7 +467,8 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
 
     @Override
     public Transfer select(long id, String requester, String requested,
-                           String owner) throws DAOException {
+                           String owner)
+        throws DAOConnectionException, DAONoDataException {
         PreparedStatement stm = null;
         ResultSet res = null;
         Object[] params = {
@@ -475,20 +483,21 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
             res = executeQuery(stm);
             if (res.next()) {
                 return getFromResultSet(res);
+            } else {
+                throw new DAONoDataException(("No " + getClass().getName() + " found"));
             }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeResultSet(res);
             closeStatement(stm);
         }
-        return null;
     }
 
-    abstract protected long getNextId() throws DAOException;
+    abstract protected long getNextId() throws DAOConnectionException;
 
     @Override
-    public void insert(Transfer transfer) throws DAOException {
+    public void insert(Transfer transfer) throws DAOConnectionException {
         if (transfer.getId() == DbConstant.ILLEGALVALUE) {
             transfer.setId(getNextId());
         }
@@ -524,14 +533,15 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
             setParameters(stm, params);
             executeUpdate(stm);
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }
     }
 
     @Override
-    public void update(Transfer transfer) throws DAOException {
+    public void update(Transfer transfer)
+        throws DAOConnectionException, DAONoDataException {
         Object[] params = {
                 transfer.getId(),
                 transfer.getGlobalStep().ordinal(),
@@ -565,9 +575,13 @@ public abstract class DBTransferDAO extends StatementExecutor implements Transfe
         try {
             stm = connection.prepareStatement(getUpdateRequest());
             setParameters(stm, params);
-            executeUpdate(stm);
+            try {
+                executeUpdate(stm);
+            } catch (SQLException e2) {
+                throw new DAONoDataException(e2);
+            }
         } catch (SQLException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             closeStatement(stm);
         }

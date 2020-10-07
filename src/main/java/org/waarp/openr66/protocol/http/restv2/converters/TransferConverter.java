@@ -27,7 +27,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.waarp.openr66.dao.HostDAO;
 import org.waarp.openr66.dao.RuleDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.pojo.UpdatedInfo;
@@ -156,7 +157,9 @@ public final class TransferConverter {
             ruleDAO = DAO_FACTORY.getRuleDAO();
             Rule rule = ruleDAO.select(transfer.getRule());
             mode = ModeTrans.fromCode(rule.getMode());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
+            throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (ruleDAO != null) {
@@ -187,7 +190,7 @@ public final class TransferConverter {
         try {
             ruleDAO = DAO_FACTORY.getRuleDAO();
             return ruleDAO.exist(rule);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (ruleDAO != null) {
@@ -207,7 +210,7 @@ public final class TransferConverter {
         try {
             hostDAO = DAO_FACTORY.getHostDAO();
             return hostDAO.exist(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (hostDAO != null) {
@@ -230,7 +233,9 @@ public final class TransferConverter {
             ruleDAO = DAO_FACTORY.getRuleDAO();
             List<String> hostIds = ruleDAO.select(rule).getHostids();
             return !hostIds.isEmpty() && !hostIds.contains(host);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
+            throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (ruleDAO != null) {

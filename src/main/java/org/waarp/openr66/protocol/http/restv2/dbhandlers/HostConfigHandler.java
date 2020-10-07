@@ -28,7 +28,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import org.waarp.openr66.dao.BusinessDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.converters.HostConfigConverter;
 import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
@@ -107,8 +108,10 @@ public class HostConfigHandler extends AbstractRestDbHandler {
             } else {
                 responder.sendStatus(NOT_FOUND);
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (businessDAO != null) {
                 businessDAO.close();
@@ -143,7 +146,7 @@ public class HostConfigHandler extends AbstractRestDbHandler {
             } else {
                 throw new RestErrorException(ALREADY_EXISTING(SERVER_NAME));
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (businessDAO != null) {
@@ -180,8 +183,10 @@ public class HostConfigHandler extends AbstractRestDbHandler {
             ObjectNode responseObject = HostConfigConverter.businessToNode(newConfig);
             String responseText = JsonUtils.nodeToString(responseObject);
             responder.sendJson(CREATED, responseText);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (businessDAO != null) {
                 businessDAO.close();
@@ -209,8 +214,10 @@ public class HostConfigHandler extends AbstractRestDbHandler {
             } else {
                 responder.sendStatus(NOT_FOUND);
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
+            responder.sendStatus(NOT_FOUND);
         } finally {
             if (businessDAO != null) {
                 businessDAO.close();

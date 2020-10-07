@@ -7,15 +7,15 @@ import org.w3c.dom.NodeList;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.configuration.ExtensionFilter;
-import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
+import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.xml.sax.SAXException;
-import sun.security.krb5.Config;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,10 +25,17 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class XMLRuleDAO implements RuleDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(XMLRuleDAO.class);
+
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, Rule> dbR66RuleHashMap =
+        new ConcurrentHashMap<String, Rule>();
 
     public static final String ROOT_LIST = "rules";
     public static final String ROOT_ELEMENT = "rule";
@@ -74,15 +81,15 @@ public class XMLRuleDAO implements RuleDAO {
         return res.toArray(new File[0]);
     }
 
-    public void delete(Rule rule) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void delete(Rule rule) throws DAOConnectionException {
+        dbR66RuleHashMap.remove(rule.getName());
     }
 
-    public void deleteAll() throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void deleteAll() throws DAOConnectionException {
+        dbR66RuleHashMap.clear();
     }
 
-    public List<Rule> getAll() throws DAOException {
+    public List<Rule> getAll() throws DAOConnectionException {
         List<Rule> res = new ArrayList<Rule>();
 
         File[] files = getRuleFiles();
@@ -99,96 +106,48 @@ public class XMLRuleDAO implements RuleDAO {
 
                 for (int i = 0; i < listNode.getLength(); i++) {
                     Node node = listNode.item(i);
-                    res.add(getFromNode(node));
+                    Rule rule = getFromNode(node);
+                    res.add(rule);
+                    dbR66RuleHashMap.put(rule.getName(), rule);
                 }
             } catch (SAXException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (XPathExpressionException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (ParserConfigurationException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (IOException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             }
         }
         return res;
     }
 
-    public boolean exist(String rulename) throws DAOException {
-        File[] files = getRuleFiles();
-        for (File ruleFile : files) {
-            try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                Document document = dbf.newDocumentBuilder().parse(ruleFile);
-                // Setup XPath variable
-                SimpleVariableResolver resolver = new SimpleVariableResolver();
-                resolver.addVariable(new QName(null, "idrule"), rulename);
-                // Setup XPath query
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                xPath.setXPathVariableResolver(resolver);
-                XPathExpression xpe = xPath.compile(XML_SELECT);
-                // Query will return "" if nothing is found
-                if (!"".equals(xpe.evaluate(document))) {
-                    return true;
-                }
-            } catch (SAXException e) {
-                throw new DAOException(e);
-            } catch (XPathExpressionException e) {
-                throw new DAOException(e);
-            } catch (ParserConfigurationException e) {
-                throw new DAOException(e);
-            } catch (IOException e) {
-                throw new DAOException(e);
-            }
+    public boolean exist(String rulename) throws DAOConnectionException {
+        return dbR66RuleHashMap.containsKey(rulename);
+    }
+
+    public List<Rule> find(List<Filter> fitlers) throws DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
+    }
+
+    public void insert(Rule rule) throws DAOConnectionException {
+        dbR66RuleHashMap.put(rule.getName(), rule);
+    }
+
+    public Rule select(String rulename)
+        throws DAOConnectionException, DAONoDataException {
+        if (exist(rulename)) {
+            return dbR66RuleHashMap.get(rulename);
         }
-        return false;
+        throw new DAONoDataException("Rule cannot be found");
     }
 
-    public List<Rule> find(List<Filter> fitlers) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void update(Rule rule) throws DAOConnectionException {
+        dbR66RuleHashMap.put(rule.getName(), rule);
     }
 
-    public void insert(Rule rule) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
-    }
-
-    public Rule select(String rulename) throws DAOException {
-        File[] files = getRuleFiles();
-        for (File ruleFile : files) {
-            try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                Document document = dbf.newDocumentBuilder().parse(ruleFile);
-                // Setup XPath variable
-                SimpleVariableResolver resolver = new SimpleVariableResolver();
-                resolver.addVariable(new QName(null, "idrule"), rulename);
-                // Setup XPath query
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                xPath.setXPathVariableResolver(resolver);
-                XPathExpression xpe = xPath.compile(XML_SELECT);
-                // Retrieve node and instantiate object
-                Node node = (Node) xpe.evaluate(document, XPathConstants.NODE);
-                if (node != null) {
-                    return getFromNode(node);
-                }
-                return null;
-            } catch (SAXException e) {
-                throw new DAOException(e);
-            } catch (XPathExpressionException e) {
-                throw new DAOException(e);
-            } catch (ParserConfigurationException e) {
-                throw new DAOException(e);
-            } catch (IOException e) {
-                throw new DAOException(e);
-            }
-        }
-        return null;
-    }
-
-    public void update(Rule rule) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
-    }
-
-    private Rule getFromNode(Node parent) throws DAOException {
+    private Rule getFromNode(Node parent) throws DAOConnectionException {
         Rule res = new Rule();
 
         NodeList children = parent.getChildNodes();
@@ -259,7 +218,8 @@ public class XMLRuleDAO implements RuleDAO {
 
     public static final String HOSTID_FIELD = "hostid";
 
-    private List<String> retrieveHostids(String xml) throws DAOException {
+    private List<String> retrieveHostids(String xml) throws
+                                                     DAOConnectionException {
         ArrayList<String> res = new ArrayList<String>();
         if ((xml == null) || xml.equals("")) {
             return res;
@@ -271,11 +231,11 @@ public class XMLRuleDAO implements RuleDAO {
             document = DocumentBuilderFactory.newInstance().
                     newDocumentBuilder().parse(stream);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } finally {
             if (stream != null) {
                 try {
@@ -299,7 +259,8 @@ public class XMLRuleDAO implements RuleDAO {
     public static final String PATH_FIELD = "path";
     public static final String DELAY_FIELD = "delay";
 
-    private List<RuleTask> retrieveTasks(Node src) throws DAOException {
+    private List<RuleTask> retrieveTasks(Node src) throws
+                                                   DAOConnectionException {
         List<RuleTask> res = new ArrayList<RuleTask>();
         NodeList feed = src.getChildNodes();
         for (int i = 0; i < feed.getLength(); i++) {

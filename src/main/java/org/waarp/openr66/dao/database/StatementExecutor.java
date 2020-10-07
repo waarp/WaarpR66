@@ -26,7 +26,7 @@ abstract class StatementExecutor {
         if (res < 1) {
             logger.warn("Update failed, no record updated.");
         } else {
-            logger.info(res + " records updated.");
+            logger.debug(res + " records updated.");
         }
     }
 

@@ -6,22 +6,23 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
+import org.waarp.common.lru.SynchronizedLruCache;
 import org.waarp.common.utility.LongUuid;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.pojo.Transfer;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -60,6 +61,65 @@ public class XMLTransferDAO implements TransferDAO {
             "requested='$requested' and ownerreq='ownerreq']";
     private static final String XML_GET_ALL= "runner";
 
+
+    /**
+     * HashTable in case of lack of database using LRU mode with
+     * 20 000 items maximum (< 200 MB?) for 180s
+     */
+    private static SynchronizedLruCache<Long, Transfer> dbR66TaskHashMap;
+
+    /**
+     * Create the LRU cache
+     *
+     * @param limit
+     *            limit of number of entries in the cache
+     * @param ttl
+     *            time to leave used
+     */
+    public static void createLruCache(int limit, long ttl) {
+        dbR66TaskHashMap = new SynchronizedLruCache<Long, Transfer>(limit, ttl);
+    }
+
+    public static String hashStatus() {
+        return "DbTaskRunner: [dbR66TaskHashMap: " + dbR66TaskHashMap.size() + "] ";
+    }
+
+    /**
+     * To enable clear of oldest entries in the cache
+     *
+     * @return the number of elements removed
+     */
+    public static int clearCache() {
+        return dbR66TaskHashMap.forceClearOldest();
+    }
+
+    /**
+     * To update the TTL for the cache (to 10xTIMEOUT)
+     *
+     * @param ttl
+     */
+    public static void updateLruCacheTimeout(long ttl) {
+        dbR66TaskHashMap.setNewTtl(ttl);
+    }
+
+    /**
+     * To allow to remove specifically one SpecialId from MemoryHashmap
+     *
+     * @param specialId
+     */
+    public static final void removeNoDbSpecialId(long specialId) {
+        dbR66TaskHashMap.remove(specialId);
+    }
+
+    /**
+     * To update the usage TTL of the associated object
+     *
+     * @param specialId
+     */
+    public static final void updateUsed(long specialId) {
+        dbR66TaskHashMap.updateTtl(specialId);
+    }
+
     private File file;
 
     public XMLTransferDAO(String filePath) {
@@ -78,15 +138,16 @@ public class XMLTransferDAO implements TransferDAO {
                 + id + XMLEXTENSION);
     }
 
-    public void delete(Transfer transfer) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void delete(Transfer transfer) throws DAOConnectionException {
+        removeNoDbSpecialId(transfer.getId());
     }
 
-    public void deleteAll() throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void deleteAll() throws DAOConnectionException {
+        dbR66TaskHashMap.clear();
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
-    public List<Transfer> getAll() throws DAOException {
+    public List<Transfer> getAll() throws DAOConnectionException {
         File arch = new File(Configuration.configuration.getArchivePath());
         File[] runnerFiles = arch.listFiles();
         List<Transfer> res = new ArrayList<Transfer>();
@@ -102,64 +163,75 @@ public class XMLTransferDAO implements TransferDAO {
                 // Iterate through all found nodes
                 for (int i = 0; i < listNode.getLength(); i++) {
                     Node node = listNode.item(i);
-                    res.add(getFromNode(node));
+                    Transfer transfer = getFromNode(node);
+                    res.add(transfer);
+                    dbR66TaskHashMap.put(transfer.getId(), transfer);
                 }
             } catch (SAXException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (XPathExpressionException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (ParserConfigurationException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             } catch (IOException e) {
-                throw new DAOException(e);
+                throw new DAOConnectionException(e);
             }
         }
         return res;
     }
 
     public boolean exist(long id, String requester, String requested,
-                         String owner) throws DAOException {
+                         String owner) throws DAOConnectionException {
+        if (dbR66TaskHashMap.contains(id)) {
+            return true;
+        }
         file = getFile(requester, requested, id);
         return file.exists();
     }
 
-    public List<Transfer> find(List<Filter> fitlers) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> fitlers) throws
+                                                     DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, int limit) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> filters, int limit) throws
+                                                                DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, int limit, int offset) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> filters, int limit, int offset) throws
+                                                                            DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, String column, boolean ascend) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> filters, String column, boolean ascend) throws
+                                                                                    DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, String column, boolean ascend, int limit) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> filters, String column, boolean ascend, int limit) throws
+                                                                                               DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
     @Override
-    public List<Transfer> find(List<Filter> filters, String column, boolean ascend, int limit, int offset) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Transfer> find(List<Filter> filters, String column, boolean ascend, int limit, int offset) throws
+                                                                                                           DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
-    public void insert(Transfer transfer) throws DAOException {
+    public void insert(Transfer transfer) throws DAOConnectionException {
         //Set unique Id
         transfer.setId(new LongUuid().getLong());
-
+        dbR66TaskHashMap.put(transfer.getId(), transfer);
         file = getFile(transfer.getRequester(), transfer.getRequested(),
                 transfer.getId());
         if (file.exists()) {
-            throw new DAOException("File already exist");
+            throw new DAOConnectionException("File already exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -170,15 +242,19 @@ public class XMLTransferDAO implements TransferDAO {
             // Write document in file
             XMLUtils.writeToFile(file, document);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
     public Transfer select(long id, String requester, String requested,
-                       String owner) throws DAOException {
+                       String owner)
+        throws DAOConnectionException, DAONoDataException {
+        if (dbR66TaskHashMap.contains(id)) {
+            return dbR66TaskHashMap.get(id);
+        }
         file = getFile(requester, requested, id);
         if (!file.exists()) {
-            return null;
+            throw new DAONoDataException("Transfer cannot be found");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -198,23 +274,23 @@ public class XMLTransferDAO implements TransferDAO {
             if (node != null) {
                 return getFromNode(node);
             }
-            return null;
+            throw new DAONoDataException("Transfer cannot be found");
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public void update(Transfer transfer) throws DAOException {
+    public void update(Transfer transfer) throws DAOConnectionException {
         file = getFile(transfer.getRequester(), transfer.getRequested(),
                 transfer.getId());
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -241,14 +317,15 @@ public class XMLTransferDAO implements TransferDAO {
             root.appendChild(getNode(document, transfer));
             // Write document in file
             XMLUtils.writeToFile(file, document);
+            dbR66TaskHashMap.put(transfer.getId(), transfer);
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 

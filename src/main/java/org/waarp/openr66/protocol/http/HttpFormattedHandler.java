@@ -45,9 +45,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.traffic.TrafficCounter;
 
 import org.waarp.common.database.DbAdmin;
-import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
-import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.exception.FileTransferException;
@@ -63,7 +61,7 @@ import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.TransferDAO;
 import org.waarp.openr66.dao.database.DBTransferDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
@@ -75,7 +73,6 @@ import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
-import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * Handler for HTTP information support
@@ -520,7 +517,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
             addRunners(transfers, ErrorCode.PostProcessingOk.getMesg(), nb);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -582,7 +579,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb/4);
             addRunners(transfers, TASKSTEP.ERRORTASK.name(), nb/4);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -617,7 +614,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
             addRunners(transfers, "ALL RUNNERS: " + nb, nb);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -650,7 +647,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
             transfers = transferAccess.find(filters,
                     DBTransferDAO.TRANSFER_START_FIELD, false, nb);
             addRunners(transfers, "ALL RUNNERS: " + nb, nb);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -719,7 +716,7 @@ public class HttpFormattedHandler extends SimpleChannelInboundHandler<FullHttpRe
                 responseContent.append("<p>Some Transfers are in ERRORTASK</p><br>");
                 status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
             }
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;

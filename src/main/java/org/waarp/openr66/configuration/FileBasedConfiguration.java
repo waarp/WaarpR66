@@ -1801,6 +1801,7 @@ public class FileBasedConfiguration {
                 }
                 DbConstant.admin = new DbAdmin(); // no database support
                 DbConstant.noCommitAdmin = DbConstant.admin;
+                DAOFactory.initialize();
             } else {
                 String dbdriver = value.getString();
                 value = hashConfig.get(XML_DBSERVER);

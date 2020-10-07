@@ -1,8 +1,8 @@
 package org.waarp.openr66.dao.exception;
 
-import java.lang.Exception;
-import java.lang.Throwable;
-
+/**
+ * Parent Exception of DAO
+ */
 public class DAOException extends Exception {
 
     public DAOException(String message) {

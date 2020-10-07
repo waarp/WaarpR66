@@ -27,6 +27,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
@@ -112,6 +113,9 @@ public class ServerInitDatabase {
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(2);
         }
@@ -121,6 +125,10 @@ public class ServerInitDatabase {
                     Configuration.configuration, args[0], database)) {
                 System.err.format(Messages.getString(
                         "Configuration.NeedCorrectConfig"));
+                System.err.println();
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 ChannelUtils.stopLogger();
                 System.exit(2);
             }
@@ -128,66 +136,95 @@ public class ServerInitDatabase {
                 // Init database
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.Create.Start"));
+                System.out.println();
                 initdb();
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.Create.Done"));
+                System.out.println();
             }
             if (upgradeDb) {
                 // try to upgrade DB schema
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.Upgrade.Start"));
+                System.out.println();
                 // TODO Split check for update and upgrade actions
                 if (!upgradedb()) {
                     System.err.println(Messages.getString(
                             "ServerInitDatabase.SchemaNotUptodate"));
+                    System.err.println();
+                    if (DetectionUtils.isJunit()) {
+                        return;
+                    }
                     System.exit(1);
                 }
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.Upgrade.Done"));
+                System.out.println();
             }
             if (sdirconfig != null) {
                 // load Rules
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadRule.Start"), sdirconfig);
+                System.out.println();
                 File dirConfig = new File(sdirconfig);
                 if (dirConfig.isDirectory()) {
                     if (!loadRules(dirConfig)) {
                         System.out.format(Messages.getString(
                                 "ServerInitDatabase.LoadRule.Failed"));
+                        if (DetectionUtils.isJunit()) {
+                            return;
+                        }
                         System.exit(1);
                     }
                 } else {
                     System.err.format(Messages.getString(
                             "ServerInitDatabase.LoadRule.NoDirectory"), sdirconfig);
+                    System.err.println();
+                    if (DetectionUtils.isJunit()) {
+                        return;
+                    }
                     System.exit(1);
                 }
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadRule.Done"));
+                System.out.println();
             }
             if (shostauth != null) {
                 // Load Host Authentications
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadAuth.Start"), shostauth);
+                System.out.println();
                 if (!loadHostAuth(shostauth)) {
                     System.err.format(Messages.getString(
                             "ServerInitDatabase.LoadAuth.Failed"));
+                    System.err.println();
+                    if (DetectionUtils.isJunit()) {
+                        return;
+                    }
                     System.exit(1);
                 }
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadAuth.Done"));
+                System.out.println();
             }
             if (slimitconfig != null) {
                 // Load configuration
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadLimit.Start"), slimitconfig);
+                System.out.println();
                 if (!FileBasedConfiguration.setConfigurationLoadLimitFromXml(
                         Configuration.configuration, slimitconfig)) {
                     System.err.format(Messages.getString(
                             "ServerInitDatabase.LoadLimit.Failed"));
+                    System.err.println();
+                    if (DetectionUtils.isJunit()) {
+                        return;
+                    }
                     System.exit(1);
                 }
                 System.out.format(Messages.getString(
                         "ServerInitDatabase.LoadLimit.Done"));
+                System.out.println();
             }
             if (sbusiness != null || salias != null || sroles != null) {
                 if (sbusiness != null) {
@@ -222,10 +259,18 @@ public class ServerInitDatabase {
             }
             System.out.println(Messages.getString(
                     "ServerInitDatabase.LoadDone"));
+            System.out.println();
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             System.exit(0);
         } catch (WaarpDatabaseException e) {
             System.err.println(Messages.getString(
                     "ServerInitDatabase.ErrDatabase"));
+            System.err.println();
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             System.exit(3);
         } finally {
             if (DbConstant.admin != null) {

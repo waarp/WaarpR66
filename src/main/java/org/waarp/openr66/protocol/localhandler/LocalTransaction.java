@@ -102,8 +102,6 @@ public class LocalTransaction {
         serverBootstrap.channel(LocalServerChannel.class);
         serverBootstrap.group(Configuration.configuration.getLocalBossGroup(),
                 Configuration.configuration.getLocalWorkerGroup());
-        serverBootstrap.option(ChannelOption.TCP_NODELAY, true);
-        serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
         serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Configuration.configuration.getTIMEOUTCON());
         serverBootstrap.childHandler(new LocalServerInitializer());
         try {

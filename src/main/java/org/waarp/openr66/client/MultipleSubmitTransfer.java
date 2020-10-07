@@ -24,6 +24,7 @@ import java.util.List;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.R66Result;
@@ -82,18 +83,24 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
         try {
             dbrule = new DbRule(rulename);
         } catch (WaarpDatabaseException e) {
-            logger.error(Messages.getString("SubmitTransfer.2") + rule); //$NON-NLS-1$
+            logger.error(Messages.getString("SubmitTransfer.2") + rulename); //$NON-NLS-1$
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(2);
         }
         if (!submit && dbrule.isRecvMode() && networkTransaction == null) {
             logger.error(Messages.getString("Configuration.WrongInit") + " => -client argument is missing"); //$NON-NLS-1$
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(2);
         }
         List<String> files = null;
         if (dbrule.isSendMode()) {
-            files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
+            files = getLocalFiles(dbrule, localfilenames);
         } else if (submit) {
             files = new ArrayList<String>();
             for (String string : localfilenames) {
@@ -104,15 +111,15 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
             host = host.trim();
             if (host != null && !host.isEmpty()) {
                 if (!submit && dbrule.isRecvMode()) {
-                    files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+                    files = getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
                 }
                 for (String filename : files) {
                     filename = filename.trim();
                     if (filename != null && !filename.isEmpty()) {
                         R66Future future = new R66Future(true);
-                        SubmitTransfer transaction = new SubmitTransfer(future,
-                                host, filename, rule, fileInfo, ismd5, block, idt,
-                                ttimestart);
+                        SubmitTransfer transaction = new SubmitTransfer(
+                            future, host, filename, rulename, fileinfo,
+                            isMD5, blocksize, id, startTime);
                         transaction.normalInfoAsWarn = normalInfoAsWarn;
                         transaction.run();
                         future.awaitUninterruptibly();
@@ -197,6 +204,9 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
             }
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             ChannelUtils.stopLogger();
             System.exit(1);
         }
@@ -239,6 +249,9 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                     networkTransaction = null;
                 }
                 DbConstant.admin.close();
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 ChannelUtils.stopLogger();
                 System.exit(0);
             } else {
@@ -263,6 +276,9 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
                     networkTransaction = null;
                 }
                 DbConstant.admin.close();
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 ChannelUtils.stopLogger();
                 System.exit(transaction.getErrorMultiple());
             }

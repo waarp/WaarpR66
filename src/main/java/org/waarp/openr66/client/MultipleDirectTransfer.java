@@ -17,26 +17,21 @@
  */
 package org.waarp.openr66.client;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
-import org.waarp.openr66.context.R66Session;
-import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
-import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
-import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -71,71 +66,6 @@ public class MultipleDirectTransfer extends DirectTransfer {
         super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, networkTransaction);
     }
 
-    public static List<String> getRemoteFiles(DbRule dbrule, String[] localfilenames, String requested,
-            NetworkTransaction networkTransaction) {
-        List<String> files = new ArrayList<String>();
-        for (String filename : localfilenames) {
-            if (!(filename.contains("*") || filename.contains("?") || filename.contains("~"))) {
-                files.add(filename);
-            } else {
-                // remote query
-                R66Future futureInfo = new R66Future(true);
-                logger.info(Messages.getString("Transfer.3") + filename + " to " + requested); //$NON-NLS-1$
-                RequestInformation info = new RequestInformation(futureInfo, requested, rule, filename,
-                        (byte) InformationPacket.ASKENUM.ASKLIST.ordinal(), -1, false, networkTransaction);
-                info.run();
-                futureInfo.awaitUninterruptibly();
-                if (futureInfo.isSuccess()) {
-                    ValidPacket valid = (ValidPacket) futureInfo.getResult().getOther();
-                    if (valid != null) {
-                        String line = valid.getSheader();
-                        String[] lines = line.split("\n");
-                        for (String string : lines) {
-                            File tmpFile = new File(string);
-                            files.add(tmpFile.getPath());
-                        }
-                    }
-                } else {
-                    logger.error(Messages.getString("Transfer.6") + filename + " to " + requested + ": " +
-                            (futureInfo.getCause() == null ? "" : futureInfo.getCause().getMessage())); //$NON-NLS-1$
-                }
-            }
-        }
-        return files;
-    }
-
-    public static List<String> getLocalFiles(DbRule dbrule, String[] localfilenames) {
-        List<String> files = new ArrayList<String>();
-        R66Session session = new R66Session();
-        session.getAuth().specialNoSessionAuth(false, Configuration.configuration.getHOST_ID());
-        R66Dir dir = new R66Dir(session);
-        try {
-            dir.changeDirectory(dbrule.getSendPath());
-        } catch (CommandAbstractException e) {
-        }
-        if (localfilenames != null) {
-            for (String filename : localfilenames) {
-                if (!(filename.contains("*") || filename.contains("?") || filename.contains("~"))) {
-                    logger.info("Direct add: " + filename);
-                    files.add(filename);
-                } else {
-                    // local: must check
-                    logger.info("Local Ask for " + filename + " from " + dir.getFullPath());
-                    List<String> list;
-                    try {
-                        list = dir.list(filename);
-                        if (list != null) {
-                            files.addAll(list);
-                        }
-                    } catch (CommandAbstractException e) {
-                        logger.warn(Messages.getString("Transfer.14") + filename + " : " + e.getMessage()); //$NON-NLS-1$
-                    }
-                }
-            }
-        }
-        return files;
-    }
-
     @Override
     public void run() {
         String[] localfilenames = filename.split(",");
@@ -168,7 +98,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
                         long time1 = System.currentTimeMillis();
                         R66Future future = new R66Future(true);
                         DirectTransfer transaction = new DirectTransfer(future,
-                                host, filename, rule, fileInfo, ismd5, block, idt,
+                                host, filename, rulename, fileinfo, isMD5, blocksize, id,
                                 networkTransaction);
                         transaction.normalInfoAsWarn = normalInfoAsWarn;
                         logger.debug("rhost: " + host + ":" + transaction.remoteHost);
@@ -224,6 +154,9 @@ public class MultipleDirectTransfer extends DirectTransfer {
                                 logger.error(outputFormat.loggerOut(), future.getCause());
                                 outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
                                 outputFormat.sysout();
+                                if (DetectionUtils.isJunit()) {
+                                    return;
+                                }
                                 networkTransaction.closeAll();
                                 System.exit(ErrorCode.Unknown.ordinal());
                             }
@@ -282,6 +215,9 @@ public class MultipleDirectTransfer extends DirectTransfer {
             }
             if (DbConstant.admin != null && DbConstant.admin.isActive()) {
                 DbConstant.admin.close();
+            }
+            if (DetectionUtils.isJunit()) {
+                return;
             }
             ChannelUtils.stopLogger();
             System.exit(2);
@@ -342,12 +278,18 @@ public class MultipleDirectTransfer extends DirectTransfer {
                         result.sysout();
                     }
                 }
+                if (DetectionUtils.isJunit()) {
+                    return;
+                }
                 networkTransaction.closeAll();
                 System.exit(multipleDirectTransfer.getErrorMultiple());
             }
         } catch (Throwable e) {
             logger.error("Exception", e);
         } finally {
+            if (DetectionUtils.isJunit()) {
+                return;
+            }
             networkTransaction.closeAll();
             System.exit(0);
         }

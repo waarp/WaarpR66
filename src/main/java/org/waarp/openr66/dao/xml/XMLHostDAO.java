@@ -1,14 +1,15 @@
 package org.waarp.openr66.dao.xml;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.HostDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.pojo.Host;
 import org.xml.sax.SAXException;
 
@@ -17,15 +18,22 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class XMLHostDAO implements HostDAO {
 
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(XMLHostDAO.class);
+
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, Host>
+        dbR66HostAuthHashMap =
+        new ConcurrentHashMap<String, Host>();
 
     public static final String HOSTID_FIELD = "hostid";
     public static final String ADDRESS_FIELD = "address";
@@ -48,17 +56,17 @@ public class XMLHostDAO implements HostDAO {
 
     public void close() {}
 
-    public void delete(Host host) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void delete(Host host) throws DAOConnectionException {
+        dbR66HostAuthHashMap.remove(host.getHostid());
     }
 
-    public void deleteAll() throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void deleteAll() throws DAOConnectionException {
+        dbR66HostAuthHashMap.clear();
     }
 
-    public List<Host> getAll() throws DAOException {
+    public List<Host> getAll() throws DAOConnectionException {
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -72,23 +80,28 @@ public class XMLHostDAO implements HostDAO {
             List<Host> res = new ArrayList<Host>(listNode.getLength());
             for (int i = 0; i < listNode.getLength(); i++) {
                 Node node = listNode.item(i);
-                res.add(getFromNode(node));
+                Host host = getFromNode(node);
+                res.add(host);
+                dbR66HostAuthHashMap.put(host.getHostid(), host);
             }
             return res;
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public boolean exist(String hostid) throws DAOException {
+    public boolean exist(String hostid) throws DAOConnectionException {
+        if (dbR66HostAuthHashMap.containsKey(hostid)) {
+            return true;
+        }
         if (!file.exists()) {
-            throw new DAOException("File doesn't exist");
+            throw new DAOConnectionException("File doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -103,27 +116,32 @@ public class XMLHostDAO implements HostDAO {
             // Query will return "" if nothing is found
             return(!"".equals(xpe.evaluate(document)));
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public List<Host> find(List<Filter> fitlers) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public List<Host> find(List<Filter> fitlers) throws DAOConnectionException {
+        throw new DAOConnectionException("Operation not supported on XML DAO");
     }
 
-    public void insert(Host host) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void insert(Host host) throws DAOConnectionException {
+        dbR66HostAuthHashMap.put(host.getHostid(), host);
     }
 
-    public Host select(String hostid) throws DAOException {
+    public Host select(String hostid)
+        throws DAOConnectionException, DAONoDataException {
+        Host host = dbR66HostAuthHashMap.get(hostid);
+        if (host != null) {
+            return host;
+        }
         if (!file.exists()) {
-            throw new DAOException("File " + file.getPath() + " doesn't exist");
+            throw new DAOConnectionException("File " + file.getPath() + " doesn't exist");
         }
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -138,22 +156,24 @@ public class XMLHostDAO implements HostDAO {
             // Retrieve node and instantiate object
             Node node = (Node) xpe.evaluate(document, XPathConstants.NODE);
             if (node != null) {
-                 return getFromNode(node);
+                host = getFromNode(node);
+                dbR66HostAuthHashMap.put(host.getHostid(), host);
+                return host;
             }
-            return null;
+            throw new DAONoDataException("Host not found");
         } catch (SAXException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (XPathExpressionException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (ParserConfigurationException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         } catch (IOException e) {
-            throw new DAOException(e);
+            throw new DAOConnectionException(e);
         }
     }
 
-    public void update(Host host) throws DAOException {
-        throw new DAOException("Operation not supported on XML DAO");
+    public void update(Host host) throws DAOConnectionException {
+        dbR66HostAuthHashMap.put(host.getHostid(), host);
     }
 
     private Host getFromNode(Node parent) {

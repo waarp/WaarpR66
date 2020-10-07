@@ -26,7 +26,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.waarp.openr66.dao.BusinessDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.pojo.Business;
 import org.waarp.openr66.protocol.http.restv2.errors.RestError;
 import org.waarp.openr66.protocol.http.restv2.errors.RestErrorException;
@@ -198,7 +199,9 @@ public final class HostConfigConverter {
             businessDAO = DAO_FACTORY.getBusinessDAO();
             Business config = businessDAO.select(SERVER_NAME);
             array = getRolesArray(config);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
+            throw new InternalServerErrorException(e);
+        } catch (DAONoDataException e) {
             throw new InternalServerErrorException(e);
         } finally {
             if (businessDAO != null) {

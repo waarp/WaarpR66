@@ -50,7 +50,8 @@ import org.waarp.openr66.dao.DAOFactory;
 import org.waarp.openr66.dao.Filter;
 import org.waarp.openr66.dao.RuleDAO;
 import org.waarp.openr66.dao.database.DBRuleDAO;
-import org.waarp.openr66.dao.exception.DAOException;
+import org.waarp.openr66.dao.exception.DAOConnectionException;
+import org.waarp.openr66.dao.exception.DAONoDataException;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.pojo.Rule;
 import org.waarp.openr66.pojo.RuleTask;
@@ -109,12 +110,6 @@ public class DbRule extends AbstractDbData {
             Types.NVARCHAR };
 
     public static final String table = " RULES ";
-
-    /**
-     * HashTable in case of lack of database
-     */
-    private static final ConcurrentHashMap<String, DbRule> dbR66RuleHashMap =
-            new ConcurrentHashMap<String, DbRule>();
 
     /**
      * Internal context XML fields
@@ -234,31 +229,28 @@ public class DbRule extends AbstractDbData {
 
     @Override
     protected void initObject() {
-        /*
-        primaryKey = new DbValue[] { new DbValue(getIdRule(),
-                Columns.IDRULE.name()) };
+        primaryKey = new DbValue[] { new DbValue("", Columns.IDRULE.name()) };
         otherFields = new DbValue[] {
                 // HOSTIDS, MODETRANS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
                 // PRETASKS, POSTTASKS, ERRORTASKS
-                new DbValue(rule.getXMLHostids(), Columns.HOSTIDS.name(), true),
-                new DbValue(rule.getMode(), Columns.MODETRANS.name()),
-                new DbValue(rule.getRecvPath(), Columns.RECVPATH.name()),
-                new DbValue(rule.getSendPath(), Columns.SENDPATH.name()),
-                new DbValue(rule.getArchivePath(), Columns.ARCHIVEPATH.name()),
-                new DbValue(rule.getWorkPath(), Columns.WORKPATH.name()),
-                new DbValue(rule.getXMLRPreTasks(), Columns.RPRETASKS.name(), true),
-                new DbValue(rule.getXMLRPostTasks(), Columns.RPOSTTASKS.name(), true),
-                new DbValue(rule.getXMLRErrorTasks(), Columns.RERRORTASKS.name(), true),
-                new DbValue(rule.getXMLSPreTasks(), Columns.SPRETASKS.name(), true),
-                new DbValue(rule.getXMLSPostTasks(), Columns.SPOSTTASKS.name(), true),
-                new DbValue(rule.getXMLSErrorTasks(), Columns.SERRORTASKS.name(), true),
-                new DbValue(rule.getUpdatedInfo().ordinal(), Columns.UPDATEDINFO.name()) };
+                new DbValue("", Columns.HOSTIDS.name(), true),
+                new DbValue(0, Columns.MODETRANS.name()),
+                new DbValue("", Columns.RECVPATH.name()),
+                new DbValue("", Columns.SENDPATH.name()),
+                new DbValue("", Columns.ARCHIVEPATH.name()),
+                new DbValue("", Columns.WORKPATH.name()),
+                new DbValue("", Columns.RPRETASKS.name(), true),
+                new DbValue("", Columns.RPOSTTASKS.name(), true),
+                new DbValue("", Columns.RERRORTASKS.name(), true),
+                new DbValue("", Columns.SPRETASKS.name(), true),
+                new DbValue("", Columns.SPOSTTASKS.name(), true),
+                new DbValue("", Columns.SERRORTASKS.name(), true),
+                new DbValue(0, Columns.UPDATEDINFO.name()) };
         allFields = new DbValue[] {
                 otherFields[0], otherFields[1], otherFields[2], otherFields[3],
                 otherFields[4], otherFields[5], otherFields[6], otherFields[7],
                 otherFields[8], otherFields[9], otherFields[10],
                 otherFields[11], otherFields[12], primaryKey[0] };
-         */
     }
 
     @Override
@@ -315,7 +307,7 @@ public class DbRule extends AbstractDbData {
         allFields[Columns.SPRETASKS.ordinal()].setValue(rule.getXMLSPreTasks());
         allFields[Columns.SPOSTTASKS.ordinal()].setValue(rule.getXMLSPostTasks());
         allFields[Columns.SERRORTASKS.ordinal()].setValue(rule.getXMLSErrorTasks());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(rule.getUpdatedInfo());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(rule.getUpdatedInfo().ordinal());
         allFields[Columns.IDRULE.ordinal()].setValue(getIdRule());
     }
 
@@ -378,7 +370,6 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * @param dbSession
      * @param idRule
      * @param ids
      * @param mode
@@ -406,10 +397,10 @@ public class DbRule extends AbstractDbData {
             fromLegacyTasks(getTasksRule(spreTasks)),
             fromLegacyTasks(getTasksRule(spostTasks)),
             fromLegacyTasks(getTasksRule(serrorTasks)));
+        setToArray();
     }
 
     /**
-     * @param dbSession
      * @param idRule
      * @throws WaarpDatabaseException
      */
@@ -419,27 +410,31 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             rule = ruleAccess.select(idRule);
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Rule not found", e);
         } finally {
             if (ruleAccess != null) {
                 ruleAccess.close();
             }
         }
-        if (rule == null) {
-            throw new WaarpDatabaseNoDataException("Rule not found");
-        }
     }
 
     public DbRule(Rule rule) {
         super();
-        rule = rule;
+        if (rule == null) {
+            throw new IllegalArgumentException(
+                "Argument in constructor cannot be null");
+        }
+        this.rule = rule;
+        setToArray();
     }
 
     /**
      * Constructor used from XML file
      *
-     * @param dbSession
      * @param idrule
      * @param idsArrayRef
      * @param recvpath
@@ -470,12 +465,12 @@ public class DbRule extends AbstractDbData {
                 fromLegacyTasks(spretasksArray),
                 fromLegacyTasks(sposttasksArray),
                 fromLegacyTasks(serrortasksArray));
+        setToArray();
     }
 
     /**
      * Constructor from Json
      *
-     * @param dbSession
      * @param source
      * @throws WaarpDatabaseSqlException
      */
@@ -486,6 +481,7 @@ public class DbRule extends AbstractDbData {
         if (getIdRule() == null || getIdRule().isEmpty()) {
             throw new WaarpDatabaseSqlException("Not enough argument to create the object");
         }
+        setToArray();
     }
 
     @Override
@@ -496,7 +492,6 @@ public class DbRule extends AbstractDbData {
     /**
      * Delete all entries (used when purge and reload)
      *
-     * @param dbSession
      * @return the previous existing array of DbRule
      * @throws WaarpDatabaseException
      */
@@ -507,7 +502,7 @@ public class DbRule extends AbstractDbData {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             rules = ruleAccess.getAll();
             ruleAccess.deleteAll();
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (ruleAccess != null) {
@@ -529,8 +524,10 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             ruleAccess.delete(rule);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Rule not found", e);
         } finally {
             if (ruleAccess != null) {
                 ruleAccess.close();
@@ -544,7 +541,7 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             ruleAccess.insert(rule);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (ruleAccess != null) {
@@ -559,7 +556,7 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             return  ruleAccess.exist(rule.getName());
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
         } finally {
             if (ruleAccess != null) {
@@ -574,8 +571,11 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             rule = ruleAccess.select(rule.getName());
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Rule not found", e);
         } finally {
             if (ruleAccess != null) {
                 ruleAccess.close();
@@ -589,8 +589,11 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             ruleAccess.update(rule);
-        } catch (DAOException e) {
+            setToArray();
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseException(e);
+        } catch (DAONoDataException e) {
+            throw new WaarpDatabaseNoDataException("Rule not found", e);
         } finally {
             if (ruleAccess != null) {
                 ruleAccess.close();
@@ -609,8 +612,6 @@ public class DbRule extends AbstractDbData {
     /**
      * Get All DbRule from database or from internal hashMap in case of no database support
      *
-     * @param dbSession
-     *            may be null
      * @return the array of DbRule
      * @throws WaarpDatabaseNoConnectionException
      * @throws WaarpDatabaseSqlException
@@ -622,7 +623,7 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             rules = ruleAccess.getAll();
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (ruleAccess != null) {
@@ -650,10 +651,9 @@ public class DbRule extends AbstractDbData {
             throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
         DbRule dbRule = new DbRule();
         dbRule.getValues(preparedStatement, dbRule.allFields);
-        dbRule.setFromArray();
+        dbRule.setToArray();
         dbRule.isSaved = true;
         logger.debug("Get one Rule from Db: " + dbRule.getIdRule());
-        dbR66RuleHashMap.put(dbRule.getIdRule(), dbRule);
         return dbRule;
     }
 
@@ -673,7 +673,7 @@ public class DbRule extends AbstractDbData {
         try {
             ruleAccess = DAOFactory.getInstance().getRuleDAO();
             rules = ruleAccess.find(filters);
-        } catch (DAOException e) {
+        } catch (DAOConnectionException e) {
             throw new WaarpDatabaseNoConnectionException(e);
         } finally {
             if (ruleAccess != null) {
